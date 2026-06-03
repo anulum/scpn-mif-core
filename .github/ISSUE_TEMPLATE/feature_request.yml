@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Feature request
+description: Suggest a new capability for SCPN-MIF-CORE.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Cross-repository capabilities should land in the canonical sibling
+        repository, not here. See the cross-repository ownership map in
+        `docs/architecture/index.md` before opening this issue.
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+    validations:
+      required: true
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed surface
+    validations:
+      required: true
+  - type: input
+    id: module_id
+    attributes:
+      label: Proposed module ID (if any)
+      placeholder: "MIF-016, NEU-C.7, ..."
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

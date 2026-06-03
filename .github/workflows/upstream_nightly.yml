@@ -1,0 +1,61 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Upstream nightly compatibility
+
+# Daily attempt to bump each pinned sibling repository to its latest main
+# and run the MIF contract test suite. See `docs/internal/bidirectional_sync_protocol.md`.
+
+on:
+  schedule:
+    - cron: "17 3 * * *"   # 03:17 UTC daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  bump-trial:
+    name: Bump ${{ matrix.sibling }} and run contract tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        sibling:
+          - sc-neurocore
+          - scpn-phase-orchestrator
+          - scpn-control
+          - scpn-fusion-core
+          - scpn-quantum-control
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install ecosystem extras
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,ecosystem]" || true
+      - name: Install ${{ matrix.sibling }} from main
+        run: |
+          pip install "git+https://github.com/anulum/${{ matrix.sibling }}.git@main" || true
+      - name: Run contract tests for ${{ matrix.sibling }}
+        run: |
+          pytest tests/contract/ -q -m contract -k "${{ matrix.sibling }}" || \
+            (echo "contract drift on ${{ matrix.sibling }}@main" && exit 1)
+      - name: Open drift issue on failure
+        if: failure()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const title = `Upstream drift: ${process.env.SIBLING}@main breaks MIF contract`;
+            const body = `Nightly compatibility job at ${process.env.RUN_URL} failed for sibling ${process.env.SIBLING}. ` +
+                         `Inspect contract test output and bump or defer the pin per the bidirectional sync protocol.`;
+            await github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo, title, body,
+              labels: ['upstream-drift'],
+            });
+        env:
+          SIBLING: ${{ matrix.sibling }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Default reviewer for every change.
+
+*                                       @anulum/maintainers
+
+# Governance + legal
+LICENSE                                 @anulum
+COPYRIGHT                               @anulum
+NOTICE.md                               @anulum
+CITATION.cff                            @anulum
+GOVERNANCE.md                           @anulum
+SECURITY.md                             @anulum
+CODE_OF_CONDUCT.md                      @anulum
+
+# Build system pins
+pyproject.toml                          @anulum/maintainers
+Cargo.toml                              @anulum/maintainers
+scpn-mif-rs/Cargo.toml                  @anulum/maintainers
+rust-toolchain.toml                     @anulum/maintainers
+lakefile.lean                           @anulum/maintainers
+lean-toolchain                          @anulum/maintainers
+
+# CI
+.github/                                @anulum/maintainers
+
+# Cross-repository sync
+tools/check_sync_tags.py                @anulum/maintainers
+tools/preflight.py                      @anulum/maintainers
+tests/contract/                         @anulum/maintainers

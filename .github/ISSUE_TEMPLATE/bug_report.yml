@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Bug report
+description: Report a defect in SCPN-MIF-CORE.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. For security
+        vulnerabilities, please follow `SECURITY.md` instead of opening a
+        public issue.
+  - type: input
+    id: version
+    attributes:
+      label: SCPN-MIF-CORE version
+      placeholder: "0.0.1"
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: "OS, Python, Rust, Vivado, Lean toolchain, sibling pins"
+    validations:
+      required: true
+  - type: textarea
+    id: reproducer
+    attributes:
+      label: Minimal reproducer
+      placeholder: "Python or Rust snippet, or pytest invocation."
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / stack traces
+      render: shell

@@ -1,0 +1,39 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Synthesis (Vivado, self-hosted)
+
+on:
+  schedule:
+    - cron: "23 4 * * *"   # 04:23 UTC daily
+  pull_request:
+    paths:
+      - "hdl/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vivado-zu3eg:
+    name: Vivado batch — ZU3EG
+    runs-on: [self-hosted, vivado-2024-2]
+    if: contains(github.event.pull_request.labels.*.name, 'synth-required') || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    timeout-minutes: 180
+    env:
+      MIF_VIVADO_CI: "1"
+    steps:
+      - uses: actions/checkout@v5
+      - name: vivado -mode batch -source build_zu3eg.tcl
+        working-directory: hdl/targets/ultrascale_plus
+        run: |
+          if [ -f build_zu3eg.tcl ]; then
+            vivado -mode batch -source build_zu3eg.tcl
+          else
+            echo "build_zu3eg.tcl not yet present (P3)"
+          fi
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zu3eg-reports-${{ github.sha }}
+          path: hdl/reports/ultrascale_plus/
+          if-no-files-found: ignore

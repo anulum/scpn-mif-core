@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Formal verification
+
+on:
+  pull_request:
+    paths:
+      - "hdl/**"
+      - "lean/**"
+      - ".github/workflows/formal.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  symbiyosys:
+    name: SymbiYosys + nuXmv + Kind 2
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.changed_files, 'hdl/')
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Yosys + SymbiYosys
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            yosys symbiyosys z3 boolector
+      - name: Run SymbiYosys
+        run: |
+          if [ -d hdl/formal ]; then
+            for sby in hdl/formal/**/*.sby; do
+              echo "::group::sby: $sby"
+              sby -f "$sby" || exit 1
+              echo "::endgroup::"
+            done
+          else
+            echo "no formal scripts yet (P3+)"
+          fi
+
+  lean:
+    name: Lean 4 + mathlib4
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.changed_files, 'lean/')
+    env:
+      MIF_LEAN_CI: "1"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-version: latest
+      - name: lake build
+        working-directory: lean
+        run: lake update && lake build

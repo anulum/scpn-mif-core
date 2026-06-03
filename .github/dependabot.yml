@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:00"
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "python"]
+    reviewers:
+      - "anulum/maintainers"
+    ignore:
+      - dependency-name: "sc-neurocore-engine"
+      - dependency-name: "scpn-phase-orchestrator"
+      - dependency-name: "scpn-control"
+      - dependency-name: "scpn-fusion-core"
+      - dependency-name: "scpn-quantum-control"
+
+  - package-ecosystem: cargo
+    directory: "/scpn-mif-rs"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "04:30"
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "rust"]
+
+  - package-ecosystem: gomod
+    directory: "/go"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:00"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "go"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:30"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "ci"]

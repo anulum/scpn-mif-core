@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+blank_issues_enabled: false
+contact_links:
+  - name: Security disclosure
+    url: https://github.com/anulum/scpn-mif-core/security/advisories/new
+    about: Report a security vulnerability privately.
