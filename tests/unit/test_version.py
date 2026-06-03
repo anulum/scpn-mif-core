@@ -38,7 +38,7 @@ def test_citation_cff_version_matches_module() -> None:
 
 
 def test_cargo_workspace_version_matches_module() -> None:
-    cargo = tomllib.loads(_read_text(REPO / "Cargo.toml"))
+    cargo = tomllib.loads(_read_text(REPO / "scpn-mif-rs" / "Cargo.toml"))
     assert cargo["workspace"]["package"]["version"] == scpn_mif_core.__version__
 
 
