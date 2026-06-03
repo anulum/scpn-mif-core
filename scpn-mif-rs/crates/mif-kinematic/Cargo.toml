@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+[package]
+name = "mif-kinematic"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
+description = "Kinematic FRC plasmoid merging: Doppler-corrected Kuramoto, moving-frame UPDE, merge-window monitor."
+
+[dependencies]
+mif-types = { path = "../mif-types" }
+mif-core = { path = "../mif-core" }
+ndarray = { workspace = true }
+nalgebra = { workspace = true }
+rayon = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+criterion = { workspace = true }

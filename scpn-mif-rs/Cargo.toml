@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# SCPN-MIF-CORE — Rust workspace.
+[workspace]
+resolver = "3"
+members = [
+    "crates/mif-types",
+    "crates/mif-core",
+    "crates/mif-kinematic",
+    "crates/mif-lifecycle",
+    "crates/mif-aer",
+    "crates/mif-fpga",
+    "crates/mif-ffi",
+]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+rust-version = "1.85"
+authors = ["Miroslav Sotek <protoscience@anulum.li>"]
+license = "AGPL-3.0-or-later"
+homepage = "https://www.anulum.li"
+repository = "https://github.com/anulum/scpn-mif-core"
+readme = "../README.md"

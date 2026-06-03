@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+[package]
+name = "mif-ffi"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
+description = "PyO3 bridge: exposes mif-core, mif-kinematic, mif-lifecycle, mif-aer, mif-fpga to Python."
+
+[lib]
+name = "scpn_mif_core_rs"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+mif-types = { path = "../mif-types" }
+mif-core = { path = "../mif-core" }
+mif-kinematic = { path = "../mif-kinematic" }
+mif-lifecycle = { path = "../mif-lifecycle" }
+mif-aer = { path = "../mif-aer" }
+mif-fpga = { path = "../mif-fpga" }
+pyo3 = { workspace = true }
+numpy = { workspace = true }

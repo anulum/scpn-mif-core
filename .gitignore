@@ -1,1 +1,133 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# ── Agent-private (NEVER committed) ────────────────────────────────────
+CLAUDE.md
+.claude/
+GEMINI.md
+.gemini/
+CODEX_INSTRUCTIONS.md
+.codex/
+.agent_metadata.json
+.coordination/
 docs/internal/
+
+# ── Backups, archives, in-progress work ────────────────────────────────
+BACKUP/
+ARCHIVE/
+MODELS/
+.tmp/
+.tmp_*/
+
+# ── Rust ───────────────────────────────────────────────────────────────
+target/
+.tmp_cargo_target*/
+Cargo.lock
+!scpn-mif-rs/Cargo.lock
+
+# ── Python ─────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# ── Julia ──────────────────────────────────────────────────────────────
+Manifest.toml
+!julia/SCPNMIFCore/Manifest.toml
+.julia/
+
+# ── Lean 4 ─────────────────────────────────────────────────────────────
+lean/.lake/
+lean/lake-manifest.json
+!lean/lakefile.lean
+!lean/lean-toolchain
+.lake/
+
+# ── Go ─────────────────────────────────────────────────────────────────
+go.sum
+!go/go.sum
+go/bin/
+go/pkg/
+
+# ── Mojo / pixi ────────────────────────────────────────────────────────
+.pixi/
+!pixi.toml
+!pixi.lock
+
+# ── Virtual environments ───────────────────────────────────────────────
+.venv/
+.venv-*/
+venv/
+env/
+
+# ── Testing ────────────────────────────────────────────────────────────
+.pytest_cache/
+.hypothesis/
+.coverage
+.coverage.*
+coverage.xml
+coverage-*.xml
+htmlcov/
+.tox/
+.mypy_cache/
+.ruff_cache/
+
+# ── Benchmark results (local runs; CI artefacts uploaded separately) ──
+bench/results/local/
+
+# ── HDL / FPGA artefacts ───────────────────────────────────────────────
+hdl/build/
+hdl/.Xil/
+hdl/*.jou
+hdl/*.log
+hdl/vivado_*.backup.*
+hdl/reports/local/
+*.bit
+*.bin
+*.mcs
+*.dcp
+*.xpr.user
+
+# ── Cosimulation outputs ───────────────────────────────────────────────
+cosim/build/
+cosim/obj_dir/
+*.vcd
+*.fst
+
+# ── Formal verification artefacts ──────────────────────────────────────
+hdl/formal/build/
+hdl/formal/local/
+*.sby.work/
+*.smt2.tmp
+
+# ── Documentation build ────────────────────────────────────────────────
+site/
+.cache/
+
+# ── IDE ────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ── OS ─────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Local environment files (should never be committed) ────────────────
+.env
+.env.*
+!.env.example
+
+# ── Large data assets (must be staged through DVC / Git LFS) ───────────
+data/
+*.npz
+*.gif
+*.png
+!docs/**/*.png
+*.h5
+*.hdf5
