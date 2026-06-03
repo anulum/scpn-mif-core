@@ -18,12 +18,18 @@ benchmark_host = "i5-11600K (mining rig)"
 # Map: kernel name -> ordered backend list.
 # Order is the dispatch precedence. Entries below are placeholders that
 # point at the Python reference until each kernel is benchmarked.
-"kinematic.doppler_kuramoto"  = ["python"]
-"kinematic.moving_frame_upde" = ["python"]
-"kinematic.merge_window"      = ["python"]
-"lifecycle.pulsed_shot_fsm"   = ["python"]
-"lifecycle.capacitor_bank"    = ["python"]
-"aer.spike_buffer"            = ["python"]
-"aer.decode_rate"             = ["python"]
-"physics.frc_rigid_rotor"     = ["python"]
-"physics.faraday_back_emf"    = ["python"]
+"kinematic.doppler_kuramoto"          = ["python"]
+"kinematic.moving_frame_upde"         = ["python"]
+"kinematic.merge_window"              = ["python"]
+"lifecycle.pulsed_shot_fsm"           = ["python"]
+"lifecycle.capacitor_bank"            = ["python"]
+"aer.spike_buffer"                    = ["python"]
+"aer.decode_rate"                     = ["python"]
+"physics.frc_rigid_rotor"             = ["python"]
+"physics.faraday_back_emf"            = ["python"]
+# I/O hardening trio (MIF-016, MIF-017, MIF-018) — registered for the
+# multi-language dispatch from P1 prototype onward.
+"diagnostics.normalisation"           = ["python"]    # MIF-016
+"diagnostics.stress_inject"           = ["python"]    # MIF-017
+"daq.udp_multicast_mock"              = ["python"]    # MIF-018
+"daq.pcie_dma_ring_mock"              = ["python"]    # MIF-018
