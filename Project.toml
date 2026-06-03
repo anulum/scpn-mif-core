@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# Project: SCPN-MIF-CORE — Julia umbrella project
+name = "SCPNMIFCore"
+uuid = "2f1c7e1a-3a4b-4e0e-8c61-9f3a7d5e4b21"
+version = "0.0.1"
+authors = ["Miroslav Sotek <protoscience@anulum.li>"]
+
+[deps]
+
+[compat]
+julia = "1.11"

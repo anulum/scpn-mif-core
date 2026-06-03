@@ -1,0 +1,65 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later | Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# Project: SCPN-MIF-CORE
+# Description: Git attribute policy.
+
+# Line ending normalisation
+* text=auto
+*.json text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+*.rs text eol=lf
+*.toml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sv text eol=lf
+*.svh text eol=lf
+*.v text eol=lf
+*.vh text eol=lf
+*.tcl text eol=lf
+*.xdc text eol=lf
+*.lean text eol=lf
+*.jl text eol=lf
+*.go text eol=lf
+*.mojo text eol=lf
+
+# Linguist overrides
+*.rs linguist-language=Rust
+*.jl linguist-language=Julia
+*.lean linguist-language=Lean
+*.mojo linguist-language=Mojo
+*.sv linguist-language=SystemVerilog
+*.sby linguist-language=SystemVerilog
+*.xdc linguist-language=Tcl
+
+# Binary files (no diff, no merge)
+*.npz binary
+*.npy binary
+*.onnx binary
+*.pt binary
+*.pth binary
+*.pkl binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.svg binary
+*.gif binary
+*.mp4 binary
+*.h5 binary
+*.hdf5 binary
+*.bit binary
+*.dcp binary
+*.mcs binary
+
+# Lock files — generated, do not diff
+Cargo.lock linguist-generated
+go.sum linguist-generated
+Manifest.toml linguist-generated
+pixi.lock linguist-generated
+lake-manifest.json linguist-generated
+
+# Internal-only documents (excluded from language statistics)
+docs/internal/** linguist-vendored=false linguist-documentation=true

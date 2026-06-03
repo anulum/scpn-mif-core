@@ -1,0 +1,32 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# Project: SCPN-MIF-CORE — multi-language workspace (Python + Julia + Mojo)
+[project]
+name = "scpn-mif-core"
+version = "0.0.1"
+description = "Multi-language workspace for SCPN-MIF-CORE"
+authors = ["Miroslav Sotek <protoscience@anulum.li>"]
+channels = ["conda-forge", "https://conda.modular.com/max"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = "==3.12.*"
+julia = ">=1.11"
+go = ">=1.23"
+rust = ">=1.85"
+mojo = ">=0.26"
+
+[pypi-dependencies]
+scpn-mif-core = { path = ".", editable = true }
+
+[tasks]
+test = "pytest tests/ -v"
+test-rust = "cd scpn-mif-rs && cargo test --workspace"
+test-julia = "julia --project=julia/SCPNMIFCore -e 'using Pkg; Pkg.test()'"
+test-go = "cd go && go test ./..."
+lint = "ruff check src/ tests/ && ruff format --check src/ tests/"
+preflight = "python tools/preflight.py"
+bench = "pytest bench/ --benchmark-only"
