@@ -119,6 +119,8 @@ ignore = [
     "E501",     # line length handled by formatter
     "S101",     # assert is fine in tests
     "RUF003",   # EN DASH in copyright year ranges is the ANULUM branding standard
+    "N803",     # SI-unit-suffixed argument names (initial_voltage_V) are intentional scientific convention
+    "N815",     # SI-unit-suffixed dataclass field names (capacitance_F, voltage_max_V) likewise
 ]
 
 [tool.ruff.lint.per-file-ignores]
