@@ -1,0 +1,39 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later | Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# Project: SCPN-MIF-CORE
+# Description: Citation metadata.
+cff-version: 1.2.0
+title: "SCPN-MIF-CORE"
+message: "If you use this software, please cite it using the metadata below."
+type: software
+authors:
+  - family-names: "Sotek"
+    given-names: "Miroslav"
+    orcid: "https://orcid.org/0009-0009-3560-0851"
+version: "0.0.1"
+date-released: "2026-06-03"
+license: "AGPL-3.0-or-later"
+repository-code: "https://github.com/anulum/scpn-mif-core"
+url: "https://www.anulum.li"
+abstract: >-
+  SCPN-MIF-CORE provides deterministic phase synchronisation and hardware
+  synthesis for high-beta pulsed plasmas, targeting sub-50-nanosecond
+  combinatorial sensor-to-actuator triggering on AMD Xilinx UltraScale+ FPGAs.
+  The framework discards steady-state Grad-Shafranov logic, substituting rigid-rotor
+  field-reversed-configuration equilibrium and two-fluid Hall-MHD with non-adiabatic
+  flux evolution, and compiles Kuramoto kinematic merging models into bit-true
+  Q8.8 SystemVerilog through the sibling sc-neurocore engine.
+keywords:
+  - magneto-inertial-fusion
+  - field-reversed-configuration
+  - pulsed-plasma
+  - kuramoto-synchronisation
+  - spiking-neural-network
+  - fixed-point
+  - systemverilog
+  - formal-verification
+  - hall-mhd
+  - magneto-rayleigh-taylor
