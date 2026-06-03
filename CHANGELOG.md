@@ -59,3 +59,14 @@
 
 - Initial commit `ee63e4d` retained as the pre-skeleton README and
   technical-definition document.
+- Registered four kernel placeholders in `bench/dispatch.toml` for the
+  I/O hardening trio (MIF-016 diagnostic normalisation, MIF-017
+  synthetic noise / dropout / jitter stress-bench, MIF-018 DAQ bus
+  mock for UDP multicast and PCIe DMA ring); backend selection
+  defaults to the Python reference until the multi-language chain
+  benchmarks land in P1.
+- Resolved preflight gate drift uncovered during the first local
+  verify (eleven discrete fixes across ruff, mypy, pytest coverage,
+  secrets scan, sync-tag linter, and the Rust workspace layout).
+- Aligned the Rust workspace with the sibling convention; the
+  workspace root is `scpn-mif-rs/Cargo.toml` only.
