@@ -86,12 +86,9 @@ def gate_bandit() -> GateResult:
     return _run("bandit", ["bandit", "-r", "src/scpn_mif_core/", "-c", "pyproject.toml", "-q"])
 
 
-def gate_pytest_unit() -> GateResult:
-    return _run("pytest-unit", ["pytest", "tests/unit/", "-q"])
-
-
-def gate_pytest_contract() -> GateResult:
-    return _run("pytest-contract", ["pytest", "tests/contract/", "-q", "-m", "contract"])
+def gate_pytest() -> GateResult:
+    """Run unit and contract layers in one pytest invocation so coverage covers both."""
+    return _run("pytest", ["pytest", "tests/unit/", "tests/contract/", "-q"])
 
 
 def gate_cargo_fmt() -> GateResult:
@@ -118,9 +115,7 @@ def gate_authorship() -> GateResult:
     import time
 
     t0 = time.monotonic()
-    msg = subprocess.run(
-        ["git", "log", "-1", "--pretty=%B"], check=False, capture_output=True, text=True
-    ).stdout
+    msg = subprocess.run(["git", "log", "-1", "--pretty=%B"], check=False, capture_output=True, text=True).stdout
     expected = "Authored by Anulum Fortis & Arcane Sapience"
     ok = expected in msg
     return GateResult(
@@ -150,8 +145,7 @@ def main(argv: list[str] | None = None) -> int:
         gates.append(gate_bandit())
 
     if not args.no_tests:
-        gates.append(gate_pytest_unit())
-        gates.append(gate_pytest_contract())
+        gates.append(gate_pytest())
 
     if not args.no_rust and shutil.which("cargo") is not None:
         gates.append(gate_cargo_fmt())

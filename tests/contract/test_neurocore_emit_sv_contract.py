@@ -20,11 +20,11 @@ import pytest
 pytestmark = pytest.mark.contract
 
 
-def test_sc_neurocore_module_importable(sc_neurocore) -> None:  # noqa: ANN001
+def test_sc_neurocore_module_importable(sc_neurocore) -> None:
     assert sc_neurocore is not None
 
 
-def test_sc_neurocore_version_pin(sc_neurocore) -> None:  # noqa: ANN001
+def test_sc_neurocore_version_pin(sc_neurocore) -> None:
     expected = "3.15.7"
     actual = getattr(sc_neurocore, "__version__", None)
     if actual is None:

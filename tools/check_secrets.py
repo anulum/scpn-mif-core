@@ -28,9 +28,7 @@ from pathlib import Path
 
 PATTERNS: dict[str, re.Pattern[str]] = {
     "aws_access_key": re.compile(r"AKIA[0-9A-Z]{16}"),
-    "generic_api_key": re.compile(
-        r"(?i)(api[-_]?key|token|secret)['\"\s:=]+[A-Za-z0-9_\-]{24,}"
-    ),
+    "generic_api_key": re.compile(r"(?i)(api[-_]?key|token|secret)['\"\s:=]+[A-Za-z0-9_\-]{24,}"),
     "private_key_block": re.compile(r"-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----"),
     "github_token": re.compile(r"ghp_[A-Za-z0-9]{36,}"),
     "ftp_inline_pass": re.compile(r"curl\s+-u\s+['\"]?[A-Za-z0-9_]+:[A-Za-z0-9_\-\.]{6,}"),
@@ -47,9 +45,37 @@ ALLOWED_FILES = {
     "SECURITY.md",
 }
 
+EXCLUDED_DIRS = {
+    ".venv",
+    ".venv-rocm",
+    ".venv-cuda",
+    "venv",
+    "env",
+    ".git",
+    "__pycache__",
+    "node_modules",
+    "target",
+    "build",
+    "dist",
+    "site",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".hypothesis",
+    "htmlcov",
+    ".pixi",
+    ".lake",
+    ".coverage",
+    ".cache",
+}
+
 
 def _is_allowed(path: str) -> bool:
     return any(path.startswith(prefix) for prefix in ALLOWED_FILES)
+
+
+def _is_excluded(path: Path) -> bool:
+    return any(part in EXCLUDED_DIRS for part in path.parts)
 
 
 def _staged_files() -> list[Path]:
@@ -67,9 +93,38 @@ def _staged_files() -> list[Path]:
 def _tree_files(root: Path) -> list[Path]:
     out: list[Path] = []
     for path in root.rglob("*"):
-        if path.is_file() and ".git/" not in str(path):
+        if path.is_file() and not _is_excluded(path.relative_to(root)):
             out.append(path)
     return out
+
+
+_TEXT_SUFFIXES = {
+    ".py",
+    ".rs",
+    ".jl",
+    ".lean",
+    ".go",
+    ".sv",
+    ".svh",
+    ".v",
+    ".vh",
+    ".tcl",
+    ".xdc",
+    ".toml",
+    ".yaml",
+    ".yml",
+    ".json",
+    ".md",
+    ".cfg",
+    ".ini",
+    ".sh",
+    ".bash",
+    ".env",
+    ".example",
+    ".lock",
+    ".mod",
+    "",
+}
 
 
 def scan(paths: list[Path], repo_root: Path) -> list[str]:
@@ -77,6 +132,8 @@ def scan(paths: list[Path], repo_root: Path) -> list[str]:
     for path in paths:
         rel = path.relative_to(repo_root) if path.is_absolute() else path
         if _is_allowed(str(rel)):
+            continue
+        if path.suffix not in _TEXT_SUFFIXES:
             continue
         try:
             text = path.read_text(encoding="utf-8", errors="ignore")

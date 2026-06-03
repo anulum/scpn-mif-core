@@ -40,8 +40,10 @@ import sys
 from pathlib import Path
 
 VALID_STATES = {"canonical", "mirror", "upstream-pending", "divergent"}
-TAG_RE = re.compile(r"^#\s*([A-Z][A-Z-]+):\s*(.+?)\s*$")
-SYNC_LINE_RE = re.compile(r"SYNC-STATE\s*:\s*([a-z\-]+)", re.IGNORECASE)
+# Match a properly-formatted tag line. Accept Python / TOML / shell `#`,
+# Rust / Go / JS / SystemVerilog `//` (with optional `!` for outer doc),
+# Lean / SQL `--`, and INI / Lisp `;` comment prefixes.
+TAG_RE = re.compile(r"^(?:#|//!?|--|;)\s*([A-Z][A-Z-]+):\s*(.+?)\s*$")
 PIN_RE = re.compile(r"^[a-z][a-z0-9\-]*@[0-9]+\.[0-9]+\.[0-9]+(?:-?[a-z0-9.]+)?$")
 ISO_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{4}$")
 
@@ -81,9 +83,9 @@ def validate_file(path: Path, repo_root: Path) -> list[str]:
     """Return a list of human-readable errors for one file. Empty == OK."""
     errors: list[str] = []
     head = _read_head(path)
-    if not any("SYNC-STATE" in line for line in head):
-        return errors  # not a sync-tagged module, skip
     tags = _extract_tags(head)
+    if "SYNC-STATE" not in tags:
+        return errors  # not a sync-tagged module (free mentions in prose are ignored)
     state = tags.get("SYNC-STATE", "").strip().lower()
     if state not in VALID_STATES:
         errors.append(f"{path}: unknown SYNC-STATE {state!r}; expected one of {sorted(VALID_STATES)}")
@@ -101,9 +103,8 @@ def validate_file(path: Path, repo_root: Path) -> list[str]:
         if not tags.get("CONTRACT-TEST"):
             errors.append(f"{path}: mirror module missing CONTRACT-TEST")
 
-    if state == "upstream-pending":
-        if "TRACKED-ISSUE" not in tags and not any("TODO" in line for line in head):
-            errors.append(f"{path}: upstream-pending module lacks TRACKED-ISSUE or inline TODO")
+    if state == "upstream-pending" and "TRACKED-ISSUE" not in tags and not any("TODO" in line for line in head):
+        errors.append(f"{path}: upstream-pending module lacks TRACKED-ISSUE or inline TODO")
 
     if state == "divergent":
         incidents = list((repo_root / "docs" / "internal" / "incidents").glob("divergence_*.md"))

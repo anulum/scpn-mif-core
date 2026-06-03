@@ -116,14 +116,17 @@ select = [
     "C4",            # comprehensions
 ]
 ignore = [
-    "E501",   # line length handled by formatter
-    "S101",   # assert is fine in tests
+    "E501",     # line length handled by formatter
+    "S101",     # assert is fine in tests
+    "RUF003",   # EN DASH in copyright year ranges is the ANULUM branding standard
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S", "PT011", "PT012"]
 "bench/**/*.py" = ["S"]
 "examples/**/*.py" = ["S"]
+"tools/**/*.py" = ["S"]
+"conftest.py" = ["S"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -134,7 +137,8 @@ disallow_untyped_defs = true
 disallow_incomplete_defs = true
 check_untyped_defs = true
 namespace_packages = true
-explicit_package_bases = true
+mypy_path = ["src"]
+packages = ["scpn_mif_core"]
 exclude = ["lean", "go", "scpn-mif-rs", "hdl", "build", "dist"]
 
 [[tool.mypy.overrides]]

@@ -18,15 +18,13 @@ import pytest
 pytestmark = pytest.mark.contract
 
 
-def test_scpn_control_module_importable(scpn_control) -> None:  # noqa: ANN001
+def test_scpn_control_module_importable(scpn_control) -> None:
     assert scpn_control is not None
 
 
-def test_scpn_control_version_pin(scpn_control) -> None:  # noqa: ANN001
+def test_scpn_control_version_pin(scpn_control) -> None:
     expected = "0.20.3"
     actual = getattr(scpn_control, "__version__", None)
     if actual is None:
         pytest.skip("scpn_control does not expose __version__")
-    assert actual == expected, (
-        f"scpn-control pin drift: contract expects {expected}, installed {actual}"
-    )
+    assert actual == expected, f"scpn-control pin drift: contract expects {expected}, installed {actual}"

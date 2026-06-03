@@ -18,15 +18,13 @@ import pytest
 pytestmark = pytest.mark.contract
 
 
-def test_scpn_fusion_module_importable(scpn_fusion) -> None:  # noqa: ANN001
+def test_scpn_fusion_module_importable(scpn_fusion) -> None:
     assert scpn_fusion is not None
 
 
-def test_scpn_fusion_version_pin(scpn_fusion) -> None:  # noqa: ANN001
+def test_scpn_fusion_version_pin(scpn_fusion) -> None:
     expected = "3.9.3"
     actual = getattr(scpn_fusion, "__version__", None)
     if actual is None:
         pytest.skip("scpn_fusion does not expose __version__")
-    assert actual == expected, (
-        f"scpn-fusion-core pin drift: contract expects {expected}, installed {actual}"
-    )
+    assert actual == expected, f"scpn-fusion-core pin drift: contract expects {expected}, installed {actual}"

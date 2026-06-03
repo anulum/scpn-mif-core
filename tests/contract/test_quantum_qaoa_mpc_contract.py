@@ -18,15 +18,13 @@ import pytest
 pytestmark = pytest.mark.contract
 
 
-def test_scpn_quantum_control_module_importable(scpn_quantum_control) -> None:  # noqa: ANN001
+def test_scpn_quantum_control_module_importable(scpn_quantum_control) -> None:
     assert scpn_quantum_control is not None
 
 
-def test_scpn_quantum_control_version_pin(scpn_quantum_control) -> None:  # noqa: ANN001
+def test_scpn_quantum_control_version_pin(scpn_quantum_control) -> None:
     expected = "0.9.9"
     actual = getattr(scpn_quantum_control, "__version__", None)
     if actual is None:
         pytest.skip("scpn_quantum_control does not expose __version__")
-    assert actual == expected, (
-        f"scpn-quantum-control pin drift: contract expects {expected}, installed {actual}"
-    )
+    assert actual == expected, f"scpn-quantum-control pin drift: contract expects {expected}, installed {actual}"
