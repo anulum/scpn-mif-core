@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SCPN-MIF-CORE — pre-push hook delegating to tools/preflight.py.
+set -euo pipefail
+
+# Run the full preflight gate. Bypass with `--no-verify` only with a tracked
+# issue link in the commit message; the commit gate enforces this.
+exec python tools/preflight.py "$@"

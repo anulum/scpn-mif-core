@@ -1,32 +1,147 @@
-## Repository Definition: `scpn-mif-core`
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Commercial license available -->
+<!-- © Concepts 1996–2026 Miroslav Šotek. All rights reserved. -->
+<!-- © Code 2020–2026 Miroslav Šotek. All rights reserved. -->
+<!-- ORCID: 0009-0009-3560-0851 -->
+<!-- Contact: www.anulum.li | protoscience@anulum.li -->
 
-**Repository:** `anulum/scpn-mif-core` (Magneto-Inertial Fusion Core)
-**Classification:** Deterministic Phase Synchronization & Hardware Synthesis for High-Beta ($\beta \sim 1$) Pulsed Plasmas.
+# SCPN-MIF-CORE — Magneto-Inertial Fusion Core
 
-### The Operational Target
+[![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL_3.0--or--later-blue.svg)](LICENSE)
+[![Python: 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](pyproject.toml)
+[![Rust: 1.85](https://img.shields.io/badge/rust-1.85-orange.svg)](rust-toolchain.toml)
+[![Julia: 1.11](https://img.shields.io/badge/julia-1.11-purple.svg)](Project.toml)
+[![Lean: 4.13](https://img.shields.io/badge/lean-4.13-darkgreen.svg)](lean-toolchain)
+[![Go: 1.23](https://img.shields.io/badge/go-1.23-00ADD8.svg)](go.mod)
+[![Status: pre-alpha](https://img.shields.io/badge/status-pre--alpha-red.svg)](#status)
+[![DOI: pending](https://img.shields.io/badge/DOI-pending-yellow.svg)](CITATION.cff)
 
-The objective of this repository is to solve the ultimate bottleneck in pulsed Magneto-Inertial Fusion (MIF): **Direct Energy Recovery Latency.**
+Deterministic phase synchronisation and hardware synthesis for high-beta
+pulsed magneto-inertial fusion plasmas on field-reversed configurations.
+Sub-50-nanosecond combinatorial sensor-to-actuator triggering on AMD Xilinx
+UltraScale+ FPGAs.
 
-Pulsed FRC devices (e.g., Helion's Polaris) have proven they can reach fusion ignition temperatures ($>100\text{ M}^\circ\text{C}$). However, creating fusion is mathematically distinct from extracting net electricity. High-beta reactors do not boil water; they extract energy via Faraday induction when the fusion reaction forces the plasma to expand radially against the external $20\text{ T}$ magnetic field.
+> **Status:** P0 bootstrap. No functional modules ship yet. The public
+> surface stabilises starting at `0.1.0`. See
+> [`docs/architecture/`](docs/architecture/index.md) for the operational
+> targets and the carrier equations.
 
-If the control architecture is reactive (operating in the $>1\ \mu\text{s}$ CPU envelope), it fails. Asymmetrical kinematic merging at Mach 1 triggers an $n=1$ tilt mode, or late compression triggers Magneto-Rayleigh-Taylor Instabilities (MRTI). The plasma breaches confinement and hits the vacuum wall before it can expand and push electromagnetic energy back into the capacitor banks.
+## Reading path
 
-**What it is for:** `scpn-mif-core` is engineered to preempt macroscopic instabilities *before* they compromise the energy recovery cycle. It discards steady-state Tokamak logic entirely, isolating the `scpn-phase-orchestrator` Kuramoto models and compiling them via `sc-neurocore` into sub-50 nanosecond, purely combinatorial SystemVerilog triggers.
+| Audience | Start here |
+|---|---|
+| Researcher evaluating fit | [Architecture overview](docs/architecture/index.md) |
+| Engineer pinning a dependency | [Compatibility matrix](docs/internal/compatibility_matrix.md) (internal) |
+| Contributor | [CONTRIBUTING](CONTRIBUTING.md) |
+| Security researcher | [SECURITY](SECURITY.md) |
+| Citation | [CITATION.cff](CITATION.cff) |
+
+## Quick start
+
+```bash
+git clone https://github.com/anulum/scpn-mif-core.git
+cd scpn-mif-core
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+make install-hooks   # wires preflight as the pre-push gate
+make preflight       # ten-gate local quality check
+```
+
+The Rust workspace builds independently:
+
+```bash
+cd scpn-mif-rs
+cargo test --workspace --all-features
+cargo clippy --workspace --all-targets -- -D warnings
+```
+
+Optional tool-chains (gate the related accelerators and proofs):
+
+```bash
+julia --project=julia/SCPNMIFCore -e 'using Pkg; Pkg.instantiate()'
+cd lean && lake update && lake build
+cd go && go test ./...
+pixi install         # Mojo via Modular's pixi channel
+```
+
+## Architecture in one figure
+
+```
+sensor → [AER]  ┐
+                ├── SNN (Q8.8) → combinatorial trigger fabric → coil switch
+slow control ───┘   ↑
+                    └── PulsedScenarioScheduler (CONTROL Petri-net + NMPC)
+                          ↑
+                          ├── CapacitorBank model
+                          ├── DopplerEngine + MovingFrameUPDE (PHASE-ORCH)
+                          ├── Hall-MHD pulsed + MRTI + tilt (FUSION-CORE)
+                          └── QAOA-MPC + PQC trigger signer (QUANTUM-CONTROL)
+```
+
+Latency budget end to end: **≤ 50 nanoseconds** sensor edge → switch edge.
+Formal proof of the budget is mechanised in SymbiYosys with a nuXmv / Kind 2
+timed-automata back-end (see `hdl/formal/timing/`).
+
+## Sibling repositories
+
+| Sibling | Role | Pin |
+|---|---|---|
+| [`sc-neurocore-engine`](https://github.com/anulum/sc-neurocore) | SNN → SystemVerilog emitter, Q8.8 quantiser, AER HDL, SymbiYosys properties | 3.15.7 |
+| [`scpn-phase-orchestrator`](https://github.com/anulum/scpn-phase-orchestrator) | Kuramoto family, distance coupling, monitors, Rust kernel, Lean SPO base | 0.6.5 |
+| [`scpn-control`](https://github.com/anulum/scpn-control) | Petri-net runtime + formal verification, SNN controller, Rust hot path, replay | 0.20.3 |
+| [`scpn-fusion-core`](https://github.com/anulum/scpn-fusion-core) | Canonical physics-solver laboratory (Hall-MHD, MRTI, tilt, equilibrium) | 3.9.3 |
+| [`scpn-quantum-control`](https://github.com/anulum/scpn-quantum-control) | QAOA-MPC, pulse shaping, bridges, QRNG, PQC trigger signer | 0.9.9 |
+
+## Technical specification
+
+> The remainder of this document is the original functional specification
+> that anchors the development plan. It is preserved verbatim. The
+> mathematical objects below are the carrier equations referenced from
+> [`docs/architecture/index.md`](docs/architecture/index.md).
+
+### Operational target
+
+`scpn-mif-core` solves the bottleneck in pulsed magneto-inertial fusion:
+**direct energy recovery latency**.
+
+Pulsed FRC devices have proven they can reach fusion ignition temperatures
+(> 100 M °C). Creating fusion is mathematically distinct from extracting
+net electricity. High-beta reactors do not boil water; they extract energy
+via Faraday induction when the fusion reaction forces the plasma to expand
+radially against the external 20-tesla magnetic field.
+
+If the control architecture is reactive (operating in the > 1 µs CPU
+envelope), it fails. Asymmetrical kinematic merging at Mach 1 triggers an
+n = 1 tilt mode, or late compression triggers magneto-Rayleigh–Taylor
+instabilities (MRTI). The plasma breaches confinement and hits the vacuum
+wall before it can expand and push electromagnetic energy back into the
+capacitor banks.
+
+`scpn-mif-core` is engineered to preempt these macroscopic instabilities
+*before* they compromise the energy-recovery cycle. It discards steady-state
+tokamak logic entirely, isolating the `scpn-phase-orchestrator` Kuramoto
+models and compiling them via `sc-neurocore` into sub-50-nanosecond, purely
+combinatorial SystemVerilog triggers.
 
 ---
 
-### Architectural Payload & Physics Priors
+### Architectural payload and physics priors
 
-The framework replaces standard Grad-Shafranov equilibria with non-adiabatic, 2-Fluid Hall-MHD logic and kinematic phase synchronization.
+The framework replaces standard Grad–Shafranov equilibria with non-adiabatic
+two-fluid Hall-MHD logic and kinematic phase synchronisation.
 
-#### 1. FRC Kinematic Phase Synchronization Module
+#### 1. FRC kinematic phase synchronisation module
 
-This module tracks the relative phase velocities of two incoming macroscopic plasma bodies. It calculates the exact timing delta required for the opposing formation coils to ensure the left and right FRCs enter phase-lock precisely at the geometric center of the compression chamber.
+This module tracks the relative phase velocities of two incoming macroscopic
+plasma bodies. It calculates the exact timing delta required for the
+opposing formation coils to ensure the left and right FRCs enter phase-lock
+precisely at the geometric centre of the compression chamber.
 
 ```python
 import math
 
-def kinematic_frc_synchronization(
+
+def kinematic_frc_synchronisation(
     omega_i: float,
     theta_i: float,
     theta_j: float,
@@ -35,72 +150,89 @@ def kinematic_frc_synchronization(
     z_i: float,
     z_j: float,
     K_mag: float,
-    alpha: float
+    alpha: float,
 ) -> float:
-    """
-    Evaluates the rate of phase change (d_theta_i_dt) for an FRC plasmoid 
-    during high-speed kinematic merging. Forces synchronization via a 
-    distance-dependent coupling function prior to collision at z=0.
-    """
-    # Coupling strength increases non-linearly as distance approaches zero
+    """Rate of phase change for an FRC plasmoid during high-speed kinematic merging."""
     spatial_coupling = K_mag / (1.0 + abs(z_i - z_j))
-    
-    # Kinematic phase-shift induced by relative axial velocity differences
     doppler_shift = (v_z_i - v_z_j) / (abs(v_z_i) + 1e-9)
-    
-    d_theta_i_dt = omega_i + spatial_coupling * math.sin(theta_j - theta_i - alpha) + doppler_shift
-    
-    return d_theta_i_dt
-
+    return omega_i + spatial_coupling * math.sin(theta_j - theta_i - alpha) + doppler_shift
 ```
 
-**Equation Parameters:**
+**Equation parameters:**
 
-* `omega_i`: Natural rotational frequency of the FRC driven by ion diamagnetic drift ($\text{rad}/\text{s}$).
-* `theta_i`, `theta_j`: Instantaneous internal rotational phases of the left and right FRCs.
-* `v_z_i`, `v_z_j`: Axial velocities of the plasmoids moving toward the central chamber ($\text{m}/\text{s}$).
-* `z_i`, `z_j`: Spatial positions of the FRCs along the longitudinal axis ($\text{m}$).
-* `K_mag`: Base magnetic coupling strength during the reconnection phase.
-* `alpha`: Frustration parameter representing non-ideal resistive delays in magnetic reconnection.
+- `omega_i` — natural rotational frequency of the FRC driven by ion
+  diamagnetic drift (rad s⁻¹).
+- `theta_i`, `theta_j` — instantaneous internal rotational phases of the
+  left and right FRCs.
+- `v_z_i`, `v_z_j` — axial velocities of the plasmoids moving toward the
+  central chamber (m s⁻¹).
+- `z_i`, `z_j` — spatial positions of the FRCs along the longitudinal axis
+  (m).
+- `K_mag` — base magnetic coupling strength during the reconnection phase.
+- `alpha` — frustration parameter representing non-ideal resistive delays
+  in magnetic reconnection.
 
-#### 2. High-Beta ($\beta \sim 1$) Direct Energy Recovery Module
+#### 2. High-beta direct-energy-recovery module
 
-This module provides the digital twin verification for energy extraction. It maps the rate of change of the internal plasma pressure directly to the induced Back-Electromotive Force (EMF) on the external coil array.
+This module provides the digital-twin verification for energy extraction.
+It maps the rate of change of the internal plasma pressure directly to the
+induced back-electromotive force on the external coil array.
 
 ```python
 import math
 
-def direct_energy_recovery_emf(
-    R_s: float, 
-    dR_s_dt: float, 
-    B_ext: float, 
-    N_turns: float
-) -> float:
-    """
-    Calculates the Back-Electromotive Force (EMF) induced in the recovery 
-    coils due to the radial expansion of the high-beta FRC post-fusion.
-    """
-    # Rate of change of magnetic flux (dPhi/dt) driven by expanding separatrix area
-    dPhi_dt = B_ext * (2.0 * math.pi * R_s * dR_s_dt)
-    
-    # Induced voltage via Faraday's Law of Induction
-    EMF = -N_turns * dPhi_dt
-    
-    return EMF
 
+def direct_energy_recovery_emf(
+    R_s: float,
+    dR_s_dt: float,
+    B_ext: float,
+    N_turns: float,
+) -> float:
+    """Back-EMF induced in the recovery coils due to radial expansion of the high-beta FRC."""
+    dPhi_dt = B_ext * (2.0 * math.pi * R_s * dR_s_dt)
+    return -N_turns * dPhi_dt
 ```
 
-**Equation Parameters:**
+**Equation parameters:**
 
-* `R_s`: Instantaneous radius of the FRC separatrix ($\text{m}$).
-* `dR_s_dt`: Radial expansion velocity of the plasma post-fusion ($\text{m}/\text{s}$). A positive value indicates expansion against the field.
-* `B_ext`: External confining magnetic field ($\text{T}$).
-* `N_turns`: Number of turns in the magnetic pickup/recovery coil array.
+- `R_s` — instantaneous radius of the FRC separatrix (m).
+- `dR_s_dt` — radial expansion velocity of the plasma post-fusion (m s⁻¹).
+  Positive values indicate expansion against the field.
+- `B_ext` — external confining magnetic field (T).
+- `N_turns` — number of turns in the magnetic-pickup / recovery coil array.
 
 ---
 
-### Hardware Synthesis Target
+### Hardware-synthesis target
 
-`scpn-mif-core` acts as an Intermediate Representation (IR) compiler. It takes the differential equations above and translates them into an event-driven Spiking Neural Network (SNN).
+`scpn-mif-core` acts as an intermediate-representation compiler. It takes
+the differential equations above and translates them into an event-driven
+spiking neural network. Through the `sc-neurocore` back end, the SNN is
+synthesised into Q8.8 fixed-point SystemVerilog. The primary engineering
+deliverable is a **formally verified FPGA bitstream** capable of reading
+Address-Event-Representation magnetic-probe spikes and firing the
+compression coils entirely within the sub-50-nanosecond hardware layer,
+bypassing the CPU completely.
 
-Using the `sc-neurocore` backend, this SNN is synthesized into Q8.8 fixed-point SystemVerilog. The primary engineering deliverable of this repository is a **formally verified FPGA bitstream** capable of reading Address Event Representation (AER) magnetic probe spikes and firing the compression coils entirely within the sub-50 nanosecond hardware layer, bypassing the CPU completely.
+---
+
+## Status
+
+The repository is currently in **pre-alpha**. P0 bootstrap (the present
+release `0.0.1`) ships the governance, build system, source-tree skeleton,
+testing infrastructure, benchmark scaffolding, documentation site, CI/CD
+workflows, and the compatibility matrix `LOCKED-skeleton` row. No
+functional modules ship yet. The public surface stabilises starting at
+`0.1.0`.
+
+## Licence
+
+This work is licensed under the GNU Affero General Public License v3.0 or
+later (AGPL-3.0-or-later). See [LICENSE](LICENSE) and [NOTICE](NOTICE.md).
+Commercial licensing is available for organisations that cannot use AGPL —
+contact [protoscience@anulum.li](mailto:protoscience@anulum.li).
+
+## Citation
+
+If you use this work, please cite it using [CITATION.cff](CITATION.cff)
+metadata.
