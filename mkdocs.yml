@@ -115,6 +115,7 @@ nav:
       - Physics:
           - Faraday recovery: api/physics/faraday_recovery.md
       - Formal:
+          - Pulsed-shot lifecycle: api/formal/pulsed_shot.md
           - Capacitor-bank energy: api/formal/capacitor_bank.md
           - Faraday recovery energy: api/formal/faraday_recovery.md
           - Kinematic safety: api/formal/kinematic_safety.md

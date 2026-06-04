@@ -42,6 +42,8 @@ Implemented pre-alpha API pages:
   phase lock predicate with Python and Rust surfaces.
 - [Pulsed-shot FSM](lifecycle/pulsed_shot_fsm.md) — MIF-004, eight-state
   lifecycle scheduler with Python, Rust, and Lean surfaces.
+- [Pulsed-shot proof](formal/pulsed_shot.md) — MIF-004, Lean 4 adjacency
+  determinism and minimal eight-step lifecycle proof.
 - [Capacitor bank](lifecycle/capacitor_bank.md) — MIF-005, series RLC
   capacitor-bank model with Python, Rust, Julia, and Lean formal surfaces.
 - [Capacitor-bank proof](formal/capacitor_bank.md) — MIF-005, Lean 4

@@ -64,8 +64,8 @@ idle -> ramp_up -> flat_top -> burn -> expansion -> dump -> recharge -> cool_dow
 
 The guard surface consumes plasma telemetry, chamber-centre phase/spatial lock
 observables, and capacitor-bank telemetry. Python and Rust implementations
-share the same transition reasons and JSONL audit shape, while Lean proves the
-eight adjacent transitions return to `idle`.
+share the same transition reasons and JSONL audit shape, while Lean proves
+adjacency determinism and the minimal eight-step return to `idle`.
 
 ### Non-adiabatic flux evolution (FUSION-CORE)
 

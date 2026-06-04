@@ -49,8 +49,9 @@ available measured runtime backend:
 ```
 
 The pure Python `PulsedShotFSM` remains available for deterministic debugging
-and tests. The Lean surface proves that the adjacent transition relation forms
-one closed eight-state cycle; it is not a runtime benchmark backend.
+and tests. The Lean surface proves adjacency determinism, absence of
+self-looping adjacent transitions, and the minimal eight-step cycle; it is not
+a runtime benchmark backend.
 
 ## Acceptance
 
@@ -62,7 +63,9 @@ guard tests cover low precharge energy, minimum burn dwell, and dump-floor
 energy holds.
 
 Python/Rust parity tests cover the full state sequence and the Rust-backed
-dispatch path. Lean builds `SCPNMIF.PulsedShot.eight_step_cycle`.
+dispatch path. Lean builds `SCPNMIF.PulsedShot.eight_step_cycle`,
+`SCPNMIF.PulsedShot.adjacent_transition_deterministic`, and
+`SCPNMIF.PulsedShot.idle_cycle_minimal`.
 
 ## Benchmarks
 
