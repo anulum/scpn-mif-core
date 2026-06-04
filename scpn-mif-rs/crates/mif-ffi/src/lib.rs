@@ -29,6 +29,12 @@ use mif_core::{
     faraday_back_emf as core_faraday_back_emf, flux_rate as core_flux_rate,
     magnetic_flux as core_magnetic_flux, recovered_power as core_recovered_power,
 };
+use mif_diagnostics::{
+    ClipPolicy as DiagnosticsClipPolicy,
+    DiagnosticChannelCalibration as DiagnosticsChannelCalibration,
+    DiagnosticNormalisationState as DiagnosticsNormalisationState,
+    fit_diagnostic_calibrations as diagnostics_fit_calibrations,
+};
 use mif_kinematic::{
     DopplerKuramoto as KinematicDopplerKuramoto,
     DopplerKuramotoSpec as KinematicDopplerKuramotoSpec,
@@ -78,6 +84,7 @@ type PyMergerVerificationReport = (
     HashMap<String, usize>,
     usize,
 );
+type PyNormalisedDiagnosticSample = (Vec<f64>, Vec<bool>, Vec<String>);
 
 /// PyO3 wrapper around the immutable `AerDecodeSpec`.
 #[pyclass(name = "AERDecodeSpec", module = "scpn_mif_core_rs", frozen)]
@@ -194,6 +201,167 @@ impl PyAERSpikeBuffer {
     fn decode_features(&self, spec: &PyAERDecodeSpec) -> PyResult<Vec<f64>> {
         let guard = self.inner.lock().expect("AERSpikeBuffer mutex poisoned");
         aer_decode_spike_features(&guard, spec.inner)
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+}
+
+/// PyO3 wrapper around a MIF-016 diagnostic channel calibration.
+#[pyclass(
+    name = "DiagnosticChannelCalibration",
+    module = "scpn_mif_core_rs",
+    frozen
+)]
+#[derive(Clone)]
+struct PyDiagnosticChannelCalibration {
+    inner: DiagnosticsChannelCalibration,
+}
+
+#[pymethods]
+impl PyDiagnosticChannelCalibration {
+    #[new]
+    #[pyo3(
+        signature = (
+            name,
+            unit,
+            physical_min,
+            physical_max,
+            clip_policy,
+            provenance,
+            aer_address=None
+        )
+    )]
+    fn new(
+        name: &str,
+        unit: &str,
+        physical_min: f64,
+        physical_max: f64,
+        clip_policy: &str,
+        provenance: &str,
+        aer_address: Option<usize>,
+    ) -> PyResult<Self> {
+        let policy = clip_policy
+            .parse::<DiagnosticsClipPolicy>()
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        DiagnosticsChannelCalibration::new(
+            name,
+            unit,
+            physical_min,
+            physical_max,
+            policy,
+            provenance,
+            aer_address,
+        )
+        .map(|inner| Self { inner })
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    #[getter]
+    fn name(&self) -> String {
+        self.inner.name.clone()
+    }
+
+    #[getter]
+    fn unit(&self) -> String {
+        self.inner.unit.clone()
+    }
+
+    #[getter]
+    fn physical_min(&self) -> f64 {
+        self.inner.physical_min
+    }
+
+    #[getter]
+    fn physical_max(&self) -> f64 {
+        self.inner.physical_max
+    }
+
+    #[getter]
+    fn clip_policy(&self) -> String {
+        self.inner.clip_policy.as_str().to_string()
+    }
+
+    #[getter]
+    fn provenance(&self) -> String {
+        self.inner.provenance.clone()
+    }
+
+    #[getter]
+    fn aer_address(&self) -> Option<usize> {
+        self.inner.aer_address
+    }
+
+    #[getter]
+    fn offset(&self) -> f64 {
+        self.inner.offset()
+    }
+
+    #[getter]
+    fn scale(&self) -> f64 {
+        self.inner.scale()
+    }
+
+    fn normalise_value(&self, value: f64) -> PyResult<(f64, bool)> {
+        self.inner
+            .normalise_value(value)
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+}
+
+/// PyO3 wrapper around a MIF-016 diagnostic normalisation state.
+#[pyclass(
+    name = "DiagnosticNormalisationState",
+    module = "scpn_mif_core_rs",
+    frozen
+)]
+#[derive(Clone)]
+struct PyDiagnosticNormalisationState {
+    inner: DiagnosticsNormalisationState,
+}
+
+#[pymethods]
+impl PyDiagnosticNormalisationState {
+    #[new]
+    #[pyo3(signature = (calibrations, sample_period_ns=None))]
+    fn new(
+        calibrations: Vec<PyDiagnosticChannelCalibration>,
+        sample_period_ns: Option<u64>,
+    ) -> PyResult<Self> {
+        let inner_calibrations = calibrations.into_iter().map(|cal| cal.inner).collect();
+        DiagnosticsNormalisationState::new(inner_calibrations, sample_period_ns)
+            .map(|inner| Self { inner })
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    #[getter]
+    fn channel_names(&self) -> Vec<String> {
+        self.inner.channel_names()
+    }
+
+    #[getter]
+    fn sample_period_ns(&self) -> Option<u64> {
+        self.inner.sample_period_ns()
+    }
+
+    #[getter]
+    fn calibrations(&self) -> Vec<PyDiagnosticChannelCalibration> {
+        self.inner
+            .calibrations()
+            .iter()
+            .cloned()
+            .map(|inner| PyDiagnosticChannelCalibration { inner })
+            .collect()
+    }
+
+    fn normalise_features(&self, values: Vec<f64>) -> PyResult<PyNormalisedDiagnosticSample> {
+        self.inner
+            .normalise_features(&values)
+            .map(|report| {
+                (
+                    report.features,
+                    report.clip_mask,
+                    report.out_of_range_channels,
+                )
+            })
             .map_err(|e| PyValueError::new_err(e.to_string()))
     }
 }
@@ -1574,6 +1742,38 @@ fn decode_aer_observation(
         .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
+/// Fit MIF-016 diagnostic calibrations from an observation matrix.
+#[pyfunction]
+#[pyo3(signature = (names, units, observations, clip_policy, provenance, aer_addresses=None))]
+fn fit_diagnostic_calibrations(
+    names: Vec<String>,
+    units: Vec<String>,
+    observations: Vec<Vec<f64>>,
+    clip_policy: &str,
+    provenance: &str,
+    aer_addresses: Option<Vec<Option<usize>>>,
+) -> PyResult<Vec<PyDiagnosticChannelCalibration>> {
+    let policy = clip_policy
+        .parse::<DiagnosticsClipPolicy>()
+        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let addresses = aer_addresses.unwrap_or_else(|| vec![None; names.len()]);
+    diagnostics_fit_calibrations(
+        &names,
+        &units,
+        &observations,
+        policy,
+        provenance,
+        &addresses,
+    )
+    .map(|calibrations| {
+        calibrations
+            .into_iter()
+            .map(|inner| PyDiagnosticChannelCalibration { inner })
+            .collect()
+    })
+    .map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
 fn py_aer_observation(report: AerDecodedObservation) -> PyAERDecodedObservation {
     (
         report.strategy.as_str().to_string(),
@@ -1602,6 +1802,8 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFaradayRecoverySpec>()?;
     m.add_class::<PyAERDecodeSpec>()?;
     m.add_class::<PyAERSpikeBuffer>()?;
+    m.add_class::<PyDiagnosticChannelCalibration>()?;
+    m.add_class::<PyDiagnosticNormalisationState>()?;
     m.add_class::<PyDopplerKuramotoSpec>()?;
     m.add_class::<PyMovingFrameUPDESpec>()?;
     m.add_class::<PyMergeWindowSpec>()?;
@@ -1636,6 +1838,7 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(verify_merger_liveness, m)?)?;
     m.add_function(wrap_pyfunction!(decode_aer_features, m)?)?;
     m.add_function(wrap_pyfunction!(decode_aer_observation, m)?)?;
+    m.add_function(wrap_pyfunction!(fit_diagnostic_calibrations, m)?)?;
     let _ = _all_regimes_referenced();
     Ok(())
 }

@@ -56,6 +56,11 @@ FSM; Rust is fastest across the allocated Python and Rust campaign and
 boundedness verification groups. The committed MIF-012 benchmark is labelled as
 a non-isolated local comparison and records host load, governor, and runtime
 versions in `bench/results/plasmoid_merger_petri_net.json`.
+MIF-016 uses `diagnostics.normalisation` for four-channel dirty diagnostic
+scaling into `[-1, 1]`; Rust is fastest across the allocated Python, Rust, and
+Julia comparison groups. The committed MIF-016 benchmark is labelled as a
+non-isolated local comparison and records host load, governor, and runtime
+versions in `bench/results/diagnostic_normalisation.json`.
 
 ## Running
 

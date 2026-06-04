@@ -174,3 +174,61 @@ end
     @test_throws ArgumentError reset!(bank, -1.0)
     @test_throws ArgumentError free_response(spec, -1.0e-9, v0)
 end
+
+@testset "MIF-016 Diagnostic normalisation" begin
+    calibrations = [
+        DiagnosticChannelCalibration(
+            "temperature_eV",
+            "eV",
+            0.0,
+            1000.0,
+            "clip",
+            "thermal calibration",
+            0,
+        ),
+        DiagnosticChannelCalibration(
+            "bdot_V",
+            "V",
+            -10.0,
+            10.0,
+            "clip",
+            "B-dot calibration",
+            1,
+        ),
+    ]
+    state = DiagnosticNormalisationState(calibrations, 50)
+    sample = normalise_sample(
+        state,
+        Dict("temperature_eV" => 500.0, "bdot_V" => -5.0),
+    )
+    @test sample.features ≈ [0.0, -0.5] rtol = 0.0 atol = 0.0
+    @test sample.clip_mask == (false, false)
+    @test sample.out_of_range_channels == ()
+
+    clipped = normalise_sample(
+        state,
+        Dict("temperature_eV" => 1200.0, "bdot_V" => -20.0),
+    )
+    @test clipped.features == [1.0, -1.0]
+    @test clipped.clip_mask == (true, true)
+    @test clipped.out_of_range_channels == ("temperature_eV", "bdot_V")
+    @test all(-1.0 .<= clipped.features .<= 1.0)
+
+    manifest = calibration_manifest(state)
+    @test manifest.kernel == "diagnostics.normalisation"
+    @test manifest.channels[1].physical_unit_range == [0.0, 1000.0]
+    @test manifest.channels[1].offset == 500.0
+    @test manifest.channels[1].scale == 0.002
+
+    reject_cal = DiagnosticChannelCalibration(
+        "bdot_dv_dt",
+        "V/s",
+        -1.0e9,
+        1.0e9,
+        "reject",
+        "B-dot derivative calibration",
+    )
+    reject_state = DiagnosticNormalisationState([reject_cal])
+    @test_throws ArgumentError normalise_sample(reject_state, Dict("bdot_dv_dt" => 2.0e9))
+    @test_throws ArgumentError DiagnosticChannelCalibration("flat", "V", 1.0, 1.0, "clip", "flat")
+end

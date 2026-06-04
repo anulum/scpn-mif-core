@@ -27,6 +27,7 @@ under `docs/api/rust/` (built separately via `make bridge`).
 | `mif-kinematic` | Doppler-corrected Kuramoto, moving-frame UPDE, merge-window monitor |
 | `mif-lifecycle` | Pulsed-shot FSM and capacitor-bank state model |
 | `mif-aer` | AER ingestion ring buffer and decode strategies |
+| `mif-diagnostics` | Dirty diagnostic calibration and normalisation kernels |
 | `mif-fpga` | FPGA-side glue and SystemVerilog IR helpers |
 | `mif-ffi` | PyO3 bridge |
 
@@ -50,6 +51,9 @@ Implemented pre-alpha API pages:
   stored-energy and recharge-energy sign contracts.
 - [AER spike-buffer decoder](aer/spike_buffer.md) — MIF-006, AER ingress
   adapter with Python, Rust, PyO3 parity, and benchmarked dispatch.
+- [Diagnostic normalisation](diagnostics/normalisation.md) — MIF-016,
+  calibration-manifested dirty diagnostic scaling with Python, Rust, and Julia
+  surfaces.
 - [Plasmoid-merger Petri net](lifecycle/plasmoid_merger_petri_net.md) —
   MIF-012, one-safe stochastic Petri-net FSM with Python, Rust, and Lean
   formal surfaces.

@@ -12,6 +12,7 @@ members = [
     "crates/mif-kinematic",
     "crates/mif-lifecycle",
     "crates/mif-aer",
+    "crates/mif-diagnostics",
     "crates/mif-fpga",
     "crates/mif-ffi",
 ]

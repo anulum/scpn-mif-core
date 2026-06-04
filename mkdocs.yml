@@ -116,6 +116,8 @@ nav:
           - Faraday recovery: api/physics/faraday_recovery.md
       - AER:
           - Spike-buffer decoder: api/aer/spike_buffer.md
+      - Diagnostics:
+          - Normalisation: api/diagnostics/normalisation.md
       - Formal:
           - Pulsed-shot lifecycle: api/formal/pulsed_shot.md
           - Capacitor-bank energy: api/formal/capacitor_bank.md

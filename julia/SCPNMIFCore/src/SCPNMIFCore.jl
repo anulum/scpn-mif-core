@@ -27,6 +27,8 @@ export VERSION,
     CapacitorBank,
     CapacitorBankSpec,
     CapacitorBankState,
+    DiagnosticChannelCalibration,
+    DiagnosticNormalisationState,
     DopplerKuramoto,
     DopplerKuramotoReport,
     DopplerKuramotoSpec,
@@ -54,7 +56,10 @@ export VERSION,
     flux_rate,
     free_response,
     magnetic_flux,
+    calibration_manifest,
     moving_frame_derivatives,
+    normalise_sample,
+    normalise_value,
     omega_at,
     order_parameter,
     phase_lock_error,
@@ -69,6 +74,7 @@ const VERSION = v"0.0.1"
 include("doppler_kuramoto.jl")
 include("moving_frame_upde.jl")
 include("capacitor_bank.jl")
+include("diagnostic_normalisation.jl")
 
 """
     FaradayRecoverySpec(turns, load_resistance_ohm; coupling_efficiency=1.0)

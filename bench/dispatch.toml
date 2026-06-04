@@ -12,7 +12,7 @@
 # benchmark campaign. Manual edits are blocked by the preflight gate.
 
 schema_version = "1.0.0"
-last_updated = "2026-06-04T1352"
+last_updated = "2026-06-04T1644"
 benchmark_host = "i5-11600K (mining rig)"
 
 [kernels]
@@ -41,7 +41,7 @@ benchmark_host = "i5-11600K (mining rig)"
 "physics.faraday_recovery_waveform" = ["python", "rust", "julia"]
 # I/O hardening trio (MIF-016, MIF-017, MIF-018) — registered for the
 # multi-language dispatch from P1 prototype onward.
-"diagnostics.normalisation"           = ["python"]    # MIF-016
+"diagnostics.normalisation" = ["rust", "python", "julia"]    # MIF-016
 "diagnostics.stress_inject"           = ["python"]    # MIF-017
 "daq.udp_multicast_mock"              = ["python"]    # MIF-018
 "daq.pcie_dma_ring_mock"              = ["python"]    # MIF-018

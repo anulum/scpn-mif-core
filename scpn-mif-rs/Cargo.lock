@@ -573,11 +573,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "mif-diagnostics"
+version = "0.0.1"
+dependencies = [
+ "proptest",
+ "thiserror",
+]
+
+[[package]]
 name = "mif-ffi"
 version = "0.0.1"
 dependencies = [
  "mif-aer",
  "mif-core",
+ "mif-diagnostics",
  "mif-fpga",
  "mif-kinematic",
  "mif-lifecycle",
