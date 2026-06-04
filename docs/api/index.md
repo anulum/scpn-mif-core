@@ -47,7 +47,9 @@ Implemented pre-alpha API pages:
 - [Plasmoid-merger Petri net](lifecycle/plasmoid_merger_petri_net.md) —
   MIF-012, one-safe stochastic Petri-net FSM with Python and Rust surfaces.
 - [Faraday recovery](physics/faraday_recovery.md) — MIF-009, exact
-  Faraday-law carrier with Python, Rust, and Julia surfaces.
+  Faraday-law carrier with Python, Rust, Julia, and Lean formal surfaces.
+- [Faraday recovery proof](formal/faraday_recovery.md) — MIF-009, Lean 4
+  energy-bookkeeping proof for the EMF and recovered-energy sign contracts.
 - [Kinematic safety](formal/kinematic_safety.md) — PHA-C.6/MIF-011, Lean 4
   sampled invariant template and 2 mm axial merge-window instantiation.
 - [ADC-to-spike quantiser](fpga/adc_to_spike_quantiser.md) — MIF-007,

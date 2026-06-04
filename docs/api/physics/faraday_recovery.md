@@ -11,8 +11,10 @@ flux through the FRC separatrix cross-section.
 MIF-009 computes the induced back-EMF in a recovery winding when the
 separatrix radius `R_s(t)` and external axial field `B_ext(t)` change in time.
 It intentionally stops at the exact Faraday-law carrier and ohmic recovery
-channel. It does not evolve the plasma compression trajectory; that coupling
-belongs in SCPN-FUSION-CORE.
+channel. The matching Lean proof surface records the signed EMF identity,
+non-negative recovered power for a physical load, and non-negative
+trapezoid-integrated waveform energy. It does not evolve the plasma compression
+trajectory; that coupling belongs in SCPN-FUSION-CORE.
 
 ## Carrier equations
 
@@ -99,6 +101,7 @@ print(f"back-EMF = {state.back_emf_V:.3f} V")
 | Hypothesis property | EMF is linear in effective turns over 80 randomised examples |
 | Python ↔ Rust parity | 19 parity checks at 1e-12 tolerance after `make bridge` |
 | Julia package parity | scalar limit cases and waveform energy pass in `Pkg.test()` |
+| Lean proof surface | EMF identity, recovered-power sign, and waveform-energy sign build with `lake build` |
 
 ## Benchmarks
 
