@@ -16,10 +16,14 @@
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 
 pub mod doppler_kuramoto;
+pub mod moving_frame_upde;
 
 pub use doppler_kuramoto::{
     DopplerKuramoto, DopplerKuramotoError, DopplerKuramotoSpec, DopplerKuramotoState,
     doppler_derivatives, order_parameter, phase_lock_error,
+};
+pub use moving_frame_upde::{
+    MovingFrameUPDE, MovingFrameUPDESpec, MovingFrameUPDEState, moving_frame_derivatives,
 };
 
 /// Crate version derived from the workspace.

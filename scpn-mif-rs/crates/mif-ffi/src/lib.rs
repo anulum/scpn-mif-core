@@ -25,12 +25,16 @@ use mif_core::{
 use mif_kinematic::{
     DopplerKuramoto as KinematicDopplerKuramoto,
     DopplerKuramotoSpec as KinematicDopplerKuramotoSpec,
+    MovingFrameUPDE as KinematicMovingFrameUPDE,
+    MovingFrameUPDESpec as KinematicMovingFrameUPDESpec,
     doppler_derivatives as kinematic_doppler_derivatives,
+    moving_frame_derivatives as kinematic_moving_frame_derivatives,
 };
 use mif_lifecycle::{CapacitorBank, CapacitorBankSpec, RlcRegime};
 
 type PyFaradayRecoveryWaveform = (Vec<f64>, Vec<f64>, f64, f64, f64);
 type PyDopplerKuramotoState = (f64, Vec<f64>, Vec<f64>, f64, f64);
+type PyMovingFrameUPDEState = (f64, Vec<f64>, Vec<f64>, Vec<f64>, f64, f64, f64, f64, f64);
 
 /// PyO3 wrapper around the immutable `FaradayRecoverySpec`.
 #[pyclass(name = "FaradayRecoverySpec", module = "scpn_mif_core_rs", frozen)]
@@ -133,6 +137,90 @@ impl PyDopplerKuramotoSpec {
     #[getter]
     fn distance_scale_m(&self) -> f64 {
         self.inner.distance_scale_m
+    }
+
+    #[getter]
+    fn n_oscillators(&self) -> usize {
+        self.inner.n_oscillators()
+    }
+}
+
+/// PyO3 wrapper around the immutable `MovingFrameUPDESpec`.
+#[pyclass(name = "MovingFrameUPDESpec", module = "scpn_mif_core_rs", frozen)]
+#[derive(Clone)]
+struct PyMovingFrameUPDESpec {
+    inner: KinematicMovingFrameUPDESpec,
+}
+
+#[pymethods]
+impl PyMovingFrameUPDESpec {
+    #[new]
+    #[pyo3(
+        signature = (
+            omega_rad_s,
+            coupling_rad_s,
+            phase_lag_rad=0.0,
+            doppler_strength_rad_s=0.0,
+            velocity_epsilon_m_s=1.0e-9,
+            distance_scale_m=1.0,
+            reference_point_m=0.0
+        )
+    )]
+    fn new(
+        omega_rad_s: Vec<f64>,
+        coupling_rad_s: Vec<Vec<f64>>,
+        phase_lag_rad: f64,
+        doppler_strength_rad_s: f64,
+        velocity_epsilon_m_s: f64,
+        distance_scale_m: f64,
+        reference_point_m: f64,
+    ) -> PyResult<Self> {
+        KinematicMovingFrameUPDESpec::new(
+            omega_rad_s,
+            coupling_rad_s,
+            phase_lag_rad,
+            doppler_strength_rad_s,
+            velocity_epsilon_m_s,
+            distance_scale_m,
+            reference_point_m,
+        )
+        .map(|inner| Self { inner })
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    #[getter]
+    fn omega_rad_s(&self) -> Vec<f64> {
+        self.inner.phase_spec.omega_rad_s.clone()
+    }
+
+    #[getter]
+    fn coupling_rad_s(&self) -> Vec<Vec<f64>> {
+        self.inner.phase_spec.coupling_rad_s.clone()
+    }
+
+    #[getter]
+    fn phase_lag_rad(&self) -> f64 {
+        self.inner.phase_spec.phase_lag_rad
+    }
+
+    #[getter]
+    fn doppler_strength_rad_s(&self) -> f64 {
+        self.inner.phase_spec.doppler_strength_rad_s
+    }
+
+    #[getter]
+    fn velocity_epsilon_m_s(&self) -> f64 {
+        self.inner.phase_spec.velocity_epsilon_m_s
+    }
+
+    #[getter]
+    fn distance_scale_m(&self) -> f64 {
+        self.inner.phase_spec.distance_scale_m
+    }
+
+    #[getter]
+    fn reference_point_m(&self) -> f64 {
+        self.inner.reference_point_m
     }
 
     #[getter]
@@ -391,6 +479,84 @@ impl PyDopplerKuramoto {
     }
 }
 
+/// PyO3 wrapper around `MovingFrameUPDE`.
+#[pyclass(name = "MovingFrameUPDE", module = "scpn_mif_core_rs", unsendable)]
+struct PyMovingFrameUPDE {
+    inner: Mutex<KinematicMovingFrameUPDE>,
+}
+
+#[pymethods]
+impl PyMovingFrameUPDE {
+    #[new]
+    fn new(
+        spec: PyMovingFrameUPDESpec,
+        phases_rad: Vec<f64>,
+        positions_m: Vec<f64>,
+        velocities_m_s: Vec<f64>,
+    ) -> PyResult<Self> {
+        KinematicMovingFrameUPDE::new(spec.inner, phases_rad, positions_m, velocities_m_s)
+            .map(|inner| Self {
+                inner: Mutex::new(inner),
+            })
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    fn state(&self) -> PyMovingFrameUPDEState {
+        let state = self
+            .inner
+            .lock()
+            .expect("MovingFrameUPDE mutex poisoned")
+            .state();
+        (
+            state.t_s,
+            state.phases_rad,
+            state.positions_m,
+            state.velocities_m_s,
+            state.separation_m,
+            state.reference_error_m,
+            state.order_parameter,
+            state.phase_lock_error_rad,
+            state.local_error_estimate,
+        )
+    }
+
+    fn step(&self, dt_s: f64) -> PyResult<PyMovingFrameUPDEState> {
+        let state = self
+            .inner
+            .lock()
+            .expect("MovingFrameUPDE mutex poisoned")
+            .step(dt_s)
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        Ok((
+            state.t_s,
+            state.phases_rad,
+            state.positions_m,
+            state.velocities_m_s,
+            state.separation_m,
+            state.reference_error_m,
+            state.order_parameter,
+            state.phase_lock_error_rad,
+            state.local_error_estimate,
+        ))
+    }
+
+    fn time_to_reference_s(&self) -> Vec<f64> {
+        self.inner
+            .lock()
+            .expect("MovingFrameUPDE mutex poisoned")
+            .time_to_reference_s()
+    }
+
+    #[pyo3(signature = (eps_m=0.002))]
+    fn collision_imminent(&self, eps_m: f64) -> PyResult<bool> {
+        self.inner
+            .lock()
+            .expect("MovingFrameUPDE mutex poisoned")
+            .collision_imminent(eps_m)
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+}
+
 /// Underdamped voltage closed form.
 #[pyfunction]
 fn analytical_voltage_underdamped(spec: &PyCapacitorBankSpec, t: f64, v0: f64) -> f64 {
@@ -528,6 +694,18 @@ fn doppler_derivatives(
         .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
+/// Evaluate MIF-002 moving-frame derivatives.
+#[pyfunction]
+fn moving_frame_derivatives(
+    spec: &PyMovingFrameUPDESpec,
+    phases_rad: Vec<f64>,
+    positions_m: Vec<f64>,
+    velocities_m_s: Vec<f64>,
+) -> PyResult<Vec<f64>> {
+    kinematic_moving_frame_derivatives(&spec.inner, &phases_rad, &positions_m, &velocities_m_s)
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
 #[doc(hidden)]
 fn _all_regimes_referenced() -> [RlcRegime; 3] {
     // Keeps the RlcRegime import used so the enum stays visible to users
@@ -545,9 +723,11 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     m.add_class::<PyFaradayRecoverySpec>()?;
     m.add_class::<PyDopplerKuramotoSpec>()?;
+    m.add_class::<PyMovingFrameUPDESpec>()?;
     m.add_class::<PyCapacitorBankSpec>()?;
     m.add_class::<PyCapacitorBank>()?;
     m.add_class::<PyDopplerKuramoto>()?;
+    m.add_class::<PyMovingFrameUPDE>()?;
     m.add_function(wrap_pyfunction!(analytical_voltage_underdamped, m)?)?;
     m.add_function(wrap_pyfunction!(analytical_current_underdamped, m)?)?;
     m.add_function(wrap_pyfunction!(analytical_voltage_critically_damped, m)?)?;
@@ -562,6 +742,7 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(recovered_power, m)?)?;
     m.add_function(wrap_pyfunction!(evaluate_faraday_recovery, m)?)?;
     m.add_function(wrap_pyfunction!(doppler_derivatives, m)?)?;
+    m.add_function(wrap_pyfunction!(moving_frame_derivatives, m)?)?;
     let _ = _all_regimes_referenced();
     Ok(())
 }

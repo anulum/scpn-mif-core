@@ -29,8 +29,17 @@ from scpn_mif_core.kinematic.doppler_kuramoto import (
     order_parameter,
     phase_lock_error,
 )
+from scpn_mif_core.kinematic.moving_frame_upde import (
+    MovingFrameUPDE,
+    MovingFrameUPDEReport,
+    MovingFrameUPDESpec,
+    MovingFrameUPDEState,
+    evaluate_moving_frame_upde,
+    moving_frame_derivatives,
+)
 
 _DOPPLER_KERNEL = "kinematic.doppler_kuramoto"
+_MOVING_FRAME_KERNEL = "kinematic.moving_frame_upde"
 
 
 def dispatched_doppler_kuramoto(
@@ -47,14 +56,35 @@ def dispatched_doppler_kuramoto(
     return DopplerKuramoto(spec, phases_rad, positions_m, velocities_m_s)
 
 
+def dispatched_moving_frame_upde(
+    spec: MovingFrameUPDESpec,
+    phases_rad: ArrayLike,
+    positions_m: ArrayLike,
+    velocities_m_s: ArrayLike,
+) -> MovingFrameUPDE:
+    """Return a moving-frame UPDE engine backed by the fastest available backend."""
+    if preferred_backend(_MOVING_FRAME_KERNEL) == "rust" and is_rust_available():
+        from scpn_mif_core.kinematic._rust_adapter import RustBackedMovingFrameUPDE
+
+        return RustBackedMovingFrameUPDE(spec, phases_rad, positions_m, velocities_m_s)  # type: ignore[return-value]
+    return MovingFrameUPDE(spec, phases_rad, positions_m, velocities_m_s)
+
+
 __all__ = [
     "DopplerKuramoto",
     "DopplerKuramotoReport",
     "DopplerKuramotoSpec",
     "DopplerKuramotoState",
+    "MovingFrameUPDE",
+    "MovingFrameUPDEReport",
+    "MovingFrameUPDESpec",
+    "MovingFrameUPDEState",
     "dispatched_doppler_kuramoto",
+    "dispatched_moving_frame_upde",
     "doppler_derivatives",
     "evaluate_doppler_kuramoto",
+    "evaluate_moving_frame_upde",
+    "moving_frame_derivatives",
     "order_parameter",
     "phase_lock_error",
 ]

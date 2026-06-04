@@ -106,6 +106,7 @@ nav:
       - api/index.md
       - Kinematic:
           - Doppler-Kuramoto: api/kinematic/doppler_kuramoto.md
+          - Moving-frame UPDE: api/kinematic/moving_frame_upde.md
       - Lifecycle:
           - Capacitor bank: api/lifecycle/capacitor_bank.md
       - Physics:

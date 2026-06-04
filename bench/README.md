@@ -33,7 +33,8 @@ transfer cost changes the winner. MIF-009 uses `physics.faraday_back_emf` for
 the scalar back-EMF call and `physics.faraday_recovery_waveform` for the
 4 096-sample waveform batch. MIF-001 uses `kinematic.doppler_kuramoto` for
 both the scalar derivative and the 120-step trace because Rust is fastest in
-both measured groups.
+both measured groups. MIF-002 uses `kinematic.moving_frame_upde` for both the
+combined derivative and the 120-step RK45 trace for the same reason.
 
 ## Running
 

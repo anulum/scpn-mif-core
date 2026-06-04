@@ -17,6 +17,11 @@
   window, Python API, Rust `mif-kinematic` kernel, PyO3 bindings,
   Julia counterpart, parity tests, benchmark summary, and fastest-measured
   dispatch entry.
+- MIF-002 moving-frame UPDE carrier with fixed-step Dormand-Prince RK45
+  integration over the combined phase/absolute-position state, chamber
+  reference observables, Python API, Rust `mif-kinematic` kernel, PyO3
+  bindings, Julia counterpart, parity tests, benchmark summary, and
+  fastest-measured dispatch entry.
 - MIF-009 Faraday induction recovery carrier with exact product-rule EMF,
   waveform energy integration, Python API, Rust `mif-core` kernel,
   PyO3 bindings, Julia counterpart, parity tests, benchmark summaries, and

@@ -31,6 +31,17 @@ MIF-001 is implemented locally as an upstream-pending Python/Rust/Julia
 carrier with RK4 phase integration and linear axial positions for the
 chamber-centre acceptance window.
 
+MIF-002 adds the chamber-fixed moving-frame layer:
+
+```
+dzᵢ/dt = v_zi
+reference_error = max_i |zᵢ − z_ref|
+```
+
+It advances `[θ, z]` with a fixed-step Dormand-Prince RK45 update and
+exposes reference-window observables while the reusable PHASE-ORCH
+`scpn.upde.moving_frame` surface remains upstream-pending.
+
 ### Non-adiabatic flux evolution (FUSION-CORE)
 
 ```
@@ -61,8 +72,8 @@ SCPN-PHASE-ORCH     canonical Kuramoto family, distance-coupling, Doppler, monit
 SCPN-QUANTUM-CTRL   canonical QAOA-MPC, pulse shaping, QRNG, PQC trigger signer
 SCPN-MIF-CORE       canonical pulsed-FRC kinematic + RTL hot-path lab
                     (sub-50-ns trigger fabric, timing-aware formal, AER bridge,
-                     Doppler-Kuramoto, pulsed-shot lifecycle, capacitor-bank model,
-                     Faraday recovery)
+                     Doppler-Kuramoto, moving-frame UPDE, pulsed-shot lifecycle,
+                     capacitor-bank model, Faraday recovery)
 ```
 
 Anything that falls under a sibling's canonical scope MUST be upstreamed

@@ -60,6 +60,8 @@ local physics/lifecycle surfaces:
   benchmarked dispatch, and API documentation.
 - MIF-001 Doppler-Kuramoto kinematic carrier: Python reference, Rust kernel,
   Julia counterpart, benchmarked dispatch, and API documentation.
+- MIF-002 moving-frame UPDE carrier: Python reference, Rust kernel, Julia
+  counterpart, benchmarked dispatch, and API documentation.
 - MIF-009 Faraday recovery carrier: Python reference, Rust kernel, Julia
   counterpart, benchmarked dispatch, and API documentation.
 

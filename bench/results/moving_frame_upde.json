@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "kernel": "moving_frame_upde",
+  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "python_version": "3.12.3",
+  "datetime": "2026-06-04T09:55:46.665024+00:00",
+  "notes": [
+    "Julia is measured through the package CLI harness; the recorded timing includes Julia process startup."
+  ],
+  "tests": [
+    {
+      "name": "test_bench_python_derivatives_2",
+      "group": "moving_frame_upde.derivatives_2",
+      "mean_ns": 16300.665302449823,
+      "stddev_ns": 1571.3967856441782,
+      "median_ns": 15787.08179295063,
+      "ops_per_s": 61347.18929844601,
+      "rounds": 9993
+    },
+    {
+      "name": "test_bench_rust_derivatives_2",
+      "group": "moving_frame_upde.derivatives_2",
+      "mean_ns": 510.14058499755447,
+      "stddev_ns": 588.750679259485,
+      "median_ns": 489.8756742477417,
+      "ops_per_s": 1960243.9590349272,
+      "rounds": 196693
+    },
+    {
+      "name": "test_bench_python_trace_120",
+      "group": "moving_frame_upde.trace_120",
+      "mean_ns": 23938118.27503322,
+      "stddev_ns": 569744.2561835947,
+      "median_ns": 23798124.39903617,
+      "ops_per_s": 41.774377940264905,
+      "rounds": 42
+    },
+    {
+      "name": "test_bench_rust_trace_120",
+      "group": "moving_frame_upde.trace_120",
+      "mean_ns": 125967.21669996857,
+      "stddev_ns": 10982.949494053564,
+      "median_ns": 122496.50899320841,
+      "ops_per_s": 7938.573433608694,
+      "rounds": 5756
+    },
+    {
+      "name": "test_bench_julia_cli_trace_120",
+      "group": "moving_frame_upde.trace_120",
+      "mean_ns": 2132004546.3119946,
+      "stddev_ns": 34503718.932214335,
+      "median_ns": 2132689869.03131,
+      "ops_per_s": 0.469042151776754,
+      "rounds": 3
+    }
+  ]
+}

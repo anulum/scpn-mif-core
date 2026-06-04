@@ -28,6 +28,9 @@ Implemented pre-alpha API pages:
 - [Doppler-Kuramoto](kinematic/doppler_kuramoto.md) — MIF-001,
   Doppler-corrected axial Kuramoto carrier with Python, Rust, and Julia
   surfaces.
+- [Moving-frame UPDE](kinematic/moving_frame_upde.md) — MIF-002,
+  chamber-fixed absolute-position UPDE carrier with Python, Rust, and Julia
+  surfaces.
 - [Capacitor bank](lifecycle/capacitor_bank.md) — MIF-005, Python reference
   with Rust-backed PyO3 acceleration.
 - [Faraday recovery](physics/faraday_recovery.md) — MIF-009, exact

@@ -71,3 +71,34 @@ end
     @test report.phase_lock_error_rad[centre_idx] < 1.0e-2
     @test report.order_parameter[centre_idx] > 0.99999
 end
+
+@testset "MIF-002 Moving-frame UPDE" begin
+    spec = MovingFrameUPDESpec(
+        [-4.0e6, 4.0e6],
+        [0.0 25.0e6; 25.0e6 0.0];
+        phase_lag_rad = 0.0,
+        doppler_strength_rad_s = 2.0e6,
+        velocity_epsilon_m_s = 1.0,
+        distance_scale_m = 1.0,
+        reference_point_m = 0.0,
+    )
+    derivatives = moving_frame_derivatives(
+        spec,
+        [0.0, 0.25],
+        [-0.03, 0.03],
+        [300_000.0, -300_000.0],
+    )
+    @test length(derivatives) == 4
+    @test derivatives[3] == 300_000.0
+    @test derivatives[4] == -300_000.0
+
+    engine = MovingFrameUPDE(spec, [0.0, 0.25], [-0.03, 0.03], [300_000.0, -300_000.0])
+    @test time_to_reference_s(engine) ≈ [1.0e-7, 1.0e-7] rtol = 1e-15
+    state = nothing
+    for _ in 1:100
+        state = step!(engine, 1.0e-9)
+    end
+    @test state.reference_error_m <= 2.0e-3
+    @test state.separation_m <= 4.0e-3
+    @test collision_imminent(engine; eps_m = 2.0e-3)
+end

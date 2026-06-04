@@ -105,3 +105,18 @@ def test_dispatched_doppler_kuramoto_uses_rust_when_preferred(monkeypatch: pytes
     state = engine.step(1.0e-9)
 
     assert np.allclose(state.positions_m, [-0.0297, 0.0297, 0.12], rtol=PARITY_REL_TOL, atol=PARITY_ABS_TOL)
+
+
+def test_rust_backed_doppler_adapter_state() -> None:
+    from scpn_mif_core.kinematic._rust_adapter import RustBackedDopplerKuramoto
+
+    engine = RustBackedDopplerKuramoto(
+        _py_spec(),
+        phases_rad=[0.0, 0.25, -0.1],
+        positions_m=[-0.03, 0.03, 0.12],
+        velocities_m_s=[300_000.0, -300_000.0, 0.0],
+    )
+    state = engine.state()
+
+    assert np.allclose(state.positions_m, [-0.03, 0.03, 0.12], rtol=0.0, atol=0.0)
+    assert state.order_parameter > 0.98

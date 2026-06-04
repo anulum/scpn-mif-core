@@ -28,19 +28,29 @@ export VERSION,
     DopplerKuramotoSpec,
     DopplerKuramotoState,
     FaradayRecoverySpec,
+    MovingFrameUPDE,
+    MovingFrameUPDEReport,
+    MovingFrameUPDESpec,
+    MovingFrameUPDEState,
+    collision_imminent,
     doppler_derivatives,
     evaluate_faraday_recovery,
     evaluate_doppler_kuramoto,
+    evaluate_moving_frame_upde,
     faraday_back_emf,
     flux_rate,
     magnetic_flux,
+    moving_frame_derivatives,
     order_parameter,
     phase_lock_error,
-    recovered_power
+    recovered_power,
+    step!,
+    time_to_reference_s
 
 const VERSION = v"0.0.1"
 
 include("doppler_kuramoto.jl")
+include("moving_frame_upde.jl")
 
 """
     FaradayRecoverySpec(turns, load_resistance_ohm; coupling_efficiency=1.0)
