@@ -10,7 +10,10 @@ discharge dynamics.* Physical Review X **8**, 041018.
 The capacitor-bank model is the energy reservoir behind every pulsed-shot
 trigger in SCPN-MIF-CORE. It tracks the bank voltage `v_C(t)` and inductor
 current `i_L(t)` under the natural-response dynamics of a series RLC loop and
-under a prescribed external load.
+under a prescribed external load. The matching Lean proof surface records the
+non-negativity of capacitor energy, inductor energy, total stored energy, and
+linear recharge energy under the physical parameter ranges enforced by the
+runtime constructors.
 
 ## Carrier equations
 
@@ -117,6 +120,7 @@ print(f"voltage = {bank.state.voltage_V:.3f} V, current = {bank.state.current_A:
 | Overdamped monotone decay over 1 ms | 1 unit test passes |
 | Constructor and reset guards (4 negative paths) | 4 unit tests pass |
 | Energy bookkeeping (½ C V²) | 1 unit test passes |
+| Lean proof surface | Stored-energy and recharge-energy sign contracts build with `lake build` |
 | State immutability | 2 unit tests pass |
 | Pulse-spec invariants | 3 unit tests pass |
 | Waveform helpers across boundary conditions and unknown waveform rejection | 5 unit tests pass |

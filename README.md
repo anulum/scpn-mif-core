@@ -26,8 +26,8 @@ UltraScale+ FPGAs.
 > monitor, MIF-004 pulsed-shot FSM, MIF-005 capacitor-bank dynamics, and
 > MIF-009 Faraday recovery now ship as upstream-pending Python/Rust APIs;
 > MIF-001, MIF-002, MIF-005, and MIF-009 also have Julia counterparts, and
-> MIF-004 has a Lean transition-cycle theorem, and MIF-009 has a Lean
-> energy-bookkeeping proof. PHA-C.6/MIF-011 add the Lean sampled invariant
+> MIF-004 has a Lean transition-cycle theorem. MIF-005 and MIF-009 have Lean
+> energy-bookkeeping proofs. PHA-C.6/MIF-011 add the Lean sampled invariant
 > template and 2 mm axial merge-window instantiation.
 > MIF-012 adds the Python/Rust plasmoid-merger Petri-net FSM with boundedness
 > and liveness verification campaigns. MIF-007 adds the B-dot ADC to Q8.8

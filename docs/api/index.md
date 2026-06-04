@@ -43,7 +43,9 @@ Implemented pre-alpha API pages:
 - [Pulsed-shot FSM](lifecycle/pulsed_shot_fsm.md) — MIF-004, eight-state
   lifecycle scheduler with Python, Rust, and Lean surfaces.
 - [Capacitor bank](lifecycle/capacitor_bank.md) — MIF-005, series RLC
-  capacitor-bank model with Python, Rust, and Julia surfaces.
+  capacitor-bank model with Python, Rust, Julia, and Lean formal surfaces.
+- [Capacitor-bank proof](formal/capacitor_bank.md) — MIF-005, Lean 4
+  stored-energy and recharge-energy sign contracts.
 - [Plasmoid-merger Petri net](lifecycle/plasmoid_merger_petri_net.md) —
   MIF-012, one-safe stochastic Petri-net FSM with Python and Rust surfaces.
 - [Faraday recovery](physics/faraday_recovery.md) — MIF-009, exact
