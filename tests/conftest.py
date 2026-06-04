@@ -13,6 +13,19 @@ from pathlib import Path
 
 import pytest
 
+from scpn_mif_core import _dispatch as _dispatch_module
+
+
+@pytest.fixture(autouse=True)
+def _reset_dispatch_cache() -> None:
+    """Discard the dispatch-table cache before each test.
+
+    Some tests monkeypatch ``scpn_mif_core._dispatch._DISPATCH_PATH`` to
+    point at a synthetic table. Without this autouse reset, those tests
+    can pollute the cache for subsequent tests in other files.
+    """
+    _dispatch_module.reload()
+
 
 @pytest.fixture(scope="session")
 def repo_root() -> Path:

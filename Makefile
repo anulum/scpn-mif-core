@@ -118,6 +118,12 @@ bench:
 bench-rust:
 	cd scpn-mif-rs && cargo bench --workspace
 
+update-dispatch:
+	python tools/update_dispatch.py
+
+update-dispatch-check:
+	python tools/update_dispatch.py --check
+
 # ── Build artefacts ────────────────────────────────────────────────────
 bridge:
 	cd scpn-mif-rs/crates/mif-ffi && maturin develop --release

@@ -11,7 +11,7 @@
 # benchmark campaign. Manual edits are blocked by the preflight gate.
 
 schema_version = "1.0.0"
-last_updated = "2026-06-03T1852"
+last_updated = "2026-06-04T0308"
 benchmark_host = "i5-11600K (mining rig)"
 
 [kernels]
@@ -26,7 +26,7 @@ benchmark_host = "i5-11600K (mining rig)"
 # Crank-Nicolson step and 171x on the 1 000-step batch versus the NumPy
 # reference on the local i5-11600K rig (see bench/results/capacitor_bank.json),
 # so Rust is the fastest measured backend.
-"lifecycle.capacitor_bank"            = ["rust", "python"]
+"lifecycle.capacitor_bank" = ["rust", "python"]
 "aer.spike_buffer"                    = ["python"]
 "aer.decode_rate"                     = ["python"]
 "physics.frc_rigid_rotor"             = ["python"]

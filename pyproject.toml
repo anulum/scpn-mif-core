@@ -148,7 +148,7 @@ packages = ["scpn_mif_core"]
 exclude = ["lean", "go", "scpn-mif-rs", "hdl", "build", "dist"]
 
 [[tool.mypy.overrides]]
-module = ["jax.*", "scipy.*", "pyverilog.*", "pysmt.*"]
+module = ["jax.*", "scipy.*", "pyverilog.*", "pysmt.*", "scpn_mif_core_rs", "scpn_mif_core_rs.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
