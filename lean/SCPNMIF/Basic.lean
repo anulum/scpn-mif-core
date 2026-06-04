@@ -11,8 +11,9 @@
 Hosts the mechanised proof surfaces for capacitor-bank energy bookkeeping
 (MIF-005), Faraday recovery energy bookkeeping (MIF-009), the generic sampled
 kinematic invariant template (PHA-C.6), the sampled kinematic merging window
-(`|Δz| ≤ 2 mm`, MIF-011), and the pulsed-shot lifecycle FSM transition cycle
-(MIF-004). Continuous-time barrier certificates remain upstream-owned by
+(`|Δz| ≤ 2 mm`, MIF-011), the plasmoid-merger Petri-net one-safety invariant
+(MIF-012), and the pulsed-shot lifecycle FSM transition cycle (MIF-004).
+Continuous-time barrier certificates remain upstream-owned by
 `SPOFormal.Kinematic`.
 -/
 

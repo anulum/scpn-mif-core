@@ -81,8 +81,8 @@ local physics/lifecycle surfaces:
   invariant template plus the 2 mm axial merge-window instantiation under a
   non-expansive Lipschitz-bounded control envelope.
 - MIF-012 plasmoid-merger Petri net: Python reference, Rust kernel, PyO3
-  bridge, boundedness/liveness verification campaigns, benchmarked dispatch,
-  and API documentation.
+  bridge, boundedness/liveness verification campaigns, Lean one-safety proof,
+  benchmarked dispatch, and API documentation.
 - MIF-007 ADC-to-spike quantiser: Python golden reference, SystemVerilog RTL,
   one-million-sample no-drop reference campaign, Yosys synthesis smoke, and
   API documentation.

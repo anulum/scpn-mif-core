@@ -10,4 +10,5 @@ import SCPNMIF.CapacitorBank
 import SCPNMIF.FaradayRecovery
 import SCPNMIF.Kinematic
 import SCPNMIF.KinematicSafety
+import SCPNMIF.PlasmoidMergerPetriNet
 import SCPNMIF.PulsedShot

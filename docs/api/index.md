@@ -47,7 +47,10 @@ Implemented pre-alpha API pages:
 - [Capacitor-bank proof](formal/capacitor_bank.md) — MIF-005, Lean 4
   stored-energy and recharge-energy sign contracts.
 - [Plasmoid-merger Petri net](lifecycle/plasmoid_merger_petri_net.md) —
-  MIF-012, one-safe stochastic Petri-net FSM with Python and Rust surfaces.
+  MIF-012, one-safe stochastic Petri-net FSM with Python, Rust, and Lean
+  formal surfaces.
+- [Plasmoid-merger Petri-net proof](formal/plasmoid_merger_petri_net.md) —
+  MIF-012, Lean 4 one-safety and nominal reachability skeleton.
 - [Faraday recovery](physics/faraday_recovery.md) — MIF-009, exact
   Faraday-law carrier with Python, Rust, Julia, and Lean formal surfaces.
 - [Faraday recovery proof](formal/faraday_recovery.md) — MIF-009, Lean 4

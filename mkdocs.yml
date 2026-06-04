@@ -118,6 +118,7 @@ nav:
           - Capacitor-bank energy: api/formal/capacitor_bank.md
           - Faraday recovery energy: api/formal/faraday_recovery.md
           - Kinematic safety: api/formal/kinematic_safety.md
+          - Plasmoid-merger Petri net: api/formal/plasmoid_merger_petri_net.md
       - FPGA:
           - ADC-to-spike quantiser: api/fpga/adc_to_spike_quantiser.md
   - Papers: papers/index.md

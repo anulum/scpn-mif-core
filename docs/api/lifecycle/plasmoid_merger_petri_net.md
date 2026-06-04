@@ -17,7 +17,10 @@ approach -> contact -> reconnection -> coalescence -> phase_locked
 
 Unsafe tilt growth or density asymmetry routes the net to the terminal
 `abort` sink. Every normal transition consumes the single active token and
-produces one token in the next place, so the marking remains one-safe.
+produces one token in the next place, so the marking remains one-safe. The
+matching Lean proof surface records the finite one-token marking invariant,
+transition preservation, terminal stability, and nominal reachability to
+`phase_locked`.
 
 ## Guards
 
@@ -56,6 +59,7 @@ The committed MIF-012 tests cover:
 - the required boundedness campaign (`100 × 500`);
 - the required liveness campaign (`1 000 × 200`);
 - property-based one-safe marking preservation;
+- Lean one-token marking and nominal reachability proofs;
 - Python/Rust parity and dispatch fallback.
 
 ## Benchmarks
