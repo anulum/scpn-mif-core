@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0.0",
+  "kernel": "capacitor_bank",
+  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "python_version": "3.12.3",
+  "datetime": "2026-06-04T02:59:07.483245+00:00",
+  "tests": [
+    {
+      "name": "test_bench_python_step_single",
+      "group": "capacitor_bank.step_single",
+      "mean_ns": 21192.31943451748,
+      "stddev_ns": 8205.136860914126,
+      "median_ns": 22140.447981655598,
+      "ops_per_s": 47186.90670409709,
+      "rounds": 3556
+    },
+    {
+      "name": "test_bench_rust_step_single",
+      "group": "capacitor_bank.step_single",
+      "mean_ns": 407.79112597912825,
+      "stddev_ns": 7064.792496747793,
+      "median_ns": 341.096892952919,
+      "ops_per_s": 2452235.8047859594,
+      "rounds": 138790
+    },
+    {
+      "name": "test_bench_python_step_batch_1000",
+      "group": "capacitor_bank.step_batch_1000",
+      "mean_ns": 29843767.85838429,
+      "stddev_ns": 6712210.931751028,
+      "median_ns": 28687802.026979625,
+      "ops_per_s": 33.5078333521838,
+      "rounds": 34
+    },
+    {
+      "name": "test_bench_rust_step_batch_1000",
+      "group": "capacitor_bank.step_batch_1000",
+      "mean_ns": 255658.36980608004,
+      "stddev_ns": 404410.6926716756,
+      "median_ns": 183208.14706385136,
+      "ops_per_s": 3911.469828891235,
+      "rounds": 4323
+    },
+    {
+      "name": "test_bench_python_free_response",
+      "group": "capacitor_bank.free_response",
+      "mean_ns": 2019.6458705320165,
+      "stddev_ns": 3760.5467600026304,
+      "median_ns": 1776.0321497917175,
+      "ops_per_s": 495136.3080977059,
+      "rounds": 7822
+    },
+    {
+      "name": "test_bench_rust_free_response",
+      "group": "capacitor_bank.free_response",
+      "mean_ns": 430.1546865336434,
+      "stddev_ns": 1574.3478569235244,
+      "median_ns": 370.8992153406143,
+      "ops_per_s": 2324745.100555327,
+      "rounds": 90066
+    }
+  ]
+}

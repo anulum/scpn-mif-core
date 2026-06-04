@@ -22,7 +22,11 @@ benchmark_host = "i5-11600K (mining rig)"
 "kinematic.moving_frame_upde"         = ["python"]
 "kinematic.merge_window"              = ["python"]
 "lifecycle.pulsed_shot_fsm"           = ["python"]
-"lifecycle.capacitor_bank"            = ["python"]
+# MIF-005 capacitor bank: measured Rust speedup is 75x on the single
+# Crank-Nicolson step and 171x on the 1 000-step batch versus the NumPy
+# reference on the local i5-11600K rig (see bench/results/capacitor_bank.json),
+# so Rust is the fastest measured backend.
+"lifecycle.capacitor_bank"            = ["rust", "python"]
 "aer.spike_buffer"                    = ["python"]
 "aer.decode_rate"                     = ["python"]
 "physics.frc_rigid_rotor"             = ["python"]

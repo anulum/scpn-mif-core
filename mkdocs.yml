@@ -102,7 +102,10 @@ nav:
   - Home: index.md
   - Architecture:
       - architecture/index.md
-  - API: api/index.md
+  - API:
+      - api/index.md
+      - Lifecycle:
+          - Capacitor bank: api/lifecycle/capacitor_bank.md
   - Papers: papers/index.md
 
 copyright: >
