@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "kernel": "aer_spike_buffer",
+  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "python_version": "3.12.3",
+  "datetime": "2026-06-04T13:52:11.674062+00:00",
+  "notes": [
+    "MIF-006 has Python and Rust spike-buffer surfaces; Go is allocated only for optional network-side router scaffolding and is not a local decode backend."
+  ],
+  "tests": [
+    {
+      "name": "test_bench_python_push_256",
+      "group": "aer_spike_buffer.push_256",
+      "mean_ns": 434321.4617171264,
+      "stddev_ns": 146964.13372208347,
+      "median_ns": 374746.6253116727,
+      "ops_per_s": 2302.4420576556727,
+      "rounds": 1078
+    },
+    {
+      "name": "test_bench_rust_push_256",
+      "group": "aer_spike_buffer.push_256",
+      "mean_ns": 21149.680678948666,
+      "stddev_ns": 6915.236198919298,
+      "median_ns": 18988.03748190403,
+      "ops_per_s": 47282.03773758864,
+      "rounds": 25921
+    }
+  ]
+}

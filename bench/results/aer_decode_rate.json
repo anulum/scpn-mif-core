@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "kernel": "aer_decode_rate",
+  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "python_version": "3.12.3",
+  "datetime": "2026-06-04T13:52:11.674062+00:00",
+  "notes": [
+    "MIF-006 rate decoding is measured for Python and Rust over the committed 256-event AER fixture."
+  ],
+  "tests": [
+    {
+      "name": "test_bench_python_decode_rate",
+      "group": "aer_decode_rate.decode_256",
+      "mean_ns": 66459.07020231913,
+      "stddev_ns": 20403.504594036308,
+      "median_ns": 59667.97471046448,
+      "ops_per_s": 15046.855108802054,
+      "rounds": 9367
+    },
+    {
+      "name": "test_bench_rust_decode_rate",
+      "group": "aer_decode_rate.decode_256",
+      "mean_ns": 1723.544684571634,
+      "stddev_ns": 797.6101686440645,
+      "median_ns": 1413.0491763353348,
+      "ops_per_s": 580199.6368017216,
+      "rounds": 35935
+    }
+  ]
+}

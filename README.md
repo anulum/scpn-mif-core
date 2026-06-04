@@ -23,8 +23,9 @@ UltraScale+ FPGAs.
 
 > **Status:** pre-alpha with P1 local surfaces in progress. MIF-001
 > Doppler-Kuramoto, MIF-002 moving-frame UPDE, MIF-003 merge-window
-> monitor, MIF-004 pulsed-shot FSM, MIF-005 capacitor-bank dynamics, and
-> MIF-009 Faraday recovery now ship as upstream-pending Python/Rust APIs;
+> monitor, MIF-004 pulsed-shot FSM, MIF-005 capacitor-bank dynamics, MIF-006
+> AER spike-buffer decoding, and MIF-009 Faraday recovery now ship as
+> upstream-pending Python/Rust APIs;
 > MIF-001, MIF-002, MIF-005, and MIF-009 also have Julia counterparts, and
 > MIF-004 has a Lean adjacency/minimal-cycle proof. MIF-005 and MIF-009 have Lean
 > energy-bookkeeping proofs. PHA-C.6/MIF-011 add the Lean sampled invariant

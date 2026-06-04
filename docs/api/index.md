@@ -48,6 +48,8 @@ Implemented pre-alpha API pages:
   capacitor-bank model with Python, Rust, Julia, and Lean formal surfaces.
 - [Capacitor-bank proof](formal/capacitor_bank.md) — MIF-005, Lean 4
   stored-energy and recharge-energy sign contracts.
+- [AER spike-buffer decoder](aer/spike_buffer.md) — MIF-006, AER ingress
+  adapter with Python, Rust, PyO3 parity, and benchmarked dispatch.
 - [Plasmoid-merger Petri net](lifecycle/plasmoid_merger_petri_net.md) —
   MIF-012, one-safe stochastic Petri-net FSM with Python, Rust, and Lean
   formal surfaces.

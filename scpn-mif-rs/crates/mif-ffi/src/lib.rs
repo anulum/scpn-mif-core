@@ -17,6 +17,12 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use std::{collections::HashMap, sync::Mutex};
 
+use mif_aer::{
+    AerDecodeSpec as AerDecodeSpecRust, AerDecodedObservation,
+    AerSpikeBuffer as AerSpikeBufferRust, DecodeStrategy as AerDecodeStrategy,
+    decode_spike_features as aer_decode_spike_features,
+    decode_spike_observation as aer_decode_spike_observation,
+};
 use mif_core::{
     FaradayRecoverySpec as CoreFaradayRecoverySpec,
     evaluate_faraday_recovery as core_evaluate_faraday_recovery,
@@ -47,6 +53,7 @@ use mif_lifecycle::{
 };
 
 type PyFaradayRecoveryWaveform = (Vec<f64>, Vec<f64>, f64, f64, f64);
+type PyAERDecodedObservation = (String, u64, u64, usize, Vec<f64>);
 type PyDopplerKuramotoState = (f64, Vec<f64>, Vec<f64>, f64, f64);
 type PyMovingFrameUPDEState = (f64, Vec<f64>, Vec<f64>, Vec<f64>, f64, f64, f64, f64, f64);
 type PyMergeWindowSample = (Option<f64>, f64, f64, f64, bool, bool, usize);
@@ -71,6 +78,125 @@ type PyMergerVerificationReport = (
     HashMap<String, usize>,
     usize,
 );
+
+/// PyO3 wrapper around the immutable `AerDecodeSpec`.
+#[pyclass(name = "AERDecodeSpec", module = "scpn_mif_core_rs", frozen)]
+#[derive(Clone, Copy)]
+struct PyAERDecodeSpec {
+    inner: AerDecodeSpecRust,
+}
+
+#[pymethods]
+impl PyAERDecodeSpec {
+    #[new]
+    #[pyo3(signature = (n_channels, window_ns, strategy="rate", start_ns=None))]
+    fn new(
+        n_channels: usize,
+        window_ns: u64,
+        strategy: &str,
+        start_ns: Option<u64>,
+    ) -> PyResult<Self> {
+        let strategy = strategy
+            .parse::<AerDecodeStrategy>()
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        AerDecodeSpecRust::new(n_channels, window_ns, strategy, start_ns)
+            .map(|inner| Self { inner })
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    #[getter]
+    fn n_channels(&self) -> usize {
+        self.inner.n_channels
+    }
+
+    #[getter]
+    fn window_ns(&self) -> u64 {
+        self.inner.window_ns
+    }
+
+    #[getter]
+    fn strategy(&self) -> String {
+        self.inner.strategy.as_str().to_string()
+    }
+
+    #[getter]
+    fn start_ns(&self) -> Option<u64> {
+        self.inner.start_ns
+    }
+}
+
+/// PyO3 wrapper around the mutable `AerSpikeBuffer`.
+#[pyclass(name = "AERSpikeBuffer", module = "scpn_mif_core_rs", unsendable)]
+struct PyAERSpikeBuffer {
+    inner: Mutex<AerSpikeBufferRust>,
+}
+
+#[pymethods]
+impl PyAERSpikeBuffer {
+    #[new]
+    fn new(capacity: usize) -> PyResult<Self> {
+        AerSpikeBufferRust::new(capacity)
+            .map(|inner| Self {
+                inner: Mutex::new(inner),
+            })
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    #[getter]
+    fn capacity(&self) -> usize {
+        self.inner
+            .lock()
+            .expect("AERSpikeBuffer mutex poisoned")
+            .capacity()
+    }
+
+    #[getter]
+    fn n_channels(&self) -> usize {
+        self.inner
+            .lock()
+            .expect("AERSpikeBuffer mutex poisoned")
+            .n_channels()
+    }
+
+    fn __len__(&self) -> usize {
+        self.inner
+            .lock()
+            .expect("AERSpikeBuffer mutex poisoned")
+            .len()
+    }
+
+    #[pyo3(signature = (address, t_ns, polarity=1))]
+    fn push(&self, address: usize, t_ns: u64, polarity: i8) -> PyResult<()> {
+        self.inner
+            .lock()
+            .expect("AERSpikeBuffer mutex poisoned")
+            .push(address, t_ns, polarity)
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    fn clear(&self) {
+        self.inner
+            .lock()
+            .expect("AERSpikeBuffer mutex poisoned")
+            .clear();
+    }
+
+    fn events(&self) -> Vec<(usize, u64, i8)> {
+        self.inner
+            .lock()
+            .expect("AERSpikeBuffer mutex poisoned")
+            .events()
+            .into_iter()
+            .map(|event| (event.address, event.t_ns, event.polarity))
+            .collect()
+    }
+
+    fn decode_features(&self, spec: &PyAERDecodeSpec) -> PyResult<Vec<f64>> {
+        let guard = self.inner.lock().expect("AERSpikeBuffer mutex poisoned");
+        aer_decode_spike_features(&guard, spec.inner)
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+}
 
 /// PyO3 wrapper around the immutable `FaradayRecoverySpec`.
 #[pyclass(name = "FaradayRecoverySpec", module = "scpn_mif_core_rs", frozen)]
@@ -1429,6 +1555,35 @@ fn verify_merger_liveness(
         .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
+/// Decode MIF-006 AER features from a Rust-backed spike buffer.
+#[pyfunction]
+fn decode_aer_features(buffer: &PyAERSpikeBuffer, spec: &PyAERDecodeSpec) -> PyResult<Vec<f64>> {
+    let guard = buffer.inner.lock().expect("AERSpikeBuffer mutex poisoned");
+    aer_decode_spike_features(&guard, spec.inner).map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+/// Decode MIF-006 AER features and metadata from a Rust-backed spike buffer.
+#[pyfunction]
+fn decode_aer_observation(
+    buffer: &PyAERSpikeBuffer,
+    spec: &PyAERDecodeSpec,
+) -> PyResult<PyAERDecodedObservation> {
+    let guard = buffer.inner.lock().expect("AERSpikeBuffer mutex poisoned");
+    aer_decode_spike_observation(&guard, spec.inner)
+        .map(py_aer_observation)
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+fn py_aer_observation(report: AerDecodedObservation) -> PyAERDecodedObservation {
+    (
+        report.strategy.as_str().to_string(),
+        report.window_start_ns,
+        report.window_stop_ns,
+        report.spike_count,
+        report.features,
+    )
+}
+
 #[doc(hidden)]
 fn _all_regimes_referenced() -> [RlcRegime; 3] {
     // Keeps the RlcRegime import used so the enum stays visible to users
@@ -1445,6 +1600,8 @@ fn _all_regimes_referenced() -> [RlcRegime; 3] {
 fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     m.add_class::<PyFaradayRecoverySpec>()?;
+    m.add_class::<PyAERDecodeSpec>()?;
+    m.add_class::<PyAERSpikeBuffer>()?;
     m.add_class::<PyDopplerKuramotoSpec>()?;
     m.add_class::<PyMovingFrameUPDESpec>()?;
     m.add_class::<PyMergeWindowSpec>()?;
@@ -1477,6 +1634,8 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(moving_frame_derivatives, m)?)?;
     m.add_function(wrap_pyfunction!(verify_merger_boundedness, m)?)?;
     m.add_function(wrap_pyfunction!(verify_merger_liveness, m)?)?;
+    m.add_function(wrap_pyfunction!(decode_aer_features, m)?)?;
+    m.add_function(wrap_pyfunction!(decode_aer_observation, m)?)?;
     let _ = _all_regimes_referenced();
     Ok(())
 }

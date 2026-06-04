@@ -114,6 +114,8 @@ nav:
           - Plasmoid-merger Petri net: api/lifecycle/plasmoid_merger_petri_net.md
       - Physics:
           - Faraday recovery: api/physics/faraday_recovery.md
+      - AER:
+          - Spike-buffer decoder: api/aer/spike_buffer.md
       - Formal:
           - Pulsed-shot lifecycle: api/formal/pulsed_shot.md
           - Capacitor-bank energy: api/formal/capacitor_bank.md
