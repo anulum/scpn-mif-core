@@ -92,7 +92,10 @@ def _kernel_qualified_name(json_doc: dict[str, object], default: str) -> str:
     """
     short = str(json_doc.get("kernel", default))
     qualified_map = {
+        "faraday_back_emf": "physics.faraday_back_emf",
         "capacitor_bank": "lifecycle.capacitor_bank",
+        "faraday_recovery": "physics.faraday_back_emf",
+        "faraday_recovery_waveform": "physics.faraday_recovery_waveform",
     }
     return qualified_map.get(short, short)
 

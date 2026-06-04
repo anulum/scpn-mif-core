@@ -8,6 +8,15 @@
 
 # Changelog
 
+## Unreleased
+
+### Added
+
+- MIF-009 Faraday induction recovery carrier with exact product-rule EMF,
+  waveform energy integration, Python API, Rust `mif-core` production kernel,
+  PyO3 bindings, Julia counterpart, parity tests, benchmark summaries, and
+  fastest-measured dispatch entries for scalar and waveform modes.
+
 ## [0.0.1] - 2026-06-03
 
 ### Added

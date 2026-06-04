@@ -53,5 +53,14 @@ See the compatibility matrix (internal) for the full bump history.
 
 ## Status
 
-Pre-alpha. The repository is currently in **P0 bootstrap**. No functional
-modules ship yet; the public surface stabilises starting at `0.1.0`.
+Pre-alpha. The repository has moved past P0 bootstrap into the first P1
+local physics/lifecycle surfaces:
+
+- MIF-005 capacitor-bank state model: Python reference, Rust PyO3 bridge,
+  benchmarked dispatch, and API documentation.
+- MIF-009 Faraday recovery carrier: Python reference, Rust production kernel,
+  Julia counterpart, benchmarked dispatch, and API documentation.
+
+Self-consistent FRC compression, Hall-MHD, MRTI, and tilt-mode solvers remain
+blocked on the SCPN-FUSION-CORE ownership lane described in the internal
+upstream contracts.

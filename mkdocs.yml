@@ -106,6 +106,8 @@ nav:
       - api/index.md
       - Lifecycle:
           - Capacitor bank: api/lifecycle/capacitor_bank.md
+      - Physics:
+          - Faraday recovery: api/physics/faraday_recovery.md
   - Papers: papers/index.md
 
 copyright: >

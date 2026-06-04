@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0.0",
+  "kernel": "faraday_recovery_waveform",
+  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "python_version": "3.12.3",
+  "datetime": "2026-06-04T09:12:47.332313+00:00",
+  "notes": [
+    "Julia is measured through the package CLI harness; the recorded timing includes Julia process startup."
+  ],
+  "tests": [
+    {
+      "name": "test_bench_python_waveform_batch_4096",
+      "group": "faraday_recovery.waveform_batch_4096",
+      "mean_ns": 105759.90363014574,
+      "stddev_ns": 35313.107668563396,
+      "median_ns": 88716.9735506177,
+      "ops_per_s": 9455.379266391092,
+      "rounds": 776
+    },
+    {
+      "name": "test_bench_rust_waveform_batch_4096",
+      "group": "faraday_recovery.waveform_batch_4096",
+      "mean_ns": 261226.60681192135,
+      "stddev_ns": 51842.91029206101,
+      "median_ns": 236140.09842276573,
+      "ops_per_s": 3828.0939763535757,
+      "rounds": 577
+    },
+    {
+      "name": "test_bench_julia_cli_waveform_batch_4096",
+      "group": "faraday_recovery.waveform_batch_4096",
+      "mean_ns": 1973192696.614812,
+      "stddev_ns": 336945809.76003957,
+      "median_ns": 1848011677.8519006,
+      "ops_per_s": 0.5067928751791901,
+      "rounds": 3
+    }
+  ]
+}

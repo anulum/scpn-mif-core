@@ -36,6 +36,21 @@ def test_dispatch_lifecycle_capacitor_bank_listed() -> None:
     assert "python" in backends, "python must remain the fall-back option"
 
 
+def test_dispatch_faraday_back_emf_listed() -> None:
+    backends = _dispatch.available_backends("physics.faraday_back_emf")
+    assert backends, "physics.faraday_back_emf must be registered"
+    assert backends[0] == "rust", f"expected rust as fastest scalar backend, got {backends!r}"
+    assert "python" in backends, "python must remain the fall-back option"
+
+
+def test_dispatch_faraday_waveform_listed() -> None:
+    backends = _dispatch.available_backends("physics.faraday_recovery_waveform")
+    assert backends, "physics.faraday_recovery_waveform must be registered"
+    assert backends[0] == "python", f"expected python as fastest waveform backend, got {backends!r}"
+    assert "rust" in backends, "rust must remain the compiled waveform option"
+    assert "julia" in backends, "julia benchmark surface must remain listed"
+
+
 def test_dispatch_is_rust_available_returns_bool() -> None:
     value = _dispatch.is_rust_available()
     assert isinstance(value, bool)

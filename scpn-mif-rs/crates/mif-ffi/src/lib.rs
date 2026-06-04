@@ -16,7 +16,48 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use std::sync::Mutex;
 
+use mif_core::{
+    FaradayRecoverySpec as CoreFaradayRecoverySpec,
+    evaluate_faraday_recovery as core_evaluate_faraday_recovery,
+    faraday_back_emf as core_faraday_back_emf, flux_rate as core_flux_rate,
+    magnetic_flux as core_magnetic_flux, recovered_power as core_recovered_power,
+};
 use mif_lifecycle::{CapacitorBank, CapacitorBankSpec, RlcRegime};
+
+type PyFaradayRecoveryWaveform = (Vec<f64>, Vec<f64>, f64, f64, f64);
+
+/// PyO3 wrapper around the immutable `FaradayRecoverySpec`.
+#[pyclass(name = "FaradayRecoverySpec", module = "scpn_mif_core_rs", frozen)]
+#[derive(Clone, Copy)]
+struct PyFaradayRecoverySpec {
+    inner: CoreFaradayRecoverySpec,
+}
+
+#[pymethods]
+impl PyFaradayRecoverySpec {
+    #[new]
+    #[pyo3(signature = (turns, load_resistance_ohm, coupling_efficiency=1.0))]
+    fn new(turns: f64, load_resistance_ohm: f64, coupling_efficiency: f64) -> PyResult<Self> {
+        CoreFaradayRecoverySpec::new(turns, load_resistance_ohm, coupling_efficiency)
+            .map(|inner| Self { inner })
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    #[getter]
+    fn turns(&self) -> f64 {
+        self.inner.turns
+    }
+
+    #[getter]
+    fn load_resistance_ohm(&self) -> f64 {
+        self.inner.load_resistance_ohm
+    }
+
+    #[getter]
+    fn coupling_efficiency(&self) -> f64 {
+        self.inner.coupling_efficiency
+    }
+}
 
 /// PyO3 wrapper around the immutable `CapacitorBankSpec`.
 #[pyclass(name = "CapacitorBankSpec", module = "scpn_mif_core_rs", frozen)]
@@ -224,6 +265,82 @@ fn regime_str(spec: &PyCapacitorBankSpec) -> &'static str {
     spec.inner.regime().as_str()
 }
 
+/// External magnetic flux `B_ext * pi * R_s^2`.
+#[pyfunction]
+fn magnetic_flux(radius_m: f64, magnetic_field_t: f64) -> PyResult<f64> {
+    core_magnetic_flux(radius_m, magnetic_field_t).map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+/// Product-rule flux derivative.
+#[pyfunction]
+fn flux_rate(
+    radius_m: f64,
+    radial_velocity_m_s: f64,
+    magnetic_field_t: f64,
+    magnetic_field_rate_t_s: f64,
+) -> PyResult<f64> {
+    core_flux_rate(
+        radius_m,
+        radial_velocity_m_s,
+        magnetic_field_t,
+        magnetic_field_rate_t_s,
+    )
+    .map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+/// Induced Faraday back-EMF in volts.
+#[pyfunction]
+fn faraday_back_emf(
+    radius_m: f64,
+    radial_velocity_m_s: f64,
+    magnetic_field_t: f64,
+    magnetic_field_rate_t_s: f64,
+    turns: f64,
+) -> PyResult<f64> {
+    core_faraday_back_emf(
+        radius_m,
+        radial_velocity_m_s,
+        magnetic_field_t,
+        magnetic_field_rate_t_s,
+        turns,
+    )
+    .map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+/// Instantaneous recovered load power.
+#[pyfunction]
+fn recovered_power(spec: &PyFaradayRecoverySpec, back_emf_v: f64) -> PyResult<f64> {
+    core_recovered_power(&spec.inner, back_emf_v).map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+/// Evaluate a full Faraday recovery waveform.
+#[pyfunction]
+fn evaluate_faraday_recovery(
+    spec: &PyFaradayRecoverySpec,
+    time_s: Vec<f64>,
+    radius_m: Vec<f64>,
+    radial_velocity_m_s: Vec<f64>,
+    magnetic_field_t: Vec<f64>,
+    magnetic_field_rate_t_s: Vec<f64>,
+) -> PyResult<PyFaradayRecoveryWaveform> {
+    let report = core_evaluate_faraday_recovery(
+        &spec.inner,
+        &time_s,
+        &radius_m,
+        &radial_velocity_m_s,
+        &magnetic_field_t,
+        &magnetic_field_rate_t_s,
+    )
+    .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    Ok((
+        report.back_emf_v,
+        report.recovered_power_w,
+        report.recovered_energy_j,
+        report.peak_abs_back_emf_v,
+        report.peak_recovered_power_w,
+    ))
+}
+
 #[doc(hidden)]
 fn _all_regimes_referenced() -> [RlcRegime; 3] {
     // Keeps the RlcRegime import used so the enum stays visible to users
@@ -239,6 +356,7 @@ fn _all_regimes_referenced() -> [RlcRegime; 3] {
 #[pymodule]
 fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
+    m.add_class::<PyFaradayRecoverySpec>()?;
     m.add_class::<PyCapacitorBankSpec>()?;
     m.add_class::<PyCapacitorBank>()?;
     m.add_function(wrap_pyfunction!(analytical_voltage_underdamped, m)?)?;
@@ -249,6 +367,11 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(analytical_current_overdamped, m)?)?;
     m.add_function(wrap_pyfunction!(free_response, m)?)?;
     m.add_function(wrap_pyfunction!(regime_str, m)?)?;
+    m.add_function(wrap_pyfunction!(magnetic_flux, m)?)?;
+    m.add_function(wrap_pyfunction!(flux_rate, m)?)?;
+    m.add_function(wrap_pyfunction!(faraday_back_emf, m)?)?;
+    m.add_function(wrap_pyfunction!(recovered_power, m)?)?;
+    m.add_function(wrap_pyfunction!(evaluate_faraday_recovery, m)?)?;
     let _ = _all_regimes_referenced();
     Ok(())
 }

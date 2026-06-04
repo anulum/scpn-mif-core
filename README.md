@@ -21,10 +21,10 @@ pulsed magneto-inertial fusion plasmas on field-reversed configurations.
 Sub-50-nanosecond combinatorial sensor-to-actuator triggering on AMD Xilinx
 UltraScale+ FPGAs.
 
-> **Status:** P0 bootstrap. No functional modules ship yet. The public
-> surface stabilises starting at `0.1.0`. See
-> [`docs/architecture/`](docs/architecture/index.md) for the operational
-> targets and the carrier equations.
+> **Status:** pre-alpha with P1 local surfaces in progress. MIF-005
+> capacitor-bank dynamics and MIF-009 Faraday recovery now ship as
+> upstream-pending Python/Rust APIs; MIF-009 also has a Julia counterpart.
+> See [`docs/api/`](docs/api/index.md) for the implemented surfaces.
 
 ## Reading path
 
@@ -219,11 +219,15 @@ bypassing the CPU completely.
 ## Status
 
 The repository is currently in **pre-alpha**. P0 bootstrap (the present
-release `0.0.1`) ships the governance, build system, source-tree skeleton,
+release `0.0.1`) shipped the governance, build system, source-tree skeleton,
 testing infrastructure, benchmark scaffolding, documentation site, CI/CD
-workflows, and the compatibility matrix `LOCKED-skeleton` row. No
-functional modules ship yet. The public surface stabilises starting at
-`0.1.0`.
+workflows, and the compatibility matrix `LOCKED-skeleton` row. Current main
+also contains the first P1 upstream-pending modules:
+
+- MIF-005 capacitor-bank dynamics with Python and Rust paths.
+- MIF-009 Faraday recovery with Python, Rust, and Julia paths.
+
+The broader public surface still stabilises at `0.1.0`.
 
 ## Licence
 

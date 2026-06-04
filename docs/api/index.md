@@ -23,5 +23,9 @@ under `docs/api/rust/` (built separately via `make bridge`).
 | `mif-fpga` | FPGA-side glue and SystemVerilog IR helpers |
 | `mif-ffi` | PyO3 bridge |
 
-Implementation tracks the phases in the development plan. The pre-alpha
-release exposes no functional API; types and crates compile cleanly.
+Implemented pre-alpha API pages:
+
+- [Capacitor bank](lifecycle/capacitor_bank.md) — MIF-005, Python reference
+  with Rust-backed PyO3 acceleration.
+- [Faraday recovery](physics/faraday_recovery.md) — MIF-009, exact
+  Faraday-law carrier with Python, Rust, and Julia surfaces.

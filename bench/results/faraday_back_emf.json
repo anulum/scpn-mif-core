@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "kernel": "faraday_back_emf",
+  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "python_version": "3.12.3",
+  "datetime": "2026-06-04T09:12:47.332313+00:00",
+  "tests": [
+    {
+      "name": "test_bench_python_scalar_emf",
+      "group": "faraday_recovery.scalar_emf",
+      "mean_ns": 471.9870208046378,
+      "stddev_ns": 123.64693257669141,
+      "median_ns": 457.0465534925461,
+      "ops_per_s": 2118702.328498805,
+      "rounds": 45078
+    },
+    {
+      "name": "test_bench_rust_scalar_emf",
+      "group": "faraday_recovery.scalar_emf",
+      "mean_ns": 93.81726502955794,
+      "stddev_ns": 31.10570852319185,
+      "median_ns": 80.60596883296967,
+      "ops_per_s": 10659018.8883138,
+      "rounds": 29917
+    }
+  ]
+}

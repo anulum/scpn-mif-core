@@ -28,6 +28,11 @@ Per `feedback_multilang_workflow_canonical.md`:
 5. Commit one back-end per commit.
 6. Update `dispatch.toml` to order backends fastest-first.
 
+Some facades have separate dispatch keys for scalar and batch paths when FFI
+transfer cost changes the winner. MIF-009 uses `physics.faraday_back_emf` for
+the scalar back-EMF call and `physics.faraday_recovery_waveform` for the
+4 096-sample waveform batch.
+
 ## Running
 
 ```bash

@@ -12,6 +12,13 @@
 #![forbid(unsafe_code)]
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 
+pub mod faraday_recovery;
+
+pub use faraday_recovery::{
+    FaradayRecoveryError, FaradayRecoveryReport, FaradayRecoverySpec, FaradayRecoveryState,
+    evaluate_faraday_recovery, evaluate_faraday_state, faraday_back_emf, flux_rate, magnetic_flux,
+    recovered_power,
+};
 pub use mif_types::VERSION as TYPES_VERSION;
 
 /// Crate version derived from the workspace.
