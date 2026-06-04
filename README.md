@@ -8,6 +8,11 @@
 # SCPN-MIF-CORE — Magneto-Inertial Fusion Core
 
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL_3.0--or--later-blue.svg)](LICENSE)
+[![CI](https://github.com/anulum/scpn-mif-core/actions/workflows/ci.yml/badge.svg)](https://github.com/anulum/scpn-mif-core/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/anulum/scpn-mif-core/actions/workflows/codeql.yml/badge.svg)](https://github.com/anulum/scpn-mif-core/actions/workflows/codeql.yml)
+[![Docs](https://github.com/anulum/scpn-mif-core/actions/workflows/docs.yml/badge.svg)](https://github.com/anulum/scpn-mif-core/actions/workflows/docs.yml)
+[![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/anulum/scpn-mif-core/actions/workflows/pre-commit.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/anulum/scpn-mif-core/badge)](https://securityscorecards.dev/viewer/?uri=github.com/anulum/scpn-mif-core)
 [![Python: 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](pyproject.toml)
 [![Rust: 1.85](https://img.shields.io/badge/rust-1.85-orange.svg)](rust-toolchain.toml)
 [![Julia: 1.11](https://img.shields.io/badge/julia-1.11-purple.svg)](Project.toml)

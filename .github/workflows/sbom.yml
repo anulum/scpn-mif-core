@@ -1,0 +1,85 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# SCPN-MIF-CORE — SBOM (software bill of materials)
+name: SBOM Generation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python-sbom:
+    name: CycloneDX Python SBOM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          python -m pip install --no-deps cyclonedx-bom
+      - name: Generate Python SBOM
+        run: |
+          mkdir -p artifacts
+          cyclonedx-py environment -o artifacts/sbom-python.cdx.json --spec-version 1.5 --format json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom-python
+          path: artifacts/sbom-python.cdx.json
+
+  rust-sbom:
+    name: CycloneDX Rust SBOM
+    defaults:
+      run:
+        working-directory: scpn-mif-rs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - run: |
+          mkdir -p ../artifacts
+          cargo install cargo-cyclonedx --locked
+          cargo cyclonedx --manifest-path Cargo.toml --format json --spec-version 1.5
+          test -f scpn-mif-rs.cdx.json
+          mv scpn-mif-rs.cdx.json ../artifacts/sbom-rust.cdx.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom-rust
+          path: artifacts/sbom-rust.cdx.json
+
+  attach-release-assets:
+    if: github.event_name == 'release'
+    needs: [python-sbom, rust-sbom]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: sbom-python
+          path: artifacts
+      - uses: actions/download-artifact@v4
+        with:
+          name: sbom-rust
+          path: artifacts
+      - name: Attach SBOMs to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${GITHUB_REF_NAME}" \
+            artifacts/sbom-python.cdx.json \
+            artifacts/sbom-rust.cdx.json \
+            --clobber

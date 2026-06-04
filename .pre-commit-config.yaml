@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-yaml
+        args: [--unsafe]
+      - id: check-toml
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.10
+    hooks:
+      - id: ruff
+        files: ^(src/|tests/|bench/|tools/)
+      - id: ruff-format
+        files: ^(src/|tests/|bench/|tools/)
+
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.29.5
+    hooks:
+      - id: typos
+        files: '^(src|bench|tests|tools|docs)/'
+
+  - repo: local
+    hooks:
+      - id: check-version-sync
+        name: sync-tag linter
+        entry: python tools/check_sync_tags.py --root .
+        language: system
+        pass_filenames: false
+
+      - id: check-secrets
+        name: secret-pattern scan
+        entry: python tools/check_secrets.py
+        language: system
+        pass_filenames: false

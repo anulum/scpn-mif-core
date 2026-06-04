@@ -45,17 +45,21 @@ default configuration. Security concerns are primarily:
 
 - **Input validation:** Public API boundaries enforce finite-float, integer,
   fraction, and array-shape checks at every public entry point.
-- **Rust:** `cargo deny` supply-chain policy and `cargo audit` are enforced
-  in CI.
-- **Checkpoint hygiene:** `torch.load(..., weights_only=True)` by default
-  wherever PyTorch is invoked.
+- **Rust:** `cargo audit` and the `security-audit` workflow are run in CI.
+  Supply-chain checks also include `pip-audit` for Python dependencies.
+- **Configuration safety:** Inputs are validated at entry points in each public
+  runtime surface; deterministic parameter schema tests guard JSON and TOML
+  parsing paths.
 - **RNG isolation:** All stochastic modules use scoped `numpy.random.Generator`
   instances; no use of the global module-level RNG.
-- **Pre-commit:** ruff, mypy, `cargo fmt`, merge-conflict detection,
-  private-key detection (`tools/check_secrets.py` plus `gitleaks`).
+- **Pre-commit:** `ruff`, `ruff-format`, `typos`, merge-conflict detection,
+  `tools/check_sync_tags.py`, `tools/check_secrets.py`, and repository-scoped
+  secret scan (`gitleaks`) run in CI through both workflow and local hooks.
 - **Pre-push:** `tools/preflight.py` runs the full local quality gate.
 - **Formal verification:** Sub-50-nanosecond triggering surface is gated by
   SymbiYosys, nuXmv, and Kind 2 proofs (see `hdl/formal/`).
+- **SBOM:** CycloneDX package manifests are generated for Python and Rust and
+  attached to GitHub releases.
 - **Post-quantum readiness:** Capacitor-bank trigger commands are signed
   with FIPS 204 ML-DSA-65 via SCPN-QUANTUM-CONTROL's `PqcTriggerSigner`
   starting at `0.2.0`.

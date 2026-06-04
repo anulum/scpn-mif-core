@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+version = 1
+
+[[annotations]]
+path = ["*.md", "*.txt", "*.json", "*.yaml", "*.yml", "*.toml", "*.cfg", "*.ini", "*.lock", "*.txt", "*.mod", "*.sh", "*.bat", "*.ps1"]
+SPDX-FileCopyrightText = "1996-2026 Miroslav Šotek"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+[[annotations]]
+path = ["docs/**", "*.png", "*.svg", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.tif"]
+SPDX-FileCopyrightText = "1996-2026 Miroslav Šotek"
+SPDX-License-Identifier = "AGPL-3.0-or-later"
+
+[[annotations]]
+path = ["src/**/*.py", "tests/**/*.py", "bench/**/*.py", "tools/**/*.py", "scpn-mif-rs/**/*.rs", "go/**/*.go", "lean/**/*.lean", "julia/**/*.jl", "hdl/**/*.v", "hdl/**/*.sv", "hdl/**/*.vh", "hdl/**/*.svh", "bench/**/*.ipynb"]
+SPDX-FileCopyrightText = "1996-2026 Miroslav Šotek"
+SPDX-License-Identifier = "AGPL-3.0-or-later"

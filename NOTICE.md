@@ -43,5 +43,5 @@ Contact protoscience@anulum.li for terms.
 | scpn-fusion-core | AGPL-3.0-or-later | Sibling ecosystem dependency |
 | scpn-quantum-control | AGPL-3.0-or-later | Sibling ecosystem dependency |
 
-See `sbom.json` (attached to each GitHub Release) for the full software
-bill of materials.
+See `sbom-python.cdx.json` and `sbom-rust.cdx.json` (attached to each GitHub
+Release) for the full software bill of materials.
