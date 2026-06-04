@@ -25,6 +25,10 @@
 - MIF-003 spatial + phase merge-window monitor with consecutive-sample lock
   detection, Python API, Rust `mif-kinematic` kernel, PyO3 bindings, parity
   tests, benchmark summary, and fastest-measured dispatch entry.
+- MIF-004 pulsed-shot lifecycle FSM with eight adjacent states, plasma and
+  capacitor-bank guards, JSONL audit log, Python API, Rust `mif-lifecycle`
+  kernel, PyO3 bindings, Lean transition-cycle theorem, parity tests,
+  benchmark summary, and fastest-measured dispatch entry.
 - MIF-009 Faraday induction recovery carrier with exact product-rule EMF,
   waveform energy integration, Python API, Rust `mif-core` kernel,
   PyO3 bindings, Julia counterpart, parity tests, benchmark summaries, and

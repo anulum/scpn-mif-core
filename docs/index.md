@@ -64,6 +64,8 @@ local physics/lifecycle surfaces:
   counterpart, benchmarked dispatch, and API documentation.
 - MIF-003 merge-window monitor: Python reference, Rust kernel, benchmarked
   dispatch, and API documentation.
+- MIF-004 pulsed-shot lifecycle FSM: Python reference, Rust kernel, Lean
+  transition-cycle theorem, benchmarked dispatch, and API documentation.
 - MIF-009 Faraday recovery carrier: Python reference, Rust kernel, Julia
   counterpart, benchmarked dispatch, and API documentation.
 

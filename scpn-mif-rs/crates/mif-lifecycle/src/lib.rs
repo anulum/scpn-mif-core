@@ -29,12 +29,17 @@
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 
 pub mod capacitor_bank;
+pub mod pulsed_shot;
 pub mod types;
 
 pub use capacitor_bank::{
     CapacitorBank, analytical_current_critically_damped, analytical_current_overdamped,
     analytical_current_underdamped, analytical_voltage_critically_damped,
     analytical_voltage_overdamped, analytical_voltage_underdamped, free_response,
+};
+pub use pulsed_shot::{
+    BankTelemetry, PlasmaState, PulsedShotError, PulsedShotFsm, PulsedShotSpec, SchedulerAction,
+    SchedulerCommand, ShotState, TransitionRecord,
 };
 pub use types::{
     CapacitorBankSpec, CapacitorBankState, ConstructError, FreeResponseError, RlcRegime, SpecError,

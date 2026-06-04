@@ -5,3 +5,4 @@
 -- Contact: www.anulum.li | protoscience@anulum.li
 -- SCPN-MIF-CORE — Lean 4 library root.
 import SCPNMIF.Basic
+import SCPNMIF.PulsedShot

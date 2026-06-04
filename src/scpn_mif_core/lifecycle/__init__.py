@@ -15,11 +15,13 @@ CON-C.2 respectively); see
 
 The Rust acceleration path is optional. Consumers that want the
 fastest-measured backend (per :file:`bench/dispatch.toml`) should call
-:func:`dispatched_capacitor_bank` instead of constructing
-:class:`CapacitorBank` directly.
+:func:`dispatched_capacitor_bank` or :func:`dispatched_pulsed_shot_fsm`
+instead of constructing the pure Python reference classes directly.
 """
 
 from __future__ import annotations
+
+from typing import cast
 
 from scpn_mif_core._dispatch import is_rust_available, preferred_backend
 from scpn_mif_core.lifecycle.capacitor_bank import (
@@ -37,8 +39,19 @@ from scpn_mif_core.lifecycle.capacitor_bank import (
     analytical_voltage_underdamped,
     free_response,
 )
+from scpn_mif_core.lifecycle.pulsed_shot_fsm import (
+    BankTelemetry,
+    PlasmaState,
+    PulsedShotFSM,
+    PulsedShotSpec,
+    SchedulerAction,
+    SchedulerCommand,
+    ShotState,
+    TransitionRecord,
+)
 
-_DISPATCH_KERNEL = "lifecycle.capacitor_bank"
+_CAPACITOR_BANK_KERNEL = "lifecycle.capacitor_bank"
+_PULSED_SHOT_FSM_KERNEL = "lifecycle.pulsed_shot_fsm"
 
 
 def dispatched_capacitor_bank(spec: CapacitorBankSpec, initial_voltage_V: float = 0.0) -> CapacitorBank:
@@ -51,20 +64,37 @@ def dispatched_capacitor_bank(spec: CapacitorBankSpec, initial_voltage_V: float 
     otherwise. The returned instance is API-compatible with
     :class:`CapacitorBank` so downstream code stays backend-agnostic.
     """
-    if preferred_backend(_DISPATCH_KERNEL) == "rust" and is_rust_available():
+    if preferred_backend(_CAPACITOR_BANK_KERNEL) == "rust" and is_rust_available():
         from scpn_mif_core.lifecycle._rust_adapter import RustBackedCapacitorBank
 
         return RustBackedCapacitorBank(spec, initial_voltage_V=initial_voltage_V)
     return CapacitorBank(spec, initial_voltage_V=initial_voltage_V)
 
 
+def dispatched_pulsed_shot_fsm(spec: PulsedShotSpec) -> PulsedShotFSM:
+    """Return a pulsed-shot FSM backed by the fastest available backend."""
+    if preferred_backend(_PULSED_SHOT_FSM_KERNEL) == "rust" and is_rust_available():
+        from scpn_mif_core.lifecycle._rust_adapter import RustBackedPulsedShotFSM
+
+        return cast(PulsedShotFSM, RustBackedPulsedShotFSM(spec))
+    return PulsedShotFSM(spec)
+
+
 __all__ = [
+    "BankTelemetry",
     "CapacitorBank",
     "CapacitorBankSpec",
     "CapacitorBankState",
     "EnergyReport",
+    "PlasmaState",
     "PulseSpec",
+    "PulsedShotFSM",
+    "PulsedShotSpec",
     "RLCRegime",
+    "SchedulerAction",
+    "SchedulerCommand",
+    "ShotState",
+    "TransitionRecord",
     "analytical_current_critically_damped",
     "analytical_current_overdamped",
     "analytical_current_underdamped",
@@ -72,5 +102,6 @@ __all__ = [
     "analytical_voltage_overdamped",
     "analytical_voltage_underdamped",
     "dispatched_capacitor_bank",
+    "dispatched_pulsed_shot_fsm",
     "free_response",
 ]

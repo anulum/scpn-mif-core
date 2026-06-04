@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "kernel": "pulsed_shot_fsm",
+  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "python_version": "3.12.3",
+  "datetime": "2026-06-04T10:58:45.611067+00:00",
+  "notes": [
+    "MIF-004 has Python, Rust, and Lean surfaces; Lean proves the adjacent eight-state lifecycle cycle and is not a runtime benchmark backend."
+  ],
+  "tests": [
+    {
+      "name": "test_bench_python_campaign_8",
+      "group": "pulsed_shot_fsm.campaign_8",
+      "mean_ns": 17187.401406643356,
+      "stddev_ns": 3195.6272062475496,
+      "median_ns": 16401.056200265884,
+      "ops_per_s": 58182.151934467256,
+      "rounds": 14192
+    },
+    {
+      "name": "test_bench_rust_campaign_8",
+      "group": "pulsed_shot_fsm.campaign_8",
+      "mean_ns": 2382.868824093911,
+      "stddev_ns": 577.2924063884477,
+      "median_ns": 2272.1942514181137,
+      "ops_per_s": 419662.21131801134,
+      "rounds": 84133
+    }
+  ]
+}

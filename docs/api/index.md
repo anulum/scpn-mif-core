@@ -33,6 +33,8 @@ Implemented pre-alpha API pages:
   surfaces.
 - [Merge-window monitor](kinematic/merge_window.md) — MIF-003, spatial +
   phase lock predicate with Python and Rust surfaces.
+- [Pulsed-shot FSM](lifecycle/pulsed_shot_fsm.md) — MIF-004, eight-state
+  lifecycle scheduler with Python, Rust, and Lean surfaces.
 - [Capacitor bank](lifecycle/capacitor_bank.md) — MIF-005, Python reference
   with Rust-backed PyO3 acceleration.
 - [Faraday recovery](physics/faraday_recovery.md) — MIF-009, exact

@@ -109,6 +109,7 @@ nav:
           - Moving-frame UPDE: api/kinematic/moving_frame_upde.md
           - Merge-window monitor: api/kinematic/merge_window.md
       - Lifecycle:
+          - Pulsed-shot FSM: api/lifecycle/pulsed_shot_fsm.md
           - Capacitor bank: api/lifecycle/capacitor_bank.md
       - Physics:
           - Faraday recovery: api/physics/faraday_recovery.md

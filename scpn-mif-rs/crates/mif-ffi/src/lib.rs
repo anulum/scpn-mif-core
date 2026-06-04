@@ -31,12 +31,20 @@ use mif_kinematic::{
     doppler_derivatives as kinematic_doppler_derivatives,
     moving_frame_derivatives as kinematic_moving_frame_derivatives,
 };
-use mif_lifecycle::{CapacitorBank, CapacitorBankSpec, RlcRegime};
+use mif_lifecycle::{
+    BankTelemetry as LifecycleBankTelemetry, CapacitorBank, CapacitorBankSpec,
+    PlasmaState as LifecyclePlasmaState, PulsedShotFsm as LifecyclePulsedShotFsm,
+    PulsedShotSpec as LifecyclePulsedShotSpec, RlcRegime,
+    SchedulerCommand as LifecycleSchedulerCommand, ShotState as LifecycleShotState,
+    TransitionRecord as LifecycleTransitionRecord,
+};
 
 type PyFaradayRecoveryWaveform = (Vec<f64>, Vec<f64>, f64, f64, f64);
 type PyDopplerKuramotoState = (f64, Vec<f64>, Vec<f64>, f64, f64);
 type PyMovingFrameUPDEState = (f64, Vec<f64>, Vec<f64>, Vec<f64>, f64, f64, f64, f64, f64);
 type PyMergeWindowSample = (Option<f64>, f64, f64, f64, bool, bool, usize);
+type PySchedulerCommand = (f64, String, String, String, bool, f64);
+type PyTransitionRecord = (f64, String, String, String);
 
 /// PyO3 wrapper around the immutable `FaradayRecoverySpec`.
 #[pyclass(name = "FaradayRecoverySpec", module = "scpn_mif_core_rs", frozen)]
@@ -352,6 +360,158 @@ impl PyCapacitorBankSpec {
     }
 }
 
+/// PyO3 wrapper around the immutable `PulsedShotSpec`.
+#[pyclass(name = "PulsedShotSpec", module = "scpn_mif_core_rs", frozen)]
+#[derive(Clone, Copy)]
+struct PyPulsedShotSpec {
+    inner: LifecyclePulsedShotSpec,
+}
+
+#[pymethods]
+impl PyPulsedShotSpec {
+    #[new]
+    #[allow(clippy::too_many_arguments)]
+    fn new(
+        min_precharge_energy_j: f64,
+        ramp_current_a: f64,
+        phase_tolerance_rad: f64,
+        spatial_tolerance_m: f64,
+        burn_temperature_ev: f64,
+        min_fusion_power_w: f64,
+        expansion_velocity_m_s: f64,
+        dump_energy_floor_j: f64,
+        recharge_voltage_fraction: f64,
+        cooldown_temperature_ev: f64,
+        cooldown_current_a: f64,
+        min_burn_duration_s: f64,
+    ) -> PyResult<Self> {
+        LifecyclePulsedShotSpec::new(
+            min_precharge_energy_j,
+            ramp_current_a,
+            phase_tolerance_rad,
+            spatial_tolerance_m,
+            burn_temperature_ev,
+            min_fusion_power_w,
+            expansion_velocity_m_s,
+            dump_energy_floor_j,
+            recharge_voltage_fraction,
+            cooldown_temperature_ev,
+            cooldown_current_a,
+            min_burn_duration_s,
+        )
+        .map(|inner| Self { inner })
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    #[getter]
+    fn min_precharge_energy_j(&self) -> f64 {
+        self.inner.min_precharge_energy_j
+    }
+
+    #[getter]
+    fn ramp_current_a(&self) -> f64 {
+        self.inner.ramp_current_a
+    }
+
+    #[getter]
+    fn phase_tolerance_rad(&self) -> f64 {
+        self.inner.phase_tolerance_rad
+    }
+
+    #[getter]
+    fn spatial_tolerance_m(&self) -> f64 {
+        self.inner.spatial_tolerance_m
+    }
+
+    #[getter]
+    fn burn_temperature_ev(&self) -> f64 {
+        self.inner.burn_temperature_ev
+    }
+
+    #[getter]
+    fn min_fusion_power_w(&self) -> f64 {
+        self.inner.min_fusion_power_w
+    }
+
+    #[getter]
+    fn expansion_velocity_m_s(&self) -> f64 {
+        self.inner.expansion_velocity_m_s
+    }
+
+    #[getter]
+    fn dump_energy_floor_j(&self) -> f64 {
+        self.inner.dump_energy_floor_j
+    }
+
+    #[getter]
+    fn recharge_voltage_fraction(&self) -> f64 {
+        self.inner.recharge_voltage_fraction
+    }
+
+    #[getter]
+    fn cooldown_temperature_ev(&self) -> f64 {
+        self.inner.cooldown_temperature_ev
+    }
+
+    #[getter]
+    fn cooldown_current_a(&self) -> f64 {
+        self.inner.cooldown_current_a
+    }
+
+    #[getter]
+    fn min_burn_duration_s(&self) -> f64 {
+        self.inner.min_burn_duration_s
+    }
+}
+
+/// PyO3 wrapper around immutable plasma telemetry.
+#[pyclass(name = "PlasmaState", module = "scpn_mif_core_rs", frozen)]
+#[derive(Clone, Copy)]
+struct PyPlasmaState {
+    inner: LifecyclePlasmaState,
+}
+
+#[pymethods]
+impl PyPlasmaState {
+    #[new]
+    fn new(
+        coil_current_a: f64,
+        temperature_ev: f64,
+        phase_lock_error_rad: f64,
+        reference_error_m: f64,
+        fusion_power_w: f64,
+        radial_velocity_m_s: f64,
+    ) -> PyResult<Self> {
+        LifecyclePlasmaState::new(
+            coil_current_a,
+            temperature_ev,
+            phase_lock_error_rad,
+            reference_error_m,
+            fusion_power_w,
+            radial_velocity_m_s,
+        )
+        .map(|inner| Self { inner })
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+}
+
+/// PyO3 wrapper around immutable bank telemetry.
+#[pyclass(name = "BankTelemetry", module = "scpn_mif_core_rs", frozen)]
+#[derive(Clone, Copy)]
+struct PyBankTelemetry {
+    inner: LifecycleBankTelemetry,
+}
+
+#[pymethods]
+impl PyBankTelemetry {
+    #[new]
+    fn new(voltage_v: f64, voltage_max_v: f64, energy_j: f64) -> PyResult<Self> {
+        LifecycleBankTelemetry::new(voltage_v, voltage_max_v, energy_j)
+            .map(|inner| Self { inner })
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+}
+
 /// PyO3 wrapper around `CapacitorBank`.
 ///
 /// Internally guarded by a `Mutex` so the Rust struct stays `Sync` even
@@ -440,6 +600,89 @@ impl PyCapacitorBank {
             .step(dt, external_load_current_a)
             .map_err(|e| PyValueError::new_err(e.to_string()))?;
         Ok((state.voltage_v, state.current_a, state.di_dt_a_s))
+    }
+}
+
+/// PyO3 wrapper around `PulsedShotFsm`.
+#[pyclass(name = "PulsedShotFSM", module = "scpn_mif_core_rs", unsendable)]
+struct PyPulsedShotFSM {
+    inner: Mutex<LifecyclePulsedShotFsm>,
+}
+
+#[pymethods]
+impl PyPulsedShotFSM {
+    #[new]
+    fn new(spec: PyPulsedShotSpec) -> Self {
+        Self {
+            inner: Mutex::new(LifecyclePulsedShotFsm::new(spec.inner)),
+        }
+    }
+
+    #[getter]
+    fn state(&self) -> String {
+        self.inner
+            .lock()
+            .expect("PulsedShotFSM mutex poisoned")
+            .state()
+            .as_str()
+            .to_string()
+    }
+
+    fn reset(&self) {
+        self.inner
+            .lock()
+            .expect("PulsedShotFSM mutex poisoned")
+            .reset();
+    }
+
+    fn step(
+        &self,
+        t_s: f64,
+        plasma: PyPlasmaState,
+        bank: PyBankTelemetry,
+    ) -> PyResult<PySchedulerCommand> {
+        let command = self
+            .inner
+            .lock()
+            .expect("PulsedShotFSM mutex poisoned")
+            .step(t_s, plasma.inner, bank.inner)
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        Ok(py_scheduler_command(command))
+    }
+
+    fn transition_to(
+        &self,
+        next_state: &str,
+        t_s: f64,
+        reason: &str,
+    ) -> PyResult<PyTransitionRecord> {
+        let target = next_state
+            .parse::<LifecycleShotState>()
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        let record = self
+            .inner
+            .lock()
+            .expect("PulsedShotFSM mutex poisoned")
+            .transition_to(target, t_s, reason)
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        Ok(py_transition_record(&record))
+    }
+
+    fn audit_log(&self) -> Vec<PyTransitionRecord> {
+        self.inner
+            .lock()
+            .expect("PulsedShotFSM mutex poisoned")
+            .audit_log()
+            .iter()
+            .map(py_transition_record)
+            .collect()
+    }
+
+    fn audit_log_jsonl(&self) -> String {
+        self.inner
+            .lock()
+            .expect("PulsedShotFSM mutex poisoned")
+            .audit_log_jsonl()
     }
 }
 
@@ -677,6 +920,26 @@ impl PyMergeWindowMonitor {
     }
 }
 
+fn py_scheduler_command(command: LifecycleSchedulerCommand) -> PySchedulerCommand {
+    (
+        command.t_s,
+        command.state.as_str().to_string(),
+        command.action.as_str().to_string(),
+        command.reason,
+        command.transition,
+        command.dwell_s,
+    )
+}
+
+fn py_transition_record(record: &LifecycleTransitionRecord) -> PyTransitionRecord {
+    (
+        record.t_s,
+        record.from_state.as_str().to_string(),
+        record.to_state.as_str().to_string(),
+        record.reason.clone(),
+    )
+}
+
 /// Underdamped voltage closed form.
 #[pyfunction]
 fn analytical_voltage_underdamped(spec: &PyCapacitorBankSpec, t: f64, v0: f64) -> f64 {
@@ -846,7 +1109,11 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyMovingFrameUPDESpec>()?;
     m.add_class::<PyMergeWindowSpec>()?;
     m.add_class::<PyCapacitorBankSpec>()?;
+    m.add_class::<PyPulsedShotSpec>()?;
+    m.add_class::<PyPlasmaState>()?;
+    m.add_class::<PyBankTelemetry>()?;
     m.add_class::<PyCapacitorBank>()?;
+    m.add_class::<PyPulsedShotFSM>()?;
     m.add_class::<PyDopplerKuramoto>()?;
     m.add_class::<PyMovingFrameUPDE>()?;
     m.add_class::<PyMergeWindowMonitor>()?;

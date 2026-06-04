@@ -54,6 +54,19 @@ lock_achieved    = candidate_lock for ≥ 3 consecutive samples
 It is implemented locally as an upstream-pending Python/Rust monitor until
 PHASE-ORCH owns the reusable `scpn.monitor.merge_window` surface.
 
+### Pulsed-shot lifecycle (CONTROL + MIF-CORE)
+
+MIF-004 models the pulsed-shot lifecycle as the adjacent transition ring:
+
+```text
+idle -> ramp_up -> flat_top -> burn -> expansion -> dump -> recharge -> cool_down -> idle
+```
+
+The guard surface consumes plasma telemetry, chamber-centre phase/spatial lock
+observables, and capacitor-bank telemetry. Python and Rust implementations
+share the same transition reasons and JSONL audit shape, while Lean proves the
+eight adjacent transitions return to `idle`.
+
 ### Non-adiabatic flux evolution (FUSION-CORE)
 
 ```

@@ -23,9 +23,10 @@ UltraScale+ FPGAs.
 
 > **Status:** pre-alpha with P1 local surfaces in progress. MIF-001
 > Doppler-Kuramoto, MIF-002 moving-frame UPDE, MIF-003 merge-window
-> monitor, MIF-005 capacitor-bank dynamics, and MIF-009 Faraday recovery
-> now ship as upstream-pending Python/Rust APIs; MIF-001, MIF-002, and
-> MIF-009 also have Julia counterparts.
+> monitor, MIF-004 pulsed-shot FSM, MIF-005 capacitor-bank dynamics, and
+> MIF-009 Faraday recovery now ship as upstream-pending Python/Rust APIs;
+> MIF-001, MIF-002, and MIF-009 also have Julia counterparts, and MIF-004
+> has a Lean transition-cycle theorem.
 > See [`docs/api/`](docs/api/index.md) for the implemented surfaces.
 
 ## Reading path
@@ -61,7 +62,7 @@ Optional tool-chains (gate the related accelerators and proofs):
 
 ```bash
 julia --project=julia/SCPNMIFCore -e 'using Pkg; Pkg.instantiate()'
-cd lean && lake update && lake build
+lake build          # Lean proof surface; uses the repo-root lakefile.lean
 cd go && go test ./...
 pixi install         # Mojo via Modular's pixi channel
 ```

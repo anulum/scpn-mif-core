@@ -37,6 +37,8 @@ both measured groups. MIF-002 uses `kinematic.moving_frame_upde` for both the
 combined derivative and the 120-step RK45 trace for the same reason. MIF-003
 uses `kinematic.merge_window` for both the single-sample predicate and the
 256-sample trace; Rust is fastest among its allocated Python and Rust surfaces.
+MIF-004 uses `lifecycle.pulsed_shot_fsm` for the eight-step lifecycle
+campaign; Rust is fastest among its allocated Python and Rust runtime surfaces.
 
 ## Running
 
