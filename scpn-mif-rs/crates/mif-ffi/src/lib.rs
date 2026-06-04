@@ -25,6 +25,7 @@ use mif_core::{
 use mif_kinematic::{
     DopplerKuramoto as KinematicDopplerKuramoto,
     DopplerKuramotoSpec as KinematicDopplerKuramotoSpec,
+    MergeWindowMonitor as KinematicMergeWindowMonitor, MergeWindowSpec as KinematicMergeWindowSpec,
     MovingFrameUPDE as KinematicMovingFrameUPDE,
     MovingFrameUPDESpec as KinematicMovingFrameUPDESpec,
     doppler_derivatives as kinematic_doppler_derivatives,
@@ -35,6 +36,7 @@ use mif_lifecycle::{CapacitorBank, CapacitorBankSpec, RlcRegime};
 type PyFaradayRecoveryWaveform = (Vec<f64>, Vec<f64>, f64, f64, f64);
 type PyDopplerKuramotoState = (f64, Vec<f64>, Vec<f64>, f64, f64);
 type PyMovingFrameUPDEState = (f64, Vec<f64>, Vec<f64>, Vec<f64>, f64, f64, f64, f64, f64);
+type PyMergeWindowSample = (Option<f64>, f64, f64, f64, bool, bool, usize);
 
 /// PyO3 wrapper around the immutable `FaradayRecoverySpec`.
 #[pyclass(name = "FaradayRecoverySpec", module = "scpn_mif_core_rs", frozen)]
@@ -226,6 +228,61 @@ impl PyMovingFrameUPDESpec {
     #[getter]
     fn n_oscillators(&self) -> usize {
         self.inner.n_oscillators()
+    }
+}
+
+/// PyO3 wrapper around the immutable `MergeWindowSpec`.
+#[pyclass(name = "MergeWindowSpec", module = "scpn_mif_core_rs", frozen)]
+#[derive(Clone, Copy)]
+struct PyMergeWindowSpec {
+    inner: KinematicMergeWindowSpec,
+}
+
+#[pymethods]
+impl PyMergeWindowSpec {
+    #[new]
+    #[pyo3(
+        signature = (
+            phase_tolerance_rad=0.01,
+            spatial_tolerance_m=0.002,
+            consecutive_samples=3,
+            reference_point_m=0.0
+        )
+    )]
+    fn new(
+        phase_tolerance_rad: f64,
+        spatial_tolerance_m: f64,
+        consecutive_samples: usize,
+        reference_point_m: f64,
+    ) -> PyResult<Self> {
+        KinematicMergeWindowSpec::new(
+            phase_tolerance_rad,
+            spatial_tolerance_m,
+            consecutive_samples,
+            reference_point_m,
+        )
+        .map(|inner| Self { inner })
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    #[getter]
+    fn phase_tolerance_rad(&self) -> f64 {
+        self.inner.phase_tolerance_rad
+    }
+
+    #[getter]
+    fn spatial_tolerance_m(&self) -> f64 {
+        self.inner.spatial_tolerance_m
+    }
+
+    #[getter]
+    fn consecutive_samples(&self) -> usize {
+        self.inner.consecutive_samples
+    }
+
+    #[getter]
+    fn reference_point_m(&self) -> f64 {
+        self.inner.reference_point_m
     }
 }
 
@@ -557,6 +614,69 @@ impl PyMovingFrameUPDE {
     }
 }
 
+/// PyO3 wrapper around `MergeWindowMonitor`.
+#[pyclass(name = "MergeWindowMonitor", module = "scpn_mif_core_rs", unsendable)]
+struct PyMergeWindowMonitor {
+    inner: Mutex<KinematicMergeWindowMonitor>,
+}
+
+#[pymethods]
+impl PyMergeWindowMonitor {
+    #[new]
+    fn new(spec: PyMergeWindowSpec) -> Self {
+        Self {
+            inner: Mutex::new(KinematicMergeWindowMonitor::new(spec.inner)),
+        }
+    }
+
+    #[getter]
+    fn current_streak(&self) -> usize {
+        self.inner
+            .lock()
+            .expect("MergeWindowMonitor mutex poisoned")
+            .current_streak()
+    }
+
+    #[getter]
+    fn first_lock_time_s(&self) -> Option<f64> {
+        self.inner
+            .lock()
+            .expect("MergeWindowMonitor mutex poisoned")
+            .first_lock_time_s()
+    }
+
+    fn reset(&self) {
+        self.inner
+            .lock()
+            .expect("MergeWindowMonitor mutex poisoned")
+            .reset();
+    }
+
+    #[pyo3(signature = (phases_rad, positions_m, t_s=None))]
+    fn evaluate(
+        &self,
+        phases_rad: Vec<f64>,
+        positions_m: Vec<f64>,
+        t_s: Option<f64>,
+    ) -> PyResult<PyMergeWindowSample> {
+        let sample = self
+            .inner
+            .lock()
+            .expect("MergeWindowMonitor mutex poisoned")
+            .evaluate(&phases_rad, &positions_m, t_s)
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        Ok((
+            sample.t_s,
+            sample.phase_lock_error_rad,
+            sample.reference_error_m,
+            sample.separation_m,
+            sample.candidate_lock,
+            sample.lock_achieved,
+            sample.streak,
+        ))
+    }
+}
+
 /// Underdamped voltage closed form.
 #[pyfunction]
 fn analytical_voltage_underdamped(spec: &PyCapacitorBankSpec, t: f64, v0: f64) -> f64 {
@@ -724,10 +844,12 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFaradayRecoverySpec>()?;
     m.add_class::<PyDopplerKuramotoSpec>()?;
     m.add_class::<PyMovingFrameUPDESpec>()?;
+    m.add_class::<PyMergeWindowSpec>()?;
     m.add_class::<PyCapacitorBankSpec>()?;
     m.add_class::<PyCapacitorBank>()?;
     m.add_class::<PyDopplerKuramoto>()?;
     m.add_class::<PyMovingFrameUPDE>()?;
+    m.add_class::<PyMergeWindowMonitor>()?;
     m.add_function(wrap_pyfunction!(analytical_voltage_underdamped, m)?)?;
     m.add_function(wrap_pyfunction!(analytical_current_underdamped, m)?)?;
     m.add_function(wrap_pyfunction!(analytical_voltage_critically_damped, m)?)?;

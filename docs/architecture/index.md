@@ -42,6 +42,18 @@ It advances `[θ, z]` with a fixed-step Dormand-Prince RK45 update and
 exposes reference-window observables while the reusable PHASE-ORCH
 `scpn.upde.moving_frame` surface remains upstream-pending.
 
+MIF-003 adds the merge-window monitor:
+
+```
+phase_lock_error = max circular separation(θ)
+candidate_lock   = phase_lock_error ≤ 0.01 rad
+                   and max_i |zᵢ − z_ref| ≤ 0.002 m
+lock_achieved    = candidate_lock for ≥ 3 consecutive samples
+```
+
+It is implemented locally as an upstream-pending Python/Rust monitor until
+PHASE-ORCH owns the reusable `scpn.monitor.merge_window` surface.
+
 ### Non-adiabatic flux evolution (FUSION-CORE)
 
 ```

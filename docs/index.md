@@ -62,6 +62,8 @@ local physics/lifecycle surfaces:
   Julia counterpart, benchmarked dispatch, and API documentation.
 - MIF-002 moving-frame UPDE carrier: Python reference, Rust kernel, Julia
   counterpart, benchmarked dispatch, and API documentation.
+- MIF-003 merge-window monitor: Python reference, Rust kernel, benchmarked
+  dispatch, and API documentation.
 - MIF-009 Faraday recovery carrier: Python reference, Rust kernel, Julia
   counterpart, benchmarked dispatch, and API documentation.
 

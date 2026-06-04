@@ -17,7 +17,7 @@
 
 from __future__ import annotations
 
-from typing import SupportsFloat, cast
+from typing import SupportsFloat, SupportsIndex, cast
 
 import numpy as np
 import scpn_mif_core_rs as _rust
@@ -27,6 +27,10 @@ from scpn_mif_core.kinematic.doppler_kuramoto import (
     DopplerKuramotoSpec,
     DopplerKuramotoState,
     _readonly,
+)
+from scpn_mif_core.kinematic.merge_window import (
+    MergeWindowSample,
+    MergeWindowSpec,
 )
 from scpn_mif_core.kinematic.moving_frame_upde import (
     MovingFrameUPDESpec,
@@ -114,6 +118,38 @@ class RustBackedMovingFrameUPDE:
         return bool(self._rust_engine.collision_imminent(eps_m))
 
 
+class RustBackedMergeWindowMonitor:
+    """Adapter exposing the Python merge-window API on top of the PyO3 monitor."""
+
+    def __init__(self, spec: MergeWindowSpec) -> None:
+        self.spec = spec
+        self._rust_monitor = _rust.MergeWindowMonitor(_rust_merge_window_spec(spec))
+
+    @property
+    def current_streak(self) -> int:
+        """Return the current consecutive candidate streak."""
+        return int(self._rust_monitor.current_streak)
+
+    @property
+    def first_lock_time_s(self) -> float | None:
+        """Return the first lock time, if the monitor has achieved lock."""
+        value = self._rust_monitor.first_lock_time_s
+        return None if value is None else _float(value)
+
+    def reset(self) -> None:
+        """Clear streak and first-lock state."""
+        self._rust_monitor.reset()
+
+    def evaluate(self, phases_rad: ArrayLike, positions_m: ArrayLike, t_s: float | None = None) -> MergeWindowSample:
+        """Evaluate one phase/position sample and return the Python sample dataclass."""
+        raw = self._rust_monitor.evaluate(
+            list(np.asarray(phases_rad, dtype=np.float64)),
+            list(np.asarray(positions_m, dtype=np.float64)),
+            None if t_s is None else float(t_s),
+        )
+        return _merge_window_sample_from_tuple(raw)
+
+
 def rust_doppler_derivatives(
     spec: DopplerKuramotoSpec,
     phases_rad: ArrayLike,
@@ -177,6 +213,15 @@ def _rust_moving_frame_spec(spec: MovingFrameUPDESpec) -> _rust.MovingFrameUPDES
     )
 
 
+def _rust_merge_window_spec(spec: MergeWindowSpec) -> _rust.MergeWindowSpec:
+    return _rust.MergeWindowSpec(
+        spec.phase_tolerance_rad,
+        spec.spatial_tolerance_m,
+        spec.consecutive_samples,
+        spec.reference_point_m,
+    )
+
+
 def _moving_frame_state_from_tuple(spec: MovingFrameUPDESpec, raw: tuple[object, ...]) -> MovingFrameUPDEState:
     (
         t_s,
@@ -200,6 +245,27 @@ def _moving_frame_state_from_tuple(spec: MovingFrameUPDESpec, raw: tuple[object,
         order_parameter=_float(order),
         phase_lock_error_rad=_float(lock_error),
         local_error_estimate=_float(local_error),
+    )
+
+
+def _merge_window_sample_from_tuple(raw: tuple[object, ...]) -> MergeWindowSample:
+    (
+        t_s,
+        phase_lock_error,
+        reference_error,
+        separation,
+        candidate,
+        achieved,
+        streak,
+    ) = raw
+    return MergeWindowSample(
+        t_s=None if t_s is None else _float(t_s),
+        phase_lock_error_rad=_float(phase_lock_error),
+        reference_error_m=_float(reference_error),
+        separation_m=_float(separation),
+        candidate_lock=bool(candidate),
+        lock_achieved=bool(achieved),
+        streak=int(cast(SupportsIndex, streak)),
     )
 
 

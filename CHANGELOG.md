@@ -22,6 +22,9 @@
   reference observables, Python API, Rust `mif-kinematic` kernel, PyO3
   bindings, Julia counterpart, parity tests, benchmark summary, and
   fastest-measured dispatch entry.
+- MIF-003 spatial + phase merge-window monitor with consecutive-sample lock
+  detection, Python API, Rust `mif-kinematic` kernel, PyO3 bindings, parity
+  tests, benchmark summary, and fastest-measured dispatch entry.
 - MIF-009 Faraday induction recovery carrier with exact product-rule EMF,
   waveform energy integration, Python API, Rust `mif-core` kernel,
   PyO3 bindings, Julia counterpart, parity tests, benchmark summaries, and

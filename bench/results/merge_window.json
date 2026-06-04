@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "kernel": "merge_window",
+  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "python_version": "3.12.3",
+  "datetime": "2026-06-04T10:24:32.097767+00:00",
+  "notes": [
+    "MIF-003 has Python and Rust surfaces; Julia is not allocated in the development plan for this monitor."
+  ],
+  "tests": [
+    {
+      "name": "test_bench_python_evaluate_single",
+      "group": "merge_window.evaluate_single",
+      "mean_ns": 18454.532648624674,
+      "stddev_ns": 5468.057890536229,
+      "median_ns": 16899.430193006992,
+      "ops_per_s": 54187.2297196605,
+      "rounds": 3538
+    },
+    {
+      "name": "test_bench_rust_evaluate_single",
+      "group": "merge_window.evaluate_single",
+      "mean_ns": 647.1557844413032,
+      "stddev_ns": 320.71616887856055,
+      "median_ns": 577.8856575489044,
+      "ops_per_s": 1545222.9958252031,
+      "rounds": 137514
+    },
+    {
+      "name": "test_bench_python_trace_256",
+      "group": "merge_window.trace_256",
+      "mean_ns": 4674912.370419138,
+      "stddev_ns": 951008.990055146,
+      "median_ns": 4372396.040707827,
+      "ops_per_s": 213.90775286561,
+      "rounds": 237
+    },
+    {
+      "name": "test_bench_rust_trace_256",
+      "group": "merge_window.trace_256",
+      "mean_ns": 496666.50531749334,
+      "stddev_ns": 76597.50666982026,
+      "median_ns": 478333.0950886011,
+      "ops_per_s": 2013.4234728809656,
+      "rounds": 2119
+    }
+  ]
+}

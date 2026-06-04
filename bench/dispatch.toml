@@ -11,7 +11,7 @@
 # benchmark campaign. Manual edits are blocked by the preflight gate.
 
 schema_version = "1.0.0"
-last_updated = "2026-06-04T0955"
+last_updated = "2026-06-04T1024"
 benchmark_host = "i5-11600K (mining rig)"
 
 [kernels]
@@ -25,7 +25,7 @@ benchmark_host = "i5-11600K (mining rig)"
 # MIF-002 moving-frame UPDE: Rust is fastest for both the 2-body combined
 # derivative and the 120-step RK45 trace on the same rig.
 "kinematic.moving_frame_upde" = ["rust", "python", "julia"]
-"kinematic.merge_window"              = ["python"]
+"kinematic.merge_window" = ["rust", "python"]
 "lifecycle.pulsed_shot_fsm"           = ["python"]
 # MIF-005 capacitor bank: measured Rust speedup is 75x on the single
 # Crank-Nicolson step and 171x on the 1 000-step batch versus the NumPy

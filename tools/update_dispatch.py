@@ -96,6 +96,7 @@ def _kernel_qualified_name(json_doc: dict[str, object], default: str) -> str:
         "capacitor_bank": "lifecycle.capacitor_bank",
         "doppler_kuramoto": "kinematic.doppler_kuramoto",
         "moving_frame_upde": "kinematic.moving_frame_upde",
+        "merge_window": "kinematic.merge_window",
         "faraday_recovery": "physics.faraday_back_emf",
         "faraday_recovery_waveform": "physics.faraday_recovery_waveform",
     }
@@ -127,14 +128,17 @@ def rewrite_dispatch(
     text: str,
     rankings: dict[str, list[str]],
     *,
-    new_last_updated: str,
+    new_last_updated: str | None,
 ) -> str:
     """Return ``text`` with kernel lines replaced for ranked kernels and ``last_updated`` refreshed."""
     out: list[str] = []
     for raw_line in text.splitlines():
         # Update the last_updated field once.
         if _LAST_UPDATED_RE.match(raw_line):
-            out.append(f'last_updated = "{new_last_updated}"')
+            if new_last_updated is None:
+                out.append(raw_line)
+            else:
+                out.append(f'last_updated = "{new_last_updated}"')
             continue
         match = _KERNEL_LINE_RE.match(raw_line)
         if match:
@@ -168,7 +172,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     before = DISPATCH_PATH.read_text(encoding="utf-8")
-    now_utc = dt.datetime.now(tz=dt.UTC).strftime("%Y-%m-%dT%H%M")
+    now_utc = None if args.check else dt.datetime.now(tz=dt.UTC).strftime("%Y-%m-%dT%H%M")
     after = rewrite_dispatch(before, rankings, new_last_updated=now_utc)
 
     if before == after:
