@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "kernel": "doppler_kuramoto",
+  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "python_version": "3.12.3",
+  "datetime": "2026-06-04T09:39:37.574591+00:00",
+  "notes": [
+    "Julia is measured through the package CLI harness; the recorded timing includes Julia process startup."
+  ],
+  "tests": [
+    {
+      "name": "test_bench_python_derivatives_3",
+      "group": "doppler_kuramoto.derivatives_3",
+      "mean_ns": 16309.783158547238,
+      "stddev_ns": 1833.5737384630268,
+      "median_ns": 15805.009752511978,
+      "ops_per_s": 61312.89363439171,
+      "rounds": 10727
+    },
+    {
+      "name": "test_bench_rust_derivatives_3",
+      "group": "doppler_kuramoto.derivatives_3",
+      "mean_ns": 383.0731471087595,
+      "stddev_ns": 48.437120993046115,
+      "median_ns": 373.2391633093357,
+      "ops_per_s": 2610467.498302842,
+      "rounds": 131736
+    },
+    {
+      "name": "test_bench_python_trace_120",
+      "group": "doppler_kuramoto.trace_120",
+      "mean_ns": 12462199.11830282,
+      "stddev_ns": 409743.26714297297,
+      "median_ns": 12359869.899228215,
+      "ops_per_s": 80.2426594621918,
+      "rounds": 77
+    },
+    {
+      "name": "test_bench_rust_trace_120",
+      "group": "doppler_kuramoto.trace_120",
+      "mean_ns": 62789.95312347163,
+      "stddev_ns": 4658.954535380865,
+      "median_ns": 61308.033764362335,
+      "ops_per_s": 15926.114772431454,
+      "rounds": 12289
+    },
+    {
+      "name": "test_bench_julia_cli_trace_120",
+      "group": "doppler_kuramoto.trace_120",
+      "mean_ns": 1029686204.0025492,
+      "stddev_ns": 28134756.22024592,
+      "median_ns": 1041316192.1314895,
+      "ops_per_s": 0.9711696593708312,
+      "rounds": 3
+    }
+  ]
+}

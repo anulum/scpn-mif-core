@@ -31,7 +31,9 @@ Per `feedback_multilang_workflow_canonical.md`:
 Some facades have separate dispatch keys for scalar and batch paths when FFI
 transfer cost changes the winner. MIF-009 uses `physics.faraday_back_emf` for
 the scalar back-EMF call and `physics.faraday_recovery_waveform` for the
-4 096-sample waveform batch.
+4 096-sample waveform batch. MIF-001 uses `kinematic.doppler_kuramoto` for
+both the scalar derivative and the 120-step trace because Rust is fastest in
+both measured groups.
 
 ## Running
 

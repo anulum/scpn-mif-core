@@ -37,3 +37,37 @@ end
     @test_throws ArgumentError FaradayRecoverySpec(0.0, 1.0)
     @test_throws ArgumentError faraday_back_emf(-0.1, 0.0, 5.0, 0.0, 10.0)
 end
+
+@testset "MIF-001 Doppler-Kuramoto" begin
+    spec = DopplerKuramotoSpec(
+        [-4.0e6, 4.0e6],
+        [0.0 25.0e6; 25.0e6 0.0];
+        phase_lag_rad = 0.0,
+        doppler_strength_rad_s = 2.0e6,
+        velocity_epsilon_m_s = 1.0,
+        distance_scale_m = 1.0,
+    )
+    derivatives = doppler_derivatives(
+        spec,
+        [0.0, 0.25],
+        [-0.03, 0.03],
+        [300_000.0, -300_000.0],
+    )
+    expected0 = -4.0e6 + (25.0e6 / 1.06) * sin(0.25) + 2.0e6 * (600_000.0 / 300_001.0)
+    expected1 = 4.0e6 + (25.0e6 / 1.06) * sin(-0.25) + 2.0e6 * (-600_000.0 / 300_001.0)
+    @test derivatives[1] ≈ expected0 rtol = 1e-12
+    @test derivatives[2] ≈ expected1 rtol = 1e-12
+
+    report = evaluate_doppler_kuramoto(
+        spec,
+        [0.0, 0.25],
+        [-0.03, 0.03],
+        [300_000.0, -300_000.0];
+        dt_s = 1.0e-9,
+        steps = 120,
+    )
+    centre_idx = argmin(vec(maximum(abs.(report.positions_m), dims = 2)))
+    @test maximum(abs.(report.positions_m[centre_idx, :])) <= 2.0e-3
+    @test report.phase_lock_error_rad[centre_idx] < 1.0e-2
+    @test report.order_parameter[centre_idx] > 0.99999
+end

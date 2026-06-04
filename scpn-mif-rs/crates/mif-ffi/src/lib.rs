@@ -22,9 +22,15 @@ use mif_core::{
     faraday_back_emf as core_faraday_back_emf, flux_rate as core_flux_rate,
     magnetic_flux as core_magnetic_flux, recovered_power as core_recovered_power,
 };
+use mif_kinematic::{
+    DopplerKuramoto as KinematicDopplerKuramoto,
+    DopplerKuramotoSpec as KinematicDopplerKuramotoSpec,
+    doppler_derivatives as kinematic_doppler_derivatives,
+};
 use mif_lifecycle::{CapacitorBank, CapacitorBankSpec, RlcRegime};
 
 type PyFaradayRecoveryWaveform = (Vec<f64>, Vec<f64>, f64, f64, f64);
+type PyDopplerKuramotoState = (f64, Vec<f64>, Vec<f64>, f64, f64);
 
 /// PyO3 wrapper around the immutable `FaradayRecoverySpec`.
 #[pyclass(name = "FaradayRecoverySpec", module = "scpn_mif_core_rs", frozen)]
@@ -56,6 +62,82 @@ impl PyFaradayRecoverySpec {
     #[getter]
     fn coupling_efficiency(&self) -> f64 {
         self.inner.coupling_efficiency
+    }
+}
+
+/// PyO3 wrapper around the immutable `DopplerKuramotoSpec`.
+#[pyclass(name = "DopplerKuramotoSpec", module = "scpn_mif_core_rs", frozen)]
+#[derive(Clone)]
+struct PyDopplerKuramotoSpec {
+    inner: KinematicDopplerKuramotoSpec,
+}
+
+#[pymethods]
+impl PyDopplerKuramotoSpec {
+    #[new]
+    #[pyo3(
+        signature = (
+            omega_rad_s,
+            coupling_rad_s,
+            phase_lag_rad=0.0,
+            doppler_strength_rad_s=0.0,
+            velocity_epsilon_m_s=1.0e-9,
+            distance_scale_m=1.0
+        )
+    )]
+    fn new(
+        omega_rad_s: Vec<f64>,
+        coupling_rad_s: Vec<Vec<f64>>,
+        phase_lag_rad: f64,
+        doppler_strength_rad_s: f64,
+        velocity_epsilon_m_s: f64,
+        distance_scale_m: f64,
+    ) -> PyResult<Self> {
+        KinematicDopplerKuramotoSpec::new(
+            omega_rad_s,
+            coupling_rad_s,
+            phase_lag_rad,
+            doppler_strength_rad_s,
+            velocity_epsilon_m_s,
+            distance_scale_m,
+        )
+        .map(|inner| Self { inner })
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    #[getter]
+    fn omega_rad_s(&self) -> Vec<f64> {
+        self.inner.omega_rad_s.clone()
+    }
+
+    #[getter]
+    fn coupling_rad_s(&self) -> Vec<Vec<f64>> {
+        self.inner.coupling_rad_s.clone()
+    }
+
+    #[getter]
+    fn phase_lag_rad(&self) -> f64 {
+        self.inner.phase_lag_rad
+    }
+
+    #[getter]
+    fn doppler_strength_rad_s(&self) -> f64 {
+        self.inner.doppler_strength_rad_s
+    }
+
+    #[getter]
+    fn velocity_epsilon_m_s(&self) -> f64 {
+        self.inner.velocity_epsilon_m_s
+    }
+
+    #[getter]
+    fn distance_scale_m(&self) -> f64 {
+        self.inner.distance_scale_m
+    }
+
+    #[getter]
+    fn n_oscillators(&self) -> usize {
+        self.inner.n_oscillators()
     }
 }
 
@@ -216,6 +298,99 @@ impl PyCapacitorBank {
     }
 }
 
+/// PyO3 wrapper around `DopplerKuramoto`.
+///
+/// Internally guarded by a `Mutex` so the Rust struct stays `Sync` even
+/// though the Python object may be touched from multiple threads.
+#[pyclass(name = "DopplerKuramoto", module = "scpn_mif_core_rs", unsendable)]
+struct PyDopplerKuramoto {
+    inner: Mutex<KinematicDopplerKuramoto>,
+}
+
+#[pymethods]
+impl PyDopplerKuramoto {
+    #[new]
+    fn new(
+        spec: PyDopplerKuramotoSpec,
+        phases_rad: Vec<f64>,
+        positions_m: Vec<f64>,
+        velocities_m_s: Vec<f64>,
+    ) -> PyResult<Self> {
+        KinematicDopplerKuramoto::new(spec.inner, phases_rad, positions_m, velocities_m_s)
+            .map(|inner| Self {
+                inner: Mutex::new(inner),
+            })
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    #[getter]
+    fn t_s(&self) -> f64 {
+        self.inner
+            .lock()
+            .expect("DopplerKuramoto mutex poisoned")
+            .state()
+            .t_s
+    }
+
+    #[getter]
+    fn phases_rad(&self) -> Vec<f64> {
+        self.inner
+            .lock()
+            .expect("DopplerKuramoto mutex poisoned")
+            .state()
+            .phases_rad
+    }
+
+    #[getter]
+    fn positions_m(&self) -> Vec<f64> {
+        self.inner
+            .lock()
+            .expect("DopplerKuramoto mutex poisoned")
+            .state()
+            .positions_m
+    }
+
+    #[getter]
+    fn velocities_m_s(&self) -> Vec<f64> {
+        self.inner
+            .lock()
+            .expect("DopplerKuramoto mutex poisoned")
+            .state()
+            .velocities_m_s
+    }
+
+    fn state(&self) -> PyDopplerKuramotoState {
+        let state = self
+            .inner
+            .lock()
+            .expect("DopplerKuramoto mutex poisoned")
+            .state();
+        (
+            state.t_s,
+            state.phases_rad,
+            state.positions_m,
+            state.order_parameter,
+            state.phase_lock_error_rad,
+        )
+    }
+
+    fn step(&self, dt_s: f64) -> PyResult<PyDopplerKuramotoState> {
+        let state = self
+            .inner
+            .lock()
+            .expect("DopplerKuramoto mutex poisoned")
+            .step(dt_s)
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        Ok((
+            state.t_s,
+            state.phases_rad,
+            state.positions_m,
+            state.order_parameter,
+            state.phase_lock_error_rad,
+        ))
+    }
+}
+
 /// Underdamped voltage closed form.
 #[pyfunction]
 fn analytical_voltage_underdamped(spec: &PyCapacitorBankSpec, t: f64, v0: f64) -> f64 {
@@ -341,6 +516,18 @@ fn evaluate_faraday_recovery(
     ))
 }
 
+/// Evaluate MIF-001 Doppler-Kuramoto derivatives.
+#[pyfunction]
+fn doppler_derivatives(
+    spec: &PyDopplerKuramotoSpec,
+    phases_rad: Vec<f64>,
+    positions_m: Vec<f64>,
+    velocities_m_s: Vec<f64>,
+) -> PyResult<Vec<f64>> {
+    kinematic_doppler_derivatives(&spec.inner, &phases_rad, &positions_m, &velocities_m_s)
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
 #[doc(hidden)]
 fn _all_regimes_referenced() -> [RlcRegime; 3] {
     // Keeps the RlcRegime import used so the enum stays visible to users
@@ -357,8 +544,10 @@ fn _all_regimes_referenced() -> [RlcRegime; 3] {
 fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     m.add_class::<PyFaradayRecoverySpec>()?;
+    m.add_class::<PyDopplerKuramotoSpec>()?;
     m.add_class::<PyCapacitorBankSpec>()?;
     m.add_class::<PyCapacitorBank>()?;
+    m.add_class::<PyDopplerKuramoto>()?;
     m.add_function(wrap_pyfunction!(analytical_voltage_underdamped, m)?)?;
     m.add_function(wrap_pyfunction!(analytical_current_underdamped, m)?)?;
     m.add_function(wrap_pyfunction!(analytical_voltage_critically_damped, m)?)?;
@@ -372,6 +561,7 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(faraday_back_emf, m)?)?;
     m.add_function(wrap_pyfunction!(recovered_power, m)?)?;
     m.add_function(wrap_pyfunction!(evaluate_faraday_recovery, m)?)?;
+    m.add_function(wrap_pyfunction!(doppler_derivatives, m)?)?;
     let _ = _all_regimes_referenced();
     Ok(())
 }

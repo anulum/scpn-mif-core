@@ -20,13 +20,16 @@ v_zi, v_zj, and axial positions zᵢ, zⱼ:
 
 ```
 dθᵢ/dt = ωᵢ(t)
-       + K₀ / (1 + |zᵢ − zⱼ|) · sin(θⱼ − θᵢ − α)
-       + doppler_strength · (v_zi − v_zj) / (|v_zi| + ε)
+       + Kᵢⱼ / (1 + |zᵢ − zⱼ| / L_z) · sin(θⱼ − θᵢ − α)
+       + doppler_strength · (v_zi − v_zj) / (|v_zi| + ε_v)
 ```
 
 The distance-coupling term modulates K, the Doppler term corrects for
 relative motion. Both are extracted from the swarmalator family into
 reusable primitives in `scpn-phase-orchestrator` 0.7.0 (PHA-C.1, PHA-C.2).
+MIF-001 is implemented locally as an upstream-pending Python/Rust/Julia
+carrier with RK4 phase integration and linear axial positions for the
+chamber-centre acceptance window.
 
 ### Non-adiabatic flux evolution (FUSION-CORE)
 
@@ -58,7 +61,8 @@ SCPN-PHASE-ORCH     canonical Kuramoto family, distance-coupling, Doppler, monit
 SCPN-QUANTUM-CTRL   canonical QAOA-MPC, pulse shaping, QRNG, PQC trigger signer
 SCPN-MIF-CORE       canonical pulsed-FRC kinematic + RTL hot-path lab
                     (sub-50-ns trigger fabric, timing-aware formal, AER bridge,
-                     pulsed-shot lifecycle, capacitor-bank model, Faraday recovery)
+                     Doppler-Kuramoto, pulsed-shot lifecycle, capacitor-bank model,
+                     Faraday recovery)
 ```
 
 Anything that falls under a sibling's canonical scope MUST be upstreamed

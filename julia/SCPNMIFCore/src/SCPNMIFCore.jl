@@ -18,19 +18,29 @@ SCPNMIFCore — Julia acceleration paths and physics-prototype host.
 
 Hosts the Julia variants of the multi-language acceleration chain (per the
 canonical workflow). Used for ODE / PDE prototypes via DifferentialEquations.jl
-and ModelingToolkit.jl before Rust production ports.
+and ModelingToolkit.jl before Rust ports.
 """
 module SCPNMIFCore
 
 export VERSION,
+    DopplerKuramoto,
+    DopplerKuramotoReport,
+    DopplerKuramotoSpec,
+    DopplerKuramotoState,
     FaradayRecoverySpec,
+    doppler_derivatives,
     evaluate_faraday_recovery,
+    evaluate_doppler_kuramoto,
     faraday_back_emf,
     flux_rate,
     magnetic_flux,
+    order_parameter,
+    phase_lock_error,
     recovered_power
 
 const VERSION = v"0.0.1"
+
+include("doppler_kuramoto.jl")
 
 """
     FaradayRecoverySpec(turns, load_resistance_ohm; coupling_efficiency=1.0)

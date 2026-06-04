@@ -58,8 +58,10 @@ local physics/lifecycle surfaces:
 
 - MIF-005 capacitor-bank state model: Python reference, Rust PyO3 bridge,
   benchmarked dispatch, and API documentation.
-- MIF-009 Faraday recovery carrier: Python reference, Rust production kernel,
+- MIF-001 Doppler-Kuramoto kinematic carrier: Python reference, Rust kernel,
   Julia counterpart, benchmarked dispatch, and API documentation.
+- MIF-009 Faraday recovery carrier: Python reference, Rust kernel, Julia
+  counterpart, benchmarked dispatch, and API documentation.
 
 Self-consistent FRC compression, Hall-MHD, MRTI, and tilt-mode solvers remain
 blocked on the SCPN-FUSION-CORE ownership lane described in the internal

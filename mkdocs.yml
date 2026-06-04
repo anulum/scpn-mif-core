@@ -104,6 +104,8 @@ nav:
       - architecture/index.md
   - API:
       - api/index.md
+      - Kinematic:
+          - Doppler-Kuramoto: api/kinematic/doppler_kuramoto.md
       - Lifecycle:
           - Capacitor bank: api/lifecycle/capacitor_bank.md
       - Physics:

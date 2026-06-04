@@ -21,9 +21,10 @@ pulsed magneto-inertial fusion plasmas on field-reversed configurations.
 Sub-50-nanosecond combinatorial sensor-to-actuator triggering on AMD Xilinx
 UltraScale+ FPGAs.
 
-> **Status:** pre-alpha with P1 local surfaces in progress. MIF-005
-> capacitor-bank dynamics and MIF-009 Faraday recovery now ship as
-> upstream-pending Python/Rust APIs; MIF-009 also has a Julia counterpart.
+> **Status:** pre-alpha with P1 local surfaces in progress. MIF-001
+> Doppler-Kuramoto, MIF-005 capacitor-bank dynamics, and MIF-009 Faraday
+> recovery now ship as upstream-pending Python/Rust APIs; MIF-001 and
+> MIF-009 also have Julia counterparts.
 > See [`docs/api/`](docs/api/index.md) for the implemented surfaces.
 
 ## Reading path

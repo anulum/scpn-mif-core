@@ -15,5 +15,12 @@
 #![forbid(unsafe_code)]
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 
+pub mod doppler_kuramoto;
+
+pub use doppler_kuramoto::{
+    DopplerKuramoto, DopplerKuramotoError, DopplerKuramotoSpec, DopplerKuramotoState,
+    doppler_derivatives, order_parameter, phase_lock_error,
+};
+
 /// Crate version derived from the workspace.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

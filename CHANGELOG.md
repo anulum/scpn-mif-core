@@ -12,8 +12,13 @@
 
 ### Added
 
+- MIF-001 Doppler-corrected kinematic Kuramoto carrier with RK4 phase
+  integration, linear axial positions for the chamber-centre acceptance
+  window, Python API, Rust `mif-kinematic` kernel, PyO3 bindings,
+  Julia counterpart, parity tests, benchmark summary, and fastest-measured
+  dispatch entry.
 - MIF-009 Faraday induction recovery carrier with exact product-rule EMF,
-  waveform energy integration, Python API, Rust `mif-core` production kernel,
+  waveform energy integration, Python API, Rust `mif-core` kernel,
   PyO3 bindings, Julia counterpart, parity tests, benchmark summaries, and
   fastest-measured dispatch entries for scalar and waveform modes.
 

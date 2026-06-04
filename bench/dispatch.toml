@@ -11,14 +11,17 @@
 # benchmark campaign. Manual edits are blocked by the preflight gate.
 
 schema_version = "1.0.0"
-last_updated = "2026-06-04T0918"
+last_updated = "2026-06-04T0940"
 benchmark_host = "i5-11600K (mining rig)"
 
 [kernels]
 # Map: kernel name -> ordered backend list.
 # Order is the dispatch precedence. Entries below are placeholders that
 # point at the Python reference until each kernel is benchmarked.
-"kinematic.doppler_kuramoto"          = ["python"]
+# MIF-001 Doppler-Kuramoto: Rust is fastest for both the 3-oscillator
+# derivative and the 120-step RK4 trace on the local i5-11600K rig
+# (see bench/results/doppler_kuramoto.json).
+"kinematic.doppler_kuramoto" = ["rust", "python", "julia"]
 "kinematic.moving_frame_upde"         = ["python"]
 "kinematic.merge_window"              = ["python"]
 "lifecycle.pulsed_shot_fsm"           = ["python"]
