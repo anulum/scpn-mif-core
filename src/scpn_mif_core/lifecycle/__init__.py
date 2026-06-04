@@ -7,16 +7,17 @@
 # SCPN-MIF-CORE — pulsed-shot lifecycle package.
 """Pulsed-shot lifecycle and capacitor-bank state model.
 
-Hosts the eight-state pulsed-shot finite-state machine (MIF-004) and the
-series RLC capacitor-bank energy model (MIF-005). These modules are
-``SYNC-STATE: upstream-pending`` for SCPN-CONTROL v0.21.0 (CON-C.1 and
-CON-C.2 respectively); see
+Hosts the eight-state pulsed-shot finite-state machine (MIF-004), the
+series RLC capacitor-bank energy model (MIF-005), and the FRC
+plasmoid-merger Petri net (MIF-012). These modules are ``SYNC-STATE:
+upstream-pending`` for SCPN-CONTROL v0.21.0; see
 ``docs/internal/upstream_contracts/03_scpn_control.md`` §C.
 
 The Rust acceleration path is optional. Consumers that want the
 fastest-measured backend (per :file:`bench/dispatch.toml`) should call
 :func:`dispatched_capacitor_bank` or :func:`dispatched_pulsed_shot_fsm`
-instead of constructing the pure Python reference classes directly.
+or :func:`dispatched_plasmoid_merger_petri_net` instead of constructing
+the pure Python reference classes directly.
 """
 
 from __future__ import annotations
@@ -39,6 +40,20 @@ from scpn_mif_core.lifecycle.capacitor_bank import (
     analytical_voltage_underdamped,
     free_response,
 )
+from scpn_mif_core.lifecycle.plasmoid_merger_petri_net import (
+    MergerMarking,
+    MergerObservation,
+    MergerPlace,
+    MergerStep,
+    MergerTransition,
+    MergerTransitionRecord,
+    MergerVerificationReport,
+    PlasmoidMergerPetriNet,
+    PlasmoidMergerSpec,
+    build_control_petri_net,
+    verify_merger_boundedness,
+    verify_merger_liveness,
+)
 from scpn_mif_core.lifecycle.pulsed_shot_fsm import (
     BankTelemetry,
     PlasmaState,
@@ -52,6 +67,7 @@ from scpn_mif_core.lifecycle.pulsed_shot_fsm import (
 
 _CAPACITOR_BANK_KERNEL = "lifecycle.capacitor_bank"
 _PULSED_SHOT_FSM_KERNEL = "lifecycle.pulsed_shot_fsm"
+_PLASMOID_MERGER_KERNEL = "lifecycle.plasmoid_merger_petri_net"
 
 
 def dispatched_capacitor_bank(spec: CapacitorBankSpec, initial_voltage_V: float = 0.0) -> CapacitorBank:
@@ -80,13 +96,34 @@ def dispatched_pulsed_shot_fsm(spec: PulsedShotSpec) -> PulsedShotFSM:
     return PulsedShotFSM(spec)
 
 
+def dispatched_plasmoid_merger_petri_net(
+    spec: PlasmoidMergerSpec,
+    seed: int | None = None,
+) -> PlasmoidMergerPetriNet:
+    """Return a plasmoid-merger Petri net backed by the fastest available backend."""
+    if preferred_backend(_PLASMOID_MERGER_KERNEL) == "rust" and is_rust_available():
+        from scpn_mif_core.lifecycle._rust_adapter import RustBackedPlasmoidMergerPetriNet
+
+        return cast(PlasmoidMergerPetriNet, RustBackedPlasmoidMergerPetriNet(spec, seed=seed))
+    return PlasmoidMergerPetriNet(spec, seed=seed)
+
+
 __all__ = [
     "BankTelemetry",
     "CapacitorBank",
     "CapacitorBankSpec",
     "CapacitorBankState",
     "EnergyReport",
+    "MergerMarking",
+    "MergerObservation",
+    "MergerPlace",
+    "MergerStep",
+    "MergerTransition",
+    "MergerTransitionRecord",
+    "MergerVerificationReport",
     "PlasmaState",
+    "PlasmoidMergerPetriNet",
+    "PlasmoidMergerSpec",
     "PulseSpec",
     "PulsedShotFSM",
     "PulsedShotSpec",
@@ -101,7 +138,11 @@ __all__ = [
     "analytical_voltage_critically_damped",
     "analytical_voltage_overdamped",
     "analytical_voltage_underdamped",
+    "build_control_petri_net",
     "dispatched_capacitor_bank",
+    "dispatched_plasmoid_merger_petri_net",
     "dispatched_pulsed_shot_fsm",
     "free_response",
+    "verify_merger_boundedness",
+    "verify_merger_liveness",
 ]

@@ -1,4 +1,11 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Commercial license available -->
+<!-- © Concepts 1996–2026 Miroslav Šotek. All rights reserved. -->
+<!-- © Code 2020–2026 Miroslav Šotek. All rights reserved. -->
+<!-- ORCID: 0009-0009-3560-0851 -->
+<!-- Contact: www.anulum.li | protoscience@anulum.li -->
+<!-- SCPN-MIF-CORE — API reference index. -->
+
 # API reference
 
 The public Python surface is rendered by mkdocstrings from the docstrings
@@ -37,6 +44,8 @@ Implemented pre-alpha API pages:
   lifecycle scheduler with Python, Rust, and Lean surfaces.
 - [Capacitor bank](lifecycle/capacitor_bank.md) — MIF-005, series RLC
   capacitor-bank model with Python, Rust, and Julia surfaces.
+- [Plasmoid-merger Petri net](lifecycle/plasmoid_merger_petri_net.md) —
+  MIF-012, one-safe stochastic Petri-net FSM with Python and Rust surfaces.
 - [Faraday recovery](physics/faraday_recovery.md) — MIF-009, exact
   Faraday-law carrier with Python, Rust, and Julia surfaces.
 - [Kinematic safety](formal/kinematic_safety.md) — MIF-011, Lean 4 sampled

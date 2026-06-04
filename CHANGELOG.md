@@ -41,6 +41,10 @@
   merge-window contract under a non-expansive Lipschitz-bounded control
   envelope, with a focused proof-surface regression test and API
   documentation.
+- MIF-012 FRC plasmoid-merger Petri-net FSM with Python reference, Rust
+  `mif-lifecycle` kernel, PyO3 bindings, Rust-backed adapter,
+  boundedness/liveness verification campaigns, parity tests, benchmark
+  summary, and fastest-measured dispatch entry.
 
 ## [0.0.1] - 2026-06-03
 

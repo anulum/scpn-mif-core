@@ -1,4 +1,11 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Commercial license available -->
+<!-- © Concepts 1996–2026 Miroslav Šotek. All rights reserved. -->
+<!-- © Code 2020–2026 Miroslav Šotek. All rights reserved. -->
+<!-- ORCID: 0009-0009-3560-0851 -->
+<!-- Contact: www.anulum.li | protoscience@anulum.li -->
+<!-- SCPN-MIF-CORE — benchmark infrastructure documentation. -->
+
 # Benchmark infrastructure
 
 Hosts microbenchmarks for every SCPN-MIF-CORE compute kernel across the
@@ -41,6 +48,11 @@ MIF-004 uses `lifecycle.pulsed_shot_fsm` for the eight-step lifecycle
 campaign; Rust is fastest among its allocated Python and Rust runtime surfaces.
 MIF-005 uses `lifecycle.capacitor_bank` for the series RLC bank; Rust is
 fastest across the Python, Rust, and Julia comparison groups.
+MIF-012 uses `lifecycle.plasmoid_merger_petri_net` for the FRC merger Petri-net
+FSM; Rust is fastest across the allocated Python and Rust campaign and
+boundedness verification groups. The committed MIF-012 benchmark is labelled as
+a non-isolated local comparison and records host load, governor, and runtime
+versions in `bench/results/plasmoid_merger_petri_net.json`.
 
 ## Running
 

@@ -12,27 +12,22 @@
 # UPSTREAM-PIN: scpn-mif-core@0.0.1
 # CONTRACT-TEST: tests/unit/lifecycle/test_rust_adapter.py
 # CONTRACT-TEST: tests/unit/lifecycle/test_pulsed_shot_fsm_rust_parity.py
+# CONTRACT-TEST: tests/unit/lifecycle/test_plasmoid_merger_petri_net_rust_parity.py
 # TRACKED-ISSUE: docs/internal/upstream_contracts/03_scpn_control.md#con-c1-pulsedscenarioscheduler-v2
 # TRACKED-ISSUE: docs/internal/upstream_contracts/03_scpn_control.md#con-c2-capacitorbank-state-model
+# TRACKED-ISSUE: docs/internal/upstream_contracts/03_scpn_control.md#c-control-petri-net-runtime
 # LAST-SYNCED: 2026-06-04T0000
-"""Rust-backed drop-in for :class:`CapacitorBank`.
+"""Rust-backed lifecycle adapters.
 
-Inherits the Python :class:`scpn_mif_core.lifecycle.capacitor_bank.CapacitorBank`
-class and overrides only the hot integrator entry points (:meth:`step`,
-:meth:`state`, :meth:`reset`) so they delegate to the
-``scpn_mif_core_rs.CapacitorBank`` extension. The slower bookkeeping
-helpers (:meth:`discharge`, :meth:`feasibility`, :meth:`recharge_status`)
-fall through to the parent and continue to call :meth:`step` and read
-:attr:`state` — both of which are now Rust-accelerated.
-
-The Python parent keeps its private state slots (``_t``, ``_v``, ``_i``,
-``_di_dt``) in sync with the Rust inner so any downstream code that peeks
-at the slots reads consistent values.
+Hosts drop-in adapters for the capacitor bank, pulsed-shot FSM, and
+plasmoid-merger Petri net. The adapters return Python dataclasses and enums so
+callers can use the fastest measured backend without changing application
+logic.
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, SupportsFloat, cast
+from typing import TYPE_CHECKING, SupportsFloat, SupportsInt, cast
 
 if TYPE_CHECKING:
     from scpn_mif_core.lifecycle.capacitor_bank import (
@@ -46,6 +41,15 @@ from scpn_mif_core.lifecycle.capacitor_bank import (
 )
 from scpn_mif_core.lifecycle.capacitor_bank import (
     CapacitorBankState,
+)
+from scpn_mif_core.lifecycle.plasmoid_merger_petri_net import (
+    MergerMarking,
+    MergerObservation,
+    MergerPlace,
+    MergerStep,
+    MergerTransition,
+    MergerTransitionRecord,
+    PlasmoidMergerSpec,
 )
 from scpn_mif_core.lifecycle.pulsed_shot_fsm import (
     BankTelemetry,
@@ -143,6 +147,33 @@ class RustBackedPulsedShotFSM:
         return str(self._inner.audit_log_jsonl())
 
 
+class RustBackedPlasmoidMergerPetriNet:
+    """Rust-backed drop-in for :class:`PlasmoidMergerPetriNet`."""
+
+    def __init__(self, spec: PlasmoidMergerSpec, seed: int | None = None) -> None:
+        self.spec = spec
+        self._inner = _rust.PlasmoidMergerPetriNet(_rust_plasmoid_merger_spec(spec), 0 if seed is None else seed)
+
+    @property
+    def place(self) -> MergerPlace:
+        return MergerPlace(self._inner.place)
+
+    @property
+    def audit_log(self) -> tuple[MergerTransitionRecord, ...]:
+        return tuple(_merger_transition_record_from_tuple(record) for record in self._inner.audit_log())
+
+    def reset(self, seed: int | None = None) -> None:
+        self._inner.reset(0 if seed is None else seed)
+
+    def marking(self) -> MergerMarking:
+        tokens = dict.fromkeys(MergerPlace, 0)
+        tokens[self.place] = 1
+        return MergerMarking(tokens=tokens, total_tokens=1)
+
+    def step(self, observation: MergerObservation) -> MergerStep:
+        return _merger_step_from_tuple(self._inner.step(_rust_merger_observation(observation)))
+
+
 def _rust_pulsed_shot_spec(spec: PulsedShotSpec) -> _rust.PulsedShotSpec:
     return _rust.PulsedShotSpec(
         spec.min_precharge_energy_J,
@@ -175,6 +206,34 @@ def _rust_bank_telemetry(bank: BankTelemetry) -> _rust.BankTelemetry:
     return _rust.BankTelemetry(bank.voltage_V, bank.voltage_max_V, bank.energy_J)
 
 
+def _rust_plasmoid_merger_spec(spec: PlasmoidMergerSpec) -> _rust.PlasmoidMergerSpec:
+    return _rust.PlasmoidMergerSpec(
+        spec.contact_separation_m,
+        spec.min_closing_speed_m_s,
+        spec.reconnection_flux_min,
+        spec.coalescence_density_asymmetry_max,
+        spec.phase_lock_tolerance_rad,
+        spec.max_tilt_growth_rate_s,
+        spec.contact_delay_ticks,
+        spec.reconnection_delay_ticks,
+        spec.coalescence_delay_ticks,
+        spec.phase_lock_delay_ticks,
+        spec.firing_probability,
+        spec.abort_density_asymmetry_max,
+    )
+
+
+def _rust_merger_observation(observation: MergerObservation) -> _rust.MergerObservation:
+    return _rust.MergerObservation(
+        observation.separation_m,
+        observation.relative_velocity_m_s,
+        observation.phase_lock_error_rad,
+        observation.reconnection_flux_norm,
+        observation.density_asymmetry,
+        observation.tilt_growth_rate_s,
+    )
+
+
 def _scheduler_command_from_tuple(raw: tuple[object, ...]) -> SchedulerCommand:
     t_s, state, action, reason, transition, dwell_s = raw
     return SchedulerCommand(
@@ -195,6 +254,37 @@ def _transition_record_from_tuple(raw: tuple[object, ...]) -> TransitionRecord:
         to_state=ShotState(str(to_state)),
         reason=str(reason),
     )
+
+
+def _merger_step_from_tuple(raw: tuple[object, ...]) -> MergerStep:
+    tick, place, transition, fired, reason, dwell_ticks, total_tokens, _max_tokens = raw
+    active_place = MergerPlace(str(place))
+    tokens = dict.fromkeys(MergerPlace, 0)
+    tokens[active_place] = 1
+    return MergerStep(
+        tick=_int(tick),
+        place=active_place,
+        transition=None if transition is None else MergerTransition(str(transition)),
+        fired=bool(fired),
+        reason=str(reason),
+        dwell_ticks=_int(dwell_ticks),
+        marking=MergerMarking(tokens=tokens, total_tokens=_int(total_tokens)),
+    )
+
+
+def _merger_transition_record_from_tuple(raw: tuple[object, ...]) -> MergerTransitionRecord:
+    tick, transition, from_place, to_place, reason = raw
+    return MergerTransitionRecord(
+        tick=_int(tick),
+        transition=MergerTransition(str(transition)),
+        from_place=MergerPlace(str(from_place)),
+        to_place=MergerPlace(str(to_place)),
+        reason=str(reason),
+    )
+
+
+def _int(value: object) -> int:
+    return int(cast(SupportsInt, value))
 
 
 def _float(value: object) -> float:

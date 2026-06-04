@@ -1,4 +1,11 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Commercial license available -->
+<!-- © Concepts 1996–2026 Miroslav Šotek. All rights reserved. -->
+<!-- © Code 2020–2026 Miroslav Šotek. All rights reserved. -->
+<!-- ORCID: 0009-0009-3560-0851 -->
+<!-- Contact: www.anulum.li | protoscience@anulum.li -->
+<!-- SCPN-MIF-CORE — public documentation landing page. -->
+
 # SCPN-MIF-CORE
 
 Deterministic phase synchronisation and hardware synthesis for high-beta
@@ -71,6 +78,9 @@ local physics/lifecycle surfaces:
 - MIF-011 kinematic safety invariant: Lean 4 proof that the sampled 2 mm
   axial merge-window contract is invariant under a non-expansive
   Lipschitz-bounded control envelope.
+- MIF-012 plasmoid-merger Petri net: Python reference, Rust kernel, PyO3
+  bridge, boundedness/liveness verification campaigns, benchmarked dispatch,
+  and API documentation.
 
 Self-consistent FRC compression, Hall-MHD, MRTI, and tilt-mode solvers remain
 blocked on the SCPN-FUSION-CORE ownership lane described in the internal

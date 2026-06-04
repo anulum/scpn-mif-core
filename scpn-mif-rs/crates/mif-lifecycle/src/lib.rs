@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// Commercial license available
 // © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
 // © Code 2020–2026 Miroslav Šotek. All rights reserved.
 // ORCID: 0009-0009-3560-0851
@@ -13,8 +14,9 @@
 // TRACKED-ISSUE: docs/internal/upstream_contracts/03_scpn_control.md#con-c2-capacitorbank-state-model
 // LAST-SYNCED: 2026-06-04T0000
 
-//! Pulsed-shot lifecycle finite-state machine (MIF-004) and the
-//! series RLC capacitor-bank energy model (MIF-005).
+//! Pulsed-shot lifecycle finite-state machine (MIF-004), the series RLC
+//! capacitor-bank energy model (MIF-005), and the FRC plasmoid-merger
+//! Petri net (MIF-012).
 //!
 //! Hot-path scope: `step` Crank-Nicolson integrator, `free_response`
 //! dispatch, and the three analytical regime closed forms ship in this
@@ -29,6 +31,7 @@
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 
 pub mod capacitor_bank;
+pub mod plasmoid_merger;
 pub mod pulsed_shot;
 pub mod types;
 
@@ -36,6 +39,11 @@ pub use capacitor_bank::{
     CapacitorBank, analytical_current_critically_damped, analytical_current_overdamped,
     analytical_current_underdamped, analytical_voltage_critically_damped,
     analytical_voltage_overdamped, analytical_voltage_underdamped, free_response,
+};
+pub use plasmoid_merger::{
+    MergerError, MergerMarking, MergerObservation, MergerPlace, MergerStep, MergerTransition,
+    MergerTransitionRecord, MergerVerificationReport, PlasmoidMergerPetriNet, PlasmoidMergerSpec,
+    verify_merger_boundedness, verify_merger_liveness,
 };
 pub use pulsed_shot::{
     BankTelemetry, PlasmaState, PulsedShotError, PulsedShotFsm, PulsedShotSpec, SchedulerAction,

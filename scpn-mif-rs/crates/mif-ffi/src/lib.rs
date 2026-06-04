@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// Commercial license available
 // © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
 // © Code 2020–2026 Miroslav Šotek. All rights reserved.
 // ORCID: 0009-0009-3560-0851
@@ -14,7 +15,7 @@
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use std::sync::Mutex;
+use std::{collections::HashMap, sync::Mutex};
 
 use mif_core::{
     FaradayRecoverySpec as CoreFaradayRecoverySpec,
@@ -33,10 +34,16 @@ use mif_kinematic::{
 };
 use mif_lifecycle::{
     BankTelemetry as LifecycleBankTelemetry, CapacitorBank, CapacitorBankSpec,
-    PlasmaState as LifecyclePlasmaState, PulsedShotFsm as LifecyclePulsedShotFsm,
+    MergerObservation as LifecycleMergerObservation,
+    MergerTransitionRecord as LifecycleMergerTransitionRecord,
+    MergerVerificationReport as LifecycleMergerVerificationReport,
+    PlasmaState as LifecyclePlasmaState, PlasmoidMergerPetriNet as LifecyclePlasmoidMergerPetriNet,
+    PlasmoidMergerSpec as LifecyclePlasmoidMergerSpec, PulsedShotFsm as LifecyclePulsedShotFsm,
     PulsedShotSpec as LifecyclePulsedShotSpec, RlcRegime,
     SchedulerCommand as LifecycleSchedulerCommand, ShotState as LifecycleShotState,
     TransitionRecord as LifecycleTransitionRecord,
+    verify_merger_boundedness as lifecycle_verify_merger_boundedness,
+    verify_merger_liveness as lifecycle_verify_merger_liveness,
 };
 
 type PyFaradayRecoveryWaveform = (Vec<f64>, Vec<f64>, f64, f64, f64);
@@ -45,6 +52,25 @@ type PyMovingFrameUPDEState = (f64, Vec<f64>, Vec<f64>, Vec<f64>, f64, f64, f64,
 type PyMergeWindowSample = (Option<f64>, f64, f64, f64, bool, bool, usize);
 type PySchedulerCommand = (f64, String, String, String, bool, f64);
 type PyTransitionRecord = (f64, String, String, String);
+type PyMergerStep = (
+    usize,
+    String,
+    Option<String>,
+    bool,
+    String,
+    usize,
+    usize,
+    usize,
+);
+type PyMergerTransitionRecord = (usize, String, String, String, String);
+type PyMergerVerificationReport = (
+    bool,
+    usize,
+    usize,
+    Vec<String>,
+    HashMap<String, usize>,
+    usize,
+);
 
 /// PyO3 wrapper around the immutable `FaradayRecoverySpec`.
 #[pyclass(name = "FaradayRecoverySpec", module = "scpn_mif_core_rs", frozen)]
@@ -464,6 +490,141 @@ impl PyPulsedShotSpec {
     }
 }
 
+/// PyO3 wrapper around the immutable `PlasmoidMergerSpec`.
+#[pyclass(name = "PlasmoidMergerSpec", module = "scpn_mif_core_rs", frozen)]
+#[derive(Clone, Copy)]
+struct PyPlasmoidMergerSpec {
+    inner: LifecyclePlasmoidMergerSpec,
+}
+
+#[pymethods]
+impl PyPlasmoidMergerSpec {
+    #[new]
+    #[allow(clippy::too_many_arguments)]
+    fn new(
+        contact_separation_m: f64,
+        min_closing_speed_m_s: f64,
+        reconnection_flux_min: f64,
+        coalescence_density_asymmetry_max: f64,
+        phase_lock_tolerance_rad: f64,
+        max_tilt_growth_rate_s: f64,
+        contact_delay_ticks: usize,
+        reconnection_delay_ticks: usize,
+        coalescence_delay_ticks: usize,
+        phase_lock_delay_ticks: usize,
+        firing_probability: f64,
+        abort_density_asymmetry_max: f64,
+    ) -> PyResult<Self> {
+        LifecyclePlasmoidMergerSpec::new(
+            contact_separation_m,
+            min_closing_speed_m_s,
+            reconnection_flux_min,
+            coalescence_density_asymmetry_max,
+            phase_lock_tolerance_rad,
+            max_tilt_growth_rate_s,
+            contact_delay_ticks,
+            reconnection_delay_ticks,
+            coalescence_delay_ticks,
+            phase_lock_delay_ticks,
+            firing_probability,
+            abort_density_asymmetry_max,
+        )
+        .map(|inner| Self { inner })
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    #[getter]
+    fn contact_separation_m(&self) -> f64 {
+        self.inner.contact_separation_m
+    }
+
+    #[getter]
+    fn min_closing_speed_m_s(&self) -> f64 {
+        self.inner.min_closing_speed_m_s
+    }
+
+    #[getter]
+    fn reconnection_flux_min(&self) -> f64 {
+        self.inner.reconnection_flux_min
+    }
+
+    #[getter]
+    fn coalescence_density_asymmetry_max(&self) -> f64 {
+        self.inner.coalescence_density_asymmetry_max
+    }
+
+    #[getter]
+    fn phase_lock_tolerance_rad(&self) -> f64 {
+        self.inner.phase_lock_tolerance_rad
+    }
+
+    #[getter]
+    fn max_tilt_growth_rate_s(&self) -> f64 {
+        self.inner.max_tilt_growth_rate_s
+    }
+
+    #[getter]
+    fn contact_delay_ticks(&self) -> usize {
+        self.inner.contact_delay_ticks
+    }
+
+    #[getter]
+    fn reconnection_delay_ticks(&self) -> usize {
+        self.inner.reconnection_delay_ticks
+    }
+
+    #[getter]
+    fn coalescence_delay_ticks(&self) -> usize {
+        self.inner.coalescence_delay_ticks
+    }
+
+    #[getter]
+    fn phase_lock_delay_ticks(&self) -> usize {
+        self.inner.phase_lock_delay_ticks
+    }
+
+    #[getter]
+    fn firing_probability(&self) -> f64 {
+        self.inner.firing_probability
+    }
+
+    #[getter]
+    fn abort_density_asymmetry_max(&self) -> f64 {
+        self.inner.abort_density_asymmetry_max
+    }
+}
+
+/// PyO3 wrapper around immutable merger observations.
+#[pyclass(name = "MergerObservation", module = "scpn_mif_core_rs", frozen)]
+#[derive(Clone, Copy)]
+struct PyMergerObservation {
+    inner: LifecycleMergerObservation,
+}
+
+#[pymethods]
+impl PyMergerObservation {
+    #[new]
+    fn new(
+        separation_m: f64,
+        relative_velocity_m_s: f64,
+        phase_lock_error_rad: f64,
+        reconnection_flux_norm: f64,
+        density_asymmetry: f64,
+        tilt_growth_rate_s: f64,
+    ) -> PyResult<Self> {
+        LifecycleMergerObservation::new(
+            separation_m,
+            relative_velocity_m_s,
+            phase_lock_error_rad,
+            reconnection_flux_norm,
+            density_asymmetry,
+            tilt_growth_rate_s,
+        )
+        .map(|inner| Self { inner })
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+}
+
 /// PyO3 wrapper around immutable plasma telemetry.
 #[pyclass(name = "PlasmaState", module = "scpn_mif_core_rs", frozen)]
 #[derive(Clone, Copy)]
@@ -683,6 +844,63 @@ impl PyPulsedShotFSM {
             .lock()
             .expect("PulsedShotFSM mutex poisoned")
             .audit_log_jsonl()
+    }
+}
+
+/// PyO3 wrapper around `PlasmoidMergerPetriNet`.
+#[pyclass(
+    name = "PlasmoidMergerPetriNet",
+    module = "scpn_mif_core_rs",
+    unsendable
+)]
+struct PyPlasmoidMergerPetriNet {
+    inner: Mutex<LifecyclePlasmoidMergerPetriNet>,
+}
+
+#[pymethods]
+impl PyPlasmoidMergerPetriNet {
+    #[new]
+    #[pyo3(signature = (spec, seed=0))]
+    fn new(spec: PyPlasmoidMergerSpec, seed: u64) -> Self {
+        Self {
+            inner: Mutex::new(LifecyclePlasmoidMergerPetriNet::new(spec.inner, seed)),
+        }
+    }
+
+    #[getter]
+    fn place(&self) -> String {
+        self.inner
+            .lock()
+            .expect("PlasmoidMergerPetriNet mutex poisoned")
+            .place()
+            .as_str()
+            .to_string()
+    }
+
+    fn reset(&self, seed: u64) {
+        self.inner
+            .lock()
+            .expect("PlasmoidMergerPetriNet mutex poisoned")
+            .reset(seed);
+    }
+
+    fn step(&self, observation: PyMergerObservation) -> PyResult<PyMergerStep> {
+        let step = self
+            .inner
+            .lock()
+            .expect("PlasmoidMergerPetriNet mutex poisoned")
+            .step(observation.inner);
+        Ok(py_merger_step(step))
+    }
+
+    fn audit_log(&self) -> Vec<PyMergerTransitionRecord> {
+        self.inner
+            .lock()
+            .expect("PlasmoidMergerPetriNet mutex poisoned")
+            .audit_log()
+            .iter()
+            .map(py_merger_transition_record)
+            .collect()
     }
 }
 
@@ -940,6 +1158,47 @@ fn py_transition_record(record: &LifecycleTransitionRecord) -> PyTransitionRecor
     )
 }
 
+fn py_merger_step(step: mif_lifecycle::MergerStep) -> PyMergerStep {
+    (
+        step.tick,
+        step.place.as_str().to_string(),
+        step.transition
+            .map(|transition| transition.as_str().to_string()),
+        step.fired,
+        step.reason,
+        step.dwell_ticks,
+        step.marking.total_tokens,
+        step.marking.max_tokens_per_place(),
+    )
+}
+
+fn py_merger_transition_record(
+    record: &LifecycleMergerTransitionRecord,
+) -> PyMergerTransitionRecord {
+    (
+        record.tick,
+        record.transition.as_str().to_string(),
+        record.from_place.as_str().to_string(),
+        record.to_place.as_str().to_string(),
+        record.reason.clone(),
+    )
+}
+
+fn py_merger_report(report: LifecycleMergerVerificationReport) -> PyMergerVerificationReport {
+    (
+        report.passed,
+        report.trials,
+        report.steps_per_trial,
+        report.failures,
+        report
+            .terminal_counts
+            .into_iter()
+            .map(|(place, count)| (place.as_str().to_string(), count))
+            .collect(),
+        report.max_tokens_per_place,
+    )
+}
+
 /// Underdamped voltage closed form.
 #[pyfunction]
 fn analytical_voltage_underdamped(spec: &PyCapacitorBankSpec, t: f64, v0: f64) -> f64 {
@@ -1089,6 +1348,32 @@ fn moving_frame_derivatives(
         .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
+/// Verify MIF-012 boundedness over stochastic trials.
+#[pyfunction]
+fn verify_merger_boundedness(
+    spec: &PyPlasmoidMergerSpec,
+    trials: usize,
+    steps_per_trial: usize,
+    seed: u64,
+) -> PyResult<PyMergerVerificationReport> {
+    lifecycle_verify_merger_boundedness(spec.inner, trials, steps_per_trial, seed)
+        .map(py_merger_report)
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+/// Verify MIF-012 liveness over nominal stochastic trials.
+#[pyfunction]
+fn verify_merger_liveness(
+    spec: &PyPlasmoidMergerSpec,
+    trials: usize,
+    steps_per_trial: usize,
+    seed: u64,
+) -> PyResult<PyMergerVerificationReport> {
+    lifecycle_verify_merger_liveness(spec.inner, trials, steps_per_trial, seed)
+        .map(py_merger_report)
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
 #[doc(hidden)]
 fn _all_regimes_referenced() -> [RlcRegime; 3] {
     // Keeps the RlcRegime import used so the enum stays visible to users
@@ -1110,10 +1395,13 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyMergeWindowSpec>()?;
     m.add_class::<PyCapacitorBankSpec>()?;
     m.add_class::<PyPulsedShotSpec>()?;
+    m.add_class::<PyPlasmoidMergerSpec>()?;
+    m.add_class::<PyMergerObservation>()?;
     m.add_class::<PyPlasmaState>()?;
     m.add_class::<PyBankTelemetry>()?;
     m.add_class::<PyCapacitorBank>()?;
     m.add_class::<PyPulsedShotFSM>()?;
+    m.add_class::<PyPlasmoidMergerPetriNet>()?;
     m.add_class::<PyDopplerKuramoto>()?;
     m.add_class::<PyMovingFrameUPDE>()?;
     m.add_class::<PyMergeWindowMonitor>()?;
@@ -1132,6 +1420,8 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(evaluate_faraday_recovery, m)?)?;
     m.add_function(wrap_pyfunction!(doppler_derivatives, m)?)?;
     m.add_function(wrap_pyfunction!(moving_frame_derivatives, m)?)?;
+    m.add_function(wrap_pyfunction!(verify_merger_boundedness, m)?)?;
+    m.add_function(wrap_pyfunction!(verify_merger_liveness, m)?)?;
     let _ = _all_regimes_referenced();
     Ok(())
 }

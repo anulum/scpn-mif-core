@@ -27,7 +27,9 @@ UltraScale+ FPGAs.
 > MIF-009 Faraday recovery now ship as upstream-pending Python/Rust APIs;
 > MIF-001, MIF-002, MIF-005, and MIF-009 also have Julia counterparts, and
 > MIF-004 has a Lean transition-cycle theorem. MIF-011 adds the Lean sampled
-> invariant for the 2 mm axial merge-window contract.
+> invariant for the 2 mm axial merge-window contract. MIF-012 adds the
+> Python/Rust plasmoid-merger Petri-net FSM with boundedness and liveness
+> verification campaigns.
 > See [`docs/api/`](docs/api/index.md) for the implemented surfaces.
 
 ## Reading path

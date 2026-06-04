@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0.0",
+  "kernel": "plasmoid_merger_petri_net",
+  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "python_version": "3.12.3",
+  "datetime": "2026-06-04T12:07:02.104995+00:00",
+  "benchmark_context": {
+    "command": "./.venv/bin/pytest bench/kernels/bench_plasmoid_merger_petri_net.py --benchmark-only --benchmark-json=bench/results/plasmoid_merger_petri_net_raw.json --no-cov",
+    "cpu_isolated": false,
+    "isolation_method": "none",
+    "affinity": "none",
+    "host_load_before": "5.73 4.62 4.23 10/2853 2024308",
+    "host_load_after": "5.91 4.76 4.29 1/2852 2025636",
+    "governor": "powersave",
+    "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz, 6 cores / 12 threads",
+    "runtime_versions": {
+      "python": "3.12.3",
+      "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)"
+    },
+    "other_heavy_jobs": "not audited; loaded workstation context recorded via load averages"
+  },
+  "notes": [
+    "Local non-isolated comparison benchmark only; not a production latency claim.",
+    "MIF-012 has Python and Rust runtime surfaces. No Julia/Go/Mojo surface is allocated because this is a stateful Petri-net FSM/control contract, not a numerical ODE/PDE kernel."
+  ],
+  "tests": [
+    {
+      "name": "test_bench_python_campaign_8",
+      "group": "plasmoid_merger_petri_net.campaign_8",
+      "mean_ns": 45507.8233985467,
+      "stddev_ns": 12807.222155002866,
+      "median_ns": 42006.83906674385,
+      "ops_per_s": 21974.243664484624,
+      "rounds": 6965
+    },
+    {
+      "name": "test_bench_rust_campaign_8",
+      "group": "plasmoid_merger_petri_net.campaign_8",
+      "mean_ns": 3434.2588710243385,
+      "stddev_ns": 1222.2051867919924,
+      "median_ns": 3072.083927690983,
+      "ops_per_s": 291183.6403589836,
+      "rounds": 17842
+    },
+    {
+      "name": "test_bench_python_boundedness_100x500",
+      "group": "plasmoid_merger_petri_net.boundedness_100x500",
+      "mean_ns": 421378243.0626452,
+      "stddev_ns": 34842393.03350969,
+      "median_ns": 410123400.85580945,
+      "ops_per_s": 2.3731647669605302,
+      "rounds": 5
+    },
+    {
+      "name": "test_bench_rust_boundedness_100x500",
+      "group": "plasmoid_merger_petri_net.boundedness_100x500",
+      "mean_ns": 4179429.57719788,
+      "stddev_ns": 590177.5378825885,
+      "median_ns": 4081535.5023369193,
+      "ops_per_s": 239.2671012943482,
+      "rounds": 160
+    }
+  ]
+}

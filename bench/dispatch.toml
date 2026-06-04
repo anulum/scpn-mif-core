@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
 # © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
 # © Code 2020–2026 Miroslav Šotek. All rights reserved.
 # ORCID: 0009-0009-3560-0851
@@ -11,7 +12,7 @@
 # benchmark campaign. Manual edits are blocked by the preflight gate.
 
 schema_version = "1.0.0"
-last_updated = "2026-06-04T1128"
+last_updated = "2026-06-04T1207"
 benchmark_host = "i5-11600K (mining rig)"
 
 [kernels]
@@ -27,6 +28,7 @@ benchmark_host = "i5-11600K (mining rig)"
 "kinematic.moving_frame_upde" = ["rust", "python", "julia"]
 "kinematic.merge_window" = ["rust", "python"]
 "lifecycle.pulsed_shot_fsm" = ["rust", "python"]
+"lifecycle.plasmoid_merger_petri_net" = ["rust", "python"]
 # MIF-005 capacitor bank: Rust is fastest for the single Crank-Nicolson step,
 # 1 000-step batch, and analytical free-response groups. Julia is measured via
 # CLI startup and remains a research-reference backend, not the runtime path.

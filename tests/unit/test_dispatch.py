@@ -44,6 +44,13 @@ def test_dispatch_lifecycle_pulsed_shot_fsm_listed() -> None:
     assert "python" in backends, "python must remain the fall-back option"
 
 
+def test_dispatch_lifecycle_plasmoid_merger_petri_net_listed() -> None:
+    backends = _dispatch.available_backends("lifecycle.plasmoid_merger_petri_net")
+    assert backends, "lifecycle.plasmoid_merger_petri_net must be registered"
+    assert backends[0] == "rust", f"expected rust as fastest, got {backends!r}"
+    assert "python" in backends, "python must remain the fall-back option"
+
+
 def test_dispatch_faraday_back_emf_listed() -> None:
     backends = _dispatch.available_backends("physics.faraday_back_emf")
     assert backends, "physics.faraday_back_emf must be registered"

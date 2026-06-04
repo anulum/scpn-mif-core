@@ -100,6 +100,7 @@ def _kernel_qualified_name(json_doc: dict[str, object], default: str) -> str:
         "faraday_recovery": "physics.faraday_back_emf",
         "faraday_recovery_waveform": "physics.faraday_recovery_waveform",
         "pulsed_shot_fsm": "lifecycle.pulsed_shot_fsm",
+        "plasmoid_merger_petri_net": "lifecycle.plasmoid_merger_petri_net",
     }
     return qualified_map.get(short, short)
 

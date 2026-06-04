@@ -111,6 +111,7 @@ nav:
       - Lifecycle:
           - Pulsed-shot FSM: api/lifecycle/pulsed_shot_fsm.md
           - Capacitor bank: api/lifecycle/capacitor_bank.md
+          - Plasmoid-merger Petri net: api/lifecycle/plasmoid_merger_petri_net.md
       - Physics:
           - Faraday recovery: api/physics/faraday_recovery.md
       - Formal:
