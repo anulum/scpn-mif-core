@@ -4,14 +4,33 @@
 <!-- © Code 2020–2026 Miroslav Šotek. All rights reserved. -->
 <!-- ORCID: 0009-0009-3560-0851 -->
 <!-- Contact: www.anulum.li | protoscience@anulum.li -->
-<!-- SCPN-MIF-CORE — MIF-011 Lean kinematic safety invariant documentation. -->
+<!-- SCPN-MIF-CORE — Lean sampled kinematic safety invariant documentation. -->
 
-# MIF-011 Lean kinematic safety invariant
+# Lean sampled kinematic safety
 
-MIF-011 mechanises the sampled axial merge-window contract for the MIF
-kinematic controller in Lean 4.
+PHA-C.6 provides a generic sampled kinematic invariant template in Lean 4.
+MIF-011 instantiates that template for the sampled axial merge-window contract
+used by the MIF kinematic controller.
 
-The theorem is:
+The reusable theorem is:
+
+```lean
+theorem sampled_bound_invariant
+    (sys : SampledKinematicSystem)
+    (h : SampledEnvelope sys)
+    (h0 : sys.distance 0 ≤ sys.bound) :
+    ∀ tick : ℕ, sys.distance tick ≤ sys.bound
+```
+
+`SampledEnvelope` requires a non-negative bound, non-negative contraction and
+disturbance ratios, a total budget no greater than one, and the one-step
+sampled envelope:
+
+```lean
+distanceₙ₊₁ ≤ contraction * distanceₙ + disturbanceRatio * bound
+```
+
+The MIF-specific theorem is:
 
 ```lean
 theorem mif_merge_window_invariant
@@ -21,9 +40,9 @@ theorem mif_merge_window_invariant
     ∀ tick : ℕ, |sys.separationM tick| ≤ mergeWindowToleranceM
 ```
 
-`mergeWindowToleranceM` is the 2 mm merge-window tolerance expressed in metres.
-`LipschitzCoupling` requires a non-negative contraction factor, a non-negative
-disturbance ratio, a total budget no greater than one, and a one-step envelope:
+`mergeWindowToleranceM` is the 2 mm merge-window tolerance expressed in metres,
+and `toSampledEnvelope` translates the MIF Lipschitz coupling contract into the
+generic `SampledEnvelope` template:
 
 ```lean
 |Δzₙ₊₁| ≤ contraction * |Δzₙ| + disturbanceRatio * 0.002
@@ -38,8 +57,8 @@ window.
 This proof does not change the Python, Rust, or Julia kinematic algorithms. It
 formalises the sampled closed-loop safety envelope consumed by MIF-002
 moving-frame UPDE and MIF-003 merge-window monitoring. Continuous-time barrier
-certificates remain upstream-owned by the SCPN-PHASE-ORCHESTRATOR PHA-C.6
-lane.
+certificates remain upstream-owned by the broader SCPN-PHASE-ORCHESTRATOR
+formal lane.
 
 ## Verification
 

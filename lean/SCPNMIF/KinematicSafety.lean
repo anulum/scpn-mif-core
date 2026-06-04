@@ -5,9 +5,9 @@
 -- ORCID: 0009-0009-3560-0851
 -- Contact: www.anulum.li | protoscience@anulum.li
 -- SCPN-MIF-CORE — MIF-011 kinematic safety invariant.
+import SCPNMIF.Kinematic
 import Mathlib.Data.Real.Basic
 import Mathlib.Tactic.NormNum
-import Mathlib.Tactic.Ring
 
 /-!
 # MIF-011 kinematic safety invariant
@@ -66,6 +66,26 @@ lemma mergeWindowToleranceM_nonnegative : 0 ≤ mergeWindowToleranceM := by
 lemma mergeWindowToleranceM_positive : 0 < mergeWindowToleranceM := by
   norm_num [mergeWindowToleranceM]
 
+/-- Repackage the MIF sampled axial separation as a generic kinematic system. -/
+noncomputable def toSampledSystem (sys : KinematicSystem) : Kinematic.SampledKinematicSystem where
+  distance := fun tick => |sys.separationM tick|
+  bound := mergeWindowToleranceM
+  contraction := sys.contraction
+  disturbanceRatio := sys.disturbanceRatio
+
+/-- Translate the MIF Lipschitz coupling contract into the generic envelope. -/
+def toSampledEnvelope
+    (sys : KinematicSystem)
+    (h : LipschitzCoupling sys) :
+    Kinematic.SampledEnvelope (toSampledSystem sys) where
+  bound_nonnegative := mergeWindowToleranceM_nonnegative
+  contraction_nonnegative := h.contraction_nonnegative
+  disturbance_nonnegative := h.disturbance_nonnegative
+  budget := h.budget
+  step_bound := by
+    intro tick
+    exact h.step_bound tick
+
 /--
 The sampled 2 mm axial merge-window bound is invariant under the
 Lipschitz-bounded closed-loop control contract.
@@ -75,43 +95,10 @@ theorem mif_merge_window_invariant
     (h : LipschitzCoupling sys)
     (h0 : |sys.separationM 0| ≤ mergeWindowToleranceM) :
     ∀ tick : ℕ, |sys.separationM tick| ≤ mergeWindowToleranceM := by
-  intro tick
-  induction tick with
-  | zero =>
-      exact h0
-  | succ tick ih =>
-      have contraction_le :
-          sys.contraction * |sys.separationM tick| ≤
-            sys.contraction * mergeWindowToleranceM :=
-        mul_le_mul_of_nonneg_left ih h.contraction_nonnegative
-      have disturbance_le :
-          sys.disturbanceRatio * mergeWindowToleranceM ≤
-            sys.disturbanceRatio * mergeWindowToleranceM :=
-        le_rfl
-      have step_budget :
-          sys.contraction * |sys.separationM tick| +
-              sys.disturbanceRatio * mergeWindowToleranceM ≤
-            sys.contraction * mergeWindowToleranceM +
-              sys.disturbanceRatio * mergeWindowToleranceM :=
-        add_le_add contraction_le disturbance_le
-      have factor_budget :
-          (sys.contraction + sys.disturbanceRatio) * mergeWindowToleranceM ≤
-            1 * mergeWindowToleranceM :=
-        mul_le_mul_of_nonneg_right h.budget mergeWindowToleranceM_nonnegative
-      calc
-        |sys.separationM (Nat.succ tick)| ≤
-            sys.contraction * |sys.separationM tick| +
-              sys.disturbanceRatio * mergeWindowToleranceM := by
-                simpa [Nat.succ_eq_add_one] using h.step_bound tick
-        _ ≤ sys.contraction * mergeWindowToleranceM +
-              sys.disturbanceRatio * mergeWindowToleranceM :=
-            step_budget
-        _ = (sys.contraction + sys.disturbanceRatio) * mergeWindowToleranceM := by
-            ring
-        _ ≤ 1 * mergeWindowToleranceM :=
-            factor_budget
-        _ = mergeWindowToleranceM := by
-            ring
+  exact Kinematic.sampled_bound_invariant
+    (toSampledSystem sys)
+    (toSampledEnvelope sys h)
+    h0
 
 end KinematicSafety
 end SCPNMIF

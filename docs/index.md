@@ -75,9 +75,9 @@ local physics/lifecycle surfaces:
   transition-cycle theorem, benchmarked dispatch, and API documentation.
 - MIF-009 Faraday recovery carrier: Python reference, Rust kernel, Julia
   counterpart, benchmarked dispatch, and API documentation.
-- MIF-011 kinematic safety invariant: Lean 4 proof that the sampled 2 mm
-  axial merge-window contract is invariant under a non-expansive
-  Lipschitz-bounded control envelope.
+- PHA-C.6/MIF-011 kinematic safety invariant: Lean 4 generic sampled
+  invariant template plus the 2 mm axial merge-window instantiation under a
+  non-expansive Lipschitz-bounded control envelope.
 - MIF-012 plasmoid-merger Petri net: Python reference, Rust kernel, PyO3
   bridge, boundedness/liveness verification campaigns, benchmarked dispatch,
   and API documentation.
