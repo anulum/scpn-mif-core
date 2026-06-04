@@ -59,6 +59,14 @@ def test_dispatch_diagnostic_normalisation_listed() -> None:
     assert "julia" in backends, "julia benchmark surface must remain listed"
 
 
+def test_dispatch_diagnostic_stress_inject_listed() -> None:
+    backends = _dispatch.available_backends("diagnostics.stress_inject")
+    assert backends, "diagnostics.stress_inject must be registered"
+    assert backends[0] == "rust", f"expected rust as fastest stress-injection backend, got {backends!r}"
+    assert "python" in backends, "python must remain the fall-back option"
+    assert "julia" in backends, "julia benchmark surface must remain listed"
+
+
 def test_dispatch_faraday_back_emf_listed() -> None:
     backends = _dispatch.available_backends("physics.faraday_back_emf")
     assert backends, "physics.faraday_back_emf must be registered"

@@ -61,6 +61,11 @@ scaling into `[-1, 1]`; Rust is fastest across the allocated Python, Rust, and
 Julia comparison groups. The committed MIF-016 benchmark is labelled as a
 non-isolated local comparison and records host load, governor, and runtime
 versions in `bench/results/diagnostic_normalisation.json`.
+MIF-017 uses `diagnostics.stress_inject` for bounded synthetic noise, dropout,
+and jitter over dirty diagnostic frames; Rust is fastest across the allocated
+Python, Rust, and Julia comparison groups. The committed MIF-017 benchmark is
+labelled as a non-isolated local comparison and records host load, governor,
+and runtime versions in `bench/results/diagnostic_stress_inject.json`.
 
 ## Running
 

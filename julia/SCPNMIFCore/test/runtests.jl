@@ -232,3 +232,49 @@ end
     @test_throws ArgumentError normalise_sample(reject_state, Dict("bdot_dv_dt" => 2.0e9))
     @test_throws ArgumentError DiagnosticChannelCalibration("flat", "V", 1.0, 1.0, "clip", "flat")
 end
+
+@testset "MIF-017 Diagnostic stress injection" begin
+    config = StressInjectionConfig(
+        7,
+        NoiseSpec(Dict(
+            "temperature_eV" => 10.0,
+            "bdot_V" => 0.5,
+            "phase_lock_error_rad" => 1.0e-3,
+        )),
+        DropoutSpec(Dict("bdot_V" => 1.0)),
+        JitterSpec(10, 50, 1.0),
+    )
+    frames = [
+        DiagnosticFrame(
+            1000,
+            Dict(
+                "temperature_eV" => 500.0,
+                "bdot_V" => 0.0,
+                "phase_lock_error_rad" => 0.0,
+            ),
+        ),
+        DiagnosticFrame(
+            1100,
+            Dict(
+                "temperature_eV" => 505.0,
+                "bdot_V" => 0.1,
+                "phase_lock_error_rad" => 0.0,
+            ),
+        ),
+    ]
+    stream = DegradedSensorStream(config)
+    first = apply(stream, frames)
+    first_log = copy(stream.audit_log)
+    second = apply(DegradedSensorStream(config), frames)
+
+    @test first[1].samples == second[1].samples
+    @test 10 <= first_log[1].jitter_ns <= 50
+    @test "bdot_V" in first_log[1].dropped_channels
+    @test "temperature_eV" in first_log[1].noisy_channels
+    @test !haskey(first[1].samples, "bdot_V")
+    @test first[1].samples["temperature_eV"] != 500.0
+
+    @test_throws ArgumentError NoiseSpec(Dict("temperature_eV" => -1.0))
+    @test_throws ArgumentError DropoutSpec(Dict("bdot_V" => 1.2))
+    @test_throws ArgumentError JitterSpec(50, 10, 1.0)
+end

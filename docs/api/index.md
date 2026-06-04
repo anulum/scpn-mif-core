@@ -54,6 +54,9 @@ Implemented pre-alpha API pages:
 - [Diagnostic normalisation](diagnostics/normalisation.md) — MIF-016,
   calibration-manifested dirty diagnostic scaling with Python, Rust, and Julia
   surfaces.
+- [Diagnostic stress injection](diagnostics/stress_inject.md) — MIF-017,
+  deterministic synthetic noise, dropout, and jitter hardening with Python,
+  Rust, and Julia surfaces.
 - [Plasmoid-merger Petri net](lifecycle/plasmoid_merger_petri_net.md) —
   MIF-012, one-safe stochastic Petri-net FSM with Python, Rust, and Lean
   formal surfaces.

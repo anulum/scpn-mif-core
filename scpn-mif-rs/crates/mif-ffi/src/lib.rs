@@ -33,6 +33,8 @@ use mif_diagnostics::{
     ClipPolicy as DiagnosticsClipPolicy,
     DiagnosticChannelCalibration as DiagnosticsChannelCalibration,
     DiagnosticNormalisationState as DiagnosticsNormalisationState,
+    StressChannelConfig as DiagnosticsStressChannelConfig,
+    StressInjectionConfig as DiagnosticsStressInjectionConfig,
     fit_diagnostic_calibrations as diagnostics_fit_calibrations,
 };
 use mif_kinematic::{
@@ -85,6 +87,7 @@ type PyMergerVerificationReport = (
     usize,
 );
 type PyNormalisedDiagnosticSample = (Vec<f64>, Vec<bool>, Vec<String>);
+type PyStressInjectedFrame = (u64, Vec<Option<f64>>, Vec<String>, Vec<String>);
 
 /// PyO3 wrapper around the immutable `AerDecodeSpec`.
 #[pyclass(name = "AERDecodeSpec", module = "scpn_mif_core_rs", frozen)]
@@ -360,6 +363,87 @@ impl PyDiagnosticNormalisationState {
                     report.features,
                     report.clip_mask,
                     report.out_of_range_channels,
+                )
+            })
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+}
+
+/// PyO3 wrapper around MIF-017 diagnostic stress-injection config.
+#[pyclass(name = "StressInjectionConfig", module = "scpn_mif_core_rs", frozen)]
+#[derive(Clone)]
+struct PyStressInjectionConfig {
+    inner: DiagnosticsStressInjectionConfig,
+}
+
+#[pymethods]
+impl PyStressInjectionConfig {
+    #[new]
+    #[pyo3(
+        signature = (
+            seed,
+            channel_names,
+            noise_sigma,
+            dropout_probability,
+            jitter_min_ns=10,
+            jitter_max_ns=50,
+            jitter_probability=1.0
+        )
+    )]
+    #[allow(clippy::too_many_arguments)]
+    fn new(
+        seed: u64,
+        channel_names: Vec<String>,
+        noise_sigma: Vec<f64>,
+        dropout_probability: Vec<f64>,
+        jitter_min_ns: u64,
+        jitter_max_ns: u64,
+        jitter_probability: f64,
+    ) -> PyResult<Self> {
+        if channel_names.len() != noise_sigma.len()
+            || channel_names.len() != dropout_probability.len()
+        {
+            return Err(PyValueError::new_err(
+                "channel_names, noise_sigma, and dropout_probability must have the same length",
+            ));
+        }
+        let mut channels = Vec::with_capacity(channel_names.len());
+        for ((name, sigma), dropout) in channel_names
+            .into_iter()
+            .zip(noise_sigma.into_iter())
+            .zip(dropout_probability.into_iter())
+        {
+            channels.push(
+                DiagnosticsStressChannelConfig::new(name, sigma, dropout)
+                    .map_err(|e| PyValueError::new_err(e.to_string()))?,
+            );
+        }
+        DiagnosticsStressInjectionConfig::new(
+            seed,
+            channels,
+            jitter_min_ns,
+            jitter_max_ns,
+            jitter_probability,
+        )
+        .map(|inner| Self { inner })
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    fn stress_inject_frame(
+        &self,
+        channel_names: Vec<String>,
+        values: Vec<f64>,
+        source_t_ns: u64,
+        frame_index: usize,
+    ) -> PyResult<PyStressInjectedFrame> {
+        self.inner
+            .stress_inject_frame(&channel_names, &values, source_t_ns, frame_index)
+            .map(|frame| {
+                (
+                    frame.emitted_t_ns,
+                    frame.values,
+                    frame.noisy_channels,
+                    frame.dropped_channels,
                 )
             })
             .map_err(|e| PyValueError::new_err(e.to_string()))
@@ -1804,6 +1888,7 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyAERSpikeBuffer>()?;
     m.add_class::<PyDiagnosticChannelCalibration>()?;
     m.add_class::<PyDiagnosticNormalisationState>()?;
+    m.add_class::<PyStressInjectionConfig>()?;
     m.add_class::<PyDopplerKuramotoSpec>()?;
     m.add_class::<PyMovingFrameUPDESpec>()?;
     m.add_class::<PyMergeWindowSpec>()?;

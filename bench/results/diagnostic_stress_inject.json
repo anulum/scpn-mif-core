@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0.0",
+  "kernel": "diagnostic_stress_inject",
+  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "python_version": "3.12.3",
+  "datetime": "2026-06-04T17:00:08.371441+00:00",
+  "benchmark_context": {
+    "command": "./.venv/bin/pytest bench/kernels/bench_diagnostic_stress_inject.py --benchmark-only --benchmark-json=bench/results/diagnostic_stress_inject_raw.json --no-cov",
+    "cpu_isolated": false,
+    "isolation_method": "none",
+    "affinity": "none",
+    "host_load_before": "3.99 3.43 3.25 8/3177 2357411",
+    "host_load_after": "4.03 3.48 3.27 2/3166 2357915",
+    "governor": "powersave",
+    "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz, 6 cores / 12 threads",
+    "runtime_versions": {
+      "python": "3.12.3",
+      "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+      "julia": "1.12.6"
+    },
+    "other_heavy_jobs": "not audited; loaded workstation context recorded via load averages"
+  },
+  "notes": [
+    "Local non-isolated comparison benchmark only; not a production latency claim.",
+    "MIF-017 has allocated Python, Rust, and Julia surfaces. Julia is measured via CLI startup and remains a calibration/reference backend, not the runtime path."
+  ],
+  "tests": [
+    {
+      "name": "test_bench_python_single_frame",
+      "group": "diagnostic_stress_inject.single_frame",
+      "mean_ns": 11688.133139837684,
+      "stddev_ns": 3589.2939951337576,
+      "median_ns": 10319.985449314117,
+      "ops_per_s": 85556.86250626395,
+      "rounds": 13798
+    },
+    {
+      "name": "test_bench_rust_single_frame",
+      "group": "diagnostic_stress_inject.single_frame",
+      "mean_ns": 948.2091163392154,
+      "stddev_ns": 443.3387294096024,
+      "median_ns": 861.0077202320099,
+      "ops_per_s": 1054619.685434723,
+      "rounds": 28772
+    },
+    {
+      "name": "test_bench_julia_cli_single_frame",
+      "group": "diagnostic_stress_inject.single_frame",
+      "mean_ns": 930886013.8989985,
+      "stddev_ns": 553457185.002574,
+      "median_ns": 675442917.9709405,
+      "ops_per_s": 1.074245380281866,
+      "rounds": 3
+    },
+    {
+      "name": "test_bench_python_batch_4096",
+      "group": "diagnostic_stress_inject.batch_4096",
+      "mean_ns": 55179478.911062084,
+      "stddev_ns": 9191173.174847348,
+      "median_ns": 52174065.029248595,
+      "ops_per_s": 18.122679295536543,
+      "rounds": 15
+    },
+    {
+      "name": "test_bench_rust_batch_4096",
+      "group": "diagnostic_stress_inject.batch_4096",
+      "mean_ns": 3235020.725817676,
+      "stddev_ns": 396027.24869558203,
+      "median_ns": 3093786.07198596,
+      "ops_per_s": 309.1170303854057,
+      "rounds": 301
+    }
+  ]
+}

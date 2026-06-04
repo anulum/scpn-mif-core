@@ -118,6 +118,7 @@ nav:
           - Spike-buffer decoder: api/aer/spike_buffer.md
       - Diagnostics:
           - Normalisation: api/diagnostics/normalisation.md
+          - Stress injection: api/diagnostics/stress_inject.md
       - Formal:
           - Pulsed-shot lifecycle: api/formal/pulsed_shot.md
           - Capacitor-bank energy: api/formal/capacitor_bank.md

@@ -27,17 +27,22 @@ export VERSION,
     CapacitorBank,
     CapacitorBankSpec,
     CapacitorBankState,
+    DegradedSensorStream,
     DiagnosticChannelCalibration,
+    DiagnosticFrame,
     DiagnosticNormalisationState,
     DopplerKuramoto,
     DopplerKuramotoReport,
     DopplerKuramotoSpec,
     DopplerKuramotoState,
+    DropoutSpec,
     FaradayRecoverySpec,
+    JitterSpec,
     MovingFrameUPDE,
     MovingFrameUPDEReport,
     MovingFrameUPDESpec,
     MovingFrameUPDEState,
+    NoiseSpec,
     OVERDAMPED,
     RLCRegime,
     UNDERDAMPED,
@@ -47,6 +52,7 @@ export VERSION,
     analytical_voltage_critically_damped,
     analytical_voltage_overdamped,
     analytical_voltage_underdamped,
+    apply,
     collision_imminent,
     doppler_derivatives,
     evaluate_faraday_recovery,
@@ -66,6 +72,8 @@ export VERSION,
     recovered_power,
     regime,
     reset!,
+    StressInjectionConfig,
+    StressInjectionRecord,
     step!,
     time_to_reference_s
 
@@ -75,6 +83,7 @@ include("doppler_kuramoto.jl")
 include("moving_frame_upde.jl")
 include("capacitor_bank.jl")
 include("diagnostic_normalisation.jl")
+include("diagnostic_stress_inject.jl")
 
 """
     FaradayRecoverySpec(turns, load_resistance_ohm; coupling_efficiency=1.0)

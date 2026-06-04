@@ -21,6 +21,9 @@ use thiserror::Error;
 
 /// Crate version derived from the workspace.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+const MASK64: u64 = u64::MAX;
+const GOLDEN_GAMMA: u64 = 0x9E37_79B9_7F4A_7C15;
+const FRAME_MIX: u64 = 0xD1B5_4A32_D192_ED03;
 
 /// Out-of-range behavior for one diagnostic channel.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -246,6 +249,226 @@ impl DiagnosticNormalisationState {
     }
 }
 
+/// Per-channel degradation settings for MIF-017 stress injection.
+#[derive(Debug, Clone, PartialEq)]
+pub struct StressChannelConfig {
+    /// Stable channel name.
+    pub name: String,
+    /// Additive Gaussian sigma in physical units.
+    pub noise_sigma: f64,
+    /// Bernoulli dropout probability.
+    pub dropout_probability: f64,
+}
+
+impl StressChannelConfig {
+    /// Construct a validated stress channel config.
+    pub fn new(
+        name: impl Into<String>,
+        noise_sigma: f64,
+        dropout_probability: f64,
+    ) -> Result<Self, DiagnosticError> {
+        let config = Self {
+            name: name.into(),
+            noise_sigma,
+            dropout_probability,
+        };
+        config.validate()?;
+        Ok(config)
+    }
+
+    fn validate(&self) -> Result<(), DiagnosticError> {
+        require_non_empty("name", &self.name)?;
+        require_finite("noise_sigma", self.noise_sigma)?;
+        require_finite("dropout_probability", self.dropout_probability)?;
+        if self.noise_sigma < 0.0 {
+            return Err(DiagnosticError::Negative {
+                field: "noise_sigma",
+            });
+        }
+        if !(0.0..=1.0).contains(&self.dropout_probability) {
+            return Err(DiagnosticError::ProbabilityOutOfRange {
+                field: "dropout_probability",
+            });
+        }
+        Ok(())
+    }
+}
+
+/// Deterministic MIF-017 stress-injection configuration.
+#[derive(Debug, Clone, PartialEq)]
+pub struct StressInjectionConfig {
+    /// Base seed.
+    pub seed: u64,
+    /// Per-channel settings.
+    pub channels: Vec<StressChannelConfig>,
+    /// Minimum positive timestamp jitter in nanoseconds.
+    pub jitter_min_ns: u64,
+    /// Maximum positive timestamp jitter in nanoseconds.
+    pub jitter_max_ns: u64,
+    /// Bernoulli probability that jitter is applied to a frame.
+    pub jitter_probability: f64,
+}
+
+impl StressInjectionConfig {
+    /// Construct a validated stress-injection config.
+    pub fn new(
+        seed: u64,
+        channels: Vec<StressChannelConfig>,
+        jitter_min_ns: u64,
+        jitter_max_ns: u64,
+        jitter_probability: f64,
+    ) -> Result<Self, DiagnosticError> {
+        let config = Self {
+            seed,
+            channels,
+            jitter_min_ns,
+            jitter_max_ns,
+            jitter_probability,
+        };
+        config.validate()?;
+        Ok(config)
+    }
+
+    /// Stress one positional diagnostic frame.
+    pub fn stress_inject_frame(
+        &self,
+        channel_names: &[String],
+        values: &[f64],
+        source_t_ns: u64,
+        frame_index: usize,
+    ) -> Result<StressedFrame, DiagnosticError> {
+        if channel_names.len() != values.len() {
+            return Err(DiagnosticError::VectorLengthMismatch {
+                expected: channel_names.len(),
+                actual: values.len(),
+            });
+        }
+        let mut rng = SplitMix64::new(
+            self.seed ^ (((frame_index as u64) + 1).wrapping_mul(FRAME_MIX) & MASK64),
+        );
+        let mut stressed_values = Vec::with_capacity(values.len());
+        let mut noisy_channels = Vec::new();
+        let mut dropped_channels = Vec::new();
+        for (channel, value) in channel_names.iter().zip(values.iter()) {
+            require_finite("diagnostic value", *value)?;
+            let channel_config = self.channel_config(channel);
+            if channel_config.dropout_probability > 0.0
+                && rng.uniform() < channel_config.dropout_probability
+            {
+                dropped_channels.push(channel.clone());
+                stressed_values.push(None);
+                continue;
+            }
+            let mut stressed = *value;
+            if channel_config.noise_sigma > 0.0 {
+                stressed += rng.normal() * channel_config.noise_sigma;
+                noisy_channels.push(channel.clone());
+            }
+            stressed_values.push(Some(stressed));
+        }
+        let jitter_ns = self.jitter_ns(&mut rng);
+        Ok(StressedFrame {
+            source_t_ns,
+            emitted_t_ns: source_t_ns.saturating_add(jitter_ns),
+            jitter_ns,
+            values: stressed_values,
+            noisy_channels,
+            dropped_channels,
+        })
+    }
+
+    fn validate(&self) -> Result<(), DiagnosticError> {
+        if self.channels.is_empty() {
+            return Err(DiagnosticError::EmptyStressChannels);
+        }
+        if self.jitter_max_ns < self.jitter_min_ns {
+            return Err(DiagnosticError::InvalidJitterRange);
+        }
+        require_finite("jitter_probability", self.jitter_probability)?;
+        if !(0.0..=1.0).contains(&self.jitter_probability) {
+            return Err(DiagnosticError::ProbabilityOutOfRange {
+                field: "jitter_probability",
+            });
+        }
+        let mut names = HashSet::with_capacity(self.channels.len());
+        for channel in &self.channels {
+            channel.validate()?;
+            if !names.insert(channel.name.clone()) {
+                return Err(DiagnosticError::DuplicateChannel {
+                    channel: channel.name.clone(),
+                });
+            }
+        }
+        Ok(())
+    }
+
+    fn channel_config(&self, channel: &str) -> StressChannelConfig {
+        self.channels
+            .iter()
+            .find(|config| config.name == channel)
+            .cloned()
+            .unwrap_or_else(|| StressChannelConfig {
+                name: channel.to_string(),
+                noise_sigma: 0.0,
+                dropout_probability: 0.0,
+            })
+    }
+
+    fn jitter_ns(&self, rng: &mut SplitMix64) -> u64 {
+        if self.jitter_probability <= 0.0 || rng.uniform() >= self.jitter_probability {
+            return 0;
+        }
+        let span = self.jitter_max_ns - self.jitter_min_ns + 1;
+        self.jitter_min_ns + (rng.uniform() * span as f64).floor() as u64
+    }
+}
+
+/// Result of stressing one diagnostic frame.
+#[derive(Debug, Clone, PartialEq)]
+pub struct StressedFrame {
+    /// Original source timestamp.
+    pub source_t_ns: u64,
+    /// Timestamp after jitter.
+    pub emitted_t_ns: u64,
+    /// Applied jitter in nanoseconds.
+    pub jitter_ns: u64,
+    /// Stressed channel values; `None` means the channel dropped out.
+    pub values: Vec<Option<f64>>,
+    /// Channels with additive noise applied.
+    pub noisy_channels: Vec<String>,
+    /// Channels removed by dropout.
+    pub dropped_channels: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+struct SplitMix64 {
+    state: u64,
+}
+
+impl SplitMix64 {
+    fn new(seed: u64) -> Self {
+        Self { state: seed }
+    }
+
+    fn next_u64(&mut self) -> u64 {
+        self.state = self.state.wrapping_add(GOLDEN_GAMMA);
+        let mut z = self.state;
+        z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+        z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+        z ^ (z >> 31)
+    }
+
+    fn uniform(&mut self) -> f64 {
+        (self.next_u64() >> 11) as f64 * (1.0 / ((1_u64 << 53) as f64))
+    }
+
+    fn normal(&mut self) -> f64 {
+        let u1 = self.uniform().max(1.0e-300);
+        let u2 = self.uniform();
+        (-2.0 * u1.ln()).sqrt() * (2.0 * std::f64::consts::PI * u2).cos()
+    }
+}
+
 /// Fit min/max calibrations from an observation matrix.
 pub fn fit_diagnostic_calibrations(
     names: &[String],
@@ -338,6 +561,24 @@ pub enum DiagnosticError {
         /// Field name.
         field: &'static str,
     },
+    /// A floating field was negative where only non-negative values are valid.
+    #[error("{field} must be non-negative")]
+    Negative {
+        /// Field name.
+        field: &'static str,
+    },
+    /// A probability field was outside `[0, 1]`.
+    #[error("{field} must lie in [0, 1]")]
+    ProbabilityOutOfRange {
+        /// Field name.
+        field: &'static str,
+    },
+    /// At least one stress channel is required.
+    #[error("at least one stress channel is required")]
+    EmptyStressChannels,
+    /// The configured jitter interval is invalid.
+    #[error("jitter max_ns must be greater than or equal to min_ns")]
+    InvalidJitterRange,
     /// Calibration channel names must be unique.
     #[error("duplicate calibration channel: {channel}")]
     DuplicateChannel {
@@ -482,5 +723,55 @@ mod tests {
         assert_eq!(calibrations[0].name, "temperature_eV");
         assert_eq!(calibrations[0].physical_min, 100.0);
         assert_eq!(calibrations[0].physical_max, 900.0);
+    }
+
+    #[test]
+    fn stress_injection_is_deterministic_and_logged() {
+        let config = StressInjectionConfig::new(
+            7,
+            vec![
+                StressChannelConfig::new("temperature_eV", 10.0, 0.0).expect("valid channel"),
+                StressChannelConfig::new("bdot_V", 0.5, 1.0).expect("valid channel"),
+            ],
+            10,
+            50,
+            1.0,
+        )
+        .expect("valid config");
+        let names = vec!["temperature_eV".to_string(), "bdot_V".to_string()];
+        let first = config
+            .stress_inject_frame(&names, &[500.0, 0.0], 1_000, 0)
+            .expect("stress frame");
+        let second = config
+            .stress_inject_frame(&names, &[500.0, 0.0], 1_000, 0)
+            .expect("stress frame");
+        assert_eq!(first, second);
+        assert!((10..=50).contains(&first.jitter_ns));
+        assert_eq!(first.dropped_channels, vec!["bdot_V".to_string()]);
+        assert_eq!(first.noisy_channels, vec!["temperature_eV".to_string()]);
+        assert!(first.values[0].is_some());
+        assert_eq!(first.values[1], None);
+    }
+
+    #[test]
+    fn stress_injection_rejects_bad_envelopes() {
+        assert!(matches!(
+            StressChannelConfig::new("temperature_eV", -1.0, 0.0),
+            Err(DiagnosticError::Negative { .. })
+        ));
+        assert!(matches!(
+            StressChannelConfig::new("temperature_eV", 1.0, 1.2),
+            Err(DiagnosticError::ProbabilityOutOfRange { .. })
+        ));
+        assert!(matches!(
+            StressInjectionConfig::new(
+                1,
+                vec![StressChannelConfig::new("temperature_eV", 1.0, 0.0).expect("valid channel")],
+                50,
+                10,
+                1.0,
+            ),
+            Err(DiagnosticError::InvalidJitterRange)
+        ));
     }
 }
