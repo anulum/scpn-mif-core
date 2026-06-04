@@ -95,6 +95,7 @@ def _kernel_qualified_name(json_doc: dict[str, object], default: str) -> str:
         "faraday_back_emf": "physics.faraday_back_emf",
         "capacitor_bank": "lifecycle.capacitor_bank",
         "doppler_kuramoto": "kinematic.doppler_kuramoto",
+        "kinematic_safety_certificate": "kinematic.sampled_safety_certificate",
         "moving_frame_upde": "kinematic.moving_frame_upde",
         "merge_window": "kinematic.merge_window",
         "faraday_recovery": "physics.faraday_back_emf",

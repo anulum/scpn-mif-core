@@ -36,6 +36,10 @@ from scpn_mif_core.kinematic.moving_frame_upde import (
     MovingFrameUPDESpec,
     MovingFrameUPDEState,
 )
+from scpn_mif_core.kinematic.safety_certificate import (
+    KinematicSafetyCertificate,
+    KinematicSafetySpec,
+)
 
 
 class RustBackedDopplerKuramoto:
@@ -191,6 +195,33 @@ def rust_moving_frame_derivatives(
             ),
             dtype=np.float64,
         )
+    )
+
+
+def rust_certify_sampled_kinematic_safety(
+    separation_m: ArrayLike,
+    spec: KinematicSafetySpec,
+) -> KinematicSafetyCertificate:
+    """Return the Rust-computed sampled kinematic safety certificate."""
+    raw = _rust.certify_sampled_kinematic_safety(
+        list(np.asarray(separation_m, dtype=np.float64)),
+        spec.tolerance_m,
+        spec.contraction,
+        spec.disturbance_ratio,
+        spec.numerical_tolerance_m,
+    )
+    return KinematicSafetyCertificate(
+        passed=bool(raw[0]),
+        samples=int(cast(SupportsIndex, raw[1])),
+        tolerance_m=_float(raw[2]),
+        contraction=_float(raw[3]),
+        disturbance_ratio=_float(raw[4]),
+        budget_margin=_float(raw[5]),
+        max_abs_separation_m=_float(raw[6]),
+        initial_margin_m=_float(raw[7]),
+        minimum_step_slack_m=None if raw[8] is None else _float(raw[8]),
+        max_step_violation_m=_float(raw[9]),
+        first_violation_index=None if raw[10] is None else int(cast(SupportsIndex, raw[10])),
     )
 
 

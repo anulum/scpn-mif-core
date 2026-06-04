@@ -51,6 +51,14 @@ def test_dispatch_lifecycle_plasmoid_merger_petri_net_listed() -> None:
     assert "python" in backends, "python must remain the fall-back option"
 
 
+def test_dispatch_sampled_safety_certificate_listed() -> None:
+    backends = _dispatch.available_backends("kinematic.sampled_safety_certificate")
+    assert backends, "kinematic.sampled_safety_certificate must be registered"
+    assert backends[0] == "rust", f"expected rust as fastest sampled safety backend, got {backends!r}"
+    assert "python" in backends, "python must remain the fall-back option"
+    assert "julia" in backends, "julia audit surface must remain listed"
+
+
 def test_dispatch_diagnostic_normalisation_listed() -> None:
     backends = _dispatch.available_backends("diagnostics.normalisation")
     assert backends, "diagnostics.normalisation must be registered"

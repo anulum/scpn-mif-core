@@ -46,9 +46,11 @@ use mif_diagnostics::{
 use mif_kinematic::{
     DopplerKuramoto as KinematicDopplerKuramoto,
     DopplerKuramotoSpec as KinematicDopplerKuramotoSpec,
+    KinematicSafetySpec as KinematicSafetySpecRust,
     MergeWindowMonitor as KinematicMergeWindowMonitor, MergeWindowSpec as KinematicMergeWindowSpec,
     MovingFrameUPDE as KinematicMovingFrameUPDE,
     MovingFrameUPDESpec as KinematicMovingFrameUPDESpec,
+    certify_sampled_kinematic_safety as kinematic_certify_sampled_safety,
     doppler_derivatives_at_time as kinematic_doppler_derivatives_at_time,
     moving_frame_derivatives_at_time as kinematic_moving_frame_derivatives_at_time,
 };
@@ -71,6 +73,19 @@ type PyAERDecodedObservation = (String, u64, u64, usize, Vec<f64>);
 type PyDopplerKuramotoState = (f64, Vec<f64>, Vec<f64>, f64, f64);
 type PyMovingFrameUPDEState = (f64, Vec<f64>, Vec<f64>, Vec<f64>, f64, f64, f64, f64, f64);
 type PyMergeWindowSample = (Option<f64>, f64, f64, f64, bool, bool, usize);
+type PyKinematicSafetyCertificate = (
+    bool,
+    usize,
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
+    Option<f64>,
+    f64,
+    Option<usize>,
+);
 type PySchedulerCommand = (f64, String, String, String, bool, f64);
 type PyTransitionRecord = (f64, String, String, String);
 type PyMergerStep = (
@@ -1846,6 +1861,46 @@ fn moving_frame_derivatives(
     .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
+/// Certify a sampled MIF-011 kinematic safety trace.
+#[pyfunction]
+#[pyo3(signature = (
+    separation_m,
+    tolerance_m=0.002,
+    contraction=0.9,
+    disturbance_ratio=0.1,
+    numerical_tolerance_m=1.0e-12
+))]
+fn certify_sampled_kinematic_safety(
+    separation_m: Vec<f64>,
+    tolerance_m: f64,
+    contraction: f64,
+    disturbance_ratio: f64,
+    numerical_tolerance_m: f64,
+) -> PyResult<PyKinematicSafetyCertificate> {
+    let spec = KinematicSafetySpecRust::new(
+        tolerance_m,
+        contraction,
+        disturbance_ratio,
+        numerical_tolerance_m,
+    )
+    .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let cert = kinematic_certify_sampled_safety(&separation_m, spec)
+        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    Ok((
+        cert.passed,
+        cert.samples,
+        cert.tolerance_m,
+        cert.contraction,
+        cert.disturbance_ratio,
+        cert.budget_margin,
+        cert.max_abs_separation_m,
+        cert.initial_margin_m,
+        cert.minimum_step_slack_m,
+        cert.max_step_violation_m,
+        cert.first_violation_index,
+    ))
+}
+
 /// Verify MIF-012 boundedness over stochastic trials.
 #[pyfunction]
 fn verify_merger_boundedness(
@@ -2026,6 +2081,7 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(evaluate_faraday_recovery, m)?)?;
     m.add_function(wrap_pyfunction!(doppler_derivatives, m)?)?;
     m.add_function(wrap_pyfunction!(moving_frame_derivatives, m)?)?;
+    m.add_function(wrap_pyfunction!(certify_sampled_kinematic_safety, m)?)?;
     m.add_function(wrap_pyfunction!(verify_merger_boundedness, m)?)?;
     m.add_function(wrap_pyfunction!(verify_merger_liveness, m)?)?;
     m.add_function(wrap_pyfunction!(decode_aer_features, m)?)?;

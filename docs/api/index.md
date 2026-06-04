@@ -69,7 +69,8 @@ Implemented pre-alpha API pages:
 - [Faraday recovery proof](formal/faraday_recovery.md) — MIF-009, Lean 4
   energy-bookkeeping proof for the EMF and recovered-energy sign contracts.
 - [Kinematic safety](formal/kinematic_safety.md) — PHA-C.6/MIF-011, Lean 4
-  sampled invariant template and 2 mm axial merge-window instantiation.
+  sampled invariant template, 2 mm axial merge-window instantiation, and
+  runtime proof-assumption certificate.
 - [ADC-to-spike quantiser](fpga/adc_to_spike_quantiser.md) — MIF-007,
   B-dot ADC to Q8.8 AER spike-rate bridge with Python and SystemVerilog
   surfaces.

@@ -38,6 +38,8 @@ export VERSION,
     DropoutSpec,
     FaradayRecoverySpec,
     JitterSpec,
+    KINEMATIC_SAFETY_TOLERANCE_M,
+    KinematicSafetySpec,
     MovingFrameUPDE,
     MovingFrameUPDEReport,
     MovingFrameUPDESpec,
@@ -63,6 +65,8 @@ export VERSION,
     free_response,
     magnetic_flux,
     calibration_manifest,
+    budget_margin,
+    certify_sampled_kinematic_safety,
     moving_frame_derivatives,
     normalise_sample,
     normalise_value,
@@ -84,6 +88,7 @@ include("moving_frame_upde.jl")
 include("capacitor_bank.jl")
 include("diagnostic_normalisation.jl")
 include("diagnostic_stress_inject.jl")
+include("kinematic_safety.jl")
 
 """
     FaradayRecoverySpec(turns, load_resistance_ohm; coupling_efficiency=1.0)

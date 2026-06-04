@@ -52,13 +52,52 @@ Under those assumptions, every sampled control tick stays inside the 2 mm
 axial merge window if the initial sampled separation is inside the same
 window.
 
+## Runtime Certificate
+
+MIF-011 also exposes a runtime certificate that checks whether a sampled
+position or separation trace satisfies the exact envelope assumptions consumed
+by the Lean theorem:
+
+```python
+from scpn_mif_core.kinematic import (
+    KinematicSafetySpec,
+    certify_sampled_kinematic_safety,
+)
+
+spec = KinematicSafetySpec(tolerance_m=0.002, contraction=0.75, disturbance_ratio=0.2)
+certificate = certify_sampled_kinematic_safety([0.0018, 0.0014, 0.00105], spec)
+assert certificate.passed
+```
+
+The certificate reports initial margin, minimum one-step slack, maximum
+step-envelope violation, budget margin, and the first violating sample index.
+`certify_positions_sampled_kinematic_safety(...)` converts a sampled
+multi-channel axial position trace into max-min separation before applying the
+same proof-assumption check.
+
+::: scpn_mif_core.kinematic.safety_certificate
+    options:
+      show_root_heading: true
+
+## Dispatch
+
+Use `scpn_mif_core.kinematic.dispatched_sampled_kinematic_safety_certificate(...)`
+for the fastest measured runtime backend:
+
+```toml
+"kinematic.sampled_safety_certificate" = ["rust", "python", "julia"]
+```
+
+The Julia surface is retained as the audit counterpart for kinematic and
+formal proof work. It is benchmarked through the Julia package CLI.
+
 ## Boundary
 
-This proof does not change the Python, Rust, or Julia kinematic algorithms. It
-formalises the sampled closed-loop safety envelope consumed by MIF-002
-moving-frame UPDE and MIF-003 merge-window monitoring. Continuous-time barrier
-certificates remain upstream-owned by the broader SCPN-PHASE-ORCHESTRATOR
-formal lane.
+This proof and runtime certificate do not change the Python, Rust, or Julia
+kinematic algorithms. They formalise and check the sampled closed-loop safety
+envelope consumed by MIF-002 moving-frame UPDE and MIF-003 merge-window
+monitoring. Continuous-time barrier certificates remain upstream-owned by the
+broader SCPN-PHASE-ORCHESTRATOR formal lane.
 
 ## Verification
 
@@ -74,3 +113,14 @@ The focused Python regression surface also compiles the theorem file through
 ```bash
 pytest tests/unit/test_lean_kinematic_safety.py -q --no-cov
 ```
+
+Runtime certificate parity is covered by:
+
+```bash
+pytest tests/unit/kinematic/test_safety_certificate.py \
+  tests/unit/kinematic/test_safety_certificate_rust_parity.py --no-cov
+```
+
+Benchmark summaries live in `bench/results/kinematic_safety_certificate.json`.
+Committed benchmark values are local comparison evidence only unless the JSON
+states CPU isolation was used.

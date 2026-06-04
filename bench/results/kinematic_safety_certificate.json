@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "kernel": "kinematic_safety_certificate",
+  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "python_version": "3.12.3",
+  "datetime": "2026-06-04T17:50:58.510144+00:00",
+  "benchmark_context": {
+    "command": "./.venv/bin/pytest bench/kernels/bench_kinematic_safety_certificate.py --benchmark-only --benchmark-json=bench/results/kinematic_safety_certificate_raw.json --no-cov",
+    "cpu_isolated": false,
+    "isolation_method": "none",
+    "affinity": "none",
+    "host_load_before": "2.76 2.19 2.67 1/3186 2463718",
+    "host_load_after": "2.39 2.14 2.64 10/3193 2464321",
+    "governor": "powersave",
+    "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz, 6 cores / 12 threads",
+    "runtime_versions": {
+      "python": "3.12.3",
+      "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+      "julia": "julia version 1.12.6"
+    },
+    "other_heavy_jobs": "not audited; loaded workstation context recorded via load averages"
+  },
+  "notes": [
+    "Local non-isolated comparison benchmark only; not a production latency claim.",
+    "MIF-011 sampled kinematic safety certificate has allocated Python, Rust, and Julia audit surfaces."
+  ],
+  "tests": [
+    {
+      "name": "test_bench_python_trace_512",
+      "group": "kinematic_safety_certificate.trace_512",
+      "mean_ns": 53981.12405406925,
+      "stddev_ns": 5053.117344057579,
+      "median_ns": 52367.80270934105,
+      "ops_per_s": 18524.994014544183,
+      "rounds": 4193
+    },
+    {
+      "name": "test_bench_rust_trace_512",
+      "group": "kinematic_safety_certificate.trace_512",
+      "mean_ns": 5612.420711847756,
+      "stddev_ns": 968.4020278350228,
+      "median_ns": 5554.17500436306,
+      "ops_per_s": 178176.23648366408,
+      "rounds": 69984
+    },
+    {
+      "name": "test_bench_julia_cli_trace_512",
+      "group": "kinematic_safety_certificate.trace_512",
+      "mean_ns": 399173635.9118174,
+      "stddev_ns": 9350388.31026811,
+      "median_ns": 393929750.89140236,
+      "ops_per_s": 2.505175467602557,
+      "rounds": 3
+    }
+  ]
+}

@@ -7,7 +7,8 @@
 //! Kinematic FRC plasmoid merging.
 //!
 //! Hosts the Doppler-corrected Kuramoto engine (MIF-001), moving-frame UPDE
-//! (MIF-002), and merge-window monitor (MIF-003). These modules are
+//! (MIF-002), merge-window monitor (MIF-003), and sampled safety certificate
+//! (MIF-011). These modules are
 //! `SYNC-STATE: upstream-pending` for SCPN-PHASE-ORCHESTRATOR v0.7.0 per
 //! the bidirectional sync protocol. Implementation lands in P1 of the
 //! development plan.
@@ -18,6 +19,7 @@
 pub mod doppler_kuramoto;
 pub mod merge_window;
 pub mod moving_frame_upde;
+pub mod safety_certificate;
 
 pub use doppler_kuramoto::{
     DopplerKuramoto, DopplerKuramotoError, DopplerKuramotoSpec, DopplerKuramotoState,
@@ -27,6 +29,10 @@ pub use merge_window::{MergeWindowMonitor, MergeWindowSample, MergeWindowSpec};
 pub use moving_frame_upde::{
     MovingFrameUPDE, MovingFrameUPDESpec, MovingFrameUPDEState, moving_frame_derivatives,
     moving_frame_derivatives_at_time,
+};
+pub use safety_certificate::{
+    KINEMATIC_SAFETY_TOLERANCE_M, KinematicSafetyCertificate, KinematicSafetyError,
+    KinematicSafetySpec, certify_sampled_kinematic_safety,
 };
 
 /// Crate version derived from the workspace.

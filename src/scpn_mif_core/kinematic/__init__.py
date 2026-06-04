@@ -9,7 +9,8 @@
 
 Hosts the local MIF-CORE surfaces for the Doppler-corrected Kuramoto
 engine (MIF-001), moving-frame UPDE (MIF-002), and merge-window monitor
-(MIF-003). These are upstream-pending for SCPN-PHASE-ORCHESTRATOR
+(MIF-003), plus the sampled kinematic safety certificate used by the
+MIF-011 Lean proof surface. These are upstream-pending for SCPN-PHASE-ORCHESTRATOR
 ``scpn.upde.doppler``, ``scpn.upde.moving_frame``, and
 ``scpn.monitor.merge_window``; see
 ``docs/internal/upstream_contracts/02_scpn_phase_orchestrator.md`` §C.2-C.4.
@@ -45,10 +46,18 @@ from scpn_mif_core.kinematic.moving_frame_upde import (
     evaluate_moving_frame_upde,
     moving_frame_derivatives,
 )
+from scpn_mif_core.kinematic.safety_certificate import (
+    KINEMATIC_SAFETY_TOLERANCE_M,
+    KinematicSafetyCertificate,
+    KinematicSafetySpec,
+    certify_positions_sampled_kinematic_safety,
+    certify_sampled_kinematic_safety,
+)
 
 _DOPPLER_KERNEL = "kinematic.doppler_kuramoto"
 _MOVING_FRAME_KERNEL = "kinematic.moving_frame_upde"
 _MERGE_WINDOW_KERNEL = "kinematic.merge_window"
+_SAFETY_CERTIFICATE_KERNEL = "kinematic.sampled_safety_certificate"
 
 
 def dispatched_doppler_kuramoto(
@@ -88,11 +97,27 @@ def dispatched_merge_window_monitor(spec: MergeWindowSpec) -> MergeWindowMonitor
     return MergeWindowMonitor(spec)
 
 
+def dispatched_sampled_kinematic_safety_certificate(
+    separation_m: ArrayLike,
+    spec: KinematicSafetySpec | None = None,
+) -> KinematicSafetyCertificate:
+    """Return a sampled safety certificate from the fastest available backend."""
+    spec = KinematicSafetySpec() if spec is None else spec
+    if preferred_backend(_SAFETY_CERTIFICATE_KERNEL) == "rust" and is_rust_available():
+        from scpn_mif_core.kinematic._rust_adapter import rust_certify_sampled_kinematic_safety
+
+        return rust_certify_sampled_kinematic_safety(separation_m, spec)
+    return certify_sampled_kinematic_safety(separation_m, spec)
+
+
 __all__ = [
+    "KINEMATIC_SAFETY_TOLERANCE_M",
     "DopplerKuramoto",
     "DopplerKuramotoReport",
     "DopplerKuramotoSpec",
     "DopplerKuramotoState",
+    "KinematicSafetyCertificate",
+    "KinematicSafetySpec",
     "MergeWindowMonitor",
     "MergeWindowSample",
     "MergeWindowSpec",
@@ -101,9 +126,12 @@ __all__ = [
     "MovingFrameUPDEReport",
     "MovingFrameUPDESpec",
     "MovingFrameUPDEState",
+    "certify_positions_sampled_kinematic_safety",
+    "certify_sampled_kinematic_safety",
     "dispatched_doppler_kuramoto",
     "dispatched_merge_window_monitor",
     "dispatched_moving_frame_upde",
+    "dispatched_sampled_kinematic_safety_certificate",
     "doppler_derivatives",
     "evaluate_doppler_kuramoto",
     "evaluate_merge_window_trace",

@@ -122,6 +122,29 @@ end
     @test collision_imminent(engine; eps_m = 2.0e-3)
 end
 
+@testset "MIF-011 Kinematic safety certificate" begin
+    spec = KinematicSafetySpec(; tolerance_m = 0.002, contraction = 0.75, disturbance_ratio = 0.2)
+    cert = certify_sampled_kinematic_safety([0.0018, 0.0014, 0.00105, 0.0008], spec)
+    @test cert.passed
+    @test cert.samples == 4
+    @test cert.budget_margin ≈ 0.05 atol = 1e-15
+    @test cert.initial_margin_m > 0.0
+    @test cert.minimum_step_slack_m >= 0.0
+    @test cert.first_violation_index === nothing
+
+    failed = certify_sampled_kinematic_safety(
+        [0.001, 0.0015],
+        KinematicSafetySpec(; contraction = 0.5, disturbance_ratio = 0.1, numerical_tolerance_m = 0.0),
+    )
+    @test !failed.passed
+    @test failed.first_violation_index == 2
+    @test failed.max_step_violation_m > 0.0
+
+    @test_throws ArgumentError KinematicSafetySpec(; contraction = 0.9, disturbance_ratio = 0.2)
+    @test_throws ArgumentError certify_sampled_kinematic_safety(Float64[])
+    @test_throws ArgumentError certify_sampled_kinematic_safety([0.0, NaN])
+end
+
 @testset "MIF-005 Capacitor bank" begin
     spec = CapacitorBankSpec(100e-6, 100e-6, 0.5, 10_000.0, 10.0)
     critical_spec = CapacitorBankSpec(100e-6, 100e-6, 2.0, 10_000.0, 10.0)
