@@ -7,15 +7,248 @@
 //! PyO3 bridge exposing the SCPN-MIF-CORE Rust workspace to Python.
 //!
 //! Build via `maturin develop --release` inside `scpn-mif-rs/crates/mif-ffi/`.
-//! The Python facade lives at `scpn_mif_core._rust`.
+//! The Python facade lives at `scpn_mif_core._rust` (alias
+//! `scpn_mif_core_rs`).
 
 #![deny(missing_docs)]
 
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
+use std::sync::Mutex;
+
+use mif_lifecycle::{CapacitorBank, CapacitorBankSpec, RlcRegime};
+
+/// PyO3 wrapper around the immutable `CapacitorBankSpec`.
+#[pyclass(name = "CapacitorBankSpec", module = "scpn_mif_core_rs", frozen)]
+#[derive(Clone)]
+struct PyCapacitorBankSpec {
+    inner: CapacitorBankSpec,
+}
+
+#[pymethods]
+impl PyCapacitorBankSpec {
+    #[new]
+    fn new(
+        capacitance_f: f64,
+        inductance_h: f64,
+        series_resistance_ohm: f64,
+        voltage_max_v: f64,
+        recharge_power_kw: f64,
+    ) -> PyResult<Self> {
+        CapacitorBankSpec::new(
+            capacitance_f,
+            inductance_h,
+            series_resistance_ohm,
+            voltage_max_v,
+            recharge_power_kw,
+        )
+        .map(|inner| Self { inner })
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    #[getter]
+    fn capacitance_f(&self) -> f64 {
+        self.inner.capacitance_f
+    }
+    #[getter]
+    fn inductance_h(&self) -> f64 {
+        self.inner.inductance_h
+    }
+    #[getter]
+    fn series_resistance_ohm(&self) -> f64 {
+        self.inner.series_resistance_ohm
+    }
+    #[getter]
+    fn voltage_max_v(&self) -> f64 {
+        self.inner.voltage_max_v
+    }
+    #[getter]
+    fn recharge_power_kw(&self) -> f64 {
+        self.inner.recharge_power_kw
+    }
+    #[getter]
+    fn damping_factor(&self) -> f64 {
+        self.inner.damping_factor()
+    }
+    #[getter]
+    fn resonant_frequency(&self) -> f64 {
+        self.inner.resonant_frequency()
+    }
+    #[getter]
+    fn critical_resistance(&self) -> f64 {
+        self.inner.critical_resistance()
+    }
+    #[getter]
+    fn regime(&self) -> &'static str {
+        self.inner.regime().as_str()
+    }
+}
+
+/// PyO3 wrapper around `CapacitorBank`.
+///
+/// Internally guarded by a `Mutex` so the Rust struct stays `Sync` even
+/// though the Python object may be touched from multiple threads.
+#[pyclass(name = "CapacitorBank", module = "scpn_mif_core_rs", unsendable)]
+struct PyCapacitorBank {
+    inner: Mutex<CapacitorBank>,
+}
+
+#[pymethods]
+impl PyCapacitorBank {
+    #[new]
+    #[pyo3(signature = (spec, initial_voltage_v=0.0))]
+    fn new(spec: PyCapacitorBankSpec, initial_voltage_v: f64) -> PyResult<Self> {
+        CapacitorBank::new(spec.inner, initial_voltage_v)
+            .map(|inner| Self {
+                inner: Mutex::new(inner),
+            })
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    #[getter]
+    fn t(&self) -> f64 {
+        self.inner
+            .lock()
+            .expect("CapacitorBank mutex poisoned")
+            .state()
+            .t
+    }
+    #[getter]
+    fn voltage_v(&self) -> f64 {
+        self.inner
+            .lock()
+            .expect("CapacitorBank mutex poisoned")
+            .state()
+            .voltage_v
+    }
+    #[getter]
+    fn current_a(&self) -> f64 {
+        self.inner
+            .lock()
+            .expect("CapacitorBank mutex poisoned")
+            .state()
+            .current_a
+    }
+    #[getter]
+    fn di_dt_a_s(&self) -> f64 {
+        self.inner
+            .lock()
+            .expect("CapacitorBank mutex poisoned")
+            .state()
+            .di_dt_a_s
+    }
+    #[getter]
+    fn energy_j(&self) -> f64 {
+        self.inner
+            .lock()
+            .expect("CapacitorBank mutex poisoned")
+            .state()
+            .energy_j
+    }
+    #[getter]
+    fn discharge_active(&self) -> bool {
+        self.inner
+            .lock()
+            .expect("CapacitorBank mutex poisoned")
+            .state()
+            .discharge_active
+    }
+
+    #[pyo3(signature = (voltage_v=0.0))]
+    fn reset(&self, voltage_v: f64) -> PyResult<()> {
+        self.inner
+            .lock()
+            .expect("CapacitorBank mutex poisoned")
+            .reset(voltage_v)
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    #[pyo3(signature = (dt, external_load_current_a=0.0))]
+    fn step(&self, dt: f64, external_load_current_a: f64) -> PyResult<(f64, f64, f64)> {
+        let state = self
+            .inner
+            .lock()
+            .expect("CapacitorBank mutex poisoned")
+            .step(dt, external_load_current_a)
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        Ok((state.voltage_v, state.current_a, state.di_dt_a_s))
+    }
+}
+
+/// Underdamped voltage closed form.
+#[pyfunction]
+fn analytical_voltage_underdamped(spec: &PyCapacitorBankSpec, t: f64, v0: f64) -> f64 {
+    mif_lifecycle::analytical_voltage_underdamped(&spec.inner, t, v0)
+}
+
+/// Underdamped current closed form.
+#[pyfunction]
+fn analytical_current_underdamped(spec: &PyCapacitorBankSpec, t: f64, v0: f64) -> f64 {
+    mif_lifecycle::analytical_current_underdamped(&spec.inner, t, v0)
+}
+
+/// Critically damped voltage closed form.
+#[pyfunction]
+fn analytical_voltage_critically_damped(spec: &PyCapacitorBankSpec, t: f64, v0: f64) -> f64 {
+    mif_lifecycle::analytical_voltage_critically_damped(&spec.inner, t, v0)
+}
+
+/// Critically damped current closed form.
+#[pyfunction]
+fn analytical_current_critically_damped(spec: &PyCapacitorBankSpec, t: f64, v0: f64) -> f64 {
+    mif_lifecycle::analytical_current_critically_damped(&spec.inner, t, v0)
+}
+
+/// Overdamped voltage closed form.
+#[pyfunction]
+fn analytical_voltage_overdamped(spec: &PyCapacitorBankSpec, t: f64, v0: f64) -> f64 {
+    mif_lifecycle::analytical_voltage_overdamped(&spec.inner, t, v0)
+}
+
+/// Overdamped current closed form.
+#[pyfunction]
+fn analytical_current_overdamped(spec: &PyCapacitorBankSpec, t: f64, v0: f64) -> f64 {
+    mif_lifecycle::analytical_current_overdamped(&spec.inner, t, v0)
+}
+
+/// Dispatch the natural-response closed form for the spec's regime.
+#[pyfunction]
+fn free_response(spec: &PyCapacitorBankSpec, t: f64, v0: f64) -> PyResult<(f64, f64)> {
+    mif_lifecycle::free_response(&spec.inner, t, v0)
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+/// Canonical regime string for a spec (`overdamped`, `critically_damped`, `underdamped`).
+#[pyfunction]
+fn regime_str(spec: &PyCapacitorBankSpec) -> &'static str {
+    spec.inner.regime().as_str()
+}
+
+#[doc(hidden)]
+fn _all_regimes_referenced() -> [RlcRegime; 3] {
+    // Keeps the RlcRegime import used so the enum stays visible to users
+    // through the pyclass surface above.
+    [
+        RlcRegime::Overdamped,
+        RlcRegime::CriticallyDamped,
+        RlcRegime::Underdamped,
+    ]
+}
 
 /// Module entry point exposed to Python as `scpn_mif_core_rs`.
 #[pymodule]
 fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
+    m.add_class::<PyCapacitorBankSpec>()?;
+    m.add_class::<PyCapacitorBank>()?;
+    m.add_function(wrap_pyfunction!(analytical_voltage_underdamped, m)?)?;
+    m.add_function(wrap_pyfunction!(analytical_current_underdamped, m)?)?;
+    m.add_function(wrap_pyfunction!(analytical_voltage_critically_damped, m)?)?;
+    m.add_function(wrap_pyfunction!(analytical_current_critically_damped, m)?)?;
+    m.add_function(wrap_pyfunction!(analytical_voltage_overdamped, m)?)?;
+    m.add_function(wrap_pyfunction!(analytical_current_overdamped, m)?)?;
+    m.add_function(wrap_pyfunction!(free_response, m)?)?;
+    m.add_function(wrap_pyfunction!(regime_str, m)?)?;
+    let _ = _all_regimes_referenced();
     Ok(())
 }

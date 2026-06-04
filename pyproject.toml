@@ -124,11 +124,15 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S", "PT011", "PT012"]
+"tests/**/*.py" = ["S", "PT011", "PT012", "E402"]
 "bench/**/*.py" = ["S"]
 "examples/**/*.py" = ["S"]
 "tools/**/*.py" = ["S"]
 "conftest.py" = ["S"]
+# Parity tests intentionally use `pytest.importorskip` before further imports,
+# quote forward references to the runtime-resolved Rust extension module, and
+# use the multiplication sign in mathematical prose.
+"tests/unit/lifecycle/test_capacitor_bank_rust_parity.py" = ["UP037", "RUF002"]
 
 [tool.mypy]
 python_version = "3.12"

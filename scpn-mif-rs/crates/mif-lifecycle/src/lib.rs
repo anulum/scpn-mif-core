@@ -4,15 +4,42 @@
 // ORCID: 0009-0009-3560-0851
 // Contact: www.anulum.li | protoscience@anulum.li
 // SCPN-MIF-CORE — pulsed-shot lifecycle and capacitor-bank model.
-//! Pulsed-shot lifecycle FSM and capacitor-bank state model.
+//
+// OWNED-BY: scpn-mif-core
+// CONSUMED-BY: scpn-mif-core
+// SYNC-STATE: upstream-pending
+// UPSTREAM-PIN: scpn-mif-core@0.0.1
+// CONTRACT-TEST: tests/unit/lifecycle/test_capacitor_bank_rust_parity.py
+// TRACKED-ISSUE: docs/internal/upstream_contracts/03_scpn_control.md#con-c2-capacitorbank-state-model
+// LAST-SYNCED: 2026-06-04T0000
+
+//! Pulsed-shot lifecycle finite-state machine (MIF-004) and the
+//! series RLC capacitor-bank energy model (MIF-005).
 //!
-//! Hosts the eight-state pulsed-shot FSM (MIF-004) and the RLC capacitor-bank
-//! model (MIF-005). These modules are `SYNC-STATE: upstream-pending` for
-//! SCPN-CONTROL v0.21.0 per the bidirectional sync protocol. Implementation
-//! lands in P1 of the development plan.
+//! Hot-path scope: `step` Crank-Nicolson integrator, `free_response`
+//! dispatch, and the three analytical regime closed forms ship in this
+//! crate to give bit-true parity with the Python reference in
+//! `src/scpn_mif_core/lifecycle/capacitor_bank.py`. The driven
+//! `discharge`, `feasibility`, and `recharge_status` helpers remain in
+//! Python because they are bookkeeping or short-string-returning paths
+//! whose Rust acceleration is not worth the PyO3 round-trip overhead at
+//! this stage.
 
 #![forbid(unsafe_code)]
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
+
+pub mod capacitor_bank;
+pub mod types;
+
+pub use capacitor_bank::{
+    CapacitorBank, analytical_current_critically_damped, analytical_current_overdamped,
+    analytical_current_underdamped, analytical_voltage_critically_damped,
+    analytical_voltage_overdamped, analytical_voltage_underdamped, free_response,
+};
+pub use types::{
+    CapacitorBankSpec, CapacitorBankState, ConstructError, FreeResponseError, RlcRegime, SpecError,
+    StepError,
+};
 
 /// Crate version derived from the workspace.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
