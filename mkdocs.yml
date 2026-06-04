@@ -116,6 +116,8 @@ nav:
           - Faraday recovery: api/physics/faraday_recovery.md
       - Formal:
           - Kinematic safety: api/formal/kinematic_safety.md
+      - FPGA:
+          - ADC-to-spike quantiser: api/fpga/adc_to_spike_quantiser.md
   - Papers: papers/index.md
 
 copyright: >

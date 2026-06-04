@@ -45,6 +45,9 @@
   `mif-lifecycle` kernel, PyO3 bindings, Rust-backed adapter,
   boundedness/liveness verification campaigns, parity tests, benchmark
   summary, and fastest-measured dispatch entry.
+- MIF-007 B-dot ADC to Q8.8 AER spike-rate quantiser with synthesizable
+  SystemVerilog, Python golden reference, Yosys smoke, one-million-sample
+  no-drop reference campaign, and API documentation.
 
 ## [0.0.1] - 2026-06-03
 

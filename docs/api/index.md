@@ -50,3 +50,6 @@ Implemented pre-alpha API pages:
   Faraday-law carrier with Python, Rust, and Julia surfaces.
 - [Kinematic safety](formal/kinematic_safety.md) — MIF-011, Lean 4 sampled
   invariant for the 2 mm axial merge-window contract.
+- [ADC-to-spike quantiser](fpga/adc_to_spike_quantiser.md) — MIF-007,
+  B-dot ADC to Q8.8 AER spike-rate bridge with Python and SystemVerilog
+  surfaces.

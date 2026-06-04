@@ -29,7 +29,8 @@ UltraScale+ FPGAs.
 > MIF-004 has a Lean transition-cycle theorem. MIF-011 adds the Lean sampled
 > invariant for the 2 mm axial merge-window contract. MIF-012 adds the
 > Python/Rust plasmoid-merger Petri-net FSM with boundedness and liveness
-> verification campaigns.
+> verification campaigns. MIF-007 adds the B-dot ADC to Q8.8 AER spike-rate
+> quantiser with a Python golden reference and synthesizable SystemVerilog.
 > See [`docs/api/`](docs/api/index.md) for the implemented surfaces.
 
 ## Reading path
