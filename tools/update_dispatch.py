@@ -105,6 +105,8 @@ def _kernel_qualified_name(json_doc: dict[str, object], default: str) -> str:
         "aer_decode_rate": "aer.decode_rate",
         "diagnostic_normalisation": "diagnostics.normalisation",
         "diagnostic_stress_inject": "diagnostics.stress_inject",
+        "daq_udp_multicast_mock": "daq.udp_multicast_mock",
+        "daq_pcie_dma_ring_mock": "daq.pcie_dma_ring_mock",
     }
     return qualified_map.get(short, short)
 

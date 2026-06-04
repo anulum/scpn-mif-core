@@ -57,6 +57,8 @@ Implemented pre-alpha API pages:
 - [Diagnostic stress injection](diagnostics/stress_inject.md) — MIF-017,
   deterministic synthetic noise, dropout, and jitter hardening with Python,
   Rust, and Julia surfaces.
+- [DAQ bus mock](daq/bus_mock.md) — MIF-018, byte-stable UDP multicast and
+  PCIe DMA ring replay with Python, Rust, and Go surfaces.
 - [Plasmoid-merger Petri net](lifecycle/plasmoid_merger_petri_net.md) —
   MIF-012, one-safe stochastic Petri-net FSM with Python, Rust, and Lean
   formal surfaces.

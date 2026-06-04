@@ -12,7 +12,7 @@
 # benchmark campaign. Manual edits are blocked by the preflight gate.
 
 schema_version = "1.0.0"
-last_updated = "2026-06-04T1700"
+last_updated = "2026-06-04T1737"
 benchmark_host = "i5-11600K (mining rig)"
 
 [kernels]
@@ -43,5 +43,5 @@ benchmark_host = "i5-11600K (mining rig)"
 # multi-language dispatch from P1 prototype onward.
 "diagnostics.normalisation" = ["rust", "python", "julia"]    # MIF-016
 "diagnostics.stress_inject" = ["rust", "python", "julia"]    # MIF-017
-"daq.udp_multicast_mock"              = ["python"]    # MIF-018
-"daq.pcie_dma_ring_mock"              = ["python"]    # MIF-018
+"daq.udp_multicast_mock" = ["rust", "python", "go"]    # MIF-018
+"daq.pcie_dma_ring_mock" = ["rust", "python"]    # MIF-018

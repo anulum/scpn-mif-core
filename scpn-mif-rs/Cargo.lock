@@ -573,6 +573,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "mif-daq"
+version = "0.0.1"
+dependencies = [
+ "thiserror",
+]
+
+[[package]]
 name = "mif-diagnostics"
 version = "0.0.1"
 dependencies = [
@@ -586,6 +593,7 @@ version = "0.0.1"
 dependencies = [
  "mif-aer",
  "mif-core",
+ "mif-daq",
  "mif-diagnostics",
  "mif-fpga",
  "mif-kinematic",

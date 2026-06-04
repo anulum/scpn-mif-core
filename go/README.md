@@ -4,6 +4,8 @@
 Network-facing daemons and tooling for SCPN-MIF-CORE: AER router glue,
 telemetry fan-out, replay-streaming WebSocket server, and the optional
 campaign daemon.
+MIF-018 adds the DAQ mock scaffold used to validate UDP-style replay frame
+encoding before a long-running daemon is introduced.
 
 ## Layout
 
@@ -14,7 +16,9 @@ go/
 │   ├── telemetry_daemon/
 │   ├── aer_router_glue/
 │   └── campaign_daemon/      (optional, build-tagged)
-└── pkg/                      shared Go libraries
+├── cmd/
+│   └── daqmock_probe/        MIF-018 benchmark probe
+└── daqmock/                  MIF-018 frame codec
 ```
 
 ## Build

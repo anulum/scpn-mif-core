@@ -66,6 +66,13 @@ and jitter over dirty diagnostic frames; Rust is fastest across the allocated
 Python, Rust, and Julia comparison groups. The committed MIF-017 benchmark is
 labelled as a non-isolated local comparison and records host load, governor,
 and runtime versions in `bench/results/diagnostic_stress_inject.json`.
+MIF-018 uses `daq.udp_multicast_mock` and `daq.pcie_dma_ring_mock` for
+byte-stable DAQ replay semantics. Rust is fastest for both allocated runtime
+surfaces. The UDP multicast mock also includes the optional Go scaffold as a
+network-service comparison surface. The committed MIF-018 benchmarks are
+labelled as non-isolated local comparisons in
+`bench/results/daq_udp_multicast_mock.json` and
+`bench/results/daq_pcie_dma_ring_mock.json`.
 
 ## Running
 

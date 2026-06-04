@@ -119,6 +119,8 @@ nav:
       - Diagnostics:
           - Normalisation: api/diagnostics/normalisation.md
           - Stress injection: api/diagnostics/stress_inject.md
+      - DAQ:
+          - Bus mock: api/daq/bus_mock.md
       - Formal:
           - Pulsed-shot lifecycle: api/formal/pulsed_shot.md
           - Capacitor-bank energy: api/formal/capacitor_bank.md

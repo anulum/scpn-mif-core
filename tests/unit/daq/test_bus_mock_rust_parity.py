@@ -1,0 +1,68 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# SCPN-MIF-CORE — MIF-018 Python ↔ Rust parity tests.
+"""Parity tests for the MIF-018 DAQ bus mock."""
+
+from __future__ import annotations
+
+import pytest
+
+rust = pytest.importorskip(
+    "scpn_mif_core_rs",
+    reason="Rust extension not built; run `make bridge` to enable parity tests.",
+)
+
+from scpn_mif_core.daq import RawDaqFrame, ReplayConfig, helion_descriptor_profile, tae_descriptor_profile
+from scpn_mif_core.daq._rust_adapter import RustBackedDataBusMock, rust_decode_daq_frame, rust_encode_daq_frame
+
+
+@pytest.mark.parametrize("profile_factory", [helion_descriptor_profile, tae_descriptor_profile])
+@pytest.mark.parametrize("mode", ["udp_multicast", "pcie_dma_ring"])
+def test_encode_decode_parity(profile_factory, mode: str) -> None:
+    profile = profile_factory()
+    values = tuple(float(index + 1) for index in range(len(profile.channels)))
+    frame = RawDaqFrame(mode=mode, profile=profile, sequence=42, t_ns=1_234, values=values)
+
+    rust_bytes = rust_encode_daq_frame(frame)
+    assert rust_bytes == frame.to_bytes()
+    assert rust_decode_daq_frame(rust_bytes, profile) == frame
+
+
+def test_bus_ring_parity() -> None:
+    profile = helion_descriptor_profile()
+    py_bus = RustBackedDataBusMock(ReplayConfig(mode="pcie_dma_ring", profile=profile, ring_capacity=2))
+    py_bus.bind("/dev/mock-dma0")
+    for sequence in range(3):
+        py_bus.inject_frame(
+            RawDaqFrame(
+                mode="pcie_dma_ring",
+                profile=profile,
+                sequence=sequence,
+                t_ns=sequence * profile.sample_period_ns,
+                values=(500.0, 2.5e21, 0.0, 1.0e8),
+            )
+        )
+
+    assert len(py_bus) == 2
+    assert py_bus.dropped_frames == 1
+    first = py_bus.emit_frame()
+    assert first is not None
+    assert first.sequence == 1
+
+
+def test_rust_rejects_corrupt_frame() -> None:
+    frame = RawDaqFrame(
+        mode="udp_multicast",
+        profile=helion_descriptor_profile(),
+        sequence=7,
+        t_ns=1_000,
+        values=(500.0, 2.5e21, -0.5, 1.0e8),
+    )
+    payload = bytearray(frame.to_bytes())
+    payload[-1] ^= 1
+    with pytest.raises(ValueError, match="checksum"):
+        rust.decode_daq_frame(bytes(payload))

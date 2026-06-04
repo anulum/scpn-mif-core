@@ -13,6 +13,7 @@ members = [
     "crates/mif-lifecycle",
     "crates/mif-aer",
     "crates/mif-diagnostics",
+    "crates/mif-daq",
     "crates/mif-fpga",
     "crates/mif-ffi",
 ]

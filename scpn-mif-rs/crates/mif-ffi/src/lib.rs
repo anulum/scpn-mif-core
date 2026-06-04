@@ -29,6 +29,12 @@ use mif_core::{
     faraday_back_emf as core_faraday_back_emf, flux_rate as core_flux_rate,
     magnetic_flux as core_magnetic_flux, recovered_power as core_recovered_power,
 };
+use mif_daq::{
+    DataBusMock as DaqDataBusMock, DeliveryMode as DaqDeliveryMode,
+    DescriptorProfile as DaqDescriptorProfile, DescriptorProfileId as DaqDescriptorProfileId,
+    RawDaqFrame as DaqRawDaqFrame, decode_daq_frame as daq_decode_daq_frame,
+    encode_daq_frame as daq_encode_daq_frame,
+};
 use mif_diagnostics::{
     ClipPolicy as DiagnosticsClipPolicy,
     DiagnosticChannelCalibration as DiagnosticsChannelCalibration,
@@ -88,6 +94,7 @@ type PyMergerVerificationReport = (
 );
 type PyNormalisedDiagnosticSample = (Vec<f64>, Vec<bool>, Vec<String>);
 type PyStressInjectedFrame = (u64, Vec<Option<f64>>, Vec<String>, Vec<String>);
+type PyDecodedDaqFrame = (String, String, u64, u64, Vec<f64>);
 
 /// PyO3 wrapper around the immutable `AerDecodeSpec`.
 #[pyclass(name = "AERDecodeSpec", module = "scpn_mif_core_rs", frozen)]
@@ -447,6 +454,64 @@ impl PyStressInjectionConfig {
                 )
             })
             .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+}
+
+/// PyO3 wrapper around a MIF-018 DAQ bus mock.
+#[pyclass(name = "DataBusMock", module = "scpn_mif_core_rs", unsendable)]
+struct PyDataBusMock {
+    inner: Mutex<DaqDataBusMock>,
+}
+
+#[pymethods]
+impl PyDataBusMock {
+    #[new]
+    #[pyo3(signature = (mode, profile_id, ring_capacity=1024))]
+    fn new(mode: &str, profile_id: &str, ring_capacity: usize) -> PyResult<Self> {
+        let mode = mode
+            .parse::<DaqDeliveryMode>()
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        let profile = daq_profile(profile_id)?;
+        DaqDataBusMock::new(mode, profile, ring_capacity)
+            .map(|inner| Self {
+                inner: Mutex::new(inner),
+            })
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    #[getter]
+    fn dropped_frames(&self) -> usize {
+        self.inner
+            .lock()
+            .expect("DataBusMock mutex poisoned")
+            .dropped_frames()
+    }
+
+    fn len(&self) -> usize {
+        self.inner.lock().expect("DataBusMock mutex poisoned").len()
+    }
+
+    fn bind(&self, bind_addr: &str) -> PyResult<()> {
+        self.inner
+            .lock()
+            .expect("DataBusMock mutex poisoned")
+            .bind(bind_addr)
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    fn inject_bytes(&self, payload: Vec<u8>) -> PyResult<()> {
+        self.inner
+            .lock()
+            .expect("DataBusMock mutex poisoned")
+            .inject_bytes(payload)
+            .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    fn emit_bytes(&self) -> Option<Vec<u8>> {
+        self.inner
+            .lock()
+            .expect("DataBusMock mutex poisoned")
+            .emit_bytes()
     }
 }
 
@@ -1858,6 +1923,47 @@ fn fit_diagnostic_calibrations(
     .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
+/// Encode a MIF-018 DAQ frame.
+#[pyfunction]
+fn encode_daq_frame(
+    mode: &str,
+    profile_id: &str,
+    sequence: u64,
+    t_ns: u64,
+    values: Vec<f64>,
+) -> PyResult<Vec<u8>> {
+    let mode = mode
+        .parse::<DaqDeliveryMode>()
+        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let profile = daq_profile(profile_id)?;
+    let frame = DaqRawDaqFrame::new(mode, profile, sequence, t_ns, values)
+        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    Ok(daq_encode_daq_frame(&frame))
+}
+
+/// Decode a MIF-018 DAQ frame.
+#[pyfunction]
+fn decode_daq_frame(payload: Vec<u8>) -> PyResult<PyDecodedDaqFrame> {
+    daq_decode_daq_frame(&payload)
+        .map(|frame| {
+            (
+                frame.mode.as_str().to_string(),
+                frame.profile.profile_id.as_str().to_string(),
+                frame.sequence,
+                frame.t_ns,
+                frame.values,
+            )
+        })
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+fn daq_profile(profile_id: &str) -> PyResult<DaqDescriptorProfile> {
+    let profile_id = profile_id
+        .parse::<DaqDescriptorProfileId>()
+        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    Ok(DaqDescriptorProfile::by_id(profile_id))
+}
+
 fn py_aer_observation(report: AerDecodedObservation) -> PyAERDecodedObservation {
     (
         report.strategy.as_str().to_string(),
@@ -1889,6 +1995,7 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyDiagnosticChannelCalibration>()?;
     m.add_class::<PyDiagnosticNormalisationState>()?;
     m.add_class::<PyStressInjectionConfig>()?;
+    m.add_class::<PyDataBusMock>()?;
     m.add_class::<PyDopplerKuramotoSpec>()?;
     m.add_class::<PyMovingFrameUPDESpec>()?;
     m.add_class::<PyMergeWindowSpec>()?;
@@ -1924,6 +2031,8 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(decode_aer_features, m)?)?;
     m.add_function(wrap_pyfunction!(decode_aer_observation, m)?)?;
     m.add_function(wrap_pyfunction!(fit_diagnostic_calibrations, m)?)?;
+    m.add_function(wrap_pyfunction!(encode_daq_frame, m)?)?;
+    m.add_function(wrap_pyfunction!(decode_daq_frame, m)?)?;
     let _ = _all_regimes_referenced();
     Ok(())
 }

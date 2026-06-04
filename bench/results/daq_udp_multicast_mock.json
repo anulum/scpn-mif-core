@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "kernel": "daq_udp_multicast_mock",
+  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "python_version": "3.12.3",
+  "datetime": "2026-06-04T17:36:02.601708+00:00",
+  "benchmark_context": {
+    "command": "./.venv/bin/pytest bench/kernels/bench_daq_bus_mock.py --benchmark-only --benchmark-json=bench/results/daq_bus_mock_raw.json --no-cov",
+    "cpu_isolated": false,
+    "isolation_method": "none",
+    "affinity": "none",
+    "host_load_before": "3.02 3.22 3.56 2/3190 2433790",
+    "host_load_after": "2.95 3.18 3.54 10/3222 2434719",
+    "governor": "powersave",
+    "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz, 6 cores / 12 threads",
+    "runtime_versions": {
+      "python": "3.12.3",
+      "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+      "go": "go1.24.0 linux/amd64"
+    },
+    "other_heavy_jobs": "not audited; loaded workstation context recorded via load averages"
+  },
+  "notes": [
+    "Local non-isolated comparison benchmark only; not a production latency claim.",
+    "MIF-018 UDP multicast mock has allocated Python, Rust, and Go surfaces. Go is measured via CLI startup as the optional network-service scaffold."
+  ],
+  "tests": [
+    {
+      "name": "test_bench_python_udp_multicast_frame_round_trip",
+      "group": "daq_udp_multicast_mock.frame_round_trip",
+      "mean_ns": 22636.90544675495,
+      "stddev_ns": 6759.679365434588,
+      "median_ns": 20904.000848531723,
+      "ops_per_s": 44175.64946552145,
+      "rounds": 10228
+    },
+    {
+      "name": "test_bench_rust_udp_multicast_frame_round_trip",
+      "group": "daq_udp_multicast_mock.frame_round_trip",
+      "mean_ns": 1434.1378371496024,
+      "stddev_ns": 1038.4941301440093,
+      "median_ns": 1359.9637895822525,
+      "ops_per_s": 697283.0463684954,
+      "rounds": 70498
+    },
+    {
+      "name": "test_bench_go_udp_multicast_probe",
+      "group": "daq_udp_multicast_mock.frame_round_trip",
+      "mean_ns": 61522668.305163585,
+      "stddev_ns": 38327771.13920984,
+      "median_ns": 44701233.971863985,
+      "ops_per_s": 16.25417147123429,
+      "rounds": 3
+    }
+  ]
+}
