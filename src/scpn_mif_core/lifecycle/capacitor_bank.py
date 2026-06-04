@@ -342,8 +342,16 @@ class CapacitorBank:
         self._i = 0.0
         self._di_dt = 0.0
 
-    def step(self, dt: float) -> CapacitorBankState:
-        """Advance the natural-response state by ``dt`` using Crank-Nicolson.
+    def step(self, dt: float, external_load_current_A: float = 0.0) -> CapacitorBankState:
+        """Advance the bank state by ``dt`` using Crank-Nicolson.
+
+        Parameters
+        ----------
+        dt : float
+            Time step in seconds. Must be strictly positive.
+        external_load_current_A : float, default 0.0
+            Instantaneous current drawn by an external load attached to the
+            capacitor, in amperes. Zero recovers the natural response.
 
         Raises
         ------
@@ -355,7 +363,7 @@ class CapacitorBank:
         cap = self._spec.capacitance_F
         ind = self._spec.inductance_H
         res = self._spec.series_resistance_ohm
-        # A = [[0, -1/C], [1/L, -R/L]]
+        # A = [[0, -1/C], [1/L, -R/L]], forcing b = [-i_load / C, 0]
         a12 = -1.0 / cap
         a21 = 1.0 / ind
         a22 = -res / ind
@@ -373,10 +381,182 @@ class CapacitorBank:
             ]
         )
         y_n = np.array([self._v, self._i])
-        y_next = np.linalg.solve(lhs, rhs_mat @ y_n)
+        forcing = np.array([-external_load_current_A / cap, 0.0])
+        y_next = np.linalg.solve(lhs, rhs_mat @ y_n + dt * forcing)
         di_dt_next = a21 * y_next[0] + a22 * y_next[1]
         self._t += dt
         self._v = float(y_next[0])
         self._i = float(y_next[1])
         self._di_dt = float(di_dt_next)
         return self.state
+
+    def discharge(self, pulse: PulseSpec, dt: float, n_steps: int) -> EnergyReport:
+        """Drive the bank with a prescribed load-current waveform.
+
+        Steps ``n_steps`` times with the load current sampled from the pulse
+        waveform at the centre of each interval, tracks peak voltage and
+        peak current observed during the run, and returns an
+        :class:`EnergyReport` summarising the energy budget.
+
+        Energy bookkeeping always satisfies the invariant
+        ``energy_delivered + energy_remaining == initial_energy`` (the
+        residual ohmic dissipation in :math:`R` is folded into the
+        delivered amount, since it leaves the capacitor).
+
+        Parameters
+        ----------
+        pulse : PulseSpec
+            Prescribed load-current waveform descriptor.
+        dt : float
+            Integration step in seconds; must be strictly positive.
+        n_steps : int
+            Number of integration steps; must be strictly positive.
+
+        Raises
+        ------
+        ValueError
+            If ``dt`` or ``n_steps`` is not strictly positive.
+        """
+        if n_steps <= 0:
+            raise ValueError("n_steps must be strictly positive")
+        if dt <= 0.0:
+            raise ValueError("dt must be strictly positive")
+        energy_initial = self.state.energy_J
+        peak_v = abs(self._v)
+        peak_i = abs(self._i)
+        # Waveform time origin: 0 at the start of this discharge call.
+        pulse_t = 0.0
+        for _ in range(n_steps):
+            i_load = _sample_waveform(pulse, pulse_t + dt / 2.0)
+            state = self.step(dt, external_load_current_A=i_load)
+            peak_v = max(peak_v, abs(state.voltage_V))
+            peak_i = max(peak_i, abs(state.current_A))
+            pulse_t += dt
+        energy_remaining = self.state.energy_J
+        return EnergyReport(
+            energy_delivered_J=energy_initial - energy_remaining,
+            energy_remaining_J=energy_remaining,
+            peak_voltage_V=peak_v,
+            peak_current_A=peak_i,
+            discharge_duration_s=n_steps * dt,
+            rlc_regime=self._spec.regime,
+        )
+
+    def feasibility(self, pulse: PulseSpec) -> tuple[bool, str]:
+        """Cheap admissibility check for a candidate pulse against bank state.
+
+        Returns a tuple ``(feasible, reason)``. The check is conservative;
+        a pulse failing this check definitely cannot run, but a passing
+        pulse may still under-deliver under detailed simulation.
+
+        Two guards are applied, in order:
+
+        1. The requested peak current must not exceed the natural
+           short-circuit peak :math:`V_0 / Z_0` (with
+           :math:`Z_0 = \\sqrt{L/C}`), for non-zero initial voltage.
+           Inductive storage :math:`\\tfrac{1}{2} L i^2` is recoverable
+           (returned by the coil at pulse end), so it is *not* counted
+           against the available energy.
+        2. The bank's stored energy must cover the resistive dissipation
+           :math:`R \\, \\langle i^2 \\rangle \\, \\tau` — the irreversible
+           Joule heating in the series resistance.
+        """
+        v_now = self.state.voltage_V
+        if v_now > 0.0:
+            z0 = math.sqrt(self._spec.inductance_H / self._spec.capacitance_F)
+            max_natural_current = v_now / z0
+            if pulse.peak_current_A > max_natural_current:
+                return (
+                    False,
+                    (
+                        f"requested peak current {pulse.peak_current_A:.3g} A exceeds bank natural peak "
+                        f"{max_natural_current:.3g} A at v0 = {v_now:.3g} V"
+                    ),
+                )
+        rms_squared_factor = _waveform_rms_squared_fraction(pulse.waveform)
+        rough_resistive_loss = (
+            self._spec.series_resistance_ohm * pulse.peak_current_A**2 * rms_squared_factor * pulse.duration_s
+        )
+        available_energy = self.state.energy_J
+        if rough_resistive_loss > available_energy:
+            return (
+                False,
+                (f"resistive dissipation {rough_resistive_loss:.3g} J exceeds available {available_energy:.3g} J"),
+            )
+        return True, "ok"
+
+    def recharge_status(self, t: float) -> dict[str, float]:
+        """Project bank state after ``t`` seconds of linear-power recharge.
+
+        The bank is modelled as accepting constant electrical power
+        ``recharge_power_kW`` (clipped at ``voltage_max_V``); the energy
+        balance gives
+        :math:`V(t) = \\sqrt{V_0^2 + 2 P_\\mathrm{recharge} t / C}`.
+
+        Returns a dictionary with keys ``target_voltage_V``,
+        ``projected_voltage_V``, and ``time_to_full_s``. When
+        ``recharge_power_kW`` is zero the projected voltage stays at the
+        current value and ``time_to_full_s`` is ``+inf``.
+
+        Raises
+        ------
+        ValueError
+            If ``t`` is negative.
+        """
+        if t < 0.0:
+            raise ValueError("t must be non-negative")
+        cap = self._spec.capacitance_F
+        v_target = self._spec.voltage_max_V
+        v_now = self._v
+        p_w = self._spec.recharge_power_kW * 1000.0
+        e_now = 0.5 * cap * v_now * v_now
+        e_target = 0.5 * cap * v_target * v_target
+        if p_w <= 0.0:
+            return {
+                "target_voltage_V": v_target,
+                "projected_voltage_V": v_now,
+                "time_to_full_s": float("inf"),
+            }
+        deficit = max(e_target - e_now, 0.0)
+        time_to_full = deficit / p_w
+        if t >= time_to_full:
+            v_projected = v_target
+        else:
+            e_projected = e_now + p_w * t
+            v_projected = math.sqrt(2.0 * e_projected / cap)
+        return {
+            "target_voltage_V": v_target,
+            "projected_voltage_V": v_projected,
+            "time_to_full_s": time_to_full,
+        }
+
+
+# ---------------------------------------------------------------------------
+# Waveform helpers (private)
+# ---------------------------------------------------------------------------
+
+
+def _sample_waveform(pulse: PulseSpec, t: float) -> float:
+    """Return the prescribed load current at time ``t`` since pulse start."""
+    if t < 0.0 or t > pulse.duration_s:
+        return 0.0
+    if pulse.waveform == "rect":
+        return pulse.peak_current_A
+    if pulse.waveform == "half_sine":
+        return pulse.peak_current_A * math.sin(math.pi * t / pulse.duration_s)
+    if pulse.waveform == "exp_decay":
+        tau = pulse.duration_s / 5.0
+        return pulse.peak_current_A * math.exp(-t / tau)
+    raise ValueError(f"unknown waveform: {pulse.waveform!r}")
+
+
+def _waveform_rms_squared_fraction(waveform: Literal["rect", "half_sine", "exp_decay"]) -> float:
+    """Return the fraction of :math:`i_\\mathrm{peak}^2` taken by ``RMS^2`` over the pulse."""
+    if waveform == "rect":
+        return 1.0
+    if waveform == "half_sine":
+        return 0.5
+    if waveform == "exp_decay":
+        # tau = duration / 5, mean of exp(-2t/tau) over (0, duration) is tau/(2·duration) * (1 - exp(-10))
+        return 0.5 * (1.0 - math.exp(-10.0)) * 5.0 / 10.0  # ~ 0.25
+    raise ValueError(f"unknown waveform: {waveform!r}")
