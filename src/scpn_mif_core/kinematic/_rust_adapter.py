@@ -155,6 +155,7 @@ def rust_doppler_derivatives(
     phases_rad: ArrayLike,
     positions_m: ArrayLike,
     velocities_m_s: ArrayLike,
+    t_s: float = 0.0,
 ) -> np.ndarray:
     """Return Rust-computed Doppler-Kuramoto phase derivatives."""
     return _readonly(
@@ -164,6 +165,7 @@ def rust_doppler_derivatives(
                 list(np.asarray(phases_rad, dtype=np.float64)),
                 list(np.asarray(positions_m, dtype=np.float64)),
                 list(np.asarray(velocities_m_s, dtype=np.float64)),
+                t_s=float(t_s),
             ),
             dtype=np.float64,
         )
@@ -175,6 +177,7 @@ def rust_moving_frame_derivatives(
     phases_rad: ArrayLike,
     positions_m: ArrayLike,
     velocities_m_s: ArrayLike,
+    t_s: float = 0.0,
 ) -> np.ndarray:
     """Return Rust-computed moving-frame derivatives."""
     return _readonly(
@@ -184,6 +187,7 @@ def rust_moving_frame_derivatives(
                 list(np.asarray(phases_rad, dtype=np.float64)),
                 list(np.asarray(positions_m, dtype=np.float64)),
                 list(np.asarray(velocities_m_s, dtype=np.float64)),
+                t_s=float(t_s),
             ),
             dtype=np.float64,
         )
@@ -198,6 +202,7 @@ def _rust_spec(spec: DopplerKuramotoSpec) -> _rust.DopplerKuramotoSpec:
         spec.doppler_strength_rad_s,
         spec.velocity_epsilon_m_s,
         spec.distance_scale_m,
+        omega_rate_rad_s2=list(np.asarray(spec.omega_rate_rad_s2, dtype=np.float64)),
     )
 
 
@@ -210,6 +215,7 @@ def _rust_moving_frame_spec(spec: MovingFrameUPDESpec) -> _rust.MovingFrameUPDES
         spec.velocity_epsilon_m_s,
         spec.distance_scale_m,
         spec.reference_point_m,
+        omega_rate_rad_s2=list(np.asarray(spec.omega_rate_rad_s2, dtype=np.float64)),
     )
 
 

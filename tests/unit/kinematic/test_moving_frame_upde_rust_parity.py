@@ -51,6 +51,27 @@ def _rust_spec() -> rust.MovingFrameUPDESpec:
     )
 
 
+def _time_varying_py_spec() -> MovingFrameUPDESpec:
+    return MovingFrameUPDESpec(
+        omega_rad_s=[1_200.0, -400.0],
+        coupling_rad_s=[[0.0, 0.0], [0.0, 0.0]],
+        omega_rate_rad_s2=[-20_000.0, 7_500.0],
+    )
+
+
+def _time_varying_rust_spec() -> rust.MovingFrameUPDESpec:
+    return rust.MovingFrameUPDESpec(
+        [1_200.0, -400.0],
+        [[0.0, 0.0], [0.0, 0.0]],
+        0.0,
+        0.0,
+        1.0e-9,
+        1.0,
+        0.0,
+        omega_rate_rad_s2=[-20_000.0, 7_500.0],
+    )
+
+
 def test_rust_derivative_parity() -> None:
     phases = [0.0, 0.25]
     positions = [-0.03, 0.03]
@@ -60,6 +81,29 @@ def test_rust_derivative_parity() -> None:
     got = rust.moving_frame_derivatives(_rust_spec(), phases, positions, velocities)
 
     assert np.allclose(py, got, rtol=PARITY_REL_TOL, atol=PARITY_ABS_TOL)
+
+
+def test_rust_time_varying_moving_frame_parity() -> None:
+    phases = [0.0, 0.2]
+    positions = [0.0, 0.0]
+    velocities = [0.0, 0.0]
+    dt_s = 1.0e-6
+    steps = 1_000
+    t_s = steps * dt_s
+
+    py = moving_frame_derivatives(_time_varying_py_spec(), phases, positions, velocities, t_s=t_s)
+    got = rust.moving_frame_derivatives(_time_varying_rust_spec(), phases, positions, velocities, t_s=t_s)
+    assert np.allclose(py, got, rtol=PARITY_REL_TOL, atol=PARITY_ABS_TOL)
+
+    py_engine = MovingFrameUPDE(_time_varying_py_spec(), phases, positions, velocities)
+    rust_engine = rust.MovingFrameUPDE(_time_varying_rust_spec(), phases, positions, velocities)
+    for _ in range(steps):
+        py_state = py_engine.step(dt_s)
+        rust_state = rust_engine.step(dt_s)
+
+    assert np.allclose(py_state.phases_rad, rust_state[1], rtol=PARITY_REL_TOL, atol=PARITY_ABS_TOL)
+    assert np.allclose(py_state.positions_m, rust_state[2], rtol=PARITY_REL_TOL, atol=PARITY_ABS_TOL)
+    assert py_state.local_error_estimate == pytest.approx(rust_state[8], rel=PARITY_REL_TOL, abs=PARITY_ABS_TOL)
 
 
 def test_rust_adapter_derivative_parity() -> None:

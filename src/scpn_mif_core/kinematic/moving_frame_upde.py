@@ -57,6 +57,7 @@ class MovingFrameUPDESpec:
     velocity_epsilon_m_s: float = 1.0e-9
     distance_scale_m: float = 1.0
     reference_point_m: float = 0.0
+    omega_rate_rad_s2: ArrayLike | None = None
     _phase_spec: DopplerKuramotoSpec = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
@@ -67,6 +68,7 @@ class MovingFrameUPDESpec:
             doppler_strength_rad_s=self.doppler_strength_rad_s,
             velocity_epsilon_m_s=self.velocity_epsilon_m_s,
             distance_scale_m=self.distance_scale_m,
+            omega_rate_rad_s2=self.omega_rate_rad_s2,
         )
         reference = _require_finite("reference_point_m", self.reference_point_m)
         object.__setattr__(self, "omega_rad_s", phase_spec.omega_rad_s)
@@ -76,6 +78,7 @@ class MovingFrameUPDESpec:
         object.__setattr__(self, "velocity_epsilon_m_s", phase_spec.velocity_epsilon_m_s)
         object.__setattr__(self, "distance_scale_m", phase_spec.distance_scale_m)
         object.__setattr__(self, "reference_point_m", reference)
+        object.__setattr__(self, "omega_rate_rad_s2", phase_spec.omega_rate_rad_s2)
         object.__setattr__(self, "_phase_spec", phase_spec)
 
     @property
@@ -151,7 +154,12 @@ class MovingFrameUPDE:
             local_error_estimate=self._local_error_estimate,
         )
 
-    def derivatives(self, phases_rad: ArrayLike | None = None, positions_m: ArrayLike | None = None) -> FloatArray:
+    def derivatives(
+        self,
+        phases_rad: ArrayLike | None = None,
+        positions_m: ArrayLike | None = None,
+        t_s: float | None = None,
+    ) -> FloatArray:
         """Return the combined ``[dtheta/dt, dz/dt]`` derivative vector."""
         phases = (
             self._phases_rad
@@ -171,13 +179,14 @@ class MovingFrameUPDE:
                 self.spec.n_oscillators,
             )
         )
-        return moving_frame_derivatives(self.spec, phases, positions, self._velocities_m_s)
+        derivative_time_s = self._t_s if t_s is None else t_s
+        return moving_frame_derivatives(self.spec, phases, positions, self._velocities_m_s, t_s=derivative_time_s)
 
     def step(self, dt_s: float) -> MovingFrameUPDEState:
         """Advance the combined phase/position state by ``dt_s`` seconds."""
         dt = _validate_dt(dt_s)
         y0 = np.concatenate([self._phases_rad, self._positions_m])
-        y5, error = _dormand_prince_step(self.spec, y0, self._velocities_m_s, dt)
+        y5, error = _dormand_prince_step(self.spec, y0, self._velocities_m_s, dt, self._t_s)
         n = self.spec.n_oscillators
         self._phases_rad = _wrap_phases(y5[:n])
         self._positions_m = np.asarray(y5[n:], dtype=np.float64)
@@ -207,11 +216,12 @@ def moving_frame_derivatives(
     phases_rad: ArrayLike,
     positions_m: ArrayLike,
     velocities_m_s: ArrayLike,
+    t_s: float = 0.0,
 ) -> FloatArray:
     """Return the combined ``[dtheta/dt, dz/dt]`` derivative vector."""
     n = spec.n_oscillators
     velocities = _as_state_vector("velocities_m_s", velocities_m_s, n)
-    theta_dot = doppler_derivatives(spec.phase_spec, phases_rad, positions_m, velocities)
+    theta_dot = doppler_derivatives(spec.phase_spec, phases_rad, positions_m, velocities, t_s=t_s)
     return _readonly(np.concatenate([theta_dot, velocities]))
 
 
@@ -268,17 +278,23 @@ def _dormand_prince_step(
     y0: FloatArray,
     velocities_m_s: FloatArray,
     dt_s: float,
+    t_s: float,
 ) -> tuple[FloatArray, float]:
-    def f(y: FloatArray) -> FloatArray:
+    def f(y: FloatArray, stage_t_s: float) -> FloatArray:
         n = spec.n_oscillators
-        return moving_frame_derivatives(spec, y[:n], y[n:], velocities_m_s)
+        return moving_frame_derivatives(spec, y[:n], y[n:], velocities_m_s, t_s=stage_t_s)
 
-    k1 = f(y0)
-    k2 = f(y0 + dt_s * (1.0 / 5.0) * k1)
-    k3 = f(y0 + dt_s * ((3.0 / 40.0) * k1 + (9.0 / 40.0) * k2))
-    k4 = f(y0 + dt_s * ((44.0 / 45.0) * k1 - (56.0 / 15.0) * k2 + (32.0 / 9.0) * k3))
+    k1 = f(y0, t_s)
+    k2 = f(y0 + dt_s * (1.0 / 5.0) * k1, t_s + (1.0 / 5.0) * dt_s)
+    k3 = f(y0 + dt_s * ((3.0 / 40.0) * k1 + (9.0 / 40.0) * k2), t_s + (3.0 / 10.0) * dt_s)
+    k4 = f(
+        y0 + dt_s * ((44.0 / 45.0) * k1 - (56.0 / 15.0) * k2 + (32.0 / 9.0) * k3),
+        t_s + (4.0 / 5.0) * dt_s,
+    )
     k5 = f(
-        y0 + dt_s * ((19372.0 / 6561.0) * k1 - (25360.0 / 2187.0) * k2 + (64448.0 / 6561.0) * k3 - (212.0 / 729.0) * k4)
+        y0
+        + dt_s * ((19372.0 / 6561.0) * k1 - (25360.0 / 2187.0) * k2 + (64448.0 / 6561.0) * k3 - (212.0 / 729.0) * k4),
+        t_s + (8.0 / 9.0) * dt_s,
     )
     k6 = f(
         y0
@@ -289,7 +305,8 @@ def _dormand_prince_step(
             + (46732.0 / 5247.0) * k3
             + (49.0 / 176.0) * k4
             - (5103.0 / 18656.0) * k5
-        )
+        ),
+        t_s + dt_s,
     )
     k7 = f(
         y0
@@ -300,7 +317,8 @@ def _dormand_prince_step(
             + (125.0 / 192.0) * k4
             - (2187.0 / 6784.0) * k5
             + (11.0 / 84.0) * k6
-        )
+        ),
+        t_s + dt_s,
     )
     y5 = y0 + dt_s * (
         (35.0 / 384.0) * k1 + (500.0 / 1113.0) * k3 + (125.0 / 192.0) * k4 - (2187.0 / 6784.0) * k5 + (11.0 / 84.0) * k6

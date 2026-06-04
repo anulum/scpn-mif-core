@@ -57,6 +57,27 @@ def _rust_spec() -> rust.DopplerKuramotoSpec:
     )
 
 
+def _time_varying_py_spec() -> DopplerKuramotoSpec:
+    return DopplerKuramotoSpec(
+        omega_rad_s=[1_200.0, -400.0],
+        omega_rate_rad_s2=[-20_000.0, 7_500.0],
+        coupling_rad_s=[[0.0, 0.0], [0.0, 0.0]],
+        velocity_epsilon_m_s=1.0,
+    )
+
+
+def _time_varying_rust_spec() -> rust.DopplerKuramotoSpec:
+    return rust.DopplerKuramotoSpec(
+        [1_200.0, -400.0],
+        [[0.0, 0.0], [0.0, 0.0]],
+        0.0,
+        0.0,
+        1.0,
+        1.0,
+        omega_rate_rad_s2=[-20_000.0, 7_500.0],
+    )
+
+
 def test_rust_derivative_parity() -> None:
     phases = [0.0, 0.25, -0.1]
     positions = [-0.03, 0.03, 0.12]
@@ -66,6 +87,28 @@ def test_rust_derivative_parity() -> None:
     got = rust.doppler_derivatives(_rust_spec(), phases, positions, velocities)
 
     assert np.allclose(py, got, rtol=PARITY_REL_TOL, atol=PARITY_ABS_TOL)
+
+
+def test_rust_time_varying_derivative_and_step_parity() -> None:
+    phases = [0.0, 0.2]
+    positions = [0.0, 0.0]
+    velocities = [0.0, 0.0]
+    dt_s = 1.0e-6
+    steps = 1_000
+    t_s = steps * dt_s
+
+    py = doppler_derivatives(_time_varying_py_spec(), phases, positions, velocities, t_s=t_s)
+    got = rust.doppler_derivatives(_time_varying_rust_spec(), phases, positions, velocities, t_s=t_s)
+    assert np.allclose(py, got, rtol=PARITY_REL_TOL, atol=PARITY_ABS_TOL)
+
+    py_engine = DopplerKuramoto(_time_varying_py_spec(), phases, positions, velocities)
+    rust_engine = rust.DopplerKuramoto(_time_varying_rust_spec(), phases, positions, velocities)
+    for _ in range(steps):
+        py_state = py_engine.step(dt_s)
+        rust_state = rust_engine.step(dt_s)
+
+    assert np.allclose(py_state.phases_rad, rust_state[1], rtol=1.0e-12, atol=1.0e-12)
+    assert py_state.t_s == pytest.approx(rust_state[0], rel=0.0, abs=1.0e-18)
 
 
 def test_rust_rk4_step_parity() -> None:

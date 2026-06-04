@@ -58,6 +58,25 @@ end
     @test derivatives[1] ≈ expected0 rtol = 1e-12
     @test derivatives[2] ≈ expected1 rtol = 1e-12
 
+    affine_spec = DopplerKuramotoSpec(
+        [1_200.0],
+        [0.0;;];
+        omega_rate_rad_s2 = [-20_000.0],
+    )
+    affine_engine = DopplerKuramoto(affine_spec, [0.0], [0.0], [0.0])
+    affine_state = nothing
+    affine_dt_s = 1.0e-6
+    affine_steps = 1_000
+    for _ in 1:affine_steps
+        affine_state = step!(affine_engine, affine_dt_s)
+    end
+    affine_t_s = affine_steps * affine_dt_s
+    affine_expected = 1_200.0 * affine_t_s + 0.5 * -20_000.0 * affine_t_s^2
+    @test affine_state.t_s ≈ affine_t_s atol = 1e-15
+    @test affine_state.phases_rad[1] ≈ affine_expected rtol = 1.0e-6 atol = 1.0e-9
+    @test doppler_derivatives(affine_spec, [0.0], [0.0], [0.0]; t_s = affine_t_s)[1] ≈
+        1_200.0 - 20_000.0 * affine_t_s rtol = 1e-15
+
     report = evaluate_doppler_kuramoto(
         spec,
         [0.0, 0.25],

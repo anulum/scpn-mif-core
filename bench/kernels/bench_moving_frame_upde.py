@@ -39,6 +39,15 @@ POSITIONS = [-0.03, 0.03]
 VELOCITIES = [300_000.0, -300_000.0]
 DT_S = 1.0e-9
 STEPS = 120
+AFFINE_OMEGA = [1_200.0]
+AFFINE_RATE = [-20_000.0]
+AFFINE_COUPLING = [[0.0]]
+AFFINE_JULIA_COUPLING = "[0.0;;]"
+AFFINE_PHASES = [0.0]
+AFFINE_POSITIONS = [0.0]
+AFFINE_VELOCITIES = [0.0]
+AFFINE_DT_S = 1.0e-6
+AFFINE_STEPS = 1_000
 
 
 @pytest.fixture(scope="module")
@@ -140,4 +149,80 @@ def test_bench_julia_cli_trace_120(benchmark) -> None:
         float(proc.stdout.strip())
 
     benchmark.group = "moving_frame_upde.trace_120"
+    benchmark.pedantic(call, rounds=3, iterations=1)
+
+
+def test_bench_python_affine_trace_1000(benchmark) -> None:
+    spec = MovingFrameUPDESpec(
+        omega_rad_s=AFFINE_OMEGA,
+        coupling_rad_s=AFFINE_COUPLING,
+        omega_rate_rad_s2=AFFINE_RATE,
+    )
+
+    def call() -> float:
+        return float(
+            evaluate_moving_frame_upde(
+                spec,
+                AFFINE_PHASES,
+                AFFINE_POSITIONS,
+                AFFINE_VELOCITIES,
+                dt_s=AFFINE_DT_S,
+                steps=AFFINE_STEPS,
+            ).phases_rad[-1, 0]
+        )
+
+    benchmark.group = "moving_frame_upde.affine_trace_1000"
+    benchmark(call)
+
+
+def test_bench_rust_affine_trace_1000(benchmark) -> None:
+    spec = rust.MovingFrameUPDESpec(
+        AFFINE_OMEGA,
+        AFFINE_COUPLING,
+        omega_rate_rad_s2=AFFINE_RATE,
+    )
+
+    def call() -> float:
+        engine = rust.MovingFrameUPDE(spec, AFFINE_PHASES, AFFINE_POSITIONS, AFFINE_VELOCITIES)
+        state = (0.0, [], [], [], 0.0, 0.0, 0.0, 0.0, 0.0)
+        for _ in range(AFFINE_STEPS):
+            state = engine.step(AFFINE_DT_S)
+        return float(state[1][0])
+
+    benchmark.group = "moving_frame_upde.affine_trace_1000"
+    benchmark(call)
+
+
+def test_bench_julia_cli_affine_trace_1000(benchmark) -> None:
+    if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
+        pytest.skip("Julia executable not available")
+
+    julia_code = f"""
+        using SCPNMIFCore
+        spec = MovingFrameUPDESpec(
+            {AFFINE_OMEGA},
+            {AFFINE_JULIA_COUPLING};
+            omega_rate_rad_s2 = {AFFINE_RATE},
+        )
+        report = evaluate_moving_frame_upde(
+            spec,
+            {AFFINE_PHASES},
+            {AFFINE_POSITIONS},
+            {AFFINE_VELOCITIES};
+            dt_s = {AFFINE_DT_S},
+            steps = {AFFINE_STEPS},
+        )
+        print(report.phases_rad[end, 1])
+    """
+
+    def call() -> None:
+        proc = subprocess.run(
+            [JULIA_BIN, f"--project={REPO_ROOT / 'julia' / 'SCPNMIFCore'}", "-e", julia_code],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        float(proc.stdout.strip())
+
+    benchmark.group = "moving_frame_upde.affine_trace_1000"
     benchmark.pedantic(call, rounds=3, iterations=1)

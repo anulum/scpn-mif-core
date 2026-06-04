@@ -29,8 +29,8 @@ use mif_kinematic::{
     MergeWindowMonitor as KinematicMergeWindowMonitor, MergeWindowSpec as KinematicMergeWindowSpec,
     MovingFrameUPDE as KinematicMovingFrameUPDE,
     MovingFrameUPDESpec as KinematicMovingFrameUPDESpec,
-    doppler_derivatives as kinematic_doppler_derivatives,
-    moving_frame_derivatives as kinematic_moving_frame_derivatives,
+    doppler_derivatives_at_time as kinematic_doppler_derivatives_at_time,
+    moving_frame_derivatives_at_time as kinematic_moving_frame_derivatives_at_time,
 };
 use mif_lifecycle::{
     BankTelemetry as LifecycleBankTelemetry, CapacitorBank, CapacitorBankSpec,
@@ -122,9 +122,11 @@ impl PyDopplerKuramotoSpec {
             phase_lag_rad=0.0,
             doppler_strength_rad_s=0.0,
             velocity_epsilon_m_s=1.0e-9,
-            distance_scale_m=1.0
+            distance_scale_m=1.0,
+            omega_rate_rad_s2=None
         )
     )]
+    #[allow(clippy::too_many_arguments)]
     fn new(
         omega_rad_s: Vec<f64>,
         coupling_rad_s: Vec<Vec<f64>>,
@@ -132,17 +134,29 @@ impl PyDopplerKuramotoSpec {
         doppler_strength_rad_s: f64,
         velocity_epsilon_m_s: f64,
         distance_scale_m: f64,
+        omega_rate_rad_s2: Option<Vec<f64>>,
     ) -> PyResult<Self> {
-        KinematicDopplerKuramotoSpec::new(
-            omega_rad_s,
-            coupling_rad_s,
-            phase_lag_rad,
-            doppler_strength_rad_s,
-            velocity_epsilon_m_s,
-            distance_scale_m,
-        )
-        .map(|inner| Self { inner })
-        .map_err(|e| PyValueError::new_err(e.to_string()))
+        let spec = match omega_rate_rad_s2 {
+            Some(rate) => KinematicDopplerKuramotoSpec::with_omega_rate(
+                omega_rad_s,
+                rate,
+                coupling_rad_s,
+                phase_lag_rad,
+                doppler_strength_rad_s,
+                velocity_epsilon_m_s,
+                distance_scale_m,
+            ),
+            None => KinematicDopplerKuramotoSpec::new(
+                omega_rad_s,
+                coupling_rad_s,
+                phase_lag_rad,
+                doppler_strength_rad_s,
+                velocity_epsilon_m_s,
+                distance_scale_m,
+            ),
+        };
+        spec.map(|inner| Self { inner })
+            .map_err(|e| PyValueError::new_err(e.to_string()))
     }
 
     #[getter]
@@ -153,6 +167,11 @@ impl PyDopplerKuramotoSpec {
     #[getter]
     fn coupling_rad_s(&self) -> Vec<Vec<f64>> {
         self.inner.coupling_rad_s.clone()
+    }
+
+    #[getter]
+    fn omega_rate_rad_s2(&self) -> Vec<f64> {
+        self.inner.omega_rate_rad_s2.clone()
     }
 
     #[getter]
@@ -199,9 +218,11 @@ impl PyMovingFrameUPDESpec {
             doppler_strength_rad_s=0.0,
             velocity_epsilon_m_s=1.0e-9,
             distance_scale_m=1.0,
-            reference_point_m=0.0
+            reference_point_m=0.0,
+            omega_rate_rad_s2=None
         )
     )]
+    #[allow(clippy::too_many_arguments)]
     fn new(
         omega_rad_s: Vec<f64>,
         coupling_rad_s: Vec<Vec<f64>>,
@@ -210,18 +231,31 @@ impl PyMovingFrameUPDESpec {
         velocity_epsilon_m_s: f64,
         distance_scale_m: f64,
         reference_point_m: f64,
+        omega_rate_rad_s2: Option<Vec<f64>>,
     ) -> PyResult<Self> {
-        KinematicMovingFrameUPDESpec::new(
-            omega_rad_s,
-            coupling_rad_s,
-            phase_lag_rad,
-            doppler_strength_rad_s,
-            velocity_epsilon_m_s,
-            distance_scale_m,
-            reference_point_m,
-        )
-        .map(|inner| Self { inner })
-        .map_err(|e| PyValueError::new_err(e.to_string()))
+        let spec = match omega_rate_rad_s2 {
+            Some(rate) => KinematicMovingFrameUPDESpec::with_omega_rate(
+                omega_rad_s,
+                rate,
+                coupling_rad_s,
+                phase_lag_rad,
+                doppler_strength_rad_s,
+                velocity_epsilon_m_s,
+                distance_scale_m,
+                reference_point_m,
+            ),
+            None => KinematicMovingFrameUPDESpec::new(
+                omega_rad_s,
+                coupling_rad_s,
+                phase_lag_rad,
+                doppler_strength_rad_s,
+                velocity_epsilon_m_s,
+                distance_scale_m,
+                reference_point_m,
+            ),
+        };
+        spec.map(|inner| Self { inner })
+            .map_err(|e| PyValueError::new_err(e.to_string()))
     }
 
     #[getter]
@@ -232,6 +266,11 @@ impl PyMovingFrameUPDESpec {
     #[getter]
     fn coupling_rad_s(&self) -> Vec<Vec<f64>> {
         self.inner.phase_spec.coupling_rad_s.clone()
+    }
+
+    #[getter]
+    fn omega_rate_rad_s2(&self) -> Vec<f64> {
+        self.inner.phase_spec.omega_rate_rad_s2.clone()
     }
 
     #[getter]
@@ -1326,26 +1365,42 @@ fn evaluate_faraday_recovery(
 
 /// Evaluate MIF-001 Doppler-Kuramoto derivatives.
 #[pyfunction]
+#[pyo3(signature = (spec, phases_rad, positions_m, velocities_m_s, t_s=0.0))]
 fn doppler_derivatives(
     spec: &PyDopplerKuramotoSpec,
     phases_rad: Vec<f64>,
     positions_m: Vec<f64>,
     velocities_m_s: Vec<f64>,
+    t_s: f64,
 ) -> PyResult<Vec<f64>> {
-    kinematic_doppler_derivatives(&spec.inner, &phases_rad, &positions_m, &velocities_m_s)
-        .map_err(|e| PyValueError::new_err(e.to_string()))
+    kinematic_doppler_derivatives_at_time(
+        &spec.inner,
+        &phases_rad,
+        &positions_m,
+        &velocities_m_s,
+        t_s,
+    )
+    .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
 /// Evaluate MIF-002 moving-frame derivatives.
 #[pyfunction]
+#[pyo3(signature = (spec, phases_rad, positions_m, velocities_m_s, t_s=0.0))]
 fn moving_frame_derivatives(
     spec: &PyMovingFrameUPDESpec,
     phases_rad: Vec<f64>,
     positions_m: Vec<f64>,
     velocities_m_s: Vec<f64>,
+    t_s: f64,
 ) -> PyResult<Vec<f64>> {
-    kinematic_moving_frame_derivatives(&spec.inner, &phases_rad, &positions_m, &velocities_m_s)
-        .map_err(|e| PyValueError::new_err(e.to_string()))
+    kinematic_moving_frame_derivatives_at_time(
+        &spec.inner,
+        &phases_rad,
+        &positions_m,
+        &velocities_m_s,
+        t_s,
+    )
+    .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
 /// Verify MIF-012 boundedness over stochastic trials.

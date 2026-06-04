@@ -73,6 +73,30 @@ def test_rk45_step_matches_independent_dormand_prince_reference() -> None:
     assert state.local_error_estimate == pytest.approx(expected_err, rel=1e-12, abs=1e-18)
 
 
+def test_time_varying_omega_matches_affine_solution_through_upde() -> None:
+    omega_0 = 1_200.0
+    omega_rate = -20_000.0
+    dt_s = 1.0e-6
+    steps = 1_000
+    spec = MovingFrameUPDESpec(
+        omega_rad_s=[omega_0],
+        coupling_rad_s=[[0.0]],
+        omega_rate_rad_s2=[omega_rate],
+    )
+    engine = MovingFrameUPDE(spec, phases_rad=[0.0], positions_m=[0.0], velocities_m_s=[0.0])
+
+    for _ in range(steps):
+        state = engine.step(dt_s)
+
+    t_s = steps * dt_s
+    expected_phase = omega_0 * t_s + 0.5 * omega_rate * t_s**2
+    derivative = moving_frame_derivatives(spec, [0.0], [0.0], [0.0], t_s=t_s)
+    assert state.t_s == pytest.approx(t_s, rel=0.0, abs=1e-15)
+    assert state.phases_rad[0] == pytest.approx(expected_phase, rel=1.0e-6, abs=1.0e-9)
+    assert state.positions_m[0] == pytest.approx(0.0, rel=0.0, abs=1.0e-15)
+    assert derivative[0] == pytest.approx(omega_0 + omega_rate * t_s, rel=1e-15)
+
+
 def test_time_to_reference_and_collision_window_at_chamber_centre() -> None:
     engine = MovingFrameUPDE(
         _spec(),
@@ -177,18 +201,23 @@ def _dormand_prince_reference(
     positions: np.ndarray,
     velocities: np.ndarray,
     dt: float,
+    t_s: float = 0.0,
 ) -> tuple[np.ndarray, float]:
     y0 = np.concatenate([phases, positions])
 
-    def f(y: np.ndarray) -> np.ndarray:
-        return moving_frame_derivatives(spec, y[:2], y[2:], velocities)
+    def f(y: np.ndarray, stage_t_s: float) -> np.ndarray:
+        return moving_frame_derivatives(spec, y[:2], y[2:], velocities, t_s=stage_t_s)
 
-    k1 = f(y0)
-    k2 = f(y0 + dt * (1.0 / 5.0) * k1)
-    k3 = f(y0 + dt * ((3.0 / 40.0) * k1 + (9.0 / 40.0) * k2))
-    k4 = f(y0 + dt * ((44.0 / 45.0) * k1 - (56.0 / 15.0) * k2 + (32.0 / 9.0) * k3))
+    k1 = f(y0, t_s)
+    k2 = f(y0 + dt * (1.0 / 5.0) * k1, t_s + (1.0 / 5.0) * dt)
+    k3 = f(y0 + dt * ((3.0 / 40.0) * k1 + (9.0 / 40.0) * k2), t_s + (3.0 / 10.0) * dt)
+    k4 = f(
+        y0 + dt * ((44.0 / 45.0) * k1 - (56.0 / 15.0) * k2 + (32.0 / 9.0) * k3),
+        t_s + (4.0 / 5.0) * dt,
+    )
     k5 = f(
-        y0 + dt * ((19372.0 / 6561.0) * k1 - (25360.0 / 2187.0) * k2 + (64448.0 / 6561.0) * k3 - (212.0 / 729.0) * k4)
+        y0 + dt * ((19372.0 / 6561.0) * k1 - (25360.0 / 2187.0) * k2 + (64448.0 / 6561.0) * k3 - (212.0 / 729.0) * k4),
+        t_s + (8.0 / 9.0) * dt,
     )
     k6 = f(
         y0
@@ -199,7 +228,8 @@ def _dormand_prince_reference(
             + (46732.0 / 5247.0) * k3
             + (49.0 / 176.0) * k4
             - (5103.0 / 18656.0) * k5
-        )
+        ),
+        t_s + dt,
     )
     k7 = f(
         y0
@@ -210,7 +240,8 @@ def _dormand_prince_reference(
             + (125.0 / 192.0) * k4
             - (2187.0 / 6784.0) * k5
             + (11.0 / 84.0) * k6
-        )
+        ),
+        t_s + dt,
     )
     y5 = y0 + dt * (
         (35.0 / 384.0) * k1 + (500.0 / 1113.0) * k3 + (125.0 / 192.0) * k4 - (2187.0 / 6784.0) * k5 + (11.0 / 84.0) * k6

@@ -3,55 +3,100 @@
   "kernel": "doppler_kuramoto",
   "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
   "python_version": "3.12.3",
-  "datetime": "2026-06-04T09:39:37.574591+00:00",
+  "datetime": "2026-06-04T12:55:33.321929+00:00",
   "notes": [
-    "Julia is measured through the package CLI harness; the recorded timing includes Julia process startup."
+    "Julia is measured through the package CLI harness; the recorded timing includes Julia process startup.",
+    "Non-isolated local comparison run on a workstation with powersave governor and nontrivial host load; do not treat as a production performance claim."
   ],
   "tests": [
     {
       "name": "test_bench_python_derivatives_3",
       "group": "doppler_kuramoto.derivatives_3",
-      "mean_ns": 16309.783158547238,
-      "stddev_ns": 1833.5737384630268,
-      "median_ns": 15805.009752511978,
-      "ops_per_s": 61312.89363439171,
-      "rounds": 10727
+      "mean_ns": 21688.358780617516,
+      "stddev_ns": 7590.113543371113,
+      "median_ns": 18619.466572999954,
+      "ops_per_s": 46107.68431651368,
+      "rounds": 2760
     },
     {
       "name": "test_bench_rust_derivatives_3",
       "group": "doppler_kuramoto.derivatives_3",
-      "mean_ns": 383.0731471087595,
-      "stddev_ns": 48.437120993046115,
-      "median_ns": 373.2391633093357,
-      "ops_per_s": 2610467.498302842,
-      "rounds": 131736
+      "mean_ns": 516.2982882469978,
+      "stddev_ns": 270.3628314886297,
+      "median_ns": 488.01302909851074,
+      "ops_per_s": 1936864.8371764473,
+      "rounds": 108121
     },
     {
       "name": "test_bench_python_trace_120",
       "group": "doppler_kuramoto.trace_120",
-      "mean_ns": 12462199.11830282,
-      "stddev_ns": 409743.26714297297,
-      "median_ns": 12359869.899228215,
-      "ops_per_s": 80.2426594621918,
-      "rounds": 77
+      "mean_ns": 16402318.07020978,
+      "stddev_ns": 3207325.371053737,
+      "median_ns": 15372775.02939105,
+      "ops_per_s": 60.966992331176655,
+      "rounds": 71
     },
     {
       "name": "test_bench_rust_trace_120",
       "group": "doppler_kuramoto.trace_120",
-      "mean_ns": 62789.95312347163,
-      "stddev_ns": 4658.954535380865,
-      "median_ns": 61308.033764362335,
-      "ops_per_s": 15926.114772431454,
-      "rounds": 12289
+      "mean_ns": 69925.82190187843,
+      "stddev_ns": 10974.226121828699,
+      "median_ns": 67717.04647690058,
+      "ops_per_s": 14300.868732057575,
+      "rounds": 10574
     },
     {
       "name": "test_bench_julia_cli_trace_120",
       "group": "doppler_kuramoto.trace_120",
-      "mean_ns": 1029686204.0025492,
-      "stddev_ns": 28134756.22024592,
-      "median_ns": 1041316192.1314895,
-      "ops_per_s": 0.9711696593708312,
+      "mean_ns": 1679457005.6566348,
+      "stddev_ns": 489672868.57202804,
+      "median_ns": 1423771192.0868607,
+      "ops_per_s": 0.5954305448915137,
+      "rounds": 3
+    },
+    {
+      "name": "test_bench_python_affine_trace_1000",
+      "group": "doppler_kuramoto.affine_trace_1000",
+      "mean_ns": 85993305.35313736,
+      "stddev_ns": 2771289.200388783,
+      "median_ns": 85565846.41337395,
+      "ops_per_s": 11.62881221850273,
+      "rounds": 12
+    },
+    {
+      "name": "test_bench_rust_affine_trace_1000",
+      "group": "doppler_kuramoto.affine_trace_1000",
+      "mean_ns": 369442.6930211123,
+      "stddev_ns": 57161.391011904605,
+      "median_ns": 350695.1034069061,
+      "ops_per_s": 2706.779749309736,
+      "rounds": 2575
+    },
+    {
+      "name": "test_bench_julia_cli_affine_trace_1000",
+      "group": "doppler_kuramoto.affine_trace_1000",
+      "mean_ns": 1664410929.971685,
+      "stddev_ns": 17305184.286073588,
+      "median_ns": 1659902904.8811646,
+      "ops_per_s": 0.6008131657829308,
       "rounds": 3
     }
-  ]
+  ],
+  "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "benchmark_context": {
+    "cpu_isolated": false,
+    "isolation_method": "none; local workstation comparison run",
+    "affinity_or_reserved_cores": "none",
+    "host_load_before": "4.37 4.75 4.42 29/2947 2116376",
+    "host_load_after": "3.38 4.38 4.31 4/2925 2118563",
+    "cpu_governor": "powersave",
+    "heavy_jobs_running": "not reserved; local load was nontrivial, so this is not a production benchmark claim",
+    "runtime_versions": {
+      "python": "3.12.3",
+      "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+      "julia": "1.12.6"
+    },
+    "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core",
+    "command": "./.venv/bin/pytest bench/kernels/bench_doppler_kuramoto.py --benchmark-only --benchmark-json=bench/results/doppler_kuramoto_raw.json --no-cov"
+  }
 }

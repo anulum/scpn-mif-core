@@ -27,6 +27,7 @@ struct MovingFrameUPDESpec
         velocity_epsilon_m_s::Real = 1.0e-9,
         distance_scale_m::Real = 1.0,
         reference_point_m::Real = 0.0,
+        omega_rate_rad_s2 = nothing,
     )
         phase_spec = DopplerKuramotoSpec(
             omega_rad_s,
@@ -35,6 +36,7 @@ struct MovingFrameUPDESpec
             doppler_strength_rad_s = doppler_strength_rad_s,
             velocity_epsilon_m_s = velocity_epsilon_m_s,
             distance_scale_m = distance_scale_m,
+            omega_rate_rad_s2 = omega_rate_rad_s2,
         )
         reference = _require_finite("reference_point_m", reference_point_m)
         new(phase_spec, reference)
@@ -95,11 +97,12 @@ function moving_frame_derivatives(
     spec::MovingFrameUPDESpec,
     phases_rad::AbstractVector,
     positions_m::AbstractVector,
-    velocities_m_s::AbstractVector,
+    velocities_m_s::AbstractVector;
+    t_s::Real = 0.0,
 )::Vector{Float64}
     n = length(spec.phase_spec.omega_rad_s)
     velocities = _state_vector("velocities_m_s", velocities_m_s, n)
-    theta_dot = doppler_derivatives(spec.phase_spec, phases_rad, positions_m, velocities)
+    theta_dot = doppler_derivatives(spec.phase_spec, phases_rad, positions_m, velocities; t_s = t_s)
     return vcat(theta_dot, velocities)
 end
 
@@ -123,7 +126,7 @@ end
 function step!(engine::MovingFrameUPDE, dt_s::Real)::MovingFrameUPDEState
     dt = _validate_positive("dt_s", dt_s)
     y0 = vcat(engine.phases_rad, engine.positions_m)
-    y5, error = _dormand_prince_step(engine.spec, y0, engine.velocities_m_s, dt)
+    y5, error = _dormand_prince_step(engine.spec, y0, engine.velocities_m_s, dt, engine.t_s)
     n = length(engine.spec.phase_spec.omega_rad_s)
     engine.phases_rad = _wrap_phases.(y5[1:n])
     engine.positions_m = y5[n+1:end]
@@ -185,16 +188,17 @@ function _dormand_prince_step(
     y0::Vector{Float64},
     velocities_m_s::Vector{Float64},
     dt::Float64,
+    t_s::Float64,
 )::Tuple{Vector{Float64}, Float64}
     n = length(spec.phase_spec.omega_rad_s)
-    f(y) = moving_frame_derivatives(spec, y[1:n], y[n+1:end], velocities_m_s)
-    k1 = f(y0)
-    k2 = f(y0 .+ dt .* ((1.0 / 5.0) .* k1))
-    k3 = f(y0 .+ dt .* ((3.0 / 40.0) .* k1 .+ (9.0 / 40.0) .* k2))
-    k4 = f(y0 .+ dt .* ((44.0 / 45.0) .* k1 .- (56.0 / 15.0) .* k2 .+ (32.0 / 9.0) .* k3))
-    k5 = f(y0 .+ dt .* ((19372.0 / 6561.0) .* k1 .- (25360.0 / 2187.0) .* k2 .+ (64448.0 / 6561.0) .* k3 .- (212.0 / 729.0) .* k4))
-    k6 = f(y0 .+ dt .* ((9017.0 / 3168.0) .* k1 .- (355.0 / 33.0) .* k2 .+ (46732.0 / 5247.0) .* k3 .+ (49.0 / 176.0) .* k4 .- (5103.0 / 18656.0) .* k5))
-    k7 = f(y0 .+ dt .* ((35.0 / 384.0) .* k1 .+ (500.0 / 1113.0) .* k3 .+ (125.0 / 192.0) .* k4 .- (2187.0 / 6784.0) .* k5 .+ (11.0 / 84.0) .* k6))
+    f(y, stage_t_s) = moving_frame_derivatives(spec, y[1:n], y[n+1:end], velocities_m_s; t_s = stage_t_s)
+    k1 = f(y0, t_s)
+    k2 = f(y0 .+ dt .* ((1.0 / 5.0) .* k1), t_s + (1.0 / 5.0) * dt)
+    k3 = f(y0 .+ dt .* ((3.0 / 40.0) .* k1 .+ (9.0 / 40.0) .* k2), t_s + (3.0 / 10.0) * dt)
+    k4 = f(y0 .+ dt .* ((44.0 / 45.0) .* k1 .- (56.0 / 15.0) .* k2 .+ (32.0 / 9.0) .* k3), t_s + (4.0 / 5.0) * dt)
+    k5 = f(y0 .+ dt .* ((19372.0 / 6561.0) .* k1 .- (25360.0 / 2187.0) .* k2 .+ (64448.0 / 6561.0) .* k3 .- (212.0 / 729.0) .* k4), t_s + (8.0 / 9.0) * dt)
+    k6 = f(y0 .+ dt .* ((9017.0 / 3168.0) .* k1 .- (355.0 / 33.0) .* k2 .+ (46732.0 / 5247.0) .* k3 .+ (49.0 / 176.0) .* k4 .- (5103.0 / 18656.0) .* k5), t_s + dt)
+    k7 = f(y0 .+ dt .* ((35.0 / 384.0) .* k1 .+ (500.0 / 1113.0) .* k3 .+ (125.0 / 192.0) .* k4 .- (2187.0 / 6784.0) .* k5 .+ (11.0 / 84.0) .* k6), t_s + dt)
     y5 = y0 .+ dt .* ((35.0 / 384.0) .* k1 .+ (500.0 / 1113.0) .* k3 .+ (125.0 / 192.0) .* k4 .- (2187.0 / 6784.0) .* k5 .+ (11.0 / 84.0) .* k6)
     y4 = y0 .+ dt .* ((5179.0 / 57600.0) .* k1 .+ (7571.0 / 16695.0) .* k3 .+ (393.0 / 640.0) .* k4 .- (92097.0 / 339200.0) .* k5 .+ (187.0 / 2100.0) .* k6 .+ (1.0 / 40.0) .* k7)
     y5[1:n] .= _wrap_phases.(y5[1:n])

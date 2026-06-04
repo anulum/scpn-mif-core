@@ -17,7 +17,7 @@
 //! Moving-frame UPDE carrier with chamber-fixed absolute positions.
 
 use crate::{
-    DopplerKuramotoError, DopplerKuramotoSpec, doppler_derivatives, order_parameter,
+    DopplerKuramotoError, DopplerKuramotoSpec, doppler_derivatives_at_time, order_parameter,
     phase_lock_error,
 };
 
@@ -41,13 +41,39 @@ impl MovingFrameUPDESpec {
         distance_scale_m: f64,
         reference_point_m: f64,
     ) -> Result<Self, DopplerKuramotoError> {
+        let omega_rate_rad_s2 = vec![0.0; omega_rad_s.len()];
+        Self::with_omega_rate(
+            omega_rad_s,
+            omega_rate_rad_s2,
+            coupling_rad_s,
+            phase_lag_rad,
+            doppler_strength_rad_s,
+            velocity_epsilon_m_s,
+            distance_scale_m,
+            reference_point_m,
+        )
+    }
+
+    /// Construct a validated moving-frame UPDE specification with affine `omega(t)`.
+    #[allow(clippy::too_many_arguments)]
+    pub fn with_omega_rate(
+        omega_rad_s: Vec<f64>,
+        omega_rate_rad_s2: Vec<f64>,
+        coupling_rad_s: Vec<Vec<f64>>,
+        phase_lag_rad: f64,
+        doppler_strength_rad_s: f64,
+        velocity_epsilon_m_s: f64,
+        distance_scale_m: f64,
+        reference_point_m: f64,
+    ) -> Result<Self, DopplerKuramotoError> {
         if !reference_point_m.is_finite() {
             return Err(DopplerKuramotoError::NonFinite {
                 field: "reference_point_m",
             });
         }
-        let phase_spec = DopplerKuramotoSpec::new(
+        let phase_spec = DopplerKuramotoSpec::with_omega_rate(
             omega_rad_s,
+            omega_rate_rad_s2,
             coupling_rad_s,
             phase_lag_rad,
             doppler_strength_rad_s,
@@ -150,7 +176,8 @@ impl MovingFrameUPDE {
         validate_positive("dt_s", dt_s)?;
         let mut y0 = self.phases_rad.clone();
         y0.extend_from_slice(&self.positions_m);
-        let (y5, error) = dormand_prince_step(&self.spec, &y0, &self.velocities_m_s, dt_s)?;
+        let (y5, error) =
+            dormand_prince_step(&self.spec, &y0, &self.velocities_m_s, dt_s, self.t_s)?;
         let n = self.spec.n_oscillators();
         self.phases_rad = y5[..n].iter().map(|value| wrap_phase(*value)).collect();
         self.positions_m = y5[n..].to_vec();
@@ -187,9 +214,26 @@ pub fn moving_frame_derivatives(
     positions_m: &[f64],
     velocities_m_s: &[f64],
 ) -> Result<Vec<f64>, DopplerKuramotoError> {
+    moving_frame_derivatives_at_time(spec, phases_rad, positions_m, velocities_m_s, 0.0)
+}
+
+/// Return the combined `[dtheta/dt, dz/dt]` derivative vector at time `t_s`.
+pub fn moving_frame_derivatives_at_time(
+    spec: &MovingFrameUPDESpec,
+    phases_rad: &[f64],
+    positions_m: &[f64],
+    velocities_m_s: &[f64],
+    t_s: f64,
+) -> Result<Vec<f64>, DopplerKuramotoError> {
     let n = spec.n_oscillators();
     validate_state_vector("velocities_m_s", velocities_m_s, n)?;
-    let mut out = doppler_derivatives(&spec.phase_spec, phases_rad, positions_m, velocities_m_s)?;
+    let mut out = doppler_derivatives_at_time(
+        &spec.phase_spec,
+        phases_rad,
+        positions_m,
+        velocities_m_s,
+        t_s,
+    )?;
     out.extend_from_slice(velocities_m_s);
     Ok(out)
 }
@@ -199,52 +243,71 @@ fn dormand_prince_step(
     y0: &[f64],
     velocities_m_s: &[f64],
     dt_s: f64,
+    t_s: f64,
 ) -> Result<(Vec<f64>, f64), DopplerKuramotoError> {
-    let f = |y: &[f64]| -> Result<Vec<f64>, DopplerKuramotoError> {
+    let f = |y: &[f64], stage_t_s: f64| -> Result<Vec<f64>, DopplerKuramotoError> {
         let n = spec.n_oscillators();
-        moving_frame_derivatives(spec, &y[..n], &y[n..], velocities_m_s)
+        moving_frame_derivatives_at_time(spec, &y[..n], &y[n..], velocities_m_s, stage_t_s)
     };
 
-    let k1 = f(y0)?;
-    let k2 = f(&lincomb(y0, dt_s, &[(&k1, 1.0 / 5.0)]))?;
-    let k3 = f(&lincomb(y0, dt_s, &[(&k1, 3.0 / 40.0), (&k2, 9.0 / 40.0)]))?;
-    let k4 = f(&lincomb(
-        y0,
-        dt_s,
-        &[(&k1, 44.0 / 45.0), (&k2, -56.0 / 15.0), (&k3, 32.0 / 9.0)],
-    ))?;
-    let k5 = f(&lincomb(
-        y0,
-        dt_s,
-        &[
-            (&k1, 19372.0 / 6561.0),
-            (&k2, -25360.0 / 2187.0),
-            (&k3, 64448.0 / 6561.0),
-            (&k4, -212.0 / 729.0),
-        ],
-    ))?;
-    let k6 = f(&lincomb(
-        y0,
-        dt_s,
-        &[
-            (&k1, 9017.0 / 3168.0),
-            (&k2, -355.0 / 33.0),
-            (&k3, 46732.0 / 5247.0),
-            (&k4, 49.0 / 176.0),
-            (&k5, -5103.0 / 18656.0),
-        ],
-    ))?;
-    let k7 = f(&lincomb(
-        y0,
-        dt_s,
-        &[
-            (&k1, 35.0 / 384.0),
-            (&k3, 500.0 / 1113.0),
-            (&k4, 125.0 / 192.0),
-            (&k5, -2187.0 / 6784.0),
-            (&k6, 11.0 / 84.0),
-        ],
-    ))?;
+    let k1 = f(y0, t_s)?;
+    let k2 = f(
+        &lincomb(y0, dt_s, &[(&k1, 1.0 / 5.0)]),
+        t_s + (1.0 / 5.0) * dt_s,
+    )?;
+    let k3 = f(
+        &lincomb(y0, dt_s, &[(&k1, 3.0 / 40.0), (&k2, 9.0 / 40.0)]),
+        t_s + (3.0 / 10.0) * dt_s,
+    )?;
+    let k4 = f(
+        &lincomb(
+            y0,
+            dt_s,
+            &[(&k1, 44.0 / 45.0), (&k2, -56.0 / 15.0), (&k3, 32.0 / 9.0)],
+        ),
+        t_s + (4.0 / 5.0) * dt_s,
+    )?;
+    let k5 = f(
+        &lincomb(
+            y0,
+            dt_s,
+            &[
+                (&k1, 19372.0 / 6561.0),
+                (&k2, -25360.0 / 2187.0),
+                (&k3, 64448.0 / 6561.0),
+                (&k4, -212.0 / 729.0),
+            ],
+        ),
+        t_s + (8.0 / 9.0) * dt_s,
+    )?;
+    let k6 = f(
+        &lincomb(
+            y0,
+            dt_s,
+            &[
+                (&k1, 9017.0 / 3168.0),
+                (&k2, -355.0 / 33.0),
+                (&k3, 46732.0 / 5247.0),
+                (&k4, 49.0 / 176.0),
+                (&k5, -5103.0 / 18656.0),
+            ],
+        ),
+        t_s + dt_s,
+    )?;
+    let k7 = f(
+        &lincomb(
+            y0,
+            dt_s,
+            &[
+                (&k1, 35.0 / 384.0),
+                (&k3, 500.0 / 1113.0),
+                (&k4, 125.0 / 192.0),
+                (&k5, -2187.0 / 6784.0),
+                (&k6, 11.0 / 84.0),
+            ],
+        ),
+        t_s + dt_s,
+    )?;
     let mut y5 = lincomb(
         y0,
         dt_s,

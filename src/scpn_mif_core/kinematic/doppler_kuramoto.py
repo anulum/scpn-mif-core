@@ -22,13 +22,16 @@ pointwise derivative is
 
 .. math::
 
-    \\dot\\theta_i = \\omega_i
+    \\dot\\theta_i = \\omega_i(t)
       + \\sum_{j \\ne i}
           \\frac{K_{ij}}{1 + |z_i-z_j| / L_z}
           \\sin(\\theta_j - \\theta_i - \\alpha)
       + \\gamma \\sum_{j \\ne i}
           \\frac{v_i-v_j}{|v_i| + \\epsilon_v}.
 
+where :math:`\\omega_i(t)=\\omega_{i,0}+\\dot\\omega_i t` for affine
+non-autonomous phase-law runs. The default
+:math:`\\dot\\omega_i=0` preserves the constant-frequency MIF-001 contract.
 The position state is advanced by :math:`\\dot z_i=v_i`. This is only the
 linear axial kinematic envelope required to evaluate the MIF-001
 Doppler-lock acceptance window; the richer moving-frame UPDE remains MIF-002.
@@ -60,6 +63,9 @@ class DopplerKuramotoSpec:
         Square off-diagonal coupling matrix. Entry ``K[i, j]`` weights the
         phase pull from oscillator ``j`` onto oscillator ``i`` before distance
         decay.
+    omega_rate_rad_s2:
+        Optional affine natural-frequency rates in radians per second squared.
+        ``None`` is normalised to a zero vector.
     phase_lag_rad:
         Sakaguchi-style phase lag :math:`\\alpha` in radians.
     doppler_strength_rad_s:
@@ -78,12 +84,18 @@ class DopplerKuramotoSpec:
     doppler_strength_rad_s: float = 0.0
     velocity_epsilon_m_s: float = 1.0e-9
     distance_scale_m: float = 1.0
+    omega_rate_rad_s2: ArrayLike | None = None
 
     def __post_init__(self) -> None:
         omega = _as_1d_float_array("omega_rad_s", self.omega_rad_s)
         coupling = _as_square_float_matrix("coupling_rad_s", self.coupling_rad_s)
         if coupling.shape != (omega.size, omega.size):
             raise ValueError("coupling_rad_s must be an n-by-n matrix matching omega_rad_s")
+        omega_rate = (
+            np.zeros(omega.size, dtype=np.float64)
+            if self.omega_rate_rad_s2 is None
+            else _as_state_vector("omega_rate_rad_s2", self.omega_rate_rad_s2, omega.size)
+        )
         phase_lag = _require_finite("phase_lag_rad", self.phase_lag_rad)
         doppler_strength = _require_finite("doppler_strength_rad_s", self.doppler_strength_rad_s)
         epsilon = _require_finite("velocity_epsilon_m_s", self.velocity_epsilon_m_s)
@@ -94,6 +106,7 @@ class DopplerKuramotoSpec:
             raise ValueError("distance_scale_m must be strictly positive")
         object.__setattr__(self, "omega_rad_s", _readonly(omega))
         object.__setattr__(self, "coupling_rad_s", _readonly_matrix(coupling))
+        object.__setattr__(self, "omega_rate_rad_s2", _readonly(omega_rate))
         object.__setattr__(self, "phase_lag_rad", phase_lag)
         object.__setattr__(self, "doppler_strength_rad_s", doppler_strength)
         object.__setattr__(self, "velocity_epsilon_m_s", epsilon)
@@ -103,6 +116,13 @@ class DopplerKuramotoSpec:
     def n_oscillators(self) -> int:
         """Number of coupled oscillators in the carrier."""
         return int(np.asarray(self.omega_rad_s, dtype=np.float64).size)
+
+    def omega_at(self, t_s: float = 0.0) -> FloatArray:
+        """Return natural angular frequencies at simulation time ``t_s``."""
+        time_s = _validate_time("t_s", t_s)
+        omega = np.asarray(self.omega_rad_s, dtype=np.float64)
+        omega_rate = np.asarray(self.omega_rate_rad_s2, dtype=np.float64)
+        return _readonly(omega + time_s * omega_rate)
 
 
 @dataclass(frozen=True)
@@ -175,7 +195,12 @@ class DopplerKuramoto:
             phase_lock_error_rad=phase_lock_error(self._phases_rad),
         )
 
-    def derivatives(self, phases_rad: ArrayLike | None = None, positions_m: ArrayLike | None = None) -> FloatArray:
+    def derivatives(
+        self,
+        phases_rad: ArrayLike | None = None,
+        positions_m: ArrayLike | None = None,
+        t_s: float | None = None,
+    ) -> FloatArray:
         """Return ``dtheta/dt`` for the supplied or current phase/position state."""
         phases = (
             self._phases_rad
@@ -195,30 +220,35 @@ class DopplerKuramoto:
                 self.spec.n_oscillators,
             )
         )
-        return doppler_derivatives(self.spec, phases, positions, self._velocities_m_s)
+        derivative_time_s = self._t_s if t_s is None else t_s
+        return doppler_derivatives(self.spec, phases, positions, self._velocities_m_s, t_s=derivative_time_s)
 
     def step(self, dt_s: float) -> DopplerKuramotoState:
         """Advance the coupled phase/linear-position state by ``dt_s`` seconds."""
         dt = _validate_dt(dt_s)
         velocities = self._velocities_m_s
-        k1 = doppler_derivatives(self.spec, self._phases_rad, self._positions_m, velocities)
+        t0 = self._t_s
+        k1 = doppler_derivatives(self.spec, self._phases_rad, self._positions_m, velocities, t_s=t0)
         k2 = doppler_derivatives(
             self.spec,
             self._phases_rad + 0.5 * dt * k1,
             self._positions_m + 0.5 * dt * velocities,
             velocities,
+            t_s=t0 + 0.5 * dt,
         )
         k3 = doppler_derivatives(
             self.spec,
             self._phases_rad + 0.5 * dt * k2,
             self._positions_m + 0.5 * dt * velocities,
             velocities,
+            t_s=t0 + 0.5 * dt,
         )
         k4 = doppler_derivatives(
             self.spec,
             self._phases_rad + dt * k3,
             self._positions_m + dt * velocities,
             velocities,
+            t_s=t0 + dt,
         )
         self._phases_rad = _wrap_phases(self._phases_rad + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4))
         self._positions_m = self._positions_m + dt * velocities
@@ -237,13 +267,14 @@ def doppler_derivatives(
     phases_rad: ArrayLike,
     positions_m: ArrayLike,
     velocities_m_s: ArrayLike,
+    t_s: float = 0.0,
 ) -> FloatArray:
     """Return the MIF-001 pointwise phase derivative vector."""
     n = spec.n_oscillators
     phases = _as_state_vector("phases_rad", phases_rad, n)
     positions = _as_state_vector("positions_m", positions_m, n)
     velocities = _as_state_vector("velocities_m_s", velocities_m_s, n)
-    omega = np.asarray(spec.omega_rad_s, dtype=np.float64)
+    omega = spec.omega_at(t_s)
     coupling = np.asarray(spec.coupling_rad_s, dtype=np.float64)
     out = np.array(omega, dtype=np.float64, copy=True)
 
@@ -356,6 +387,13 @@ def _validate_dt(dt_s: float) -> float:
     if dt <= 0.0:
         raise ValueError("dt_s must be strictly positive")
     return dt
+
+
+def _validate_time(name: str, value: float) -> float:
+    numeric = _require_finite(name, value)
+    if numeric < 0.0:
+        raise ValueError(f"{name} must be non-negative")
+    return numeric
 
 
 def _readonly(arr: FloatArray) -> FloatArray:

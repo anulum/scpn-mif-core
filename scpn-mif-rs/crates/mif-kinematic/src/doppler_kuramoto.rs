@@ -29,6 +29,8 @@ pub struct DopplerKuramotoSpec {
     pub omega_rad_s: Vec<f64>,
     /// Square coupling matrix in radians per second.
     pub coupling_rad_s: Vec<Vec<f64>>,
+    /// Affine natural-frequency rates in radians per second squared.
+    pub omega_rate_rad_s2: Vec<f64>,
     /// Sakaguchi-style phase lag in radians.
     pub phase_lag_rad: f64,
     /// Scale factor applied to each off-diagonal Doppler correction.
@@ -50,6 +52,30 @@ impl DopplerKuramotoSpec {
         distance_scale_m: f64,
     ) -> Result<Self, DopplerKuramotoError> {
         validate_vector("omega_rad_s", &omega_rad_s)?;
+        let omega_rate_rad_s2 = vec![0.0; omega_rad_s.len()];
+        Self::with_omega_rate(
+            omega_rad_s,
+            omega_rate_rad_s2,
+            coupling_rad_s,
+            phase_lag_rad,
+            doppler_strength_rad_s,
+            velocity_epsilon_m_s,
+            distance_scale_m,
+        )
+    }
+
+    /// Construct a validated Doppler-Kuramoto specification with affine `omega(t)`.
+    pub fn with_omega_rate(
+        omega_rad_s: Vec<f64>,
+        omega_rate_rad_s2: Vec<f64>,
+        coupling_rad_s: Vec<Vec<f64>>,
+        phase_lag_rad: f64,
+        doppler_strength_rad_s: f64,
+        velocity_epsilon_m_s: f64,
+        distance_scale_m: f64,
+    ) -> Result<Self, DopplerKuramotoError> {
+        validate_vector("omega_rad_s", &omega_rad_s)?;
+        validate_state_vector("omega_rate_rad_s2", &omega_rate_rad_s2, omega_rad_s.len())?;
         validate_square_matrix("coupling_rad_s", &coupling_rad_s)?;
         if coupling_rad_s.len() != omega_rad_s.len() {
             return Err(DopplerKuramotoError::CouplingShapeMismatch {
@@ -64,6 +90,7 @@ impl DopplerKuramotoSpec {
         Ok(Self {
             omega_rad_s,
             coupling_rad_s,
+            omega_rate_rad_s2,
             phase_lag_rad,
             doppler_strength_rad_s,
             velocity_epsilon_m_s,
@@ -74,6 +101,17 @@ impl DopplerKuramotoSpec {
     /// Number of coupled oscillators.
     pub fn n_oscillators(&self) -> usize {
         self.omega_rad_s.len()
+    }
+
+    /// Return natural angular frequencies at simulation time `t_s`.
+    pub fn omega_at(&self, t_s: f64) -> Result<Vec<f64>, DopplerKuramotoError> {
+        validate_non_negative("t_s", t_s)?;
+        Ok(self
+            .omega_rad_s
+            .iter()
+            .zip(self.omega_rate_rad_s2.iter())
+            .map(|(omega, rate)| omega + t_s * rate)
+            .collect())
     }
 }
 
@@ -136,6 +174,12 @@ pub enum DopplerKuramotoError {
         /// Field name.
         field: &'static str,
     },
+    /// A non-negative scalar field was negative.
+    #[error("{field} must be non-negative")]
+    Negative {
+        /// Field name.
+        field: &'static str,
+    },
 }
 
 /// Stateful RK4 integrator for MIF-001.
@@ -190,24 +234,34 @@ impl DopplerKuramoto {
     pub fn step(&mut self, dt_s: f64) -> Result<DopplerKuramotoState, DopplerKuramotoError> {
         validate_positive("dt_s", dt_s)?;
         let velocities = &self.velocities_m_s;
-        let k1 = doppler_derivatives(&self.spec, &self.phases_rad, &self.positions_m, velocities)?;
-        let k2 = doppler_derivatives(
+        let t0 = self.t_s;
+        let k1 = doppler_derivatives_at_time(
+            &self.spec,
+            &self.phases_rad,
+            &self.positions_m,
+            velocities,
+            t0,
+        )?;
+        let k2 = doppler_derivatives_at_time(
             &self.spec,
             &add_scaled(&self.phases_rad, &k1, 0.5 * dt_s),
             &add_scaled(&self.positions_m, velocities, 0.5 * dt_s),
             velocities,
+            t0 + 0.5 * dt_s,
         )?;
-        let k3 = doppler_derivatives(
+        let k3 = doppler_derivatives_at_time(
             &self.spec,
             &add_scaled(&self.phases_rad, &k2, 0.5 * dt_s),
             &add_scaled(&self.positions_m, velocities, 0.5 * dt_s),
             velocities,
+            t0 + 0.5 * dt_s,
         )?;
-        let k4 = doppler_derivatives(
+        let k4 = doppler_derivatives_at_time(
             &self.spec,
             &add_scaled(&self.phases_rad, &k3, dt_s),
             &add_scaled(&self.positions_m, velocities, dt_s),
             velocities,
+            t0 + dt_s,
         )?;
         for i in 0..self.phases_rad.len() {
             let delta = (dt_s / 6.0) * (k1[i] + 2.0 * k2[i] + 2.0 * k3[i] + k4[i]);
@@ -226,11 +280,22 @@ pub fn doppler_derivatives(
     positions_m: &[f64],
     velocities_m_s: &[f64],
 ) -> Result<Vec<f64>, DopplerKuramotoError> {
+    doppler_derivatives_at_time(spec, phases_rad, positions_m, velocities_m_s, 0.0)
+}
+
+/// Return `dtheta/dt` at simulation time `t_s` for affine non-autonomous runs.
+pub fn doppler_derivatives_at_time(
+    spec: &DopplerKuramotoSpec,
+    phases_rad: &[f64],
+    positions_m: &[f64],
+    velocities_m_s: &[f64],
+    t_s: f64,
+) -> Result<Vec<f64>, DopplerKuramotoError> {
     let n = spec.n_oscillators();
     validate_state_vector("phases_rad", phases_rad, n)?;
     validate_state_vector("positions_m", positions_m, n)?;
     validate_state_vector("velocities_m_s", velocities_m_s, n)?;
-    let mut out = spec.omega_rad_s.clone();
+    let mut out = spec.omega_at(t_s)?;
     for i in 0..n {
         let denom = velocities_m_s[i].abs() + spec.velocity_epsilon_m_s;
         for j in 0..n {
@@ -287,6 +352,14 @@ fn validate_positive(field: &'static str, value: f64) -> Result<f64, DopplerKura
     validate_finite(field, value)?;
     if value <= 0.0 {
         return Err(DopplerKuramotoError::NonPositive { field });
+    }
+    Ok(value)
+}
+
+fn validate_non_negative(field: &'static str, value: f64) -> Result<f64, DopplerKuramotoError> {
+    validate_finite(field, value)?;
+    if value < 0.0 {
+        return Err(DopplerKuramotoError::Negative { field });
     }
     Ok(value)
 }
@@ -381,6 +454,37 @@ mod tests {
         let expected1 = -1.0 + 2.5 * f64::sin(0.2 - 0.7 - 0.1) + 0.2 * (-150.0 / 60.0);
         assert!((got[0] - expected0).abs() < 1e-15);
         assert!((got[1] - expected1).abs() < 1e-15);
+    }
+
+    #[test]
+    fn time_varying_omega_matches_affine_analytic_solution() {
+        let omega_0 = 1_200.0;
+        let omega_rate = -20_000.0;
+        let dt_s = 1.0e-6;
+        let steps = 1_000;
+        let spec = DopplerKuramotoSpec::with_omega_rate(
+            vec![omega_0],
+            vec![omega_rate],
+            vec![vec![0.0]],
+            0.0,
+            0.0,
+            1.0e-9,
+            1.0,
+        )
+        .unwrap();
+        let mut engine =
+            DopplerKuramoto::new(spec.clone(), vec![0.0], vec![0.0], vec![0.0]).unwrap();
+        let mut state = engine.state();
+        for _ in 0..steps {
+            state = engine.step(dt_s).unwrap();
+        }
+        let t_s = steps as f64 * dt_s;
+        let expected_phase = omega_0 * t_s + 0.5 * omega_rate * t_s.powi(2);
+        let derivative = doppler_derivatives_at_time(&spec, &[0.0], &[0.0], &[0.0], t_s).unwrap();
+
+        assert!((state.t_s - t_s).abs() < 1e-15);
+        assert!((state.phases_rad[0] - expected_phase).abs() <= expected_phase.abs() * 1.0e-6);
+        assert!((derivative[0] - (omega_0 + omega_rate * t_s)).abs() < 1e-15);
     }
 
     #[test]

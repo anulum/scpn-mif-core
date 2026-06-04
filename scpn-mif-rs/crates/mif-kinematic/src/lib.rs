@@ -21,11 +21,12 @@ pub mod moving_frame_upde;
 
 pub use doppler_kuramoto::{
     DopplerKuramoto, DopplerKuramotoError, DopplerKuramotoSpec, DopplerKuramotoState,
-    doppler_derivatives, order_parameter, phase_lock_error,
+    doppler_derivatives, doppler_derivatives_at_time, order_parameter, phase_lock_error,
 };
 pub use merge_window::{MergeWindowMonitor, MergeWindowSample, MergeWindowSpec};
 pub use moving_frame_upde::{
     MovingFrameUPDE, MovingFrameUPDESpec, MovingFrameUPDEState, moving_frame_derivatives,
+    moving_frame_derivatives_at_time,
 };
 
 /// Crate version derived from the workspace.

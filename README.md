@@ -150,6 +150,8 @@ import math
 
 def kinematic_frc_synchronisation(
     omega_i: float,
+    omega_rate_i: float,
+    t_s: float,
     theta_i: float,
     theta_j: float,
     v_z_i: float,
@@ -160,15 +162,20 @@ def kinematic_frc_synchronisation(
     alpha: float,
 ) -> float:
     """Rate of phase change for an FRC plasmoid during high-speed kinematic merging."""
+    omega_i_t = omega_i + omega_rate_i * t_s
     spatial_coupling = K_mag / (1.0 + abs(z_i - z_j))
     doppler_shift = (v_z_i - v_z_j) / (abs(v_z_i) + 1e-9)
-    return omega_i + spatial_coupling * math.sin(theta_j - theta_i - alpha) + doppler_shift
+    return omega_i_t + spatial_coupling * math.sin(theta_j - theta_i - alpha) + doppler_shift
 ```
 
 **Equation parameters:**
 
 - `omega_i` — natural rotational frequency of the FRC driven by ion
   diamagnetic drift (rad s⁻¹).
+- `omega_rate_i` — optional affine frequency drift (rad s⁻²); the default
+  implementation uses zero drift and therefore preserves constant-frequency
+  operation.
+- `t_s` — non-negative simulation time used to evaluate `omega_i(t)`.
 - `theta_i`, `theta_j` — instantaneous internal rotational phases of the
   left and right FRCs.
 - `v_z_i`, `v_z_j` — axial velocities of the plasmoids moving toward the

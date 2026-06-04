@@ -13,15 +13,24 @@ axial velocity `v_i`, the implemented derivative is:
 
 ```text
 dtheta_i/dt =
-  omega_i
+  omega_i(t)
   + sum_{j != i} K_ij / (1 + |z_i - z_j| / L_z)
       * sin(theta_j - theta_i - alpha)
   + gamma * sum_{j != i} (v_i - v_j) / (|v_i| + epsilon_v)
+
+omega_i(t) = omega_i0 + omega_rate_i * t
 ```
 
 The carrier advances positions with `dz_i/dt = v_i`. That axial update is
 included only to evaluate the MIF-001 chamber-centre lock window; the
 full moving-frame UPDE remains MIF-002.
+
+`omega_rate_rad_s2` is optional on every Python, Rust, PyO3, and Julia
+surface. Omitting it uses a zero vector and preserves the constant-frequency
+MIF-001 contract. When supplied, RK4 evaluates `omega(t)` at each stage time,
+so a linearly decaying uncoupled oscillator matches the analytic
+`theta(t) = theta0 + omega_i0 t + 0.5 omega_rate_i t^2` solution within the
+committed 1 ppm acceptance bound at `dt = 1 us`.
 
 ## Python API
 
@@ -58,17 +67,23 @@ misses the phase window; this is covered in Python, Rust, and Julia tests.
 
 ## Benchmarks
 
-Measured on the local i5-11600K rig using Python 3.12.3 and Rust 1.85.0.
-The Julia entry is measured through the package CLI harness, so the timing
-includes Julia process startup.
+Measured on the local i5-11600K rig using Python 3.12.3, Rust 1.85.0,
+and Julia 1.12.6. This was a non-isolated workstation comparison with the
+CPU governor set to `powersave` and host load present; the numbers are for
+dispatch ordering, not production performance claims. The Julia entries are
+measured through the package CLI harness, so the timings include Julia
+process startup.
 
 | Group | Backend | Mean | Result |
 |---|---:|---:|---|
-| `derivatives_3` | Rust | 383 ns | fastest |
-| `derivatives_3` | Python | 16.31 us | 42.6x slower than Rust |
-| `trace_120` | Rust | 62.79 us | fastest |
-| `trace_120` | Python | 12.46 ms | 198.5x slower than Rust |
-| `trace_120` | Julia CLI | 1.03 s | CLI startup comparison |
+| `derivatives_3` | Rust | 516 ns | fastest |
+| `derivatives_3` | Python | 21.69 us | 42.0x slower than Rust |
+| `trace_120` | Rust | 69.93 us | fastest |
+| `trace_120` | Python | 16.40 ms | 234.6x slower than Rust |
+| `trace_120` | Julia CLI | 1.68 s | CLI startup comparison |
+| `affine_trace_1000` | Rust | 369.44 us | fastest |
+| `affine_trace_1000` | Python | 85.99 ms | 232.8x slower than Rust |
+| `affine_trace_1000` | Julia CLI | 1.66 s | CLI startup comparison |
 
 Raw summary: `bench/results/doppler_kuramoto.json`.
 

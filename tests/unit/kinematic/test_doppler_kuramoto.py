@@ -78,6 +78,46 @@ def test_global_phase_shift_leaves_derivatives_invariant() -> None:
     )
 
 
+def test_time_varying_omega_matches_affine_analytic_solution() -> None:
+    omega_0 = 1_200.0
+    omega_rate = -20_000.0
+    dt_s = 1.0e-6
+    steps = 1_000
+    spec = DopplerKuramotoSpec(
+        omega_rad_s=[omega_0],
+        omega_rate_rad_s2=[omega_rate],
+        coupling_rad_s=[[0.0]],
+    )
+    engine = DopplerKuramoto(
+        spec,
+        phases_rad=[0.0],
+        positions_m=[0.0],
+        velocities_m_s=[0.0],
+    )
+
+    for _ in range(steps):
+        state = engine.step(dt_s)
+
+    t_s = steps * dt_s
+    expected_phase = omega_0 * t_s + 0.5 * omega_rate * t_s**2
+    assert state.t_s == pytest.approx(t_s, rel=0.0, abs=1e-15)
+    assert state.phases_rad[0] == pytest.approx(expected_phase, rel=1.0e-6, abs=1.0e-9)
+    assert doppler_derivatives(spec, [0.0], [0.0], [0.0], t_s=t_s)[0] == pytest.approx(
+        omega_0 + omega_rate * t_s,
+        rel=1.0e-15,
+        abs=1.0e-15,
+    )
+
+
+def test_spec_rejects_omega_rate_shape_mismatch() -> None:
+    with pytest.raises(ValueError, match="omega_rate_rad_s2"):
+        DopplerKuramotoSpec(
+            omega_rad_s=[1.0, 2.0],
+            omega_rate_rad_s2=[0.0],
+            coupling_rad_s=[[0.0, 0.0], [0.0, 0.0]],
+        )
+
+
 def test_order_parameter_and_phase_lock_error_are_circular() -> None:
     phases = np.array([math.pi - 0.01, -math.pi + 0.01])
     assert order_parameter(phases) > 0.999
