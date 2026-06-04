@@ -5,7 +5,7 @@
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
 # SCPN-MIF-CORE — MIF-005 capacitor-bank benchmark harness.
-"""Benchmark the Python reference against the Rust acceleration for MIF-005.
+"""Benchmark Python, Rust, and Julia paths for MIF-005.
 
 Measures three classes of operation across the multi-language stack:
 
@@ -20,6 +20,10 @@ that path are skipped cleanly when the extension is not built.
 """
 
 from __future__ import annotations
+
+import shutil
+import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -38,6 +42,8 @@ rust = pytest.importorskip(
     reason="Rust extension not built; run `make bridge` to enable Rust benchmarks.",
 )
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+JULIA_BIN = shutil.which("julia") or "/home/anulum/.juliaup/bin/julia"
 CAPACITANCE_F = 100e-6
 INDUCTANCE_H = 100e-6
 SERIES_RESISTANCE_OHM = 0.5
@@ -99,6 +105,37 @@ def test_bench_rust_step_single(benchmark, rust_spec: rust.CapacitorBankSpec) ->
     benchmark(step_once)
 
 
+def test_bench_julia_cli_step_single(benchmark) -> None:
+    if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
+        pytest.skip("Julia executable not available")
+
+    julia_code = f"""
+        using SCPNMIFCore
+        spec = CapacitorBankSpec(
+            {CAPACITANCE_F},
+            {INDUCTANCE_H},
+            {SERIES_RESISTANCE_OHM},
+            {VOLTAGE_MAX_V},
+            {RECHARGE_POWER_KW},
+        )
+        bank = CapacitorBank(spec, {INITIAL_VOLTAGE_V})
+        result = step!(bank, {DT})
+        print(result.voltage_V)
+    """
+
+    def call() -> None:
+        proc = subprocess.run(
+            [JULIA_BIN, f"--project={REPO_ROOT / 'julia' / 'SCPNMIFCore'}", "-e", julia_code],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        float(proc.stdout.strip())
+
+    benchmark.group = "capacitor_bank.step_single"
+    benchmark.pedantic(call, rounds=3, iterations=1)
+
+
 # ---------------------------------------------------------------------------
 # 1 000-step batch (steady-state discharge throughput)
 # ---------------------------------------------------------------------------
@@ -124,6 +161,40 @@ def test_bench_rust_step_batch_1000(benchmark, rust_spec: rust.CapacitorBankSpec
     benchmark(step_batch)
 
 
+def test_bench_julia_cli_step_batch_1000(benchmark) -> None:
+    if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
+        pytest.skip("Julia executable not available")
+
+    julia_code = f"""
+        using SCPNMIFCore
+        spec = CapacitorBankSpec(
+            {CAPACITANCE_F},
+            {INDUCTANCE_H},
+            {SERIES_RESISTANCE_OHM},
+            {VOLTAGE_MAX_V},
+            {RECHARGE_POWER_KW},
+        )
+        bank = CapacitorBank(spec, {INITIAL_VOLTAGE_V})
+        result = bank.state
+        for _ in 1:1000
+            result = step!(bank, {DT})
+        end
+        print(result.voltage_V)
+    """
+
+    def call() -> None:
+        proc = subprocess.run(
+            [JULIA_BIN, f"--project={REPO_ROOT / 'julia' / 'SCPNMIFCore'}", "-e", julia_code],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        float(proc.stdout.strip())
+
+    benchmark.group = "capacitor_bank.step_batch_1000"
+    benchmark.pedantic(call, rounds=3, iterations=1)
+
+
 # ---------------------------------------------------------------------------
 # free_response analytical dispatch
 # ---------------------------------------------------------------------------
@@ -143,3 +214,33 @@ def test_bench_rust_free_response(benchmark, rust_spec: rust.CapacitorBankSpec) 
 
     benchmark.group = "capacitor_bank.free_response"
     benchmark(call)
+
+
+def test_bench_julia_cli_free_response(benchmark) -> None:
+    if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
+        pytest.skip("Julia executable not available")
+
+    julia_code = f"""
+        using SCPNMIFCore
+        spec = CapacitorBankSpec(
+            {CAPACITANCE_F},
+            {INDUCTANCE_H},
+            {SERIES_RESISTANCE_OHM},
+            {VOLTAGE_MAX_V},
+            {RECHARGE_POWER_KW},
+        )
+        voltage, current = free_response(spec, 1.0e-5, {INITIAL_VOLTAGE_V})
+        print(voltage + current)
+    """
+
+    def call() -> None:
+        proc = subprocess.run(
+            [JULIA_BIN, f"--project={REPO_ROOT / 'julia' / 'SCPNMIFCore'}", "-e", julia_code],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        float(proc.stdout.strip())
+
+    benchmark.group = "capacitor_bank.free_response"
+    benchmark.pedantic(call, rounds=3, iterations=1)

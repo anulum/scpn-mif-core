@@ -23,6 +23,10 @@ and ModelingToolkit.jl before Rust ports.
 module SCPNMIFCore
 
 export VERSION,
+    CRITICALLY_DAMPED,
+    CapacitorBank,
+    CapacitorBankSpec,
+    CapacitorBankState,
     DopplerKuramoto,
     DopplerKuramotoReport,
     DopplerKuramotoSpec,
@@ -32,6 +36,15 @@ export VERSION,
     MovingFrameUPDEReport,
     MovingFrameUPDESpec,
     MovingFrameUPDEState,
+    OVERDAMPED,
+    RLCRegime,
+    UNDERDAMPED,
+    analytical_current_critically_damped,
+    analytical_current_overdamped,
+    analytical_current_underdamped,
+    analytical_voltage_critically_damped,
+    analytical_voltage_overdamped,
+    analytical_voltage_underdamped,
     collision_imminent,
     doppler_derivatives,
     evaluate_faraday_recovery,
@@ -39,11 +52,14 @@ export VERSION,
     evaluate_moving_frame_upde,
     faraday_back_emf,
     flux_rate,
+    free_response,
     magnetic_flux,
     moving_frame_derivatives,
     order_parameter,
     phase_lock_error,
     recovered_power,
+    regime,
+    reset!,
     step!,
     time_to_reference_s
 
@@ -51,6 +67,7 @@ const VERSION = v"0.0.1"
 
 include("doppler_kuramoto.jl")
 include("moving_frame_upde.jl")
+include("capacitor_bank.jl")
 
 """
     FaradayRecoverySpec(turns, load_resistance_ohm; coupling_efficiency=1.0)

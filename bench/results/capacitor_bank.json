@@ -1,63 +1,110 @@
 {
   "schema_version": "1.0.0",
   "kernel": "capacitor_bank",
-  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "host": "x86_64",
   "python_version": "3.12.3",
-  "datetime": "2026-06-04T02:59:07.483245+00:00",
+  "datetime": "2026-06-04T11:28:05.140596+00:00",
+  "notes": [
+    "Local workstation comparison benchmark; not CPU-isolated per 2026-06-04 benchmark isolation broadcast. Julia entries include CLI startup and are dispatch-order evidence, not in-process kernel latency."
+  ],
   "tests": [
     {
       "name": "test_bench_python_step_single",
       "group": "capacitor_bank.step_single",
-      "mean_ns": 21192.31943451748,
-      "stddev_ns": 8205.136860914126,
-      "median_ns": 22140.447981655598,
-      "ops_per_s": 47186.90670409709,
-      "rounds": 3556
+      "mean_ns": 11141.037496214429,
+      "stddev_ns": 9239.79096473115,
+      "median_ns": 9676.208719611168,
+      "ops_per_s": 89758.24741096028,
+      "rounds": 5415
     },
     {
       "name": "test_bench_rust_step_single",
       "group": "capacitor_bank.step_single",
-      "mean_ns": 407.79112597912825,
-      "stddev_ns": 7064.792496747793,
-      "median_ns": 341.096892952919,
-      "ops_per_s": 2452235.8047859594,
-      "rounds": 138790
+      "mean_ns": 163.66455251383505,
+      "stddev_ns": 63.98807952285916,
+      "median_ns": 143.2490535080433,
+      "ops_per_s": 6110058.559659503,
+      "rounds": 131458
+    },
+    {
+      "name": "test_bench_julia_cli_step_single",
+      "group": "capacitor_bank.step_single",
+      "mean_ns": 713275407.3633502,
+      "stddev_ns": 574588718.5864381,
+      "median_ns": 395892259.19917226,
+      "ops_per_s": 1.401983006390951,
+      "rounds": 3
     },
     {
       "name": "test_bench_python_step_batch_1000",
       "group": "capacitor_bank.step_batch_1000",
-      "mean_ns": 29843767.85838429,
-      "stddev_ns": 6712210.931751028,
-      "median_ns": 28687802.026979625,
-      "ops_per_s": 33.5078333521838,
-      "rounds": 34
+      "mean_ns": 11737915.540031869,
+      "stddev_ns": 2206339.2978560133,
+      "median_ns": 11101310.956291854,
+      "ops_per_s": 85.19400200057028,
+      "rounds": 68
     },
     {
       "name": "test_bench_rust_step_batch_1000",
       "group": "capacitor_bank.step_batch_1000",
-      "mean_ns": 255658.36980608004,
-      "stddev_ns": 404410.6926716756,
-      "median_ns": 183208.14706385136,
-      "ops_per_s": 3911.469828891235,
-      "rounds": 4323
+      "mean_ns": 88257.05790584064,
+      "stddev_ns": 12216.65762662892,
+      "median_ns": 84716.12818539143,
+      "ops_per_s": 11330.538584991991,
+      "rounds": 9332
+    },
+    {
+      "name": "test_bench_julia_cli_step_batch_1000",
+      "group": "capacitor_bank.step_batch_1000",
+      "mean_ns": 3461950445.082039,
+      "stddev_ns": 64347007.55979482,
+      "median_ns": 3458097879.0763764,
+      "ops_per_s": 0.28885451015642793,
+      "rounds": 3
     },
     {
       "name": "test_bench_python_free_response",
       "group": "capacitor_bank.free_response",
-      "mean_ns": 2019.6458705320165,
-      "stddev_ns": 3760.5467600026304,
-      "median_ns": 1776.0321497917175,
-      "ops_per_s": 495136.3080977059,
-      "rounds": 7822
+      "mean_ns": 868.1267696136839,
+      "stddev_ns": 299.3579627567821,
+      "median_ns": 813.9759302139282,
+      "ops_per_s": 1151905.4992913068,
+      "rounds": 36453
     },
     {
       "name": "test_bench_rust_free_response",
       "group": "capacitor_bank.free_response",
-      "mean_ns": 430.1546865336434,
-      "stddev_ns": 1574.3478569235244,
-      "median_ns": 370.8992153406143,
-      "ops_per_s": 2324745.100555327,
-      "rounds": 90066
+      "mean_ns": 139.6566559729831,
+      "stddev_ns": 37.09363849687123,
+      "median_ns": 130.36128038015121,
+      "ops_per_s": 7160417.76192502,
+      "rounds": 197352
+    },
+    {
+      "name": "test_bench_julia_cli_free_response",
+      "group": "capacitor_bank.free_response",
+      "mean_ns": 321381056.3708345,
+      "stddev_ns": 19680069.33082563,
+      "median_ns": 311070991.9128567,
+      "ops_per_s": 3.111571077935975,
+      "rounds": 3
     }
-  ]
+  ],
+  "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "benchmark_context": {
+    "command": "./.venv/bin/pytest bench/kernels/bench_capacitor_bank.py --benchmark-only --benchmark-json=bench/results/capacitor_bank_raw.json --no-cov",
+    "cpu_isolated": false,
+    "isolation_method": "none; local workstation comparison run",
+    "affinity_or_reserved_cores": "none",
+    "host_load_before": "not recorded before this local run",
+    "host_load_after": "3.10 3.50 3.84 3/2823 1956250",
+    "cpu_governor": "powersave",
+    "heavy_jobs_running": "not reserved; user requested CPU-sensitive work earlier, so this is not a production benchmark claim",
+    "runtime_versions": {
+      "python": "3.12.3",
+      "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+      "julia": "1.12.6"
+    },
+    "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+  }
 }

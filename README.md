@@ -25,8 +25,8 @@ UltraScale+ FPGAs.
 > Doppler-Kuramoto, MIF-002 moving-frame UPDE, MIF-003 merge-window
 > monitor, MIF-004 pulsed-shot FSM, MIF-005 capacitor-bank dynamics, and
 > MIF-009 Faraday recovery now ship as upstream-pending Python/Rust APIs;
-> MIF-001, MIF-002, and MIF-009 also have Julia counterparts, and MIF-004
-> has a Lean transition-cycle theorem.
+> MIF-001, MIF-002, MIF-005, and MIF-009 also have Julia counterparts, and
+> MIF-004 has a Lean transition-cycle theorem.
 > See [`docs/api/`](docs/api/index.md) for the implemented surfaces.
 
 ## Reading path
@@ -227,7 +227,7 @@ testing infrastructure, benchmark scaffolding, documentation site, CI/CD
 workflows, and the compatibility matrix `LOCKED-skeleton` row. Current main
 also contains the first P1 upstream-pending modules:
 
-- MIF-005 capacitor-bank dynamics with Python and Rust paths.
+- MIF-005 capacitor-bank dynamics with Python, Rust, and Julia paths.
 - MIF-009 Faraday recovery with Python, Rust, and Julia paths.
 
 The broader public surface still stabilises at `0.1.0`.

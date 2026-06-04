@@ -39,6 +39,8 @@ uses `kinematic.merge_window` for both the single-sample predicate and the
 256-sample trace; Rust is fastest among its allocated Python and Rust surfaces.
 MIF-004 uses `lifecycle.pulsed_shot_fsm` for the eight-step lifecycle
 campaign; Rust is fastest among its allocated Python and Rust runtime surfaces.
+MIF-005 uses `lifecycle.capacitor_bank` for the series RLC bank; Rust is
+fastest across the Python, Rust, and Julia comparison groups.
 
 ## Running
 

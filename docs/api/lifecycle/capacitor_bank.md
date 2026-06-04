@@ -128,7 +128,8 @@ print(f"voltage = {bank.state.voltage_V:.3f} V, current = {bank.state.current_A:
 | Recharge status (target, zero-t, long-t saturation, linear energy, negative-t, zero-power) | 6 unit tests pass |
 | Hypothesis property — natural response stays in the initial-voltage envelope | 80 randomised examples pass |
 | Python ↔ Rust parity across the regime grid and 16 random seeds | 142 parity tests pass at 1e-12 |
-| Total | 207 tests pass at 97.35 percent coverage |
+| Julia reference — three regimes, free response, Crank-Nicolson stepping, external load, reset, rejection paths | 19 tests pass |
+| Total | Python/Rust core suite plus Julia reference tests pass under their dedicated gates |
 
 ## Benchmarks
 
@@ -145,24 +146,30 @@ Run locally with:
 
 ```bash
 make bridge        # build the Rust extension
-make bench         # run the Python and Rust benchmark harness
+pytest bench/kernels/bench_capacitor_bank.py --benchmark-only
 ```
 
 Results land in `bench/results/capacitor_bank.json`; the multi-language
 dispatch table at `bench/dispatch.toml` is updated to track the fastest
 measured backend.
 
-Measured on the local i5-11600K rig with Python 3.12.3 and Rust 1.85.0:
+Measured on the local workstation with Python 3.12.3, Rust 1.85.0, and Julia
+1.12.6. This is local comparison evidence, not CPU-isolated production
+benchmark evidence. Julia is measured through CLI startup, so those entries
+validate parity and dispatch ordering rather than in-process kernel latency.
 
-| Operation                                     | Python (NumPy) | Rust         | Speed-up |
-| :---                                          | :---           | :---         | :---     |
-| `step` single Crank-Nicolson update           | 21.2 µs        | 408 ns       | 52×      |
-| `step` 1 000-step batch                       | 29.8 ms        | 256 µs       | 117×     |
-| `free_response` analytical dispatch           | 2.02 µs        | 481 ns       | 4.2×     |
+| Operation                                     | Python (NumPy) | Rust     | Julia CLI | Dispatch order |
+| :---                                          | :---           | :---     | :---      | :--- |
+| `step` single Crank-Nicolson update           | 11.1 µs        | 164 ns   | 713 ms    | Rust, Python, Julia |
+| `step` 1 000-step batch                       | 11.7 ms        | 88.3 µs  | 3.46 s    | Rust, Python, Julia |
+| `free_response` analytical dispatch           | 868 ns         | 140 ns   | 321 ms    | Rust, Python, Julia |
 
-The two paths agree at machine epsilon (≤ 10⁻¹² relative tolerance,
-verified across 142 parity tests in
-`tests/unit/lifecycle/test_capacitor_bank_rust_parity.py`).
+The Python and Rust paths agree at machine epsilon (≤ 10⁻¹² relative
+tolerance, verified across 142 parity tests in
+`tests/unit/lifecycle/test_capacitor_bank_rust_parity.py`). The Julia
+reference is covered by `julia/SCPNMIFCore/test/runtests.jl`, including all
+three damping regimes, natural free response, Crank-Nicolson stepping,
+external-load contrast, reset, and rejection paths.
 
 ## Cross-repository touch points
 

@@ -11,7 +11,7 @@
 # benchmark campaign. Manual edits are blocked by the preflight gate.
 
 schema_version = "1.0.0"
-last_updated = "2026-06-04T1059"
+last_updated = "2026-06-04T1128"
 benchmark_host = "i5-11600K (mining rig)"
 
 [kernels]
@@ -27,11 +27,10 @@ benchmark_host = "i5-11600K (mining rig)"
 "kinematic.moving_frame_upde" = ["rust", "python", "julia"]
 "kinematic.merge_window" = ["rust", "python"]
 "lifecycle.pulsed_shot_fsm" = ["rust", "python"]
-# MIF-005 capacitor bank: measured Rust speedup is 75x on the single
-# Crank-Nicolson step and 171x on the 1 000-step batch versus the NumPy
-# reference on the local i5-11600K rig (see bench/results/capacitor_bank.json),
-# so Rust is the fastest measured backend.
-"lifecycle.capacitor_bank" = ["rust", "python"]
+# MIF-005 capacitor bank: Rust is fastest for the single Crank-Nicolson step,
+# 1 000-step batch, and analytical free-response groups. Julia is measured via
+# CLI startup and remains a research-reference backend, not the runtime path.
+"lifecycle.capacitor_bank" = ["rust", "python", "julia"]
 "aer.spike_buffer"                    = ["python"]
 "aer.decode_rate"                     = ["python"]
 "physics.frc_rigid_rotor"             = ["python"]

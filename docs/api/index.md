@@ -35,7 +35,7 @@ Implemented pre-alpha API pages:
   phase lock predicate with Python and Rust surfaces.
 - [Pulsed-shot FSM](lifecycle/pulsed_shot_fsm.md) — MIF-004, eight-state
   lifecycle scheduler with Python, Rust, and Lean surfaces.
-- [Capacitor bank](lifecycle/capacitor_bank.md) — MIF-005, Python reference
-  with Rust-backed PyO3 acceleration.
+- [Capacitor bank](lifecycle/capacitor_bank.md) — MIF-005, series RLC
+  capacitor-bank model with Python, Rust, and Julia surfaces.
 - [Faraday recovery](physics/faraday_recovery.md) — MIF-009, exact
   Faraday-law carrier with Python, Rust, and Julia surfaces.

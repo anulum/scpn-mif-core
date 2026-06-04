@@ -102,3 +102,56 @@ end
     @test state.separation_m <= 4.0e-3
     @test collision_imminent(engine; eps_m = 2.0e-3)
 end
+
+@testset "MIF-005 Capacitor bank" begin
+    spec = CapacitorBankSpec(100e-6, 100e-6, 0.5, 10_000.0, 10.0)
+    critical_spec = CapacitorBankSpec(100e-6, 100e-6, 2.0, 10_000.0, 10.0)
+    overdamped_spec = CapacitorBankSpec(100e-6, 100e-6, 10.0, 10_000.0, 10.0)
+    @test regime(spec) == UNDERDAMPED
+    @test regime(critical_spec) == CRITICALLY_DAMPED
+    @test regime(overdamped_spec) == OVERDAMPED
+
+    t = 1.0e-5
+    v0 = 5000.0
+    alpha = spec.series_resistance_ohm / (2.0 * spec.inductance_H)
+    omega0 = 1.0 / sqrt(spec.inductance_H * spec.capacitance_F)
+    omega_d = sqrt(omega0^2 - alpha^2)
+    expected_v = exp(-alpha * t) * v0 * (cos(omega_d * t) + (alpha / omega_d) * sin(omega_d * t))
+    expected_i = (v0 / (spec.inductance_H * omega_d)) * exp(-alpha * t) * sin(omega_d * t)
+
+    v, i = free_response(spec, t, v0)
+    @test v ≈ expected_v rtol = 1e-12
+    @test i ≈ expected_i rtol = 1e-12
+    @test free_response(critical_spec, 0.0, v0) == (v0, 0.0)
+    v_over, i_over = free_response(overdamped_spec, t, v0)
+    @test isfinite(v_over)
+    @test isfinite(i_over)
+
+    bank = CapacitorBank(spec, v0)
+    state = nothing
+    for _ in 1:100
+        state = step!(bank, 1.0e-7)
+    end
+    v_anal, i_anal = free_response(spec, 1.0e-5, v0)
+    @test state.voltage_V ≈ v_anal rtol = 1.0e-3
+    @test state.current_A ≈ i_anal rtol = 1.0e-3
+    @test state.energy_J ≈ 0.5 * spec.capacitance_F * state.voltage_V^2 rtol = 1e-15
+
+    loaded = CapacitorBank(spec, v0)
+    natural = CapacitorBank(spec, v0)
+    for _ in 1:50
+        step!(loaded, 1.0e-7, 50.0)
+        step!(natural, 1.0e-7)
+    end
+    @test loaded.state.energy_J < natural.state.energy_J
+
+    reset!(bank, 3000.0)
+    @test bank.state.t == 0.0
+    @test bank.state.voltage_V == 3000.0
+    @test bank.state.current_A == 0.0
+
+    @test_throws ArgumentError CapacitorBankSpec(-1.0, 100e-6, 0.5, 10_000.0, 10.0)
+    @test_throws ArgumentError CapacitorBank(spec, spec.voltage_max_V + 1.0)
+    @test_throws ArgumentError reset!(bank, -1.0)
+    @test_throws ArgumentError free_response(spec, -1.0e-9, v0)
+end

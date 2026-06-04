@@ -34,6 +34,7 @@ def test_dispatch_lifecycle_capacitor_bank_listed() -> None:
     assert backends, "lifecycle.capacitor_bank must be registered"
     assert backends[0] == "rust", f"expected rust as fastest, got {backends!r}"
     assert "python" in backends, "python must remain the fall-back option"
+    assert "julia" in backends, "julia benchmark surface must remain listed"
 
 
 def test_dispatch_lifecycle_pulsed_shot_fsm_listed() -> None:

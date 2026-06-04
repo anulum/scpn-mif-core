@@ -57,7 +57,7 @@ Pre-alpha. The repository has moved past P0 bootstrap into the first P1
 local physics/lifecycle surfaces:
 
 - MIF-005 capacitor-bank state model: Python reference, Rust PyO3 bridge,
-  benchmarked dispatch, and API documentation.
+  Julia counterpart, benchmarked dispatch, and API documentation.
 - MIF-001 Doppler-Kuramoto kinematic carrier: Python reference, Rust kernel,
   Julia counterpart, benchmarked dispatch, and API documentation.
 - MIF-002 moving-frame UPDE carrier: Python reference, Rust kernel, Julia

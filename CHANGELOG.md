@@ -29,6 +29,10 @@
   capacitor-bank guards, JSONL audit log, Python API, Rust `mif-lifecycle`
   kernel, PyO3 bindings, Lean transition-cycle theorem, parity tests,
   benchmark summary, and fastest-measured dispatch entry.
+- MIF-005 capacitor-bank dynamics with series RLC closed forms,
+  Crank-Nicolson state integration, Python API, Rust `mif-lifecycle`
+  kernel, PyO3 bindings, Julia counterpart, parity tests, benchmark summary,
+  and fastest-measured dispatch entry.
 - MIF-009 Faraday induction recovery carrier with exact product-rule EMF,
   waveform energy integration, Python API, Rust `mif-core` kernel,
   PyO3 bindings, Julia counterpart, parity tests, benchmark summaries, and
