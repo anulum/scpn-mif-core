@@ -37,6 +37,10 @@
   waveform energy integration, Python API, Rust `mif-core` kernel,
   PyO3 bindings, Julia counterpart, parity tests, benchmark summaries, and
   fastest-measured dispatch entries for scalar and waveform modes.
+- MIF-011 Lean 4 kinematic safety invariant proving the sampled 2 mm axial
+  merge-window contract under a non-expansive Lipschitz-bounded control
+  envelope, with a focused proof-surface regression test and API
+  documentation.
 
 ## [0.0.1] - 2026-06-03
 

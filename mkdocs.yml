@@ -113,6 +113,8 @@ nav:
           - Capacitor bank: api/lifecycle/capacitor_bank.md
       - Physics:
           - Faraday recovery: api/physics/faraday_recovery.md
+      - Formal:
+          - Kinematic safety: api/formal/kinematic_safety.md
   - Papers: papers/index.md
 
 copyright: >

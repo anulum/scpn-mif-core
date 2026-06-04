@@ -68,6 +68,9 @@ local physics/lifecycle surfaces:
   transition-cycle theorem, benchmarked dispatch, and API documentation.
 - MIF-009 Faraday recovery carrier: Python reference, Rust kernel, Julia
   counterpart, benchmarked dispatch, and API documentation.
+- MIF-011 kinematic safety invariant: Lean 4 proof that the sampled 2 mm
+  axial merge-window contract is invariant under a non-expansive
+  Lipschitz-bounded control envelope.
 
 Self-consistent FRC compression, Hall-MHD, MRTI, and tilt-mode solvers remain
 blocked on the SCPN-FUSION-CORE ownership lane described in the internal

@@ -39,3 +39,5 @@ Implemented pre-alpha API pages:
   capacitor-bank model with Python, Rust, and Julia surfaces.
 - [Faraday recovery](physics/faraday_recovery.md) — MIF-009, exact
   Faraday-law carrier with Python, Rust, and Julia surfaces.
+- [Kinematic safety](formal/kinematic_safety.md) — MIF-011, Lean 4 sampled
+  invariant for the 2 mm axial merge-window contract.
