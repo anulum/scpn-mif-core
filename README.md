@@ -26,20 +26,23 @@ pulsed magneto-inertial fusion plasmas on field-reversed configurations.
 Sub-50-nanosecond combinatorial sensor-to-actuator triggering on AMD Xilinx
 UltraScale+ FPGAs.
 
-> **Status:** pre-alpha with P1 local surfaces in progress. MIF-001
-> Doppler-Kuramoto, MIF-002 moving-frame UPDE, MIF-003 merge-window
-> monitor, MIF-004 pulsed-shot FSM, MIF-005 capacitor-bank dynamics, MIF-006
-> AER spike-buffer decoding, and MIF-009 Faraday recovery now ship as
-> upstream-pending Python/Rust APIs;
-> MIF-001, MIF-002, MIF-005, and MIF-009 also have Julia counterparts, and
-> MIF-004 has a Lean adjacency/minimal-cycle proof. MIF-005 and MIF-009 have Lean
-> energy-bookkeeping proofs. PHA-C.6/MIF-011 add the Lean sampled invariant
-> template and 2 mm axial merge-window instantiation.
-> MIF-012 adds the Python/Rust plasmoid-merger Petri-net FSM with
-> boundedness/liveness campaigns and a Lean one-safety proof. MIF-007 adds the
-> B-dot ADC to Q8.8 AER spike-rate quantiser with a Python golden reference and
-> synthesisable SystemVerilog.
-> See [`docs/api/`](docs/api/index.md) for the implemented surfaces.
+> **Status:** pre-alpha with P1 local surfaces in progress. The current
+> upstream-pending API set includes MIF-001 Doppler-Kuramoto synchronisation,
+> MIF-002 moving-frame UPDE remap, MIF-003 merge-window monitoring, MIF-004
+> pulsed-shot scheduling, MIF-005 capacitor-bank dynamics, MIF-006 AER
+> spike-buffer decoding, MIF-007 B-dot ADC to Q8.8 spike-rate quantisation,
+> MIF-009 Faraday recovery, MIF-011 kinematic safety, MIF-012 plasmoid-merger
+> Petri-net control, MIF-016 diagnostic normalisation, MIF-017 sensor stress
+> injection, and MIF-018 DAQ bus replay. Python and Rust are present for
+> hot-path surfaces where applicable; Julia exists for MIF-001, MIF-002,
+> MIF-005, MIF-009, MIF-011, MIF-016, and MIF-017; Go is present for MIF-018.
+> Lean proofs cover the current safety/bookkeeping contracts for MIF-004,
+> MIF-005, MIF-009, MIF-011, and MIF-012. MIF-007 has Python golden-reference,
+> synthesisable SystemVerilog, Yosys, Verilator, and local regression evidence.
+> MIF-015 now has a local ADC/Q8.8/RTL-trace cosimulation harness for the
+> MIF-007 sensor path. Vivado ZU3EG timing, hardware waveform equivalence, and
+> the P6 hardware trigger chain remain open hardware/tooling lanes. See
+> [`docs/api/`](docs/api/index.md) for the implemented surfaces.
 
 ## Reading path
 
