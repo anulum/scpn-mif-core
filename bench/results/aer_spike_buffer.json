@@ -3,28 +3,46 @@
   "kernel": "aer_spike_buffer",
   "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
   "python_version": "3.12.3",
-  "datetime": "2026-06-04T13:52:11.674062+00:00",
+  "datetime": "2026-06-05T02:04:33+00:00",
   "notes": [
-    "MIF-006 has Python and Rust spike-buffer surfaces; Go is allocated only for optional network-side router scaffolding and is not a local decode backend."
+    "MIF-006 has Python and Rust spike-buffer surfaces; Go is allocated only for optional network-side router scaffolding and is not a local decode backend.",
+    "Event timestamps are bounded to the shared u64 nanosecond domain on Python and Rust/PyO3 surfaces.",
+    "Non-isolated local comparison run on a workstation with powersave governor and nontrivial host load; do not treat as a production performance claim."
   ],
   "tests": [
     {
       "name": "test_bench_python_push_256",
       "group": "aer_spike_buffer.push_256",
-      "mean_ns": 434321.4617171264,
-      "stddev_ns": 146964.13372208347,
-      "median_ns": 374746.6253116727,
-      "ops_per_s": 2302.4420576556727,
-      "rounds": 1078
+      "mean_ns": 288969.73524748156,
+      "stddev_ns": 35460.78765612299,
+      "median_ns": 277952.9895633459,
+      "ops_per_s": 3460.5700114012725,
+      "rounds": 2395
     },
     {
       "name": "test_bench_rust_push_256",
       "group": "aer_spike_buffer.push_256",
-      "mean_ns": 21149.680678948666,
-      "stddev_ns": 6915.236198919298,
-      "median_ns": 18988.03748190403,
-      "ops_per_s": 47282.03773758864,
-      "rounds": 25921
+      "mean_ns": 14960.93762480499,
+      "stddev_ns": 2406.195971968734,
+      "median_ns": 14367.04769730568,
+      "ops_per_s": 66840.73051290691,
+      "rounds": 33343
     }
-  ]
+  ],
+  "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "benchmark_context": {
+    "command": "./.venv/bin/pytest bench/kernels/bench_aer_ingress.py --benchmark-only --benchmark-json=bench/results/aer_ingress_raw.json --no-cov",
+    "cpu_isolated": false,
+    "isolation_method": "none; local workstation comparison run",
+    "affinity_or_reserved_cores": "none",
+    "host_load_before": "2.68 3.14 3.34 5/3202 2759573",
+    "host_load_after": "2.59 3.10 3.32 14/3215 2759926",
+    "cpu_governor": "powersave",
+    "heavy_jobs_running": "not reserved; local load was nontrivial, so this is not a production benchmark claim",
+    "runtime_versions": {
+      "python": "3.12.3",
+      "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)"
+    },
+    "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+  }
 }

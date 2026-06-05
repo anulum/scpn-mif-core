@@ -24,9 +24,12 @@ temporal[a] = 1 - (first_spike_time[a] - t_start) / W
 isi[a]      = (n_spikes[a] - 1) / (last_spike_time[a] - first_spike_time[a])
 ```
 
-Channels with no applicable spikes decode to `0.0`. Timestamps must be
-monotone at buffer insertion time. Addresses outside `n_channels` fail closed
-at decode time.
+Channels with no applicable spikes decode to `0.0`. Event timestamps,
+explicit window starts, and decode-window lengths are non-negative `u64`
+nanosecond counters on both Python and Rust/PyO3 surfaces. Timestamps must be
+monotone at buffer insertion time, addresses outside `n_channels` fail closed
+at decode time, and decode windows whose exclusive stop would overflow `u64`
+are rejected before feature extraction.
 
 ## Python API
 
@@ -57,18 +60,22 @@ channels, a 100 ns decode window, and five monotone events. Tests verify:
 - exact ISI feature vector `[0.05, 0.0, 0.0, 0.0125]`;
 - deterministic ring-buffer overflow behaviour;
 - fail-closed handling for non-monotone timestamps and out-of-range addresses;
+- Python/Rust parity for the `u64` timestamp domain and decode-window overflow;
 - Python/Rust parity through the PyO3 surface.
 
 ## Benchmarks
 
-Measured on the local i5-11600K rig using Python 3.12.3 and Rust 1.85.0.
+Measured on the local i5-11600K rig using Python 3.12.3 and Rust 1.85.0. This
+was a non-isolated workstation comparison with the CPU governor set to
+`powersave` and nontrivial host load; treat it as regression evidence, not a
+production latency claim.
 
 | Group | Backend | Mean | Result |
 |---|---:|---:|---|
-| `push_256` | Rust | 21.15 us | fastest |
-| `push_256` | Python | 434.32 us | 20.5x slower than Rust |
-| `decode_256` | Rust | 1.72 us | fastest |
-| `decode_256` | Python | 66.46 us | 38.6x slower than Rust |
+| `push_256` | Rust | 14.96 us | fastest |
+| `push_256` | Python | 288.97 us | 19.3x slower than Rust |
+| `decode_256` | Rust | 1.31 us | fastest |
+| `decode_256` | Python | 51.59 us | 39.5x slower than Rust |
 
 Raw summaries: `bench/results/aer_spike_buffer.json` and
 `bench/results/aer_decode_rate.json`.

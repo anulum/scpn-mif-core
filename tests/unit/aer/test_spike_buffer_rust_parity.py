@@ -22,6 +22,7 @@ rust = pytest.importorskip(
 from scpn_mif_core.aer import AERDecodeSpec, AERSpikeEvent, SpikeBuffer, decode_spike_features
 
 FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "aer" / "shd_spike_fixture.json"
+U64_MAX = (1 << 64) - 1
 
 
 def _fixture_doc() -> dict[str, object]:
@@ -96,3 +97,21 @@ def test_rust_adapter_rejects_invalid_event_object(monkeypatch: pytest.MonkeyPat
 
     with pytest.raises(TypeError, match="AERSpikeEvent"):
         buffer.push(object())  # type: ignore[arg-type]
+
+
+def test_python_and_rust_reject_window_overflow() -> None:
+    py_buffer = SpikeBuffer(capacity=1)
+    py_buffer.push(AERSpikeEvent(address=0, t_ns=U64_MAX - 1))
+    rust_buffer = rust.AERSpikeBuffer(1)
+    rust_buffer.push(0, U64_MAX - 1, 1)
+
+    with pytest.raises(ValueError, match="decode window end timestamp overflowed u64"):
+        decode_spike_features(
+            py_buffer,
+            AERDecodeSpec(n_channels=1, window_ns=2, strategy="rate", start_ns=U64_MAX - 1),
+        )
+    with pytest.raises(ValueError, match="decode window end timestamp overflowed u64"):
+        rust.decode_aer_features(
+            rust_buffer,
+            rust.AERDecodeSpec(1, 2, "rate", start_ns=U64_MAX - 1),
+        )

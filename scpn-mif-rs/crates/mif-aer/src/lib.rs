@@ -401,4 +401,19 @@ mod tests {
         );
         assert_eq!(buffer.push(3, 1, 1), Err(AerError::NonMonotoneTimestamp));
     }
+
+    #[test]
+    fn decode_rejects_window_overflow() {
+        let mut buffer = AerSpikeBuffer::new(1).expect("positive capacity");
+        buffer
+            .push(0, u64::MAX - 1, 1)
+            .expect("valid high timestamp spike");
+        let spec =
+            AerDecodeSpec::new(1, 2, DecodeStrategy::Rate, Some(u64::MAX - 1)).expect("valid spec");
+
+        assert_eq!(
+            decode_spike_observation(&buffer, spec),
+            Err(AerError::WindowOverflow)
+        );
+    }
 }

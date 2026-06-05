@@ -27,6 +27,7 @@ from numpy.typing import NDArray
 DecodeStrategy = Literal["rate", "temporal", "isi"]
 FloatArray = NDArray[np.float64]
 _STRATEGIES: frozenset[str] = frozenset({"rate", "temporal", "isi"})
+_U64_MAX = (1 << 64) - 1
 
 
 @dataclass(frozen=True)
@@ -39,7 +40,7 @@ class AERSpikeEvent:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "address", _non_negative_int("address", self.address))
-        object.__setattr__(self, "t_ns", _non_negative_int("t_ns", self.t_ns))
+        object.__setattr__(self, "t_ns", _u64_int("t_ns", self.t_ns))
         polarity = _integer("polarity", self.polarity)
         if polarity not in {-1, 1}:
             raise ValueError("polarity must be -1 or 1")
@@ -57,11 +58,11 @@ class AERDecodeSpec:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "n_channels", _positive_int("n_channels", self.n_channels))
-        object.__setattr__(self, "window_ns", _positive_int("window_ns", self.window_ns))
+        object.__setattr__(self, "window_ns", _positive_u64_int("window_ns", self.window_ns))
         if self.strategy not in _STRATEGIES:
             raise ValueError("strategy must be one of: rate, temporal, isi")
         if self.start_ns is not None:
-            object.__setattr__(self, "start_ns", _non_negative_int("start_ns", self.start_ns))
+            object.__setattr__(self, "start_ns", _u64_int("start_ns", self.start_ns))
 
 
 @dataclass(frozen=True)
@@ -81,8 +82,8 @@ class AERDecodedObservation:
         if features.size != self.spec.n_channels:
             raise ValueError("features must contain n_channels entries")
         object.__setattr__(self, "features", features)
-        object.__setattr__(self, "window_start_ns", _non_negative_int("window_start_ns", self.window_start_ns))
-        stop = _non_negative_int("window_stop_ns", self.window_stop_ns)
+        object.__setattr__(self, "window_start_ns", _u64_int("window_start_ns", self.window_start_ns))
+        stop = _u64_int("window_stop_ns", self.window_stop_ns)
         if stop < self.window_start_ns:
             raise ValueError("window_stop_ns must be greater than or equal to window_start_ns")
         object.__setattr__(self, "window_stop_ns", stop)
@@ -186,6 +187,8 @@ def decode_spike_observation(buffer: SpikeBuffer, spec: AERDecodeSpec) -> AERDec
         raise TypeError("spec must be an AERDecodeSpec")
     start_ns = _window_start(buffer.events, spec)
     stop_ns = start_ns + spec.window_ns
+    if stop_ns > _U64_MAX:
+        raise ValueError("decode window end timestamp overflowed u64")
     window_events = tuple(event for event in buffer.events if start_ns <= event.t_ns < stop_ns)
     _require_addresses_in_range(window_events, spec.n_channels)
 
@@ -271,6 +274,20 @@ def _non_negative_int(field: str, value: int) -> int:
 
 def _positive_int(field: str, value: int) -> int:
     parsed = _integer(field, value)
+    if parsed <= 0:
+        raise ValueError(f"{field} must be positive")
+    return parsed
+
+
+def _u64_int(field: str, value: int) -> int:
+    parsed = _non_negative_int(field, value)
+    if parsed > _U64_MAX:
+        raise ValueError(f"{field} must fit in u64")
+    return parsed
+
+
+def _positive_u64_int(field: str, value: int) -> int:
+    parsed = _u64_int(field, value)
     if parsed <= 0:
         raise ValueError(f"{field} must be positive")
     return parsed

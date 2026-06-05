@@ -28,6 +28,7 @@ from scpn_mif_core.aer import (
 )
 
 FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "aer" / "shd_spike_fixture.json"
+U64_MAX = (1 << 64) - 1
 
 
 def _fixture_doc() -> dict[str, object]:
@@ -177,6 +178,26 @@ def test_validation_rejects_invalid_specs_events_and_reports() -> None:
         AERDecodedObservation(AERDecodeSpec(1, 10), np.zeros(1), 10, 9, 0)
     with pytest.raises(ValueError, match="spike_count"):
         AERDecodedObservation(AERDecodeSpec(1, 10), np.zeros(1), 0, 10, -1)
+
+
+def test_timestamp_fields_match_rust_u64_domain() -> None:
+    with pytest.raises(ValueError, match="t_ns must fit in u64"):
+        AERSpikeEvent(address=0, t_ns=U64_MAX + 1)
+    with pytest.raises(ValueError, match="window_ns must fit in u64"):
+        AERDecodeSpec(n_channels=1, window_ns=U64_MAX + 1)
+    with pytest.raises(ValueError, match="start_ns must fit in u64"):
+        AERDecodeSpec(n_channels=1, window_ns=1, start_ns=U64_MAX + 1)
+    with pytest.raises(ValueError, match="window_stop_ns must fit in u64"):
+        AERDecodedObservation(AERDecodeSpec(1, 1), np.zeros(1), 0, U64_MAX + 1, 0)
+
+
+def test_decode_rejects_u64_window_overflow() -> None:
+    buffer = SpikeBuffer(capacity=1)
+    buffer.push(AERSpikeEvent(address=0, t_ns=U64_MAX - 1))
+    spec = AERDecodeSpec(n_channels=1, window_ns=2, start_ns=U64_MAX - 1)
+
+    with pytest.raises(ValueError, match="decode window end timestamp overflowed u64"):
+        decode_spike_observation(buffer, spec)
 
 
 def test_dispatch_falls_back_to_python_when_rust_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
