@@ -3,72 +3,82 @@
   "kernel": "diagnostic_stress_inject",
   "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
   "python_version": "3.12.3",
-  "datetime": "2026-06-04T17:00:08.371441+00:00",
+  "datetime": "2026-06-05T10:39:37.197775+00:00",
   "benchmark_context": {
     "command": "./.venv/bin/pytest bench/kernels/bench_diagnostic_stress_inject.py --benchmark-only --benchmark-json=bench/results/diagnostic_stress_inject_raw.json --no-cov",
     "cpu_isolated": false,
     "isolation_method": "none",
     "affinity": "none",
-    "host_load_before": "3.99 3.43 3.25 8/3177 2357411",
-    "host_load_after": "4.03 3.48 3.27 2/3166 2357915",
+    "host_load_before": "3.41 3.64 2.91 2/3229 3058187",
+    "host_load_after": "3.27 3.60 2.91 6/3244 3058789",
     "governor": "powersave",
-    "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz, 6 cores / 12 threads",
+    "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz, logical CPUs: 12",
     "runtime_versions": {
       "python": "3.12.3",
       "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
-      "julia": "1.12.6"
+      "julia": "julia version 1.12.6"
     },
-    "other_heavy_jobs": "not audited; loaded workstation context recorded via load averages"
+    "other_heavy_jobs": "not audited; loaded workstation context recorded via load average"
+  },
+  "contract": {
+    "jitter_model": "signed early/late arrivals by default",
+    "jitter_envelope_ns": {
+      "min_abs": 10,
+      "max_abs": 50
+    },
+    "legacy_positive_only_mode": "available via signed=False / signed=false / jitter_signed=false",
+    "finite_stressed_sample": "finite inputs plus finite noise must emit finite stressed samples or fail closed before frame emission"
   },
   "notes": [
     "Local non-isolated comparison benchmark only; not a production latency claim.",
-    "MIF-017 has allocated Python, Rust, and Julia surfaces. Julia is measured via CLI startup and remains a calibration/reference backend, not the runtime path."
+    "MIF-017 has allocated Python, Rust, and Julia surfaces. Julia is measured via CLI startup and remains a calibration/reference backend, not the runtime path.",
+    "This report reflects the signed-jitter MIF-017 contract; max jitter is interpreted as absolute early/late timing magnitude."
   ],
   "tests": [
     {
       "name": "test_bench_python_single_frame",
       "group": "diagnostic_stress_inject.single_frame",
-      "mean_ns": 11688.133139837684,
-      "stddev_ns": 3589.2939951337576,
-      "median_ns": 10319.985449314117,
-      "ops_per_s": 85556.86250626395,
-      "rounds": 13798
+      "mean_ns": 13280.361151184534,
+      "stddev_ns": 6177.287509793513,
+      "median_ns": 10565.854609012604,
+      "ops_per_s": 75299.15704971665,
+      "rounds": 17226
     },
     {
       "name": "test_bench_rust_single_frame",
       "group": "diagnostic_stress_inject.single_frame",
-      "mean_ns": 948.2091163392154,
-      "stddev_ns": 443.3387294096024,
-      "median_ns": 861.0077202320099,
-      "ops_per_s": 1054619.685434723,
-      "rounds": 28772
+      "mean_ns": 929.7941712947264,
+      "stddev_ns": 595.0109684747234,
+      "median_ns": 856.1182767152786,
+      "ops_per_s": 1075506.849658471,
+      "rounds": 104613
     },
     {
       "name": "test_bench_julia_cli_single_frame",
       "group": "diagnostic_stress_inject.single_frame",
-      "mean_ns": 930886013.8989985,
-      "stddev_ns": 553457185.002574,
-      "median_ns": 675442917.9709405,
-      "ops_per_s": 1.074245380281866,
+      "mean_ns": 608894323.6973137,
+      "stddev_ns": 90256727.15507923,
+      "median_ns": 588068024.0225047,
+      "ops_per_s": 1.6423211074260369,
       "rounds": 3
     },
     {
       "name": "test_bench_python_batch_4096",
       "group": "diagnostic_stress_inject.batch_4096",
-      "mean_ns": 55179478.911062084,
-      "stddev_ns": 9191173.174847348,
-      "median_ns": 52174065.029248595,
-      "ops_per_s": 18.122679295536543,
-      "rounds": 15
+      "mean_ns": 56675893.165027864,
+      "stddev_ns": 13347830.457107402,
+      "median_ns": 51252593.9848274,
+      "ops_per_s": 17.644185987298297,
+      "rounds": 13
     },
     {
       "name": "test_bench_rust_batch_4096",
       "group": "diagnostic_stress_inject.batch_4096",
-      "mean_ns": 3235020.725817676,
-      "stddev_ns": 396027.24869558203,
-      "median_ns": 3093786.07198596,
-      "ops_per_s": 309.1170303854057,
-      "rounds": 301
+      "mean_ns": 3211754.14492467,
+      "stddev_ns": 483724.686549971,
+      "median_ns": 3079244.401305914,
+      "ops_per_s": 311.3563351604095,
+      "rounds": 328
     }
   ]
 }

@@ -71,11 +71,38 @@ def test_noise_dropout_jitter_are_deterministic_and_logged() -> None:
 
     assert first == second
     assert len(first_log) == 2
-    assert all(10 <= record.jitter_ns <= 50 for record in first_log)
+    assert all(10 <= abs(record.jitter_ns) <= 50 for record in first_log)
+    assert all(record.emitted_t_ns - record.source_t_ns == record.jitter_ns for record in first_log)
     assert all("bdot_V" in record.dropped_channels for record in first_log)
     assert all("temperature_eV" in record.noisy_channels for record in first_log)
     assert all("bdot_V" not in frame.samples for frame in first)
     assert first[0].samples["temperature_eV"] != 500.0
+
+
+def test_signed_jitter_covers_early_and_late_arrivals() -> None:
+    frames = tuple(
+        DiagnosticFrame(
+            10_000 + index * 200,
+            {"temperature_eV": 500.0, "phase_lock_error_rad": 0.0},
+        )
+        for index in range(64)
+    )
+    records = DegradedSensorStream(_config()).apply_with_audit(frames).records
+
+    assert any(record.jitter_ns < 0 for record in records)
+    assert any(record.jitter_ns > 0 for record in records)
+
+
+def test_positive_only_jitter_remains_explicit_legacy_mode() -> None:
+    config = StressInjectionConfig(
+        seed=7,
+        noise=NoiseSpec({}),
+        dropout=DropoutSpec({}),
+        jitter=JitterSpec(10, 50, 1.0, signed=False),
+    )
+    records = DegradedSensorStream(config).apply_with_audit(_frames()).records
+
+    assert all(10 <= record.jitter_ns <= 50 for record in records)
 
 
 def test_stress_envelope_rejects_out_of_policy_inputs() -> None:
@@ -130,3 +157,33 @@ def test_phase_lock_campaign_runs_100_seeds_inside_tolerance() -> None:
 def test_phase_lock_campaign_requires_regression_scale() -> None:
     with pytest.raises(ValueError, match="at least 100"):
         evaluate_phase_lock_stability_campaigns(_config(), campaign_count=99)
+
+
+def test_rejects_non_finite_noisy_sample() -> None:
+    config = StressInjectionConfig(
+        seed=3,
+        noise=NoiseSpec({"temperature_eV": 1.0e308}),
+        dropout=DropoutSpec({}),
+        jitter=JitterSpec(0, 0, 0.0),
+    )
+    frame = DiagnosticFrame(1_000, {"temperature_eV": 1.0e308})
+
+    with pytest.raises(ValueError, match="stressed sample"):
+        DegradedSensorStream(config).apply((frame,))
+
+
+def test_signed_jitter_rejects_negative_emitted_timestamp() -> None:
+    for seed in range(128):
+        config = StressInjectionConfig(
+            seed=seed,
+            noise=NoiseSpec({}),
+            dropout=DropoutSpec({}),
+            jitter=JitterSpec(10, 50, 1.0),
+        )
+        try:
+            DegradedSensorStream(config).apply((DiagnosticFrame(0, {"temperature_eV": 500.0}),))
+        except ValueError as exc:
+            if "emitted timestamp" in str(exc):
+                return
+            raise
+    pytest.fail("signed jitter did not exercise a negative emitted timestamp")

@@ -110,6 +110,7 @@ class RustBackedDegradedSensorStream(DegradedSensorStream):
             config.jitter.min_ns,
             config.jitter.max_ns,
             config.jitter.probability,
+            config.jitter.signed,
         )
 
     def apply(self, sample_stream: Sequence[DiagnosticFrame]) -> tuple[DiagnosticFrame, ...]:

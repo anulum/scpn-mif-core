@@ -91,11 +91,18 @@ class DropoutSpec:
 
 @dataclass(frozen=True)
 class JitterSpec:
-    """Positive timestamp jitter envelope in nanoseconds."""
+    """Timestamp jitter envelope in nanoseconds.
+
+    By default the sampled jitter is signed so the degradation model covers
+    early and late diagnostic arrivals. ``min_ns`` and ``max_ns`` describe the
+    absolute jitter magnitude. Set ``signed=False`` only for legacy one-sided
+    positive-jitter replay.
+    """
 
     min_ns: int = 10
     max_ns: int = 50
     probability: float = 1.0
+    signed: bool = True
 
     def __post_init__(self) -> None:
         if self.min_ns < 0:
@@ -104,6 +111,8 @@ class JitterSpec:
             raise ValueError("jitter max_ns must be greater than or equal to min_ns")
         if not math.isfinite(self.probability) or not 0.0 <= self.probability <= 1.0:
             raise ValueError("jitter probability must lie in [0, 1]")
+        if not isinstance(self.signed, bool):
+            raise ValueError("jitter signed flag must be boolean")
 
 
 @dataclass(frozen=True)
@@ -232,7 +241,7 @@ def evaluate_phase_lock_stability_campaigns(
     *,
     campaign_count: int = 100,
     frames_per_campaign: int = 32,
-    dt_ns: int = 100,
+    dt_ns: int = 128,
 ) -> StressCampaignReport:
     """Run the MIF-017 phase-lock invariant over at least 100 seeded campaigns."""
     envelope = _DEFAULT_STRESS_ENVELOPE if envelope is None else envelope
@@ -240,8 +249,8 @@ def evaluate_phase_lock_stability_campaigns(
         raise ValueError("campaign_count must be at least 100")
     if frames_per_campaign <= 0:
         raise ValueError("frames_per_campaign must be positive")
-    if dt_ns <= envelope.max_jitter_ns:
-        raise ValueError("dt_ns must exceed the maximum jitter bound")
+    if dt_ns <= 2 * envelope.max_jitter_ns:
+        raise ValueError("dt_ns must exceed twice the maximum jitter bound")
     validate_stress_config(config, envelope)
 
     max_abs_phase = 0.0
@@ -260,7 +269,7 @@ def evaluate_phase_lock_stability_campaigns(
         if not seen_phase:
             failures.append(f"campaign {seed} dropped all phase-lock samples")
         for record in result.records:
-            max_jitter = max(max_jitter, record.jitter_ns)
+            max_jitter = max(max_jitter, abs(record.jitter_ns))
     if max_abs_phase > envelope.phase_lock_tolerance_rad:
         failures.append("phase-lock tolerance exceeded")
     return StressCampaignReport(
@@ -290,10 +299,13 @@ def _degrade_frame(
         sigma = config.noise.sigma_by_channel.get(channel, 0.0)
         if sigma > 0.0:
             value = value + rng.normal() * sigma
+            value = _finite("stressed sample", value)
             noisy_channels.append(channel)
         samples[channel] = value
     jitter_ns = _jitter_ns(config.jitter, rng)
     emitted_t_ns = frame.t_ns + jitter_ns
+    if emitted_t_ns < 0:
+        raise ValueError("emitted timestamp must be non-negative")
     record = StressInjectionRecord(
         frame_index=frame_index,
         source_t_ns=frame.t_ns,
@@ -309,13 +321,16 @@ def _jitter_ns(jitter: JitterSpec, rng: _SplitMix64) -> int:
     if jitter.probability <= 0.0 or rng.uniform() >= jitter.probability:
         return 0
     span = jitter.max_ns - jitter.min_ns + 1
-    return jitter.min_ns + int(rng.uniform() * span)
+    magnitude = jitter.min_ns + int(rng.uniform() * span)
+    if jitter.signed and rng.uniform() < 0.5:
+        return -magnitude
+    return magnitude
 
 
 def _phase_lock_fixture(frames_per_campaign: int, dt_ns: int) -> tuple[DiagnosticFrame, ...]:
     return tuple(
         DiagnosticFrame(
-            t_ns=idx * dt_ns,
+            t_ns=(idx + 1) * dt_ns,
             samples={
                 "phase_lock_error_rad": 0.0,
                 "temperature_eV": 500.0,

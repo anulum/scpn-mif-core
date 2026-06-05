@@ -324,12 +324,14 @@ pub struct StressInjectionConfig {
     pub seed: u64,
     /// Per-channel settings.
     pub channels: Vec<StressChannelConfig>,
-    /// Minimum positive timestamp jitter in nanoseconds.
+    /// Minimum absolute timestamp jitter in nanoseconds.
     pub jitter_min_ns: u64,
-    /// Maximum positive timestamp jitter in nanoseconds.
+    /// Maximum absolute timestamp jitter in nanoseconds.
     pub jitter_max_ns: u64,
     /// Bernoulli probability that jitter is applied to a frame.
     pub jitter_probability: f64,
+    /// Whether sampled jitter may be early or late rather than positive-only.
+    pub jitter_signed: bool,
 }
 
 impl StressInjectionConfig {
@@ -340,6 +342,7 @@ impl StressInjectionConfig {
         jitter_min_ns: u64,
         jitter_max_ns: u64,
         jitter_probability: f64,
+        jitter_signed: bool,
     ) -> Result<Self, DiagnosticError> {
         let config = Self {
             seed,
@@ -347,6 +350,7 @@ impl StressInjectionConfig {
             jitter_min_ns,
             jitter_max_ns,
             jitter_probability,
+            jitter_signed,
         };
         config.validate()?;
         Ok(config)
@@ -385,14 +389,24 @@ impl StressInjectionConfig {
             let mut stressed = *value;
             if channel_config.noise_sigma > 0.0 {
                 stressed += rng.normal() * channel_config.noise_sigma;
+                require_finite("stressed sample", stressed)?;
                 noisy_channels.push(channel.clone());
             }
             stressed_values.push(Some(stressed));
         }
         let jitter_ns = self.jitter_ns(&mut rng);
+        let emitted_t_ns = if jitter_ns >= 0 {
+            source_t_ns
+                .checked_add(jitter_ns as u64)
+                .ok_or(DiagnosticError::TimestampOverflow)?
+        } else {
+            source_t_ns
+                .checked_sub(jitter_ns.unsigned_abs())
+                .ok_or(DiagnosticError::NegativeEmittedTimestamp)?
+        };
         Ok(StressedFrame {
             source_t_ns,
-            emitted_t_ns: source_t_ns.saturating_add(jitter_ns),
+            emitted_t_ns,
             jitter_ns,
             values: stressed_values,
             noisy_channels,
@@ -405,6 +419,9 @@ impl StressInjectionConfig {
             return Err(DiagnosticError::EmptyStressChannels);
         }
         if self.jitter_max_ns < self.jitter_min_ns {
+            return Err(DiagnosticError::InvalidJitterRange);
+        }
+        if self.jitter_max_ns > i64::MAX as u64 {
             return Err(DiagnosticError::InvalidJitterRange);
         }
         require_finite("jitter_probability", self.jitter_probability)?;
@@ -437,12 +454,18 @@ impl StressInjectionConfig {
             })
     }
 
-    fn jitter_ns(&self, rng: &mut SplitMix64) -> u64 {
+    fn jitter_ns(&self, rng: &mut SplitMix64) -> i64 {
         if self.jitter_probability <= 0.0 || rng.uniform() >= self.jitter_probability {
             return 0;
         }
         let span = self.jitter_max_ns - self.jitter_min_ns + 1;
-        self.jitter_min_ns + (rng.uniform() * span as f64).floor() as u64
+        let magnitude = self.jitter_min_ns + (rng.uniform() * span as f64).floor() as u64;
+        let signed_magnitude = magnitude as i64;
+        if self.jitter_signed && rng.uniform() < 0.5 {
+            -signed_magnitude
+        } else {
+            signed_magnitude
+        }
     }
 }
 
@@ -454,7 +477,7 @@ pub struct StressedFrame {
     /// Timestamp after jitter.
     pub emitted_t_ns: u64,
     /// Applied jitter in nanoseconds.
-    pub jitter_ns: u64,
+    pub jitter_ns: i64,
     /// Stressed channel values; `None` means the channel dropped out.
     pub values: Vec<Option<f64>>,
     /// Channels with additive noise applied.
@@ -602,6 +625,12 @@ pub enum DiagnosticError {
     /// The configured jitter interval is invalid.
     #[error("jitter max_ns must be greater than or equal to min_ns")]
     InvalidJitterRange,
+    /// Timestamp arithmetic overflowed while applying jitter.
+    #[error("emitted timestamp overflowed while applying jitter")]
+    TimestampOverflow,
+    /// Signed jitter moved an emitted timestamp below zero.
+    #[error("emitted timestamp must be non-negative")]
+    NegativeEmittedTimestamp,
     /// Calibration channel names must be unique.
     #[error("duplicate calibration channel: {channel}")]
     DuplicateChannel {
@@ -802,6 +831,7 @@ mod tests {
             10,
             50,
             1.0,
+            true,
         )
         .expect("valid config");
         let names = vec!["temperature_eV".to_string(), "bdot_V".to_string()];
@@ -812,11 +842,34 @@ mod tests {
             .stress_inject_frame(&names, &[500.0, 0.0], 1_000, 0)
             .expect("stress frame");
         assert_eq!(first, second);
-        assert!((10..=50).contains(&first.jitter_ns));
+        assert!((10..=50).contains(&first.jitter_ns.abs()));
+        assert_eq!(
+            first.emitted_t_ns as i64 - first.source_t_ns as i64,
+            first.jitter_ns
+        );
         assert_eq!(first.dropped_channels, vec!["bdot_V".to_string()]);
         assert_eq!(first.noisy_channels, vec!["temperature_eV".to_string()]);
         assert!(first.values[0].is_some());
         assert_eq!(first.values[1], None);
+    }
+
+    #[test]
+    fn stress_injection_rejects_non_finite_stressed_values() {
+        let config = StressInjectionConfig::new(
+            3,
+            vec![StressChannelConfig::new("temperature_eV", 1.0e308, 0.0).expect("valid channel")],
+            0,
+            0,
+            0.0,
+            false,
+        )
+        .expect("valid config");
+        assert!(matches!(
+            config.stress_inject_frame(&["temperature_eV".to_string()], &[1.0e308], 1_000, 0),
+            Err(DiagnosticError::NonFinite {
+                field: "stressed sample"
+            })
+        ));
     }
 
     #[test]
@@ -836,6 +889,7 @@ mod tests {
                 50,
                 10,
                 1.0,
+                true,
             ),
             Err(DiagnosticError::InvalidJitterRange)
         ));

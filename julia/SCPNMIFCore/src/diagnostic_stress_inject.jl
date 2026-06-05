@@ -67,13 +67,24 @@ struct DropoutSpec
     end
 end
 
-"""Positive timestamp jitter envelope."""
+"""Timestamp jitter envelope.
+
+`min_ns` and `max_ns` describe the absolute jitter magnitude. Signed jitter is
+enabled by default so stress campaigns cover early and late diagnostic arrivals;
+set `signed=false` only for legacy positive-only replay.
+"""
 struct JitterSpec
     min_ns::Int
     max_ns::Int
     probability::Float64
+    signed::Bool
 
-    function JitterSpec(min_ns::Integer = 10, max_ns::Integer = 50, probability::Real = 1.0)
+    function JitterSpec(
+        min_ns::Integer = 10,
+        max_ns::Integer = 50,
+        probability::Real = 1.0,
+        signed::Bool = true,
+    )
         low = Int(min_ns)
         high = Int(max_ns)
         prob = Float64(probability)
@@ -81,7 +92,7 @@ struct JitterSpec
         high >= low || throw(ArgumentError("jitter max_ns must be greater than or equal to min_ns"))
         isfinite(prob) && 0.0 <= prob <= 1.0 ||
             throw(ArgumentError("jitter probability must lie in [0, 1]"))
-        return new(low, high, prob)
+        return new(low, high, prob, signed)
     end
 end
 
@@ -149,12 +160,14 @@ function _stress_frame(config::StressInjectionConfig, frame::DiagnosticFrame, fr
         stressed = value
         if sigma > 0.0
             stressed += _stress_normal!(rng) * sigma
+            isfinite(stressed) || throw(ArgumentError("stressed sample must be finite"))
             push!(noisy, channel)
         end
         samples[channel] = stressed
     end
     jitter_ns = _stress_jitter!(config.jitter, rng)
     emitted_t_ns = frame.t_ns + jitter_ns
+    emitted_t_ns >= 0 || throw(ArgumentError("emitted timestamp must be non-negative"))
     record = StressInjectionRecord(
         frame_index,
         frame.t_ns,
@@ -171,7 +184,11 @@ function _stress_jitter!(jitter::JitterSpec, rng)
         return 0
     end
     span = jitter.max_ns - jitter.min_ns + 1
-    return jitter.min_ns + Int(floor(_stress_uniform!(rng) * span))
+    magnitude = jitter.min_ns + Int(floor(_stress_uniform!(rng) * span))
+    if jitter.signed && _stress_uniform!(rng) < 0.5
+        return -magnitude
+    end
+    return magnitude
 end
 
 mutable struct _StressSplitMix64

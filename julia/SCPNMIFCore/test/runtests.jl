@@ -347,7 +347,8 @@ end
     second = apply(DegradedSensorStream(config), frames)
 
     @test first[1].samples == second[1].samples
-    @test 10 <= first_log[1].jitter_ns <= 50
+    @test 10 <= abs(first_log[1].jitter_ns) <= 50
+    @test first_log[1].emitted_t_ns - first_log[1].source_t_ns == first_log[1].jitter_ns
     @test "bdot_V" in first_log[1].dropped_channels
     @test "temperature_eV" in first_log[1].noisy_channels
     @test !haskey(first[1].samples, "bdot_V")
@@ -356,4 +357,20 @@ end
     @test_throws ArgumentError NoiseSpec(Dict("temperature_eV" => -1.0))
     @test_throws ArgumentError DropoutSpec(Dict("bdot_V" => 1.2))
     @test_throws ArgumentError JitterSpec(50, 10, 1.0)
+
+    overflow_config = StressInjectionConfig(
+        3,
+        NoiseSpec(Dict("temperature_eV" => 1.0e308)),
+        DropoutSpec(Dict()),
+        JitterSpec(0, 0, 0.0),
+    )
+    overflow_stream = DegradedSensorStream(overflow_config)
+    overflow_error = try
+        apply(overflow_stream, [DiagnosticFrame(1000, Dict("temperature_eV" => 1.0e308))])
+        nothing
+    catch err
+        err
+    end
+    @test overflow_error isa ArgumentError
+    @test occursin("stressed sample", sprint(showerror, overflow_error))
 end

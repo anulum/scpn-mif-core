@@ -73,6 +73,7 @@ def rust_config() -> object:
         10,
         50,
         1.0,
+        True,
     )
 
 

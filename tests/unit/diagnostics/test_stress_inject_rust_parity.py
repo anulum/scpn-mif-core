@@ -72,4 +72,21 @@ def test_stress_injection_parity(seed: int) -> None:
 
 def test_rust_rejects_bad_config_lengths() -> None:
     with pytest.raises(ValueError, match="same length"):
-        rust.StressInjectionConfig(1, ["temperature_eV"], [1.0, 2.0], [0.0], 10, 50, 1.0)
+        rust.StressInjectionConfig(1, ["temperature_eV"], [1.0, 2.0], [0.0], 10, 50, 1.0, True)
+
+
+def test_rust_rejects_non_finite_noisy_sample() -> None:
+    config = StressInjectionConfig(
+        seed=3,
+        noise=NoiseSpec({"temperature_eV": 1.0e308}),
+        dropout=DropoutSpec({}),
+        jitter=JitterSpec(0, 0, 0.0),
+    )
+    frame = DiagnosticFrame(1_000, {"temperature_eV": 1.0e308})
+
+    with pytest.raises(ValueError, match="stressed sample"):
+        DegradedSensorStream(config).apply((frame,))
+
+    rust_config = rust.StressInjectionConfig(3, ["temperature_eV"], [1.0e308], [0.0], 0, 0, 0.0, True)
+    with pytest.raises(ValueError, match="stressed sample"):
+        rust_config.stress_inject_frame(["temperature_eV"], [1.0e308], 1_000, 0)

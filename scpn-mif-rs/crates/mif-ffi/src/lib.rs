@@ -409,7 +409,8 @@ impl PyStressInjectionConfig {
             dropout_probability,
             jitter_min_ns=10,
             jitter_max_ns=50,
-            jitter_probability=1.0
+            jitter_probability=1.0,
+            jitter_signed=true
         )
     )]
     #[allow(clippy::too_many_arguments)]
@@ -421,6 +422,7 @@ impl PyStressInjectionConfig {
         jitter_min_ns: u64,
         jitter_max_ns: u64,
         jitter_probability: f64,
+        jitter_signed: bool,
     ) -> PyResult<Self> {
         if channel_names.len() != noise_sigma.len()
             || channel_names.len() != dropout_probability.len()
@@ -446,6 +448,7 @@ impl PyStressInjectionConfig {
             jitter_min_ns,
             jitter_max_ns,
             jitter_probability,
+            jitter_signed,
         )
         .map(|inner| Self { inner })
         .map_err(|e| PyValueError::new_err(e.to_string()))

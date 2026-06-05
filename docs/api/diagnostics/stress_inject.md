@@ -18,9 +18,18 @@ fixtures.
 Each frame carries a non-negative timestamp and physical channel samples.
 `NoiseSpec` adds Gaussian noise with channel-specific sigma in physical units.
 `DropoutSpec` removes channels by Bernoulli probability. `JitterSpec` applies
-positive timestamp jitter, bounded by the documented 10-50 ns regression
-envelope. Every degraded frame has a `StressInjectionRecord` with source time,
-emitted time, jitter, noisy channels, and dropped channels.
+signed timestamp jitter by default, bounded by the documented 10-50 ns absolute
+magnitude regression envelope. Legacy positive-only replay is still available
+by setting `signed=False` in Python, `signed=false` in Julia, or
+`jitter_signed=false` through the Rust/PyO3 constructor. Every degraded frame
+has a `StressInjectionRecord` with source time, emitted time, signed jitter,
+noisy channels, and dropped channels.
+
+Stress injection fails closed after every stochastic transform. Finite input
+samples and finite channel noise parameters must still produce finite stressed
+samples; overflow, underflow to non-finite values, or any other non-finite
+post-noise result is rejected at the stress boundary before the degraded frame
+is emitted.
 
 ## Python API
 
@@ -34,7 +43,11 @@ emitted time, jitter, noisy channels, and dropped channels.
 noise, dropout, or jitter bounds. The default phase-lock campaign helper runs
 at least 100 seeded campaigns and fails closed if the maximum absolute
 `phase_lock_error_rad` exceeds `1.0e-2` rad or if all phase-lock samples drop
-out in a campaign.
+out in a campaign. Campaign timestamps must be spaced by more than twice the
+maximum jitter bound so signed early/late arrivals cannot silently invert the
+diagnostic order. The default campaign fixture starts at one interval rather
+than zero so signed jitter cannot produce a negative emitted timestamp on the
+first synthetic frame.
 
 ## Dispatch
 
