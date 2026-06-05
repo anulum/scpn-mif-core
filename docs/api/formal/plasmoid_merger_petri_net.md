@@ -59,6 +59,11 @@ theorem terminal_places_stable :
       nominalStep MergerPlace.abort = MergerPlace.abort
 ```
 
+The Python SCPN-CONTROL topology builder carries the same terminal-stability
+contract by exporting `phase_locked` and `abort` as inhibitor arcs on every
+transition. This prevents downstream CONTROL consumers from advancing the
+token once either terminal sink is marked.
+
 This proof does not replace the stochastic boundedness and liveness campaigns.
 It formalises the finite marking invariant and nominal reachability skeleton
 that those executable campaigns exercise under sampled guard conditions.

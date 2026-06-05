@@ -32,6 +32,10 @@ transition preservation, terminal stability, and nominal reachability to
 | `coalescence` | `phase_locked` | phase-lock error and axial separation are inside their tolerances for the configured delay |
 | any non-terminal place | `abort` | tilt growth or density asymmetry exceeds the abort envelope |
 
+The SCPN-CONTROL export mirrors terminal stability by attaching both terminal
+places, `phase_locked` and `abort`, as inhibitor arcs to every transition. This
+keeps the CONTROL topology absorbing after either terminal sink is marked.
+
 ## Python API
 
 ::: scpn_mif_core.lifecycle.plasmoid_merger_petri_net
@@ -56,6 +60,7 @@ The committed MIF-012 tests cover:
 - nominal collision-to-phase-lock progression;
 - consecutive-delay behaviour for stochastic transitions;
 - abort routing for unsafe tilt or density asymmetry;
+- CONTROL topology export with both terminal inhibitor arcs;
 - the required boundedness campaign (`100 × 500`);
 - the required liveness campaign (`1 000 × 200`);
 - property-based one-safe marking preservation;

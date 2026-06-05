@@ -285,7 +285,9 @@ def test_control_petri_net_builder_uses_pinned_surface_calls() -> None:
     assert [transition["name"] for transition in net.transitions] == [
         transition.value for transition in MergerTransition
     ]
-    assert net.transitions[-1]["inhibitor_arcs"] == ("phase_locked",)
+    assert [transition["inhibitor_arcs"] for transition in net.transitions] == [
+        ("phase_locked", "abort") for _ in MergerTransition
+    ]
 
 
 def test_dispatched_merger_falls_back_to_python_when_rust_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:

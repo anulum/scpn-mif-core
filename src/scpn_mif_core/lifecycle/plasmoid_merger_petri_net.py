@@ -206,6 +206,11 @@ _TRANSITION_FROM_PLACE: dict[MergerTransition, MergerPlace] = {
     MergerTransition.ABORT_UNSTABLE: MergerPlace.APPROACH,
 }
 
+_TERMINAL_INHIBITOR_ARCS: tuple[str, str] = (
+    MergerPlace.PHASE_LOCKED.value,
+    MergerPlace.ABORT.value,
+)
+
 
 class PlasmoidMergerPetriNet:
     """Stateful one-safe stochastic Petri net for MIF FRC merger control."""
@@ -346,7 +351,7 @@ def build_control_petri_net(spec: PlasmoidMergerSpec, net_factory: Callable[[], 
             transition.value,
             threshold=_control_threshold(spec, transition),
             delay_ticks=_delay_ticks(spec, transition),
-            inhibitor_arcs=("phase_locked",),
+            inhibitor_arcs=_TERMINAL_INHIBITOR_ARCS,
         )
     net.validate_topology()
     return net
