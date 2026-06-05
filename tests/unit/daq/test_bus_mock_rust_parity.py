@@ -65,6 +65,29 @@ def test_bus_ring_parity() -> None:
     assert first.sequence == 1
 
 
+def test_rust_bus_empty_emit_and_raw_bytes_injection() -> None:
+    profile = helion_descriptor_profile()
+    bus = RustBackedDataBusMock(ReplayConfig(mode="udp_multicast", profile=profile))
+
+    assert bus.emit_frame() is None
+
+    frame = RawDaqFrame("udp_multicast", profile, sequence=1, t_ns=50, values=(500.0, 2.5e21, 0.0, 1.0e8))
+    bus.inject_frame(frame.to_bytes())
+
+    assert bus.emit_frame() == frame
+
+
+def test_dispatched_bus_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
+    import scpn_mif_core.daq as daq
+
+    monkeypatch.setattr(daq, "preferred_backend", lambda _kernel: "rust")
+    monkeypatch.setattr(daq, "is_rust_available", lambda: True)
+
+    bus = daq.dispatched_data_bus_mock(ReplayConfig(mode="pcie_dma_ring", profile=helion_descriptor_profile()))
+
+    assert isinstance(bus, RustBackedDataBusMock)
+
+
 def test_rust_bus_rejects_sequence_replay_and_timestamp_regression() -> None:
     profile = helion_descriptor_profile()
     bus = RustBackedDataBusMock(ReplayConfig(mode="udp_multicast", profile=profile))
@@ -99,3 +122,21 @@ def test_rust_rejects_corrupt_frame() -> None:
     reserved[30] = 1
     with pytest.raises(ValueError, match="reserved"):
         rust.decode_daq_frame(bytes(reserved))
+
+
+def test_rust_decode_adapter_rejects_profile_and_canonicalisation_mismatches() -> None:
+    frame = RawDaqFrame(
+        mode="udp_multicast",
+        profile=helion_descriptor_profile(),
+        sequence=7,
+        t_ns=1_000,
+        values=(500.0, 2.5e21, -0.5, 1.0e8),
+    )
+
+    with pytest.raises(ValueError, match="descriptor profile"):
+        rust_decode_daq_frame(frame.to_bytes(), tae_descriptor_profile())
+
+    canonical = bytearray(frame.to_bytes())
+    canonical[36:40] = bytes(reversed(canonical[36:40]))
+    with pytest.raises(ValueError, match=r"checksum|canonical"):
+        rust_decode_daq_frame(bytes(canonical), helion_descriptor_profile())
