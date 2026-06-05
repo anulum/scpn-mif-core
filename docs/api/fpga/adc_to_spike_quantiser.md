@@ -41,7 +41,9 @@ The implementation is fully synchronous, uses an active-low reset, and holds
 pending positive and negative spike counters behind the AER `valid/ready`
 handshake. Because the current public input sketch does not expose `adc_ready`,
 every presented `adc_valid` sample is integrated; downstream stalls affect
-event delivery, not sample acceptance.
+event delivery, not sample acceptance. Signed down-conversion from wider ADC
+words to Q8.8 uses a sign-symmetric right shift so negative odd-magnitude
+samples do not gain one extra quantisation count relative to positive samples.
 
 ## Golden Reference
 
@@ -54,10 +56,12 @@ The Python reference provides:
 - `quantise_adc_to_q88(...)`
 - `aer_address_for_q88(...)`
 - `run_adc_to_spike_reference(...)`
+- `run_adc_to_spike_rtl_reference(...)`
 
-The committed reference tests assert unbiased signed Q8.8 conversion, polarity
-addressing, exact accumulator arithmetic, and a one-million-sample streaming
-campaign with zero dropped samples in the no-backpressure model.
+The committed reference tests assert sign-symmetric signed Q8.8 conversion,
+polarity addressing, exact accumulator arithmetic, valid/ready queue semantics,
+pending-counter saturation, and a one-million-sample streaming campaign with
+zero dropped samples in the no-backpressure model.
 
 ## Verification
 
@@ -68,18 +72,44 @@ Portable local verification:
 yosys -q -p "read_verilog -sv hdl/src/sensors/adc_to_spike_quantiser.sv; hierarchy -top adc_to_spike_quantiser; proc; opt; check"
 ```
 
-Local tool availability on 2026-06-04:
+The HDL test surface runs the following when tools are present:
+
+- Yosys parse / process / optimise / check smoke.
+- Verilator C++ cosimulation of the default Q8.8 path.
+- Verilator C++ cosimulation of an `ADC_WIDTH=18`, `Q_INT=8`, `Q_FRAC=8`
+  narrow-conversion case that would fail if the RTL used arithmetic right
+  shift instead of sign-symmetric downshift.
+
+Local tool availability on 2026-06-05:
 
 | Tool | Result |
 |---|---|
 | Yosys | available and passing |
-| Verilator | not installed |
+| Verilator | available and passing |
 | SymbiYosys | not installed |
 | Vivado | not installed |
 
-The ZU3EG 250 MHz Vivado timing and Verilator cosimulation portions of the
-MIF-007 acceptance remain hardware/toolchain-gated. This commit records the
-portable RTL synthesis smoke and Python golden-reference proof surface only.
+The ZU3EG 250 MHz Vivado timing portion of the MIF-007 acceptance remains
+hardware/toolchain-gated. This commit records the portable RTL synthesis smoke,
+Verilator cosimulation, Python golden-reference proof surface, and local
+non-isolated benchmark evidence only.
+
+## Benchmark
+
+Benchmark harness:
+`bench/kernels/bench_adc_to_spike_quantiser.py`
+
+The harness measures:
+
+| Group | Surface | Scope |
+|---|---|---|
+| `adc_to_spike_quantiser.streaming_4096` | Python | no-backpressure streaming reference |
+| `adc_to_spike_quantiser.cycle_4096` | Python | cycle-level valid/ready reference |
+| `adc_to_spike_quantiser.cycle_4096` | SystemVerilog | Verilated default RTL fixture, subprocess-invoked |
+
+Results land in `bench/results/adc_to_spike_quantiser.json`. They are local
+non-isolated regression evidence only; the SystemVerilog number includes
+subprocess launch overhead and is not a production FPGA timing claim.
 
 ## Ownership
 

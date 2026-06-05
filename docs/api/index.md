@@ -73,4 +73,4 @@ Implemented pre-alpha API pages:
   runtime proof-assumption certificate.
 - [ADC-to-spike quantiser](fpga/adc_to_spike_quantiser.md) — MIF-007,
   B-dot ADC to Q8.8 AER spike-rate bridge with Python and SystemVerilog
-  surfaces.
+  surfaces, cycle-level valid/ready reference, and Verilator cosimulation.

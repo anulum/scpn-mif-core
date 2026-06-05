@@ -17,6 +17,8 @@ property scripts for SCPN-MIF-CORE.
 hdl/
 ├── src/
 │   └── sensors/              MIF-007 ADC → Q8.8 AER spike quantiser
+├── sim/
+│   └── adc_to_spike_quantiser_tb.cpp
 ├── targets/
 │   ├── ultrascale_plus/      UltraScale+ XDC, Tcl, IP catalog (depends on NEU-C.1)
 │   └── pynq_z2/              Zynq-7 PYNQ-Z2 (legacy, sc-neurocore inherits)
@@ -36,9 +38,10 @@ make formal          # SymbiYosys + nuXmv + Kind 2 proof run
 yosys -q -p "read_verilog -sv hdl/src/sensors/adc_to_spike_quantiser.sv; hierarchy -top adc_to_spike_quantiser; proc; opt; check"
 ```
 
-MIF-007 currently has a portable Yosys parse/synthesis smoke and Python golden
-reference tests. Vivado timing closure and Verilator cosimulation remain gated
-on those tools being installed in CI or on the FPGA workstation.
+MIF-007 currently has a portable Yosys parse/synthesis smoke, Python golden
+reference tests, and Verilator cosimulation through
+`hdl/sim/adc_to_spike_quantiser_tb.cpp`. Vivado timing closure remains gated on
+the FPGA workstation and final SKU choice.
 
 ## References
 

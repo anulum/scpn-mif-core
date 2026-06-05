@@ -41,6 +41,16 @@ def test_quantises_signed_16_bit_adc_samples_to_q8_8_without_bias() -> None:
         reference.quantise_adc_to_q88(32_768, config)
 
 
+def test_quantises_wider_adc_samples_with_sign_symmetric_downshift() -> None:
+    reference = _load_reference()
+    config = reference.AdcToSpikeConfig(adc_width=18, q_int=8, q_frac=8)
+
+    assert reference.quantise_adc_to_q88(5, config) == 1
+    assert reference.quantise_adc_to_q88(-5, config) == -1
+    assert reference.quantise_adc_to_q88(131_071, config) == 32_767
+    assert reference.quantise_adc_to_q88(-131_072, config) == -32_768
+
+
 def test_rate_coding_accumulates_q8_8_magnitude_and_encodes_polarity() -> None:
     reference = _load_reference()
     config = reference.AdcToSpikeConfig()
@@ -53,6 +63,44 @@ def test_rate_coding_accumulates_q8_8_magnitude_and_encodes_polarity() -> None:
     assert [event.sample_index for event in report.events] == [1, 2]
     assert [event.aer_address for event in report.events] == [0x4100, 0x4101]
     assert report.final_accumulator_q8_8 == 0
+    assert report.dropped_spikes == 0
+
+
+def test_cycle_reference_matches_default_valid_ready_sequence() -> None:
+    reference = _load_reference()
+    config = reference.AdcToSpikeConfig()
+
+    report = reference.run_adc_to_spike_rtl_reference(
+        [16_384, 16_384, -32_768],
+        config,
+        drain_cycles=1,
+    )
+
+    assert report.accepted_samples == 3
+    assert report.generated_spikes == 2
+    assert report.emitted_spikes == 2
+    assert report.dropped_spikes == 0
+    assert [output.aer_address for output in report.outputs] == [0x4100, 0x4101]
+    assert [cycle.aer_valid for cycle in report.cycles] == [False, True, True, False]
+
+
+def test_cycle_reference_models_backpressure_and_counter_saturation() -> None:
+    reference = _load_reference()
+    config = reference.AdcToSpikeConfig(rate_threshold_q8_8=1, spike_counter_width=1)
+
+    report = reference.run_adc_to_spike_rtl_reference(
+        [1, 1, 1],
+        config,
+        ready_pattern=[False],
+        retain_cycles=True,
+    )
+
+    assert report.accepted_samples == 3
+    assert report.generated_spikes == 3
+    assert report.emitted_spikes == 1
+    assert report.dropped_spikes == 1
+    assert report.pending_positive_spikes == 1
+    assert report.pending_negative_spikes == 0
 
 
 def test_million_sample_campaign_reports_no_dropped_samples_without_retaining_events() -> None:

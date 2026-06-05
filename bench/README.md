@@ -54,6 +54,11 @@ fastest across the Python, Rust, and Julia comparison groups.
 MIF-006 uses `aer.spike_buffer` for 256-event ring insertion and
 `aer.decode_rate` for rate-coded AER feature decoding; Rust is fastest across
 the allocated Python and Rust local surfaces.
+MIF-007 uses `adc_to_spike_quantiser` benchmark groups for the B-dot ADC to
+Q8.8 AER bridge. The Python no-backpressure and cycle-level golden references
+are measured alongside a Verilated SystemVerilog fixture. This is regression
+and cosimulation evidence only; the SystemVerilog figure includes subprocess
+launch overhead and is not a dispatch-table backend or FPGA timing claim.
 MIF-012 uses `lifecycle.plasmoid_merger_petri_net` for the FRC merger Petri-net
 FSM; Rust is fastest across the allocated Python and Rust campaign and
 boundedness verification groups. The committed MIF-012 benchmark is labelled as

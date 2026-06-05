@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "kernel": "adc_to_spike_quantiser",
+  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "python_version": "3.12.3",
+  "datetime": "2026-06-05T00:38:17+00:00",
+  "notes": [
+    "MIF-007 measures the Python no-backpressure reference, Python cycle-level valid/ready reference, and a Verilated SystemVerilog fixture over the same 4 096-sample alternating-polarity stream.",
+    "The SystemVerilog measurement invokes the Verilated binary as a subprocess and is local regression/cosimulation evidence only, not an FPGA timing or dispatch claim."
+  ],
+  "benchmark_context": {
+    "command": "./.venv/bin/pytest bench/kernels/bench_adc_to_spike_quantiser.py --benchmark-only --benchmark-json=bench/results/adc_to_spike_quantiser_raw.json --no-cov",
+    "cpu_affinity": "not pinned",
+    "isolation_method": "none; loaded workstation run",
+    "host_load_before": "3.87 3.53 2.04 12/3254 2542003",
+    "host_load_after": "3.84 3.54 2.08 7/3267 2542911",
+    "cpu_governor": "powersave",
+    "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz, 6 cores / 12 threads",
+    "os": "Linux 6.17.0-29-generic",
+    "runtime_versions": {
+      "python": "3.12.3",
+      "verilator": "Verilator 5.020 2024-01-01 rev (Debian 5.020-1)",
+      "yosys": "Yosys 0.33 (git sha1 2584903a060)"
+    },
+    "other_heavy_jobs": "not isolated; host load above 1.0 before and after run",
+    "evidence_class": "non-isolated local regression and cosimulation evidence"
+  },
+  "tests": [
+    {
+      "name": "test_bench_python_streaming_reference_4096",
+      "group": "adc_to_spike_quantiser.streaming_4096",
+      "mean_ns": 3490152.2163886065,
+      "stddev_ns": 442039.9747217583,
+      "median_ns": 3390894.9699252844,
+      "ops_per_s": 286.5204546965972,
+      "rounds": 153
+    },
+    {
+      "name": "test_bench_python_cycle_reference_4096",
+      "group": "adc_to_spike_quantiser.cycle_4096",
+      "mean_ns": 6322882.472790334,
+      "stddev_ns": 1544506.6125564014,
+      "median_ns": 5980722.839012742,
+      "ops_per_s": 158.1557152617282,
+      "rounds": 151
+    },
+    {
+      "name": "test_bench_systemverilog_verilated_cosim_4096",
+      "group": "adc_to_spike_quantiser.cycle_4096",
+      "mean_ns": 2686441.596597433,
+      "stddev_ns": 813964.1272252782,
+      "median_ns": 2444219.0770059824,
+      "ops_per_s": 372.23962034632365,
+      "rounds": 5
+    }
+  ]
+}

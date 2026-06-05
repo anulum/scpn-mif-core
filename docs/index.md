@@ -86,8 +86,9 @@ local physics/lifecycle surfaces:
   bridge, boundedness/liveness verification campaigns, Lean one-safety proof,
   benchmarked dispatch, and API documentation.
 - MIF-007 ADC-to-spike quantiser: Python golden reference, SystemVerilog RTL,
-  one-million-sample no-drop reference campaign, Yosys synthesis smoke, and
-  API documentation.
+  cycle-level valid/ready reference, one-million-sample no-drop reference
+  campaign, Yosys synthesis smoke, Verilator cosimulation, benchmark evidence,
+  and API documentation.
 
 Self-consistent FRC compression, Hall-MHD, MRTI, and tilt-mode solvers remain
 blocked on the SCPN-FUSION-CORE ownership lane described in the internal

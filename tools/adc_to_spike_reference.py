@@ -24,7 +24,7 @@ crosses the full-scale threshold. The sign is preserved in the AER address.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 
 
@@ -40,6 +40,7 @@ class AdcToSpikeConfig:
     aer_base_address: int = 0x4100
     positive_offset: int = 0
     negative_offset: int = 1
+    spike_counter_width: int = 16
 
     def __post_init__(self) -> None:
         if self.adc_width < 2:
@@ -52,6 +53,8 @@ class AdcToSpikeConfig:
             raise ValueError("sample_rate_hz must be at least 1")
         if self.rate_threshold_q8_8 < 1:
             raise ValueError("rate_threshold_q8_8 must be at least 1")
+        if not 1 <= self.spike_counter_width <= 32:
+            raise ValueError("spike_counter_width must be between 1 and 32")
         for field_name in ("aer_base_address", "positive_offset", "negative_offset"):
             value = int(getattr(self, field_name))
             if not 0 <= value <= 0xFFFF:
@@ -102,6 +105,44 @@ class AdcSpikeReport:
     spike_count: int
     final_accumulator_q8_8: int
     events: tuple[AdcSpikeEvent, ...]
+    dropped_spikes: int = 0
+
+
+@dataclass(frozen=True)
+class AdcSpikeOutput:
+    """Single AER output presented by the RTL valid/ready model."""
+
+    cycle_index: int
+    aer_address: int
+
+
+@dataclass(frozen=True)
+class AdcSpikeCycle:
+    """State snapshot after one RTL clock edge."""
+
+    cycle_index: int
+    adc_valid: bool
+    aer_ready: bool
+    aer_valid: bool
+    aer_address: int
+    accumulator_q8_8: int
+    pending_positive_spikes: int
+    pending_negative_spikes: int
+
+
+@dataclass(frozen=True)
+class AdcSpikeRtlReport:
+    """Cycle-level RTL reference report for the valid/ready spike queue."""
+
+    accepted_samples: int
+    generated_spikes: int
+    emitted_spikes: int
+    dropped_spikes: int
+    final_accumulator_q8_8: int
+    pending_positive_spikes: int
+    pending_negative_spikes: int
+    outputs: tuple[AdcSpikeOutput, ...]
+    cycles: tuple[AdcSpikeCycle, ...]
 
 
 def quantise_adc_to_q88(sample: int, config: AdcToSpikeConfig | None = None) -> int:
@@ -168,6 +209,222 @@ def run_adc_to_spike_reference(
     )
 
 
+def run_adc_to_spike_rtl_reference(
+    samples: Iterable[int],
+    config: AdcToSpikeConfig | None = None,
+    *,
+    ready_pattern: Sequence[bool] | None = None,
+    drain_cycles: int = 0,
+    retain_cycles: bool = True,
+) -> AdcSpikeRtlReport:
+    """Run the cycle-level RTL reference over ``samples``.
+
+    This models the SystemVerilog `valid/ready` queue exactly: each supplied
+    sample is accepted because the current MIF-007 RTL has no `adc_ready`
+    backpressure port; generated spikes are queued behind saturated positive
+    and negative pending counters when the AER sink stalls.
+    """
+    checked = AdcToSpikeConfig() if config is None else config
+    if ready_pattern is not None and len(ready_pattern) == 0:
+        raise ValueError("ready_pattern must not be empty")
+    drain = _non_negative_int("drain_cycles", drain_cycles)
+    counter_max = (1 << checked.spike_counter_width) - 1
+
+    accumulator = 0
+    pending_positive = 0
+    pending_negative = 0
+    aer_valid = False
+    aer_address = checked.aer_base_address
+    accepted = 0
+    generated = 0
+    emitted = 0
+    dropped = 0
+    cycle_index = 0
+    outputs: list[AdcSpikeOutput] = []
+    cycles: list[AdcSpikeCycle] = []
+
+    for sample in samples:
+        (
+            accumulator,
+            pending_positive,
+            pending_negative,
+            aer_valid,
+            aer_address,
+            accepted_delta,
+            generated_delta,
+            emitted_delta,
+            dropped_delta,
+        ) = _rtl_cycle(
+            sample=sample,
+            adc_valid=True,
+            ready=_ready_at(ready_pattern, cycle_index),
+            cycle_index=cycle_index,
+            config=checked,
+            counter_max=counter_max,
+            accumulator=accumulator,
+            pending_positive=pending_positive,
+            pending_negative=pending_negative,
+            aer_valid=aer_valid,
+            aer_address=aer_address,
+            outputs=outputs,
+            cycles=cycles if retain_cycles else None,
+        )
+        accepted += accepted_delta
+        generated += generated_delta
+        emitted += emitted_delta
+        dropped += dropped_delta
+        cycle_index += 1
+
+    for _ in range(drain):
+        (
+            accumulator,
+            pending_positive,
+            pending_negative,
+            aer_valid,
+            aer_address,
+            accepted_delta,
+            generated_delta,
+            emitted_delta,
+            dropped_delta,
+        ) = _rtl_cycle(
+            sample=0,
+            adc_valid=False,
+            ready=_ready_at(ready_pattern, cycle_index),
+            cycle_index=cycle_index,
+            config=checked,
+            counter_max=counter_max,
+            accumulator=accumulator,
+            pending_positive=pending_positive,
+            pending_negative=pending_negative,
+            aer_valid=aer_valid,
+            aer_address=aer_address,
+            outputs=outputs,
+            cycles=cycles if retain_cycles else None,
+        )
+        accepted += accepted_delta
+        generated += generated_delta
+        emitted += emitted_delta
+        dropped += dropped_delta
+        cycle_index += 1
+
+    return AdcSpikeRtlReport(
+        accepted_samples=accepted,
+        generated_spikes=generated,
+        emitted_spikes=emitted,
+        dropped_spikes=dropped,
+        final_accumulator_q8_8=accumulator,
+        pending_positive_spikes=pending_positive,
+        pending_negative_spikes=pending_negative,
+        outputs=tuple(outputs),
+        cycles=tuple(cycles),
+    )
+
+
+def _rtl_cycle(
+    *,
+    sample: int,
+    adc_valid: bool,
+    ready: bool,
+    cycle_index: int,
+    config: AdcToSpikeConfig,
+    counter_max: int,
+    accumulator: int,
+    pending_positive: int,
+    pending_negative: int,
+    aer_valid: bool,
+    aer_address: int,
+    outputs: list[AdcSpikeOutput],
+    cycles: list[AdcSpikeCycle] | None,
+) -> tuple[int, int, int, bool, int, int, int, int, int]:
+    accumulator_next = accumulator
+    pending_positive_next = pending_positive
+    pending_negative_next = pending_negative
+    aer_valid_next = aer_valid
+    aer_address_next = aer_address
+    accepted_delta = 0
+    generated_delta = 0
+    emitted_delta = 0
+    dropped_delta = 0
+
+    if aer_valid_next and ready:
+        aer_valid_next = False
+
+    if adc_valid:
+        q8_8 = quantise_adc_to_q88(sample, config)
+        magnitude = abs(q8_8)
+        accumulator_with_sample = accumulator + magnitude
+        accepted_delta = 1
+        if magnitude > 0 and accumulator_with_sample >= config.rate_threshold_q8_8:
+            accumulator_next = accumulator_with_sample - config.rate_threshold_q8_8
+            generated_delta = 1
+            if q8_8 < 0:
+                if pending_negative_next != counter_max:
+                    pending_negative_next += 1
+                else:
+                    dropped_delta = 1
+            elif pending_positive_next != counter_max:
+                pending_positive_next += 1
+            else:
+                dropped_delta = 1
+        else:
+            accumulator_next = accumulator_with_sample
+
+    if not aer_valid_next:
+        if pending_positive_next != 0:
+            aer_address_next = aer_address_for_q88(1, config)
+            aer_valid_next = True
+            pending_positive_next -= 1
+            emitted_delta = 1
+            outputs.append(AdcSpikeOutput(cycle_index=cycle_index, aer_address=aer_address_next))
+        elif pending_negative_next != 0:
+            aer_address_next = aer_address_for_q88(-1, config)
+            aer_valid_next = True
+            pending_negative_next -= 1
+            emitted_delta = 1
+            outputs.append(AdcSpikeOutput(cycle_index=cycle_index, aer_address=aer_address_next))
+
+    if cycles is not None:
+        cycles.append(
+            AdcSpikeCycle(
+                cycle_index=cycle_index,
+                adc_valid=adc_valid,
+                aer_ready=ready,
+                aer_valid=aer_valid_next,
+                aer_address=aer_address_next,
+                accumulator_q8_8=accumulator_next,
+                pending_positive_spikes=pending_positive_next,
+                pending_negative_spikes=pending_negative_next,
+            )
+        )
+
+    return (
+        accumulator_next,
+        pending_positive_next,
+        pending_negative_next,
+        aer_valid_next,
+        aer_address_next,
+        accepted_delta,
+        generated_delta,
+        emitted_delta,
+        dropped_delta,
+    )
+
+
+def _ready_at(pattern: Sequence[bool] | None, cycle_index: int) -> bool:
+    if pattern is None:
+        return True
+    return bool(pattern[cycle_index % len(pattern)])
+
+
+def _non_negative_int(field: str, value: int) -> int:
+    if isinstance(value, bool):
+        raise TypeError(f"{field} must be an integer")
+    numeric = int(value)
+    if numeric < 0:
+        raise ValueError(f"{field} must be non-negative")
+    return numeric
+
+
 def _shift_right_symmetric(value: int, shift: int) -> int:
     if value >= 0:
         return value >> shift
@@ -175,10 +432,14 @@ def _shift_right_symmetric(value: int, shift: int) -> int:
 
 
 __all__ = [
+    "AdcSpikeCycle",
     "AdcSpikeEvent",
+    "AdcSpikeOutput",
     "AdcSpikeReport",
+    "AdcSpikeRtlReport",
     "AdcToSpikeConfig",
     "aer_address_for_q88",
     "quantise_adc_to_q88",
     "run_adc_to_spike_reference",
+    "run_adc_to_spike_rtl_reference",
 ]

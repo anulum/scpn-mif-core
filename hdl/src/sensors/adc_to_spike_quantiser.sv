@@ -55,13 +55,26 @@ module adc_to_spike_quantiser #(
     logic [15:0] aer_address_next;
     logic aer_valid_next;
 
-    assign q8_8_sample = adc_to_q8_8(adc_sample);
+    generate
+        if (Q_WIDTH >= ADC_WIDTH) begin : gen_adc_to_q8_8_widen
+            localparam int Q_PAD_WIDTH = Q_WIDTH - ADC_WIDTH;
+
+            if (Q_PAD_WIDTH == 0) begin : gen_equal_width
+                assign q8_8_sample = adc_sample;
+            end else begin : gen_left_shift
+                assign q8_8_sample = $signed({{Q_PAD_WIDTH{adc_sample[ADC_WIDTH-1]}}, adc_sample}) <<< Q_PAD_WIDTH;
+            end
+        end else begin : gen_adc_to_q8_8_narrow
+            assign q8_8_sample = symmetric_shift_right(adc_sample, ADC_WIDTH - Q_WIDTH);
+        end
+    endgenerate
+
     assign magnitude_q8_8 = q8_8_magnitude(q8_8_sample);
     assign accumulator_with_sample = rate_accumulator_q8_8 + magnitude_q8_8;
     assign spike_ready = adc_valid
         && (magnitude_q8_8 != '0)
         && (accumulator_with_sample >= RATE_THRESHOLD_Q8_8[MAG_WIDTH-1:0]);
-    assign spike_negative = q8_8_sample < '0;
+    assign spike_negative = q8_8_sample[Q_WIDTH-1];
 
     always_comb begin
         rate_accumulator_next = rate_accumulator_q8_8;
@@ -118,22 +131,28 @@ module adc_to_spike_quantiser #(
         end
     end
 
-    function automatic logic signed [Q_WIDTH-1:0] adc_to_q8_8(
-        input logic signed [ADC_WIDTH-1:0] sample
+    function automatic logic signed [Q_WIDTH-1:0] symmetric_shift_right(
+        input logic signed [ADC_WIDTH-1:0] sample,
+        input int shift
     );
-        if (Q_WIDTH >= ADC_WIDTH) begin
-            adc_to_q8_8 = sample <<< (Q_WIDTH - ADC_WIDTH);
+        logic signed [ADC_WIDTH:0] extended_sample;
+        logic signed [ADC_WIDTH:0] shifted_sample;
+
+        extended_sample = {sample[ADC_WIDTH-1], sample};
+        if (extended_sample[ADC_WIDTH]) begin
+            shifted_sample = -((-extended_sample) >>> shift);
         end else begin
-            adc_to_q8_8 = sample >>> (ADC_WIDTH - Q_WIDTH);
+            shifted_sample = extended_sample >>> shift;
         end
+        symmetric_shift_right = shifted_sample[Q_WIDTH-1:0];
     endfunction
 
     function automatic logic [MAG_WIDTH-1:0] q8_8_magnitude(
         input logic signed [Q_WIDTH-1:0] sample
     );
         logic signed [MAG_WIDTH-1:0] extended;
-        extended = sample;
-        if (extended < '0) begin
+        extended = {sample[Q_WIDTH-1], sample};
+        if (extended[MAG_WIDTH-1]) begin
             q8_8_magnitude = -extended;
         end else begin
             q8_8_magnitude = extended;
