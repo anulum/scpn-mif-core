@@ -37,6 +37,7 @@ struct CapacitorBankSpec
         res = _validate_capacitor_non_negative("series_resistance_ohm", series_resistance_ohm)
         vmax = _validate_capacitor_positive("voltage_max_V", voltage_max_V)
         recharge = _validate_capacitor_non_negative("recharge_power_kW", recharge_power_kW)
+        _require_finite_capacitor("max_capacitor_energy_J", 0.5 * cap * vmax^2)
         return new(cap, ind, res, vmax, recharge)
     end
 end
@@ -66,6 +67,7 @@ mutable struct CapacitorBank
         voltage = _validate_capacitor_non_negative("initial voltage", initial_voltage_V)
         voltage <= spec.voltage_max_V ||
             throw(ArgumentError("initial voltage $(voltage) V exceeds bank max $(spec.voltage_max_V) V"))
+        _capacitor_state(spec, 0.0, voltage, 0.0, 0.0)
         return new(spec, 0.0, voltage, 0.0, 0.0)
     end
 end
@@ -177,19 +179,7 @@ end
 
 """Return an immutable observable snapshot of the bank."""
 function state(bank::CapacitorBank)::CapacitorBankState
-    capacitor_energy = 0.5 * bank.spec.capacitance_F * bank.voltage_V^2
-    inductor_energy = 0.5 * bank.spec.inductance_H * bank.current_A^2
-    return CapacitorBankState(
-        bank.t,
-        bank.voltage_V,
-        capacitor_energy + inductor_energy,
-        capacitor_energy,
-        inductor_energy,
-        bank.current_A,
-        bank.di_dt_A_s,
-        abs(bank.current_A) > 1e-9,
-        false,
-    )
+    return _capacitor_state(bank.spec, bank.t, bank.voltage_V, bank.current_A, bank.di_dt_A_s)
 end
 
 """Reset a bank to `voltage_V` with zero current and time."""
@@ -197,11 +187,12 @@ function reset!(bank::CapacitorBank, voltage_V::Real = 0.0)::CapacitorBankState
     voltage = _validate_capacitor_non_negative("reset voltage", voltage_V)
     voltage <= bank.spec.voltage_max_V ||
         throw(ArgumentError("reset voltage $(voltage) V exceeds bank max $(bank.spec.voltage_max_V) V"))
+    next_state = _capacitor_state(bank.spec, 0.0, voltage, 0.0, 0.0)
     bank.t = 0.0
     bank.voltage_V = voltage
     bank.current_A = 0.0
     bank.di_dt_A_s = 0.0
-    return state(bank)
+    return next_state
 end
 
 """Advance the bank by `dt` seconds using Crank-Nicolson."""
@@ -233,12 +224,13 @@ function step!(
     v_next = (l22 * rhs_v - l12 * rhs_i) / det
     i_next = (-l21 * rhs_v + l11 * rhs_i) / det
     di_dt_next = a21 * v_next + a22 * i_next
+    next_state = _capacitor_state(bank.spec, bank.t + step_s, v_next, i_next, di_dt_next)
 
     bank.t += step_s
     bank.voltage_V = v_next
     bank.current_A = i_next
     bank.di_dt_A_s = di_dt_next
-    return state(bank)
+    return next_state
 end
 
 function Base.getproperty(bank::CapacitorBank, name::Symbol)
@@ -264,4 +256,31 @@ function _validate_capacitor_non_negative(name::String, value::Real)::Float64
     numeric = _require_finite_capacitor(name, value)
     numeric >= 0.0 || throw(ArgumentError("$name must be non-negative"))
     return numeric
+end
+
+function _capacitor_state(
+    spec::CapacitorBankSpec,
+    time::Real,
+    voltage::Real,
+    current::Real,
+    di_dt::Real,
+)::CapacitorBankState
+    t = _require_finite_capacitor("t", time)
+    v = _require_finite_capacitor("voltage_V", voltage)
+    i = _require_finite_capacitor("current_A", current)
+    didt = _require_finite_capacitor("di_dt_A_s", di_dt)
+    capacitor_energy = _require_finite_capacitor("capacitor_energy_J", 0.5 * spec.capacitance_F * v^2)
+    inductor_energy = _require_finite_capacitor("inductor_energy_J", 0.5 * spec.inductance_H * i^2)
+    energy = _require_finite_capacitor("energy_J", capacitor_energy + inductor_energy)
+    return CapacitorBankState(
+        t,
+        v,
+        energy,
+        capacitor_energy,
+        inductor_energy,
+        i,
+        didt,
+        abs(i) > 1e-9,
+        false,
+    )
 end

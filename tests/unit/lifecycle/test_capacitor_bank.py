@@ -145,6 +145,28 @@ def test_spec_rejects_negative_recharge_power() -> None:
         )
 
 
+def test_spec_rejects_non_finite_parameters() -> None:
+    with pytest.raises(ValueError, match="capacitance_F"):
+        CapacitorBankSpec(
+            capacitance_F=float("nan"),
+            inductance_H=1e-3,
+            series_resistance_ohm=0.1,
+            voltage_max_V=1000.0,
+            recharge_power_kW=10.0,
+        )
+
+
+def test_spec_rejects_non_finite_max_capacitor_energy() -> None:
+    with pytest.raises(ValueError, match="max_capacitor_energy"):
+        CapacitorBankSpec(
+            capacitance_F=1.0e308,
+            inductance_H=1.0,
+            series_resistance_ohm=0.0,
+            voltage_max_V=1.0e154,
+            recharge_power_kW=0.0,
+        )
+
+
 # ---------------------------------------------------------------------------
 # Regime classification
 # ---------------------------------------------------------------------------

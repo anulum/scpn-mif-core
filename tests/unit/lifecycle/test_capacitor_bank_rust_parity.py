@@ -227,3 +227,17 @@ def test_energy_parity_after_natural_decay(seed: int) -> None:
     assert _approx_equal(py_state.energy_J, rust_bank.energy_j)
     assert _approx_equal(py_state.capacitor_energy_J, rust_bank.capacitor_energy_j)
     assert _approx_equal(py_state.inductor_energy_J, rust_bank.inductor_energy_j)
+
+
+def test_python_and_rust_reject_non_finite_spec_parameters() -> None:
+    with pytest.raises(ValueError, match="capacitance"):
+        PyCapacitorBankSpec(float("nan"), 1e-3, 0.1, 1000.0, 10.0)
+    with pytest.raises(ValueError, match="capacitance"):
+        rust.CapacitorBankSpec(float("nan"), 1e-3, 0.1, 1000.0, 10.0)
+
+
+def test_python_and_rust_reject_non_finite_max_capacitor_energy() -> None:
+    with pytest.raises(ValueError, match="max_capacitor_energy"):
+        PyCapacitorBankSpec(1.0e308, 1.0, 0.0, 1.0e154, 0.0)
+    with pytest.raises(ValueError, match="max_capacitor_energy"):
+        rust.CapacitorBankSpec(1.0e308, 1.0, 0.0, 1.0e154, 0.0)

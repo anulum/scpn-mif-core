@@ -234,6 +234,7 @@ end
     @test bank.state.current_A == 0.0
 
     @test_throws ArgumentError CapacitorBankSpec(-1.0, 100e-6, 0.5, 10_000.0, 10.0)
+    @test_throws ArgumentError CapacitorBankSpec(1.0e308, 1.0, 0.0, 1.0e154, 0.0)
     @test_throws ArgumentError CapacitorBank(spec, spec.voltage_max_V + 1.0)
     @test_throws ArgumentError reset!(bank, -1.0)
     @test_throws ArgumentError free_response(spec, -1.0e-9, v0)

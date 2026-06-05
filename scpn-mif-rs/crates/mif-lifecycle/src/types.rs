@@ -43,6 +43,12 @@ pub struct CapacitorBankSpec {
 /// Validation error for `CapacitorBankSpec::new`.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum SpecError {
+    /// A supplied or derived field must be finite.
+    #[error("{field} must be finite")]
+    NonFinite {
+        /// Field name.
+        field: &'static str,
+    },
     /// Capacitance must be strictly positive.
     #[error("capacitance_f must be strictly positive")]
     NonPositiveCapacitance,
@@ -69,6 +75,11 @@ impl CapacitorBankSpec {
         voltage_max_v: f64,
         recharge_power_kw: f64,
     ) -> Result<Self, SpecError> {
+        require_spec_finite("capacitance_f", capacitance_f)?;
+        require_spec_finite("inductance_h", inductance_h)?;
+        require_spec_finite("series_resistance_ohm", series_resistance_ohm)?;
+        require_spec_finite("voltage_max_v", voltage_max_v)?;
+        require_spec_finite("recharge_power_kw", recharge_power_kw)?;
         if capacitance_f <= 0.0 {
             return Err(SpecError::NonPositiveCapacitance);
         }
@@ -84,6 +95,10 @@ impl CapacitorBankSpec {
         if recharge_power_kw < 0.0 {
             return Err(SpecError::NegativeRechargePower);
         }
+        require_spec_finite(
+            "max_capacitor_energy_j",
+            0.5 * capacitance_f * voltage_max_v * voltage_max_v,
+        )?;
         Ok(Self {
             capacitance_f,
             inductance_h,
@@ -122,6 +137,14 @@ impl CapacitorBankSpec {
     }
 }
 
+fn require_spec_finite(field: &'static str, value: f64) -> Result<(), SpecError> {
+    if value.is_finite() {
+        Ok(())
+    } else {
+        Err(SpecError::NonFinite { field })
+    }
+}
+
 /// Immutable observable state of the bank at time `t`.
 #[derive(Debug, Clone, Copy)]
 pub struct CapacitorBankState {
@@ -148,6 +171,12 @@ pub struct CapacitorBankState {
 /// Construction error.
 #[derive(Debug, Error, PartialEq)]
 pub enum ConstructError {
+    /// A supplied or derived field must be finite.
+    #[error("{field} must be finite")]
+    NonFinite {
+        /// Field name.
+        field: &'static str,
+    },
     /// Initial voltage exceeds the spec maximum.
     #[error("initial voltage {value} V exceeds bank max {max} V")]
     ExceedsMax {
@@ -164,6 +193,12 @@ pub enum ConstructError {
 /// Step error.
 #[derive(Debug, Error, PartialEq, Eq)]
 pub enum StepError {
+    /// A supplied or derived field must be finite.
+    #[error("{field} must be finite")]
+    NonFinite {
+        /// Field name.
+        field: &'static str,
+    },
     /// `dt` must be strictly positive.
     #[error("dt must be strictly positive")]
     NonPositiveDt,

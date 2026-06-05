@@ -95,16 +95,27 @@ class CapacitorBankSpec:
     safety_envelope: dict[str, float] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        if self.capacitance_F <= 0.0:
+        capacitance = _require_finite("capacitance_F", self.capacitance_F)
+        inductance = _require_finite("inductance_H", self.inductance_H)
+        resistance = _require_finite("series_resistance_ohm", self.series_resistance_ohm)
+        voltage_max = _require_finite("voltage_max_V", self.voltage_max_V)
+        recharge_power = _require_finite("recharge_power_kW", self.recharge_power_kW)
+        object.__setattr__(self, "capacitance_F", capacitance)
+        object.__setattr__(self, "inductance_H", inductance)
+        object.__setattr__(self, "series_resistance_ohm", resistance)
+        object.__setattr__(self, "voltage_max_V", voltage_max)
+        object.__setattr__(self, "recharge_power_kW", recharge_power)
+        if capacitance <= 0.0:
             raise ValueError("capacitance_F must be strictly positive")
-        if self.inductance_H <= 0.0:
+        if inductance <= 0.0:
             raise ValueError("inductance_H must be strictly positive")
-        if self.series_resistance_ohm < 0.0:
+        if resistance < 0.0:
             raise ValueError("series_resistance_ohm must be non-negative")
-        if self.voltage_max_V <= 0.0:
+        if voltage_max <= 0.0:
             raise ValueError("voltage_max_V must be strictly positive")
-        if self.recharge_power_kW < 0.0:
+        if recharge_power < 0.0:
             raise ValueError("recharge_power_kW must be non-negative")
+        _require_finite("max_capacitor_energy_J", 0.5 * capacitance * voltage_max * voltage_max)
 
     @property
     def damping_factor(self) -> float:
@@ -157,9 +168,13 @@ class PulseSpec:
     waveform: Literal["rect", "half_sine", "exp_decay"] = "half_sine"
 
     def __post_init__(self) -> None:
-        if self.peak_current_A <= 0.0:
+        peak_current = _require_finite("peak_current_A", self.peak_current_A)
+        duration = _require_finite("duration_s", self.duration_s)
+        object.__setattr__(self, "peak_current_A", peak_current)
+        object.__setattr__(self, "duration_s", duration)
+        if peak_current <= 0.0:
             raise ValueError("peak_current_A must be strictly positive")
-        if self.duration_s <= 0.0:
+        if duration <= 0.0:
             raise ValueError("duration_s must be strictly positive")
 
 
@@ -256,6 +271,8 @@ def free_response(spec: CapacitorBankSpec, t: float, v0: float) -> tuple[float, 
     ValueError
         If ``t`` is negative.
     """
+    t = _require_finite("t", t)
+    v0 = _require_finite("v0", v0)
     if t < 0.0:
         raise ValueError("t must be non-negative")
     regime = spec.regime
@@ -305,13 +322,15 @@ class CapacitorBank:
     __slots__ = ("_di_dt", "_i", "_spec", "_t", "_v")
 
     def __init__(self, spec: CapacitorBankSpec, initial_voltage_V: float = 0.0) -> None:
-        if initial_voltage_V > spec.voltage_max_V:
-            raise ValueError(f"initial voltage {initial_voltage_V} V exceeds bank max {spec.voltage_max_V} V")
-        if initial_voltage_V < 0.0:
+        initial_voltage = _require_finite("initial voltage", initial_voltage_V)
+        if initial_voltage > spec.voltage_max_V:
+            raise ValueError(f"initial voltage {initial_voltage} V exceeds bank max {spec.voltage_max_V} V")
+        if initial_voltage < 0.0:
             raise ValueError("initial voltage must be non-negative")
+        _build_state(spec, 0.0, initial_voltage, 0.0, 0.0)
         self._spec = spec
         self._t = 0.0
-        self._v = float(initial_voltage_V)
+        self._v = initial_voltage
         self._i = 0.0
         self._di_dt = 0.0
 
@@ -323,28 +342,18 @@ class CapacitorBank:
     @property
     def state(self) -> CapacitorBankState:
         """Current observable state."""
-        capacitor_energy = 0.5 * self._spec.capacitance_F * self._v * self._v
-        inductor_energy = 0.5 * self._spec.inductance_H * self._i * self._i
-        return CapacitorBankState(
-            t=self._t,
-            voltage_V=self._v,
-            energy_J=capacitor_energy + inductor_energy,
-            capacitor_energy_J=capacitor_energy,
-            inductor_energy_J=inductor_energy,
-            current_A=self._i,
-            di_dt_A_s=self._di_dt,
-            discharge_active=abs(self._i) > 1e-9,
-            recharge_active=False,
-        )
+        return _build_state(self._spec, self._t, self._v, self._i, self._di_dt)
 
     def reset(self, voltage_V: float = 0.0) -> None:
         """Reset the bank to ``voltage_V`` with zero current and ``t = 0``."""
-        if voltage_V > self._spec.voltage_max_V:
-            raise ValueError(f"reset voltage {voltage_V} V exceeds bank max {self._spec.voltage_max_V} V")
-        if voltage_V < 0.0:
+        voltage = _require_finite("reset voltage", voltage_V)
+        if voltage > self._spec.voltage_max_V:
+            raise ValueError(f"reset voltage {voltage} V exceeds bank max {self._spec.voltage_max_V} V")
+        if voltage < 0.0:
             raise ValueError("reset voltage must be non-negative")
+        _build_state(self._spec, 0.0, voltage, 0.0, 0.0)
         self._t = 0.0
-        self._v = float(voltage_V)
+        self._v = voltage
         self._i = 0.0
         self._di_dt = 0.0
 
@@ -364,6 +373,8 @@ class CapacitorBank:
         ValueError
             If ``dt`` is not strictly positive.
         """
+        dt = _require_finite("dt", dt)
+        load_current = _require_finite("external_load_current_A", external_load_current_A)
         if dt <= 0.0:
             raise ValueError("dt must be strictly positive")
         cap = self._spec.capacitance_F
@@ -387,14 +398,15 @@ class CapacitorBank:
             ]
         )
         y_n = np.array([self._v, self._i])
-        forcing = np.array([-external_load_current_A / cap, 0.0])
+        forcing = np.array([-load_current / cap, 0.0])
         y_next = np.linalg.solve(lhs, rhs_mat @ y_n + dt * forcing)
         di_dt_next = a21 * y_next[0] + a22 * y_next[1]
+        next_state = _build_state(self._spec, self._t + dt, float(y_next[0]), float(y_next[1]), float(di_dt_next))
         self._t += dt
         self._v = float(y_next[0])
         self._i = float(y_next[1])
         self._di_dt = float(di_dt_next)
-        return self.state
+        return next_state
 
     def discharge(self, pulse: PulseSpec, dt: float, n_steps: int) -> EnergyReport:
         """Drive the bank with a prescribed load-current waveform.
@@ -555,6 +567,46 @@ def _sample_waveform(pulse: PulseSpec, t: float) -> float:
         tau = pulse.duration_s / 5.0
         return pulse.peak_current_A * math.exp(-t / tau)
     raise ValueError(f"unknown waveform: {pulse.waveform!r}")
+
+
+def _build_state(
+    spec: CapacitorBankSpec,
+    t: float,
+    voltage: float,
+    current: float,
+    di_dt: float,
+) -> CapacitorBankState:
+    t = _require_finite("t", t)
+    voltage = _require_finite("voltage_V", voltage)
+    current = _require_finite("current_A", current)
+    di_dt = _require_finite("di_dt_A_s", di_dt)
+    capacitor_energy = _require_finite(
+        "capacitor_energy_J",
+        0.5 * spec.capacitance_F * voltage * voltage,
+    )
+    inductor_energy = _require_finite(
+        "inductor_energy_J",
+        0.5 * spec.inductance_H * current * current,
+    )
+    energy = _require_finite("energy_J", capacitor_energy + inductor_energy)
+    return CapacitorBankState(
+        t=t,
+        voltage_V=voltage,
+        energy_J=energy,
+        capacitor_energy_J=capacitor_energy,
+        inductor_energy_J=inductor_energy,
+        current_A=current,
+        di_dt_A_s=di_dt,
+        discharge_active=abs(current) > 1e-9,
+        recharge_active=False,
+    )
+
+
+def _require_finite(name: str, value: float) -> float:
+    numeric = float(value)
+    if not math.isfinite(numeric):
+        raise ValueError(f"{name} must be finite")
+    return numeric
 
 
 def _waveform_rms_squared_fraction(waveform: Literal["rect", "half_sine", "exp_decay"]) -> float:

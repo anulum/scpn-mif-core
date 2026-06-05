@@ -100,6 +100,7 @@ pub struct CapacitorBank {
 impl CapacitorBank {
     /// Construct a bank, validating that the initial voltage lies in `[0, voltage_max_v]`.
     pub fn new(spec: CapacitorBankSpec, initial_voltage_v: f64) -> Result<Self, ConstructError> {
+        require_construct_finite("initial_voltage_v", initial_voltage_v)?;
         if initial_voltage_v > spec.voltage_max_v {
             return Err(ConstructError::ExceedsMax {
                 value: initial_voltage_v,
@@ -109,6 +110,7 @@ impl CapacitorBank {
         if initial_voltage_v < 0.0 {
             return Err(ConstructError::NegativeVoltage);
         }
+        validate_construct_energy(&spec, initial_voltage_v, 0.0)?;
         Ok(Self {
             spec,
             t: 0.0,
@@ -142,6 +144,7 @@ impl CapacitorBank {
 
     /// Reset the bank to `voltage_v` with zero current and `t = 0`.
     pub fn reset(&mut self, voltage_v: f64) -> Result<(), ConstructError> {
+        require_construct_finite("voltage_v", voltage_v)?;
         if voltage_v > self.spec.voltage_max_v {
             return Err(ConstructError::ExceedsMax {
                 value: voltage_v,
@@ -151,6 +154,7 @@ impl CapacitorBank {
         if voltage_v < 0.0 {
             return Err(ConstructError::NegativeVoltage);
         }
+        validate_construct_energy(&self.spec, voltage_v, 0.0)?;
         self.t = 0.0;
         self.v = voltage_v;
         self.i = 0.0;
@@ -168,6 +172,8 @@ impl CapacitorBank {
         dt: f64,
         external_load_current_a: f64,
     ) -> Result<CapacitorBankState, StepError> {
+        require_step_finite("dt", dt)?;
+        require_step_finite("external_load_current_a", external_load_current_a)?;
         if dt <= 0.0 {
             return Err(StepError::NonPositiveDt);
         }
@@ -194,12 +200,56 @@ impl CapacitorBank {
         let v_next = (l22 * rhs_v - l12 * rhs_i) / det;
         let i_next = (-l21 * rhs_v + l11 * rhs_i) / det;
         let di_dt_next = a21 * v_next + a22 * i_next;
+        require_step_finite("voltage_v", v_next)?;
+        require_step_finite("current_a", i_next)?;
+        require_step_finite("di_dt_a_s", di_dt_next)?;
+        validate_step_energy(&self.spec, v_next, i_next)?;
         self.t += dt;
         self.v = v_next;
         self.i = i_next;
         self.di_dt = di_dt_next;
         Ok(self.state())
     }
+}
+
+fn require_construct_finite(field: &'static str, value: f64) -> Result<(), ConstructError> {
+    if value.is_finite() {
+        Ok(())
+    } else {
+        Err(ConstructError::NonFinite { field })
+    }
+}
+
+fn validate_construct_energy(
+    spec: &CapacitorBankSpec,
+    voltage_v: f64,
+    current_a: f64,
+) -> Result<(), ConstructError> {
+    let capacitor_energy_j = 0.5 * spec.capacitance_f * voltage_v * voltage_v;
+    require_construct_finite("capacitor_energy_j", capacitor_energy_j)?;
+    let inductor_energy_j = 0.5 * spec.inductance_h * current_a * current_a;
+    require_construct_finite("inductor_energy_j", inductor_energy_j)?;
+    require_construct_finite("energy_j", capacitor_energy_j + inductor_energy_j)
+}
+
+fn require_step_finite(field: &'static str, value: f64) -> Result<(), StepError> {
+    if value.is_finite() {
+        Ok(())
+    } else {
+        Err(StepError::NonFinite { field })
+    }
+}
+
+fn validate_step_energy(
+    spec: &CapacitorBankSpec,
+    voltage_v: f64,
+    current_a: f64,
+) -> Result<(), StepError> {
+    let capacitor_energy_j = 0.5 * spec.capacitance_f * voltage_v * voltage_v;
+    require_step_finite("capacitor_energy_j", capacitor_energy_j)?;
+    let inductor_energy_j = 0.5 * spec.inductance_h * current_a * current_a;
+    require_step_finite("inductor_energy_j", inductor_energy_j)?;
+    require_step_finite("energy_j", capacitor_energy_j + inductor_energy_j)
 }
 
 #[cfg(test)]
@@ -292,5 +342,21 @@ mod tests {
         let spec = underdamped_spec();
         let err = CapacitorBank::new(spec, spec.voltage_max_v + 1.0).unwrap_err();
         assert!(matches!(err, ConstructError::ExceedsMax { .. }));
+    }
+
+    #[test]
+    fn spec_rejects_non_finite_parameters_and_derived_energy() {
+        assert!(matches!(
+            CapacitorBankSpec::new(f64::NAN, 1e-3, 0.1, 1000.0, 10.0),
+            Err(crate::types::SpecError::NonFinite {
+                field: "capacitance_f"
+            })
+        ));
+        assert!(matches!(
+            CapacitorBankSpec::new(1.0e308, 1.0, 0.0, 1.0e154, 0.0),
+            Err(crate::types::SpecError::NonFinite {
+                field: "max_capacitor_energy_j"
+            })
+        ));
     }
 }

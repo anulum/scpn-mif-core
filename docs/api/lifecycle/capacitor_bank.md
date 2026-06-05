@@ -26,6 +26,12 @@ matching the Lean `storedEnergy` contract. The component fields
 `capacitor_energy_J` and `inductor_energy_J` expose the two addends for
 audits and cross-language parity checks.
 
+All runtime surfaces fail closed if finite input parameters would derive
+non-finite stored energy. `CapacitorBankSpec` validates the maximum capacitor
+energy implied by `capacitance_F` and `voltage_max_V`, while `CapacitorBank`
+validates each emitted observable state before construction, reset, or
+Crank-Nicolson step results are exposed.
+
 ## Carrier equations
 
 For a series RLC circuit driven by an initial bank voltage `v_C(0) = V_0` and
@@ -122,7 +128,7 @@ print(f"voltage = {bank.state.voltage_V:.3f} V, current = {bank.state.current_A:
 
 | Check | Result |
 | :---  | :--- |
-| Spec invariants (immutability, six rejection paths) | 7 unit tests pass |
+| Spec invariants (immutability and seven rejection paths, including non-finite parameters and non-finite maximum capacitor energy) | 8 unit tests pass |
 | Regime classification across the three branches | 5 unit tests pass |
 | Analytical closed-form boundary conditions at `t = 0` | 3 unit tests pass |
 | Free-response dispatch matches the closed forms | 3 unit tests pass |
@@ -142,8 +148,8 @@ print(f"voltage = {bank.state.voltage_V:.3f} V, current = {bank.state.current_A:
 | Feasibility happy path, energy-rejection, Z₀-rejection | 4 unit tests pass |
 | Recharge status (target, zero-t, long-t saturation, linear energy, negative-t, zero-power) | 6 unit tests pass |
 | Hypothesis property — natural response stays in the initial-voltage envelope | 80 randomised examples pass |
-| Python ↔ Rust parity across the regime grid and 16 random seeds | 142 parity tests pass at 1e-12 |
-| Julia reference — three regimes, free response, Crank-Nicolson stepping, total-energy components, external load, reset, rejection paths | 21 tests pass |
+| Python ↔ Rust parity across the regime grid and 16 random seeds | 144 parity tests pass at 1e-12 |
+| Julia reference — three regimes, free response, Crank-Nicolson stepping, total-energy components, external load, reset, finite-energy rejection paths | 22 tests pass |
 | Total | Python/Rust core suite plus Julia reference tests pass under their dedicated gates |
 
 ## Benchmarks
@@ -175,12 +181,12 @@ validate parity and dispatch ordering rather than in-process kernel latency.
 
 | Operation                                     | Python (NumPy) | Rust     | Julia CLI | Dispatch order |
 | :---                                          | :---           | :---     | :---      | :--- |
-| `step` single Crank-Nicolson update           | 24.3 µs        | 260 ns   | 458 ms    | Rust, Python, Julia |
-| `step` 1 000-step batch                       | 23.7 ms        | 91.6 µs  | 3.09 s    | Rust, Python, Julia |
-| `free_response` analytical dispatch           | 811 ns         | 152 ns   | 278 ms    | Rust, Python, Julia |
+| `step` single Crank-Nicolson update           | 11.3 µs        | 294 ns   | 462 ms    | Rust, Python, Julia |
+| `step` 1 000-step batch                       | 10.4 ms        | 87.2 µs  | 2.86 s    | Rust, Python, Julia |
+| `free_response` analytical dispatch           | 908 ns         | 130 ns   | 233 ms    | Rust, Python, Julia |
 
 The Python and Rust paths agree at machine epsilon (≤ 10⁻¹² relative
-tolerance, verified across 142 parity tests in
+tolerance, verified across 144 parity tests in
 `tests/unit/lifecycle/test_capacitor_bank_rust_parity.py`), including total
 stored energy and the capacitor/inductor component fields. The Julia
 reference is covered by `julia/SCPNMIFCore/test/runtests.jl`, including all
