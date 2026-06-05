@@ -94,6 +94,13 @@ hardware/toolchain-gated. This commit records the portable RTL synthesis smoke,
 Verilator cosimulation, Python golden-reference proof surface, and local
 non-isolated benchmark evidence only.
 
+MIF-015 adds the local end-to-end cosimulation harness for this sensor path.
+`cosim.mif007_adc_to_spike` scales finite float diagnostic amplitudes into
+signed ADC words, applies the canonical Q8.8 quantiser, and checks the expected
+AER address stream against the cycle-level RTL valid/ready trace. This is
+bit-true local regression evidence only; it does not claim Vivado timing
+closure or hardware waveform equivalence.
+
 ## Benchmark
 
 Benchmark harness:

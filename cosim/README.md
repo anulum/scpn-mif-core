@@ -8,33 +8,38 @@
 
 # Cosimulation harness
 
-PyTorch float reference ↔ Q8.8 quantised ↔ Verilator RTL trace bit-true
-cosimulation, reusing the SC-NEUROCORE `tools/cosim_q88_vs_pytorch.py`
-infrastructure.
+Float diagnostic reference -> Q8.8 quantised reference -> RTL-trace bit-true
+cosimulation for SCPN-MIF-CORE.
 
 ## Layout
 
 ```
 cosim/
 ├── __init__.py
-├── conftest.py              cosim-specific fixtures
-├── reference/               Python golden references
-├── verilator/               Verilator-driver harness
-└── fixtures/                committed reference traces
+├── mif007_adc_to_spike.py   MIF-015 local harness for the MIF-007 path
+└── test_mif007_adc_to_spike.py
 ```
 
 ## Running
 
 ```bash
-make cosim                   # full cosim suite (Python + Verilator)
-pytest cosim/ -v -k mif_007  # B-dot probe → spike quantiser only
+make cosim                    # local cosim suite
+pytest cosim/ -v -k mif007    # B-dot probe -> spike quantiser only
 ```
 
-Hardware-gated runs require `MIF_VIVADO_CI=1`. Implementation lands in
-P3 of the development plan.
+Hardware-gated Vivado runs still require `MIF_VIVADO_CI=1`.
 
-MIF-007 has a Python golden-reference campaign in
-`tools/adc_to_spike_reference.py` and unit coverage in
-`tests/unit/fpga/`. Verilator is not installed in the current local
-environment, so RTL waveform cosimulation remains a pending toolchain-gated
-step.
+## MIF-015 local contract
+
+`cosim.mif007_adc_to_spike` composes the existing MIF-007 golden reference with
+the cycle-level RTL valid/ready reference:
+
+- finite float diagnostic amplitudes are scaled into signed ADC words;
+- ADC words are quantised into signed Q8.8 values by
+  `tools.adc_to_spike_reference.quantise_adc_to_q88`;
+- rate-coded AER spikes are compared with the RTL valid/ready trace;
+- externally supplied RTL traces can be checked with `assert_bit_true_trace`.
+
+This is local bit-true regression evidence for the MIF-007 sensor path. It does
+not replace the Verilator C++ fixture in `hdl/sim/` or Vivado timing closure;
+those remain toolchain-gated hardware evidence.

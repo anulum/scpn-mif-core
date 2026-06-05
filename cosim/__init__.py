@@ -5,4 +5,20 @@
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
 # SCPN-MIF-CORE — cosimulation package.
-"""Cosimulation package — PyTorch ↔ Q8.8 ↔ Verilator harness."""
+"""Cosimulation package — float reference to Q8.8 to RTL-trace harness."""
+
+from __future__ import annotations
+
+from cosim.mif007_adc_to_spike import (
+    FloatAdcCosimConfig,
+    Mif007AdcCosimReport,
+    assert_bit_true_trace,
+    run_mif007_adc_to_spike_cosim,
+)
+
+__all__ = [
+    "FloatAdcCosimConfig",
+    "Mif007AdcCosimReport",
+    "assert_bit_true_trace",
+    "run_mif007_adc_to_spike_cosim",
+]

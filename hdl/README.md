@@ -43,6 +43,12 @@ reference tests, and Verilator cosimulation through
 `hdl/sim/adc_to_spike_quantiser_tb.cpp`. Vivado timing closure remains gated on
 the FPGA workstation and final SKU choice.
 
+MIF-015 now provides a local Python cosimulation harness in
+`cosim/mif007_adc_to_spike.py`. It scales finite float diagnostic amplitudes to
+signed ADC words, applies the canonical Q8.8 golden reference, and compares the
+resulting AER addresses with the cycle-level RTL valid/ready reference before
+any hardware-only Vivado evidence is claimed.
+
 ## References
 
 - AMD Xilinx UG949 (UltraFast design methodology).
