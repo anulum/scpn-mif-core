@@ -272,8 +272,8 @@ class PulsedShotFSM:
         time = _finite("t_s", t_s)
         if time < 0.0:
             raise ValueError("t_s must be non-negative")
-        if self._last_sample_t_s is not None and time < self._last_sample_t_s:
-            raise ValueError("t_s must be monotone")
+        if self._last_sample_t_s is not None and time <= self._last_sample_t_s:
+            raise ValueError("t_s must be strictly increasing")
         return time
 
     def _record_transition(self, t_s: float, next_state: ShotState, reason: str) -> TransitionRecord:

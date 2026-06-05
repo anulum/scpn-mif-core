@@ -313,12 +313,14 @@ def test_cool_down_waits_for_plasma_clear() -> None:
     assert command.reason == "waiting for cool-down"
 
 
-def test_timestamp_must_be_monotone() -> None:
+def test_timestamp_must_be_strictly_increasing() -> None:
     fsm = PulsedShotFSM(_spec())
     fsm.step(1.0, _plasma(), _bank())
 
-    with pytest.raises(ValueError, match="monotone"):
+    with pytest.raises(ValueError, match="strictly increasing"):
         fsm.step(0.5, _plasma(), _bank())
+    with pytest.raises(ValueError, match="strictly increasing"):
+        fsm.step(1.0, _plasma(), _bank())
 
 
 def test_timestamp_must_be_non_negative() -> None:

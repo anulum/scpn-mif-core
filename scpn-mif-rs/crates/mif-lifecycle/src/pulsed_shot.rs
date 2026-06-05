@@ -415,7 +415,7 @@ impl PulsedShotFsm {
     fn validate_timestamp(&self, t_s: f64) -> Result<f64, PulsedShotError> {
         validate_non_negative("t_s", t_s)?;
         if let Some(last) = self.last_sample_t_s {
-            if t_s < last {
+            if t_s <= last {
                 return Err(PulsedShotError::NonMonotoneTimestamp);
             }
         }
@@ -554,8 +554,8 @@ pub enum PulsedShotError {
     /// Bank voltage exceeds maximum.
     #[error("voltage_v must not exceed voltage_max_v")]
     VoltageExceedsMax,
-    /// Timestamps must be monotone.
-    #[error("t_s must be monotone")]
+    /// Timestamps must be strictly increasing after the first sample.
+    #[error("t_s must be strictly increasing")]
     NonMonotoneTimestamp,
     /// Manual transition skipped an adjacent state.
     #[error("invalid transition {from} -> {to}")]
@@ -678,5 +678,19 @@ mod tests {
             ShotState::Idle
         );
         assert_eq!(fsm.audit_log().len(), 8);
+    }
+
+    #[test]
+    fn rejects_duplicate_sample_time() {
+        let mut fsm = PulsedShotFsm::new(spec());
+        let bank = BankTelemetry::new(9800.0, 10_000.0, 200.0).unwrap();
+        let plasma = PlasmaState::new(0.0, 10.0, 0.02, 0.01, 0.0, 0.0).unwrap();
+
+        fsm.step(0.0, plasma, bank).unwrap();
+
+        assert_eq!(
+            fsm.step(0.0, plasma, bank).unwrap_err(),
+            PulsedShotError::NonMonotoneTimestamp
+        );
     }
 }

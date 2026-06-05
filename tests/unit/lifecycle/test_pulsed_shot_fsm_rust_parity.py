@@ -104,6 +104,43 @@ def test_rust_fsm_matches_python_state_sequence() -> None:
         assert py_command.transition == rust_command[4]
 
 
+def test_python_and_rust_reject_duplicate_timestamps() -> None:
+    plasma = _plasma(0.0, 10.0, 0.02, 0.01, 0.0, 0.0)
+    bank = _bank(9800.0, 200.0)
+    py_fsm = PulsedShotFSM(_py_spec())
+    rust_fsm = rust.PulsedShotFSM(_rust_spec())
+
+    py_fsm.step(0.0, plasma, bank)
+    rust_fsm.step(
+        0.0,
+        rust.PlasmaState(
+            plasma.coil_current_A,
+            plasma.temperature_eV,
+            plasma.phase_lock_error_rad,
+            plasma.reference_error_m,
+            plasma.fusion_power_W,
+            plasma.radial_velocity_m_s,
+        ),
+        rust.BankTelemetry(bank.voltage_V, bank.voltage_max_V, bank.energy_J),
+    )
+
+    with pytest.raises(ValueError, match="strictly increasing"):
+        py_fsm.step(0.0, plasma, bank)
+    with pytest.raises(ValueError, match="strictly increasing"):
+        rust_fsm.step(
+            0.0,
+            rust.PlasmaState(
+                plasma.coil_current_A,
+                plasma.temperature_eV,
+                plasma.phase_lock_error_rad,
+                plasma.reference_error_m,
+                plasma.fusion_power_W,
+                plasma.radial_velocity_m_s,
+            ),
+            rust.BankTelemetry(bank.voltage_V, bank.voltage_max_V, bank.energy_J),
+        )
+
+
 def test_dispatched_fsm_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
     import scpn_mif_core.lifecycle as lifecycle
 

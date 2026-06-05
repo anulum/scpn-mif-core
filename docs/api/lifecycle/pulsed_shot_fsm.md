@@ -31,7 +31,7 @@ and every transition is recorded as a timestamped audit entry.
 | `recharge` | `cool_down` | bank voltage fraction reaches recharge threshold |
 | `cool_down` | `idle` | plasma temperature and coil current are below cool-down thresholds |
 
-Timestamps must be non-negative and monotone.
+Timestamps must be non-negative and strictly increasing after the first sample.
 
 ## Python API
 
@@ -56,11 +56,11 @@ a runtime benchmark backend.
 ## Acceptance
 
 The committed acceptance campaign traverses all eight states in order, verifies
-monotone audit timestamps, checks JSONL audit serialisation, rejects
-non-monotone timestamps, rejects non-adjacent manual transitions, and verifies
-that flat-top waits when either phase or spatial lock is missing. Additional
-guard tests cover low precharge energy, minimum burn dwell, and dump-floor
-energy holds.
+strictly increasing audit timestamps, checks JSONL audit serialisation, rejects
+duplicate or backwards timestamps, rejects non-adjacent manual transitions, and
+verifies that flat-top waits when either phase or spatial lock is missing.
+Additional guard tests cover low precharge energy, minimum burn dwell, and
+dump-floor energy holds.
 
 Python/Rust parity tests cover the full state sequence and the Rust-backed
 dispatch path. Lean builds `SCPNMIF.PulsedShot.eight_step_cycle`,
@@ -73,8 +73,8 @@ Measured on the local i5-11600K rig using Python 3.12.3 and Rust 1.85.0.
 
 | Group | Backend | Mean | Result |
 |---|---:|---:|---|
-| `campaign_8` | Rust | 2.38 us | fastest |
-| `campaign_8` | Python | 17.19 us | 7.2x slower than Rust |
+| `campaign_8` | Rust | 2.57 us | fastest |
+| `campaign_8` | Python | 19.68 us | 7.7x slower than Rust |
 
 Raw summary: `bench/results/pulsed_shot_fsm.json`.
 

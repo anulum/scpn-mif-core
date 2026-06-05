@@ -3,28 +3,45 @@
   "kernel": "pulsed_shot_fsm",
   "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
   "python_version": "3.12.3",
-  "datetime": "2026-06-04T10:58:45.611067+00:00",
+  "datetime": "2026-06-05T01:53:16+00:00",
   "notes": [
-    "MIF-004 has Python, Rust, and Lean surfaces; Lean proves the adjacent eight-state lifecycle cycle and is not a runtime benchmark backend."
+    "MIF-004 has Python, Rust, and Lean surfaces; Lean proves the adjacent eight-state lifecycle cycle and is not a runtime benchmark backend.",
+    "Non-isolated local comparison run on a workstation with powersave governor and nontrivial host load; do not treat as a production performance claim."
   ],
   "tests": [
     {
       "name": "test_bench_python_campaign_8",
       "group": "pulsed_shot_fsm.campaign_8",
-      "mean_ns": 17187.401406643356,
-      "stddev_ns": 3195.6272062475496,
-      "median_ns": 16401.056200265884,
-      "ops_per_s": 58182.151934467256,
-      "rounds": 14192
+      "mean_ns": 19679.263446420493,
+      "stddev_ns": 3636.679266267362,
+      "median_ns": 19020.866602659225,
+      "ops_per_s": 50814.90995446236,
+      "rounds": 7195
     },
     {
       "name": "test_bench_rust_campaign_8",
       "group": "pulsed_shot_fsm.campaign_8",
-      "mean_ns": 2382.868824093911,
-      "stddev_ns": 577.2924063884477,
-      "median_ns": 2272.1942514181137,
-      "ops_per_s": 419662.21131801134,
-      "rounds": 84133
+      "mean_ns": 2565.9043488745515,
+      "stddev_ns": 432.55717587535156,
+      "median_ns": 2498.0399757623672,
+      "ops_per_s": 389726.1409758383,
+      "rounds": 61103
     }
-  ]
+  ],
+  "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "benchmark_context": {
+    "command": "./.venv/bin/pytest bench/kernels/bench_pulsed_shot_fsm.py --benchmark-only --benchmark-json=bench/results/pulsed_shot_fsm_raw.json --no-cov",
+    "cpu_isolated": false,
+    "isolation_method": "none; local workstation comparison run",
+    "affinity_or_reserved_cores": "none",
+    "host_load_before": "3.79 3.21 3.32 6/3229 2730349",
+    "host_load_after": "3.24 3.12 3.29 4/3235 2730737",
+    "cpu_governor": "powersave",
+    "heavy_jobs_running": "not reserved; local load was nontrivial, so this is not a production benchmark claim",
+    "runtime_versions": {
+      "python": "3.12.3",
+      "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)"
+    },
+    "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+  }
 }
