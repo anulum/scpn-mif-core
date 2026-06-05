@@ -140,6 +140,9 @@ func DecodeFrame(blob []byte) (RawFrame, error) {
 	}
 	valueCount := int(binary.LittleEndian.Uint16(blob[28:30]))
 	payloadLen := int(binary.LittleEndian.Uint32(blob[32:36]))
+	if binary.LittleEndian.Uint16(blob[30:32]) != 0 {
+		return RawFrame{}, errors.New("DAQ frame reserved header bits must be zero")
+	}
 	if len(blob) != headerLen+payloadLen || payloadLen != valueCount*8 {
 		return RawFrame{}, errors.New("DAQ frame payload length mismatch")
 	}
@@ -164,6 +167,22 @@ func DecodeFrame(blob []byte) (RawFrame, error) {
 		TNS:      binary.LittleEndian.Uint64(blob[20:28]),
 		Values:   values,
 	}, nil
+}
+
+// ValidateReplayOrder fails closed on non-increasing packet sequence or timestamp regression.
+func ValidateReplayOrder(frames []RawFrame) error {
+	if len(frames) == 0 {
+		return errors.New("at least one DAQ frame is required")
+	}
+	for idx := 1; idx < len(frames); idx++ {
+		if frames[idx].Sequence <= frames[idx-1].Sequence {
+			return errors.New("DAQ frame sequence must increase")
+		}
+		if frames[idx].TNS < frames[idx-1].TNS {
+			return errors.New("DAQ frame timestamps must be monotone")
+		}
+	}
+	return nil
 }
 
 func modeCode(mode DeliveryMode) byte {

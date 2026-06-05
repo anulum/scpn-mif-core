@@ -239,6 +239,8 @@ pub struct DataBusMock {
     frames: VecDeque<Vec<u8>>,
     dropped_frames: usize,
     bound_endpoint: Option<String>,
+    last_sequence: Option<u64>,
+    last_t_ns: Option<u64>,
 }
 
 impl DataBusMock {
@@ -260,6 +262,8 @@ impl DataBusMock {
             frames: VecDeque::with_capacity(ring_capacity),
             dropped_frames: 0,
             bound_endpoint: None,
+            last_sequence: None,
+            last_t_ns: None,
         })
     }
 
@@ -307,6 +311,7 @@ impl DataBusMock {
         if decoded.profile.profile_id != self.profile.profile_id {
             return Err(DaqError::ProfileMismatch);
         }
+        self.validate_replay_order(&decoded)?;
         if self.mode == DeliveryMode::PcieDmaRing && self.frames.len() == self.ring_capacity {
             self.dropped_frames += 1;
             self.frames.pop_front();
@@ -314,12 +319,28 @@ impl DataBusMock {
             self.frames.pop_front();
         }
         self.frames.push_back(payload);
+        self.last_sequence = Some(decoded.sequence);
+        self.last_t_ns = Some(decoded.t_ns);
         Ok(())
     }
 
     /// Emit the next byte frame.
     pub fn emit_bytes(&mut self) -> Option<Vec<u8>> {
         self.frames.pop_front()
+    }
+
+    fn validate_replay_order(&self, frame: &RawDaqFrame) -> Result<(), DaqError> {
+        if let Some(last_sequence) = self.last_sequence {
+            if frame.sequence <= last_sequence {
+                return Err(DaqError::SequenceNotIncreasing);
+            }
+        }
+        if let Some(last_t_ns) = self.last_t_ns {
+            if frame.t_ns < last_t_ns {
+                return Err(DaqError::TimestampRegression);
+            }
+        }
+        Ok(())
     }
 }
 
@@ -362,8 +383,12 @@ pub fn decode_daq_frame(blob: &[u8]) -> Result<RawDaqFrame, DaqError> {
     let sequence = read_u64(blob, 12);
     let t_ns = read_u64(blob, 20);
     let value_count = u16::from_le_bytes([blob[28], blob[29]]) as usize;
+    let reserved = u16::from_le_bytes([blob[30], blob[31]]);
     let payload_len = u32::from_le_bytes([blob[32], blob[33], blob[34], blob[35]]) as usize;
     let checksum = u32::from_le_bytes([blob[36], blob[37], blob[38], blob[39]]);
+    if reserved != 0 {
+        return Err(DaqError::ReservedHeaderNonZero);
+    }
     if blob.len() != HEADER_LEN + payload_len {
         return Err(DaqError::PayloadLengthMismatch);
     }
@@ -433,6 +458,9 @@ pub enum DaqError {
     /// Frame payload checksum does not match.
     #[error("DAQ frame payload checksum mismatch")]
     ChecksumMismatch,
+    /// Reserved header bits were not zero.
+    #[error("DAQ frame reserved header bits must be zero")]
+    ReservedHeaderNonZero,
     /// Frame mode does not match bus mode.
     #[error("frame mode does not match bus mode")]
     ModeMismatch,
@@ -442,6 +470,12 @@ pub enum DaqError {
     /// Endpoint string is invalid for the selected mode.
     #[error("invalid DAQ mock endpoint")]
     InvalidEndpoint,
+    /// Replay sequence number did not strictly increase.
+    #[error("DAQ frame sequence must increase")]
+    SequenceNotIncreasing,
+    /// Replay timestamp regressed.
+    #[error("DAQ frame timestamps must be monotone")]
+    TimestampRegression,
 }
 
 fn read_u64(blob: &[u8], offset: usize) -> u64 {
@@ -539,5 +573,53 @@ mod tests {
         let last = encoded.len() - 1;
         encoded[last] ^= 0x01;
         assert_eq!(decode_daq_frame(&encoded), Err(DaqError::ChecksumMismatch));
+    }
+
+    #[test]
+    fn reserved_header_bits_reject() {
+        let mut encoded = encode_daq_frame(&fixture_frame(DeliveryMode::UdpMulticast));
+        encoded[30] = 0x01;
+        assert_eq!(
+            decode_daq_frame(&encoded),
+            Err(DaqError::ReservedHeaderNonZero)
+        );
+    }
+
+    #[test]
+    fn replay_order_rejects_sequence_replay_and_timestamp_regression() {
+        let mut bus = DataBusMock::new(
+            DeliveryMode::UdpMulticast,
+            DescriptorProfile::helion_v1(),
+            8,
+        )
+        .expect("bus");
+        let first = fixture_frame(DeliveryMode::UdpMulticast);
+        bus.inject_bytes(encode_daq_frame(&first)).expect("inject");
+
+        let sequence_replay = RawDaqFrame::new(
+            DeliveryMode::UdpMulticast,
+            DescriptorProfile::helion_v1(),
+            first.sequence,
+            first.t_ns + 50,
+            vec![500.0, 2.5e21, 0.0, 1.0e8],
+        )
+        .expect("valid frame");
+        assert_eq!(
+            bus.inject_bytes(encode_daq_frame(&sequence_replay)),
+            Err(DaqError::SequenceNotIncreasing)
+        );
+
+        let timestamp_regression = RawDaqFrame::new(
+            DeliveryMode::UdpMulticast,
+            DescriptorProfile::helion_v1(),
+            first.sequence + 1,
+            first.t_ns - 50,
+            vec![500.0, 2.5e21, 0.0, 1.0e8],
+        )
+        .expect("valid frame");
+        assert_eq!(
+            bus.inject_bytes(encode_daq_frame(&timestamp_regression)),
+            Err(DaqError::TimestampRegression)
+        );
     }
 }

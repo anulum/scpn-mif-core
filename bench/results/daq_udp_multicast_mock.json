@@ -3,53 +3,59 @@
   "kernel": "daq_udp_multicast_mock",
   "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
   "python_version": "3.12.3",
-  "datetime": "2026-06-04T17:36:02.601708+00:00",
+  "datetime": "2026-06-05T10:50:22.342212+00:00",
   "benchmark_context": {
     "command": "./.venv/bin/pytest bench/kernels/bench_daq_bus_mock.py --benchmark-only --benchmark-json=bench/results/daq_bus_mock_raw.json --no-cov",
     "cpu_isolated": false,
     "isolation_method": "none",
     "affinity": "none",
-    "host_load_before": "3.02 3.22 3.56 2/3190 2433790",
-    "host_load_after": "2.95 3.18 3.54 10/3222 2434719",
+    "host_load_before": "not captured separately; raw run completed before summary conversion",
+    "host_load_after": "1.91 2.70 2.82 1/3204 3076556",
     "governor": "powersave",
-    "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz, 6 cores / 12 threads",
+    "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz, logical CPUs: 12",
     "runtime_versions": {
       "python": "3.12.3",
       "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
-      "go": "go1.24.0 linux/amd64"
+      "go": "go version go1.26.2 linux/amd64"
     },
-    "other_heavy_jobs": "not audited; loaded workstation context recorded via load averages"
+    "other_heavy_jobs": "not audited; loaded workstation context recorded via load average"
+  },
+  "contract": {
+    "reserved_header_bits": "must be zero",
+    "sequence_order": "strictly increasing",
+    "timestamp_order": "monotone non-decreasing; equal timestamps allowed for bursts"
   },
   "notes": [
     "Local non-isolated comparison benchmark only; not a production latency claim.",
-    "MIF-018 UDP multicast mock has allocated Python, Rust, and Go surfaces. Go is measured via CLI startup as the optional network-service scaffold."
+    "MIF-018 UDP multicast mock has allocated Python, Rust, and Go surfaces. Go is measured via CLI startup as the optional network-service scaffold.",
+    "This report reflects fail-closed reserved-header, sequence-order, and timestamp-monotonic replay semantics."
   ],
   "tests": [
     {
       "name": "test_bench_python_udp_multicast_frame_round_trip",
       "group": "daq_udp_multicast_mock.frame_round_trip",
-      "mean_ns": 22636.90544675495,
-      "stddev_ns": 6759.679365434588,
-      "median_ns": 20904.000848531723,
-      "ops_per_s": 44175.64946552145,
-      "rounds": 10228
+      "mean_ns": 22072.17128507844,
+      "stddev_ns": 3513.928037929304,
+      "median_ns": 21239.04414474964,
+      "ops_per_s": 45305.91880084018,
+      "rounds": 10141
     },
     {
       "name": "test_bench_rust_udp_multicast_frame_round_trip",
       "group": "daq_udp_multicast_mock.frame_round_trip",
-      "mean_ns": 1434.1378371496024,
-      "stddev_ns": 1038.4941301440093,
-      "median_ns": 1359.9637895822525,
-      "ops_per_s": 697283.0463684954,
-      "rounds": 70498
+      "mean_ns": 1361.853105914623,
+      "stddev_ns": 406.46652517464514,
+      "median_ns": 1332.0241123437881,
+      "ops_per_s": 734293.5854512724,
+      "rounds": 67847
     },
     {
       "name": "test_bench_go_udp_multicast_probe",
       "group": "daq_udp_multicast_mock.frame_round_trip",
-      "mean_ns": 61522668.305163585,
-      "stddev_ns": 38327771.13920984,
-      "median_ns": 44701233.971863985,
-      "ops_per_s": 16.25417147123429,
+      "mean_ns": 46265606.38037821,
+      "stddev_ns": 30219211.670913912,
+      "median_ns": 31955444.02115047,
+      "ops_per_s": 21.614328185356104,
       "rounds": 3
     }
   ]

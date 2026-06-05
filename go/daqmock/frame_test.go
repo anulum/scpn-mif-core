@@ -99,3 +99,47 @@ func TestDecodeRejectsNonFinitePayloadValue(t *testing.T) {
 		t.Fatal("expected non-finite payload rejection")
 	}
 }
+
+func TestDecodeRejectsReservedHeaderBits(t *testing.T) {
+	frame := RawFrame{
+		Mode:     UDPMode,
+		Profile:  HelionProfile(),
+		Sequence: 7,
+		TNS:      1000,
+		Values:   []float64{500.0, 2.5e21, -0.5, 1.0e8},
+	}
+	encoded, err := EncodeFrame(frame)
+	if err != nil {
+		t.Fatalf("encode: %v", err)
+	}
+	encoded[30] = 1
+	if _, err := DecodeFrame(encoded); err == nil {
+		t.Fatal("expected reserved-header rejection")
+	}
+}
+
+func TestValidateReplayOrderRejectsSequenceReplayAndTimestampRegression(t *testing.T) {
+	first := RawFrame{
+		Mode:     UDPMode,
+		Profile:  HelionProfile(),
+		Sequence: 7,
+		TNS:      1000,
+		Values:   []float64{500.0, 2.5e21, -0.5, 1.0e8},
+	}
+	sequenceReplay := first
+	sequenceReplay.TNS = 1050
+	if err := ValidateReplayOrder([]RawFrame{first, sequenceReplay}); err == nil {
+		t.Fatal("expected sequence replay rejection")
+	}
+	timestampRegression := first
+	timestampRegression.Sequence = 8
+	timestampRegression.TNS = 900
+	if err := ValidateReplayOrder([]RawFrame{first, timestampRegression}); err == nil {
+		t.Fatal("expected timestamp regression rejection")
+	}
+	validBurst := first
+	validBurst.Sequence = 8
+	if err := ValidateReplayOrder([]RawFrame{first, validBurst}); err != nil {
+		t.Fatalf("equal timestamp burst should be accepted: %v", err)
+	}
+}

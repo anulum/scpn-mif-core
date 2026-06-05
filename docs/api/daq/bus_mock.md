@@ -16,8 +16,14 @@ delivery and PCIe DMA ring replay using the same byte-stable frame format.
 
 Each frame starts with the fixed magic `MIFDAQ1\0`, version `1`, delivery mode,
 descriptor profile, sequence number, timestamp in nanoseconds, value count,
-payload length, and FNV-1a payload checksum. Payload values are finite
-little-endian `float64` values in descriptor channel order.
+zero-valued reserved header bits, payload length, and FNV-1a payload checksum.
+Payload values are finite little-endian `float64` values in descriptor channel
+order.
+
+Replay is fail-closed: injected frames must have strictly increasing sequence
+numbers and monotone timestamps. Equal timestamps are allowed to represent
+same-sample bursts, but timestamp regression and sequence replay are rejected
+before the mock mutates its FIFO/ring state.
 
 Two descriptor profiles are included:
 
@@ -53,8 +59,10 @@ The committed tests verify:
 - Helion and TAE descriptor profiles;
 - UDP multicast endpoint validation;
 - PCIe ring overwrite and drop accounting;
-- monotone timestamp replay throughput semantics;
+- monotone timestamp replay throughput semantics and strictly increasing
+  packet sequence order;
 - corrupt payload and mode/profile mismatch rejection;
+- reserved-header rejection;
 - Python/Rust parity for both profiles and delivery modes;
 - Go encode/decode parity through `go test ./go/...`.
 

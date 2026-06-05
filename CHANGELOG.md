@@ -101,6 +101,9 @@
 - Hardened MIF-017 dirty-diagnostic timing semantics from one-sided
   positive jitter to a signed early/late arrival model with absolute jitter
   envelope accounting across Python, Rust/PyO3, and Julia surfaces.
+- Hardened MIF-018 DAQ replay semantics so reserved header bits, sequence
+  replay, and timestamp regression fail closed across Python, Rust/PyO3, and
+  Go surfaces.
 - Initial commit `ee63e4d` retained as the pre-skeleton README and
   technical-definition document.
 - Registered four kernel placeholders in `bench/dispatch.toml` for the

@@ -3,45 +3,51 @@
   "kernel": "daq_pcie_dma_ring_mock",
   "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
   "python_version": "3.12.3",
-  "datetime": "2026-06-04T17:36:02.601708+00:00",
+  "datetime": "2026-06-05T10:50:22.342212+00:00",
   "benchmark_context": {
     "command": "./.venv/bin/pytest bench/kernels/bench_daq_bus_mock.py --benchmark-only --benchmark-json=bench/results/daq_bus_mock_raw.json --no-cov",
     "cpu_isolated": false,
     "isolation_method": "none",
     "affinity": "none",
-    "host_load_before": "3.02 3.22 3.56 2/3190 2433790",
-    "host_load_after": "2.95 3.18 3.54 10/3222 2434719",
+    "host_load_before": "not captured separately; raw run completed before summary conversion",
+    "host_load_after": "1.91 2.70 2.82 1/3204 3076556",
     "governor": "powersave",
-    "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz, 6 cores / 12 threads",
+    "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz, logical CPUs: 12",
     "runtime_versions": {
       "python": "3.12.3",
       "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
-      "go": "go1.24.0 linux/amd64"
+      "go": "go version go1.26.2 linux/amd64"
     },
-    "other_heavy_jobs": "not audited; loaded workstation context recorded via load averages"
+    "other_heavy_jobs": "not audited; loaded workstation context recorded via load average"
+  },
+  "contract": {
+    "reserved_header_bits": "must be zero",
+    "sequence_order": "strictly increasing",
+    "timestamp_order": "monotone non-decreasing; equal timestamps allowed for bursts"
   },
   "notes": [
     "Local non-isolated comparison benchmark only; not a production latency claim.",
-    "MIF-018 PCIe DMA ring mock has allocated Python and Rust runtime surfaces."
+    "MIF-018 PCIe DMA ring mock has allocated Python and Rust runtime surfaces.",
+    "This report reflects fail-closed reserved-header, sequence-order, and timestamp-monotonic replay semantics."
   ],
   "tests": [
     {
       "name": "test_bench_python_pcie_dma_ring_256",
       "group": "daq_pcie_dma_ring_mock.ring_256",
-      "mean_ns": 4423473.926826229,
-      "stddev_ns": 432177.7517691502,
-      "median_ns": 4292954.45792377,
-      "ops_per_s": 226.06666537254438,
-      "rounds": 234
+      "mean_ns": 4030597.648673734,
+      "stddev_ns": 124886.83514716501,
+      "median_ns": 3985875.9846538305,
+      "ops_per_s": 248.1021642854998,
+      "rounds": 237
     },
     {
       "name": "test_bench_rust_pcie_dma_ring_256",
       "group": "daq_pcie_dma_ring_mock.ring_256",
-      "mean_ns": 191026.46757171588,
-      "stddev_ns": 20611.806006450066,
-      "median_ns": 182345.50952911377,
-      "ops_per_s": 5234.876678147107,
-      "rounds": 4804
+      "mean_ns": 175080.91630324014,
+      "stddev_ns": 9858.22508237246,
+      "median_ns": 176005.9967637062,
+      "ops_per_s": 5711.64477039862,
+      "rounds": 5002
     }
   ]
 }

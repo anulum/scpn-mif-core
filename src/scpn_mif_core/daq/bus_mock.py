@@ -23,6 +23,7 @@ import struct
 from collections import deque
 from collections.abc import Sequence
 from dataclasses import dataclass
+from itertools import pairwise
 from typing import Final, Literal
 
 from scpn_mif_core.diagnostics import DiagnosticFrame
@@ -142,6 +143,8 @@ class DataBusMock:
         self._frames: deque[bytes] = deque(maxlen=config.ring_capacity)
         self._dropped_frames = 0
         self._bound_endpoint: str | None = None
+        self._last_sequence: int | None = None
+        self._last_t_ns: int | None = None
 
     @property
     def dropped_frames(self) -> int:
@@ -174,9 +177,12 @@ class DataBusMock:
         decoded = decode_daq_frame(payload, self.config.profile)
         if decoded.mode != self.config.mode:
             raise ValueError("frame mode does not match bus mode")
+        self._validate_replay_order(decoded)
         if self.config.mode == "pcie_dma_ring" and len(self._frames) == self.config.ring_capacity:
             self._dropped_frames += 1
         self._frames.append(payload)
+        self._last_sequence = decoded.sequence
+        self._last_t_ns = decoded.t_ns
 
     def emit_frame(self) -> RawDaqFrame | None:
         """Emit the next frame in deterministic FIFO order."""
@@ -193,6 +199,9 @@ class DataBusMock:
         """Return deterministic throughput from frame timestamps."""
         if not frames:
             raise ValueError("at least one frame is required")
+        sequences = [frame.sequence for frame in frames]
+        if any(curr <= prev for prev, curr in pairwise(sequences)):
+            raise ValueError("frame sequences must increase")
         timestamps = [frame.t_ns for frame in frames]
         if timestamps != sorted(timestamps):
             raise ValueError("frame timestamps must be monotone")
@@ -208,6 +217,12 @@ class DataBusMock:
             throughput_fps=throughput,
             meets_baseline=throughput >= self.config.min_replay_throughput_fps,
         )
+
+    def _validate_replay_order(self, frame: RawDaqFrame) -> None:
+        if self._last_sequence is not None and frame.sequence <= self._last_sequence:
+            raise ValueError("DAQ frame sequence must increase")
+        if self._last_t_ns is not None and frame.t_ns < self._last_t_ns:
+            raise ValueError("DAQ frame timestamps must be monotone")
 
 
 def helion_descriptor_profile() -> DescriptorProfile:
@@ -256,7 +271,7 @@ def decode_daq_frame(blob: bytes, profile: DescriptorProfile | None = None) -> R
     """Decode and validate a DAQ frame from the stable byte contract."""
     if len(blob) < _HEADER_LEN:
         raise ValueError("DAQ frame is shorter than the fixed header")
-    magic, version, mode_code, profile_code, sequence, t_ns, value_count, _reserved, payload_len, checksum = (
+    magic, version, mode_code, profile_code, sequence, t_ns, value_count, reserved, payload_len, checksum = (
         _HEADER.unpack(blob[:_HEADER_LEN])
     )
     if magic != DAQ_MAGIC:
@@ -267,6 +282,8 @@ def decode_daq_frame(blob: bytes, profile: DescriptorProfile | None = None) -> R
         raise ValueError("unknown DAQ delivery mode")
     if profile_code not in _PROFILE_FROM_CODE:
         raise ValueError("unknown DAQ descriptor profile")
+    if reserved != 0:
+        raise ValueError("DAQ frame reserved header bits must be zero")
     expected_len = _HEADER_LEN + payload_len
     if len(blob) != expected_len:
         raise ValueError("DAQ frame payload length mismatch")

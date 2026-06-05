@@ -9,6 +9,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import Literal
+
 import pytest
 
 rust = pytest.importorskip(
@@ -16,13 +19,21 @@ rust = pytest.importorskip(
     reason="Rust extension not built; run `make bridge` to enable parity tests.",
 )
 
-from scpn_mif_core.daq import RawDaqFrame, ReplayConfig, helion_descriptor_profile, tae_descriptor_profile
+from scpn_mif_core.daq import (
+    DescriptorProfile,
+    RawDaqFrame,
+    ReplayConfig,
+    helion_descriptor_profile,
+    tae_descriptor_profile,
+)
 from scpn_mif_core.daq._rust_adapter import RustBackedDataBusMock, rust_decode_daq_frame, rust_encode_daq_frame
+
+_Mode = Literal["udp_multicast", "pcie_dma_ring"]
 
 
 @pytest.mark.parametrize("profile_factory", [helion_descriptor_profile, tae_descriptor_profile])
 @pytest.mark.parametrize("mode", ["udp_multicast", "pcie_dma_ring"])
-def test_encode_decode_parity(profile_factory, mode: str) -> None:
+def test_encode_decode_parity(profile_factory: Callable[[], DescriptorProfile], mode: _Mode) -> None:
     profile = profile_factory()
     values = tuple(float(index + 1) for index in range(len(profile.channels)))
     frame = RawDaqFrame(mode=mode, profile=profile, sequence=42, t_ns=1_234, values=values)
@@ -54,6 +65,23 @@ def test_bus_ring_parity() -> None:
     assert first.sequence == 1
 
 
+def test_rust_bus_rejects_sequence_replay_and_timestamp_regression() -> None:
+    profile = helion_descriptor_profile()
+    bus = RustBackedDataBusMock(ReplayConfig(mode="udp_multicast", profile=profile))
+    bus.inject_frame(
+        RawDaqFrame("udp_multicast", profile, sequence=7, t_ns=1_000, values=(500.0, 2.5e21, 0.0, 1.0e8))
+    )
+
+    with pytest.raises(ValueError, match="sequence"):
+        bus.inject_frame(
+            RawDaqFrame("udp_multicast", profile, sequence=7, t_ns=1_050, values=(500.0, 2.5e21, 0.0, 1.0e8))
+        )
+    with pytest.raises(ValueError, match="timestamps"):
+        bus.inject_frame(
+            RawDaqFrame("udp_multicast", profile, sequence=8, t_ns=900, values=(500.0, 2.5e21, 0.0, 1.0e8))
+        )
+
+
 def test_rust_rejects_corrupt_frame() -> None:
     frame = RawDaqFrame(
         mode="udp_multicast",
@@ -66,3 +94,8 @@ def test_rust_rejects_corrupt_frame() -> None:
     payload[-1] ^= 1
     with pytest.raises(ValueError, match="checksum"):
         rust.decode_daq_frame(bytes(payload))
+
+    reserved = bytearray(frame.to_bytes())
+    reserved[30] = 1
+    with pytest.raises(ValueError, match="reserved"):
+        rust.decode_daq_frame(bytes(reserved))
