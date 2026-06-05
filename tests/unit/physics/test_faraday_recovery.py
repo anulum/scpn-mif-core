@@ -134,6 +134,33 @@ def test_recovered_power_rejects_non_finite_emf() -> None:
         recovered_power(spec, float("nan"))
 
 
+def test_scalar_paths_reject_non_finite_derived_observables() -> None:
+    spec = FaradayRecoverySpec(turns=1.0, load_resistance_ohm=1.0)
+
+    with pytest.raises(ValueError, match="flux_Wb must be finite"):
+        magnetic_flux(1e154, 1e154)
+    with pytest.raises(ValueError, match="flux_rate_Wb_s must be finite"):
+        flux_rate(1e154, 0.0, 0.0, 1e154)
+    with pytest.raises(ValueError, match="back_emf_V must be finite"):
+        faraday_back_emf(1.0, 0.0, 0.0, 1e154, 1e154)
+    with pytest.raises(ValueError, match="recovered_power_W must be finite"):
+        recovered_power(spec, 1e200)
+
+
+def test_waveform_rejects_non_finite_derived_observables() -> None:
+    spec = FaradayRecoverySpec(turns=1.0, load_resistance_ohm=1.0)
+
+    with pytest.raises(ValueError, match="flux_Wb must be finite"):
+        evaluate_faraday_recovery(
+            spec,
+            np.array([0.0, 1.0]),
+            np.array([1e154, 1e154]),
+            np.array([0.0, 0.0]),
+            np.array([1e154, 1e154]),
+            np.array([0.0, 0.0]),
+        )
+
+
 def test_dispatched_faraday_back_emf_falls_back_to_python(monkeypatch: pytest.MonkeyPatch) -> None:
     import scpn_mif_core.physics as physics
 

@@ -134,7 +134,7 @@ pub enum FaradayRecoveryError {
 pub fn magnetic_flux(radius_m: f64, magnetic_field_t: f64) -> Result<f64, FaradayRecoveryError> {
     let radius = validate_radius(radius_m)?;
     let field = validate_finite("magnetic_field_t", magnetic_field_t)?;
-    Ok(field * PI * radius * radius)
+    validate_finite("flux_Wb", field * PI * radius * radius)
 }
 
 /// Return `d(B_ext * pi * R_s^2) / dt` in webers per second.
@@ -148,7 +148,10 @@ pub fn flux_rate(
     let velocity = validate_finite("radial_velocity_m_s", radial_velocity_m_s)?;
     let field = validate_finite("magnetic_field_t", magnetic_field_t)?;
     let field_rate = validate_finite("magnetic_field_rate_t_s", magnetic_field_rate_t_s)?;
-    Ok(PI * (radius * radius * field_rate + 2.0 * radius * velocity * field))
+    validate_finite(
+        "flux_rate_Wb_s",
+        PI * (radius * radius * field_rate + 2.0 * radius * velocity * field),
+    )
 }
 
 /// Return induced back-EMF `-turns * dPhi/dt` in volts.
@@ -160,13 +163,16 @@ pub fn faraday_back_emf(
     turns: f64,
 ) -> Result<f64, FaradayRecoveryError> {
     let turns = validate_positive("turns", turns)?;
-    Ok(-turns
-        * flux_rate(
-            radius_m,
-            radial_velocity_m_s,
-            magnetic_field_t,
-            magnetic_field_rate_t_s,
-        )?)
+    validate_finite(
+        "back_emf_V",
+        -turns
+            * flux_rate(
+                radius_m,
+                radial_velocity_m_s,
+                magnetic_field_t,
+                magnetic_field_rate_t_s,
+            )?,
+    )
 }
 
 /// Return instantaneous recovered load power in watts.
@@ -175,7 +181,10 @@ pub fn recovered_power(
     back_emf_v: f64,
 ) -> Result<f64, FaradayRecoveryError> {
     let emf = validate_finite("back_emf_v", back_emf_v)?;
-    Ok(spec.coupling_efficiency * emf * emf / spec.load_resistance_ohm)
+    validate_finite(
+        "recovered_power_W",
+        spec.coupling_efficiency * emf * emf / spec.load_resistance_ohm,
+    )
 }
 
 /// Evaluate pointwise flux, EMF, and recovered power.
@@ -256,6 +265,7 @@ pub fn evaluate_faraday_recovery(
         let dt = time_s[idx + 1] - time_s[idx];
         recovered_energy_j += 0.5 * (recovered_power_w[idx] + recovered_power_w[idx + 1]) * dt;
     }
+    let recovered_energy_j = validate_finite("recovered_energy_J", recovered_energy_j)?;
 
     Ok(FaradayRecoveryReport {
         flux_wb,
@@ -387,5 +397,32 @@ mod tests {
         )
         .unwrap_err();
         assert_eq!(err, FaradayRecoveryError::NonIncreasingTime);
+    }
+
+    #[test]
+    fn rejects_non_finite_derived_observables() {
+        let spec = FaradayRecoverySpec::new(1.0, 1.0, 1.0).unwrap();
+        assert_eq!(
+            magnetic_flux(1e154, 1e154),
+            Err(FaradayRecoveryError::NonFinite { field: "flux_Wb" })
+        );
+        assert_eq!(
+            flux_rate(1e154, 0.0, 0.0, 1e154),
+            Err(FaradayRecoveryError::NonFinite {
+                field: "flux_rate_Wb_s"
+            })
+        );
+        assert_eq!(
+            faraday_back_emf(1.0, 0.0, 0.0, 1e154, 1e154),
+            Err(FaradayRecoveryError::NonFinite {
+                field: "back_emf_V"
+            })
+        );
+        assert_eq!(
+            recovered_power(&spec, 1e200),
+            Err(FaradayRecoveryError::NonFinite {
+                field: "recovered_power_W"
+            })
+        );
     }
 }

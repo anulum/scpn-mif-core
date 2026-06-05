@@ -36,6 +36,18 @@ end
 
     @test_throws ArgumentError FaradayRecoverySpec(0.0, 1.0)
     @test_throws ArgumentError faraday_back_emf(-0.1, 0.0, 5.0, 0.0, 10.0)
+    @test_throws ArgumentError magnetic_flux(1e154, 1e154)
+    @test_throws ArgumentError flux_rate(1e154, 0.0, 0.0, 1e154)
+    @test_throws ArgumentError faraday_back_emf(1.0, 0.0, 0.0, 1e154, 1e154)
+    @test_throws ArgumentError recovered_power(FaradayRecoverySpec(1.0, 1.0), 1e200)
+    @test_throws ArgumentError evaluate_faraday_recovery(
+        FaradayRecoverySpec(1.0, 1.0),
+        [0.0, 1.0],
+        [1e154, 1e154],
+        [0.0, 0.0],
+        [1e154, 1e154],
+        [0.0, 0.0],
+    )
 end
 
 @testset "MIF-001 Doppler-Kuramoto" begin

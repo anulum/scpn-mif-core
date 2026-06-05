@@ -119,7 +119,7 @@ end
 function magnetic_flux(radius_m::Real, magnetic_field_T::Real)::Float64
     radius = _validate_radius(radius_m)
     field = _require_finite("magnetic_field_T", magnetic_field_T)
-    return field * pi * radius^2
+    return _require_finite("flux_Wb", field * pi * radius^2)
 end
 
 """Return `d(B_ext * pi * R_s^2) / dt` in webers per second."""
@@ -133,7 +133,8 @@ function flux_rate(
     velocity = _require_finite("radial_velocity_m_s", radial_velocity_m_s)
     field = _require_finite("magnetic_field_T", magnetic_field_T)
     field_rate = _require_finite("magnetic_field_rate_T_s", magnetic_field_rate_T_s)
-    return pi * (radius^2 * field_rate + 2.0 * radius * velocity * field)
+    rate = pi * (radius^2 * field_rate + 2.0 * radius * velocity * field)
+    return _require_finite("flux_rate_Wb_s", rate)
 end
 
 """Return induced back-EMF `-turns * dPhi/dt` in volts."""
@@ -146,18 +147,20 @@ function faraday_back_emf(
 )::Float64
     effective_turns = _require_finite("turns", turns)
     effective_turns > 0.0 || throw(ArgumentError("turns must be strictly positive"))
-    return -effective_turns * flux_rate(
+    emf = -effective_turns * flux_rate(
         radius_m,
         radial_velocity_m_s,
         magnetic_field_T,
         magnetic_field_rate_T_s,
     )
+    return _require_finite("back_emf_V", emf)
 end
 
 """Return instantaneous recovered load power in watts."""
 function recovered_power(spec::FaradayRecoverySpec, back_emf_V::Real)::Float64
     emf = _require_finite("back_emf_V", back_emf_V)
-    return spec.coupling_efficiency * emf^2 / spec.load_resistance_ohm
+    power = spec.coupling_efficiency * emf^2 / spec.load_resistance_ohm
+    return _require_finite("recovered_power_W", power)
 end
 
 """Evaluate a full Faraday recovery waveform and integrate recovered energy."""
@@ -179,7 +182,12 @@ function evaluate_faraday_recovery(
     dflux_dt = pi .* (radii .^ 2 .* field_rates .+ 2.0 .* radii .* velocities .* fields)
     emf = -spec.turns .* dflux_dt
     power = spec.coupling_efficiency .* emf .^ 2 ./ spec.load_resistance_ohm
+    _require_finite_vector("flux_Wb", flux)
+    _require_finite_vector("flux_rate_Wb_s", dflux_dt)
+    _require_finite_vector("back_emf_V", emf)
+    _require_finite_vector("recovered_power_W", power)
     energy = sum(0.5 .* (power[1:end-1] .+ power[2:end]) .* diff(time))
+    energy = _require_finite("recovered_energy_J", energy)
     return (
         time_s = copy(time),
         flux_Wb = flux,
@@ -211,6 +219,11 @@ function _require_finite(name::String, value::Real)::Float64
     numeric = Float64(value)
     isfinite(numeric) || throw(ArgumentError("$name must be finite"))
     return numeric
+end
+
+function _require_finite_vector(name::String, values)::Nothing
+    all(isfinite, values) || throw(ArgumentError("$name must be finite"))
+    return nothing
 end
 
 function _validate_radius(radius_m::Real)::Float64

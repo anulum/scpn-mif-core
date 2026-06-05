@@ -119,7 +119,7 @@ def magnetic_flux(radius_m: float, magnetic_field_T: float) -> float:
     """Return external magnetic flux ``B_ext * pi * R_s**2`` in webers."""
     radius = _validate_radius(radius_m)
     field = _require_finite("magnetic_field_T", magnetic_field_T)
-    return field * math.pi * radius * radius
+    return _require_finite_observable("flux_Wb", field * math.pi * radius * radius)
 
 
 def flux_rate(
@@ -133,7 +133,8 @@ def flux_rate(
     velocity = _require_finite("radial_velocity_m_s", radial_velocity_m_s)
     field = _require_finite("magnetic_field_T", magnetic_field_T)
     field_rate = _require_finite("magnetic_field_rate_T_s", magnetic_field_rate_T_s)
-    return math.pi * (radius * radius * field_rate + 2.0 * radius * velocity * field)
+    rate = math.pi * (radius * radius * field_rate + 2.0 * radius * velocity * field)
+    return _require_finite_observable("flux_rate_Wb_s", rate)
 
 
 def faraday_back_emf(
@@ -147,18 +148,20 @@ def faraday_back_emf(
     effective_turns = _require_finite("turns", turns)
     if effective_turns <= 0.0:
         raise ValueError("turns must be strictly positive")
-    return -effective_turns * flux_rate(
+    emf = -effective_turns * flux_rate(
         radius_m,
         radial_velocity_m_s,
         magnetic_field_T,
         magnetic_field_rate_T_s,
     )
+    return _require_finite_observable("back_emf_V", emf)
 
 
 def recovered_power(spec: FaradayRecoverySpec, back_emf_V: float) -> float:
     """Return instantaneous load power from a Thevenin EMF source."""
     emf = _require_finite("back_emf_V", back_emf_V)
-    return spec.coupling_efficiency * emf * emf / spec.load_resistance_ohm
+    power = spec.coupling_efficiency * emf * emf / spec.load_resistance_ohm
+    return _require_finite_observable("recovered_power_W", power)
 
 
 def evaluate_faraday_state(
@@ -217,12 +220,18 @@ def evaluate_faraday_recovery(
     if not bool(np.all(radii >= 0.0)):
         raise ValueError("radius_m must be non-negative")
 
-    flux = math.pi * radii * radii * fields
-    dflux_dt = math.pi * (radii * radii * field_rates + 2.0 * radii * velocities * fields)
-    emf = -spec.turns * dflux_dt
-    power = spec.coupling_efficiency * emf * emf / spec.load_resistance_ohm
-    dt = np.diff(time)
-    energy = float(np.sum(0.5 * (power[:-1] + power[1:]) * dt))
+    with np.errstate(over="ignore", invalid="ignore"):
+        flux = math.pi * radii * radii * fields
+        dflux_dt = math.pi * (radii * radii * field_rates + 2.0 * radii * velocities * fields)
+        emf = -spec.turns * dflux_dt
+        power = spec.coupling_efficiency * emf * emf / spec.load_resistance_ohm
+        dt = np.diff(time)
+        energy = float(np.sum(0.5 * (power[:-1] + power[1:]) * dt))
+    _require_finite_observable_array("flux_Wb", flux)
+    _require_finite_observable_array("flux_rate_Wb_s", dflux_dt)
+    _require_finite_observable_array("back_emf_V", emf)
+    _require_finite_observable_array("recovered_power_W", power)
+    energy = _require_finite_observable("recovered_energy_J", energy)
     return FaradayRecoveryReport(
         time_s=_readonly(time),
         flux_Wb=_readonly(flux),
@@ -240,6 +249,18 @@ def _require_finite(name: str, value: float) -> float:
     if not math.isfinite(numeric):
         raise ValueError(f"{name} must be finite")
     return numeric
+
+
+def _require_finite_observable(name: str, value: float) -> float:
+    numeric = float(value)
+    if not math.isfinite(numeric):
+        raise ValueError(f"{name} must be finite")
+    return numeric
+
+
+def _require_finite_observable_array(name: str, values: FloatArray) -> None:
+    if not bool(np.all(np.isfinite(values))):
+        raise ValueError(f"{name} must be finite")
 
 
 def _validate_radius(radius_m: float) -> float:

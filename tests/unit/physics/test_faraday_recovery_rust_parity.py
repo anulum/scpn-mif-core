@@ -58,6 +58,28 @@ def test_scalar_faraday_recovery_parity(seed: int) -> None:
     assert _approx_equal(recovered_power(py_spec, py_emf), rust.recovered_power(rust_spec, rust_emf))
 
 
+def test_python_and_rust_reject_non_finite_derived_observables() -> None:
+    py_spec = FaradayRecoverySpec(turns=1.0, load_resistance_ohm=1.0)
+    rust_spec = rust.FaradayRecoverySpec(1.0, 1.0, 1.0)
+
+    with pytest.raises(ValueError, match="flux_Wb must be finite"):
+        magnetic_flux(1e154, 1e154)
+    with pytest.raises(ValueError, match="flux_Wb must be finite"):
+        rust.magnetic_flux(1e154, 1e154)
+    with pytest.raises(ValueError, match="flux_rate_Wb_s must be finite"):
+        flux_rate(1e154, 0.0, 0.0, 1e154)
+    with pytest.raises(ValueError, match="flux_rate_Wb_s must be finite"):
+        rust.flux_rate(1e154, 0.0, 0.0, 1e154)
+    with pytest.raises(ValueError, match="back_emf_V must be finite"):
+        faraday_back_emf(1.0, 0.0, 0.0, 1e154, 1e154)
+    with pytest.raises(ValueError, match="back_emf_V must be finite"):
+        rust.faraday_back_emf(1.0, 0.0, 0.0, 1e154, 1e154)
+    with pytest.raises(ValueError, match="recovered_power_W must be finite"):
+        recovered_power(py_spec, 1e200)
+    with pytest.raises(ValueError, match="recovered_power_W must be finite"):
+        rust.recovered_power(rust_spec, 1e200)
+
+
 def test_waveform_faraday_recovery_parity() -> None:
     spec = FaradayRecoverySpec(turns=32.0, load_resistance_ohm=4.0, coupling_efficiency=0.9)
     rust_spec = rust.FaradayRecoverySpec(32.0, 4.0, 0.9)

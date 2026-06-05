@@ -3,25 +3,46 @@
   "kernel": "faraday_back_emf",
   "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
   "python_version": "3.12.3",
-  "datetime": "2026-06-04T09:12:47.332313+00:00",
+  "datetime": "2026-06-05T02:17:30+00:00",
+  "notes": [
+    "MIF-009 scalar Faraday EMF is measured for Python and Rust after finite-observable validation hardening.",
+    "Non-isolated local comparison run on a workstation with powersave governor and nontrivial host load; do not treat as a production performance claim."
+  ],
   "tests": [
     {
       "name": "test_bench_python_scalar_emf",
       "group": "faraday_recovery.scalar_emf",
-      "mean_ns": 471.9870208046378,
-      "stddev_ns": 123.64693257669141,
-      "median_ns": 457.0465534925461,
-      "ops_per_s": 2118702.328498805,
-      "rounds": 45078
+      "mean_ns": 744.5682629450583,
+      "stddev_ns": 348.1005555895211,
+      "median_ns": 623.0548024177551,
+      "ops_per_s": 1343060.1998057363,
+      "rounds": 98552
     },
     {
       "name": "test_bench_rust_scalar_emf",
       "group": "faraday_recovery.scalar_emf",
-      "mean_ns": 93.81726502955794,
-      "stddev_ns": 31.10570852319185,
-      "median_ns": 80.60596883296967,
-      "ops_per_s": 10659018.8883138,
-      "rounds": 29917
+      "mean_ns": 84.46476550466477,
+      "stddev_ns": 21.79979629838475,
+      "median_ns": 77.45751645416021,
+      "ops_per_s": 11839256.215596462,
+      "rounds": 63412
     }
-  ]
+  ],
+  "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "benchmark_context": {
+    "command": "./.venv/bin/pytest bench/kernels/bench_faraday_recovery.py --benchmark-only --benchmark-json=bench/results/faraday_recovery_raw.json --no-cov",
+    "cpu_isolated": false,
+    "isolation_method": "none; local workstation comparison run",
+    "affinity_or_reserved_cores": "none",
+    "host_load_before": "3.94 4.08 3.70 3/3238 2789913",
+    "host_load_after": "3.65 3.99 3.68 6/3256 2790699",
+    "cpu_governor": "powersave",
+    "heavy_jobs_running": "not reserved; local load was nontrivial, so this is not a production benchmark claim",
+    "runtime_versions": {
+      "python": "3.12.3",
+      "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+      "julia": "julia version 1.12.6"
+    },
+    "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+  }
 }

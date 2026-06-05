@@ -40,6 +40,9 @@ P_\mathrm{rec}(t) = \eta\,\mathcal{E}(t)^2 / R_\mathrm{load}.
 $$
 
 Waveform energy is trapezoid-integrated over the explicit time grid.
+All executable Python, Rust/PyO3, and Julia surfaces fail closed if finite
+inputs would overflow any derived observable: flux, flux rate, back-EMF,
+recovered power, or recovered energy must remain finite.
 
 ## Parameter dictionary
 
@@ -96,11 +99,11 @@ print(f"back-EMF = {state.back_emf_V:.3f} V")
 | Product-rule decomposition | closed-form match at machine epsilon |
 | Pointwise state typing and power bookkeeping | 1 unit test passes |
 | Waveform energy integration | constant-power case exact to machine epsilon |
-| Spec and scalar rejection paths | turns, load, efficiency, radius, non-finite EMF |
-| Waveform rejection paths | non-monotonic time, one sample, shape mismatch, non-1D, empty, non-finite, negative radius |
+| Spec and scalar rejection paths | turns, load, efficiency, radius, non-finite EMF, and overflowed derived observables |
+| Waveform rejection paths | non-monotonic time, one sample, shape mismatch, non-1D, empty, non-finite input, negative radius, and overflowed derived observables |
 | Hypothesis property | EMF is linear in effective turns over 80 randomised examples |
-| Python ↔ Rust parity | 19 parity checks at 1e-12 tolerance after `make bridge` |
-| Julia package parity | scalar limit cases and waveform energy pass in `Pkg.test()` |
+| Python ↔ Rust parity | scalar, waveform, dispatch, and finite-observable rejection parity after `make bridge` |
+| Julia package parity | scalar limit cases, waveform energy, and finite-observable rejection pass in `Pkg.test()` |
 | Lean proof surface | EMF identity, recovered-power sign, and waveform-energy sign build with `lake build` |
 
 ## Benchmarks
@@ -113,12 +116,15 @@ pytest bench/kernels/bench_faraday_recovery.py --benchmark-only
 python tools/update_dispatch.py
 ```
 
-Measured on the local i5-11600K rig with Python 3.12.3:
+Measured on the local i5-11600K rig with Python 3.12.3, Rust 1.85.0, and
+Julia 1.12.6. This was a non-isolated workstation comparison with the CPU
+governor set to `powersave` and nontrivial host load; treat it as local
+regression evidence, not a production latency claim.
 
 | Operation | Python | Rust | Julia | Dispatch |
 | :--- | :--- | :--- | :--- | :--- |
-| Scalar `faraday_back_emf` | 472 ns | 93.8 ns | not used for scalar dispatch | `rust`, then `python` |
-| 4 096-sample waveform | 106 us | 261 us | 1.97 s through CLI startup | `python`, then `rust`, then `julia` |
+| Scalar `faraday_back_emf` | 745 ns | 84.5 ns | not used for scalar dispatch | `rust`, then `python` |
+| 4 096-sample waveform | 117 us | 247 us | 1.82 s through CLI startup | `python`, then `rust`, then `julia` |
 
 The waveform Rust result is slower here because the current PyO3 bridge moves
 Python lists across the FFI boundary. The Rust core remains the production

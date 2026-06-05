@@ -61,6 +61,9 @@ theorem accumulated_energy_nonnegative
 This proof does not change the Python, Rust, or Julia numerical carriers and
 does not add new benchmark claims. It formalises the MIF-009 load-power and
 energy-sign contract that downstream trigger acceptance criteria consume.
+Floating-point overflow is outside this real-number proof surface; the
+executable Python, Rust/PyO3, and Julia carriers separately reject non-finite
+derived flux, EMF, power, and energy observables before returning a report.
 
 ## Verification
 
