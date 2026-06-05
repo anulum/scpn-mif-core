@@ -9,11 +9,14 @@
 
 from __future__ import annotations
 
+import struct
 from collections.abc import Callable
+from typing import cast
 
 import pytest
 
 from scpn_mif_core.daq import (
+    DAQ_FRAME_VERSION,
     DAQ_MAGIC,
     DataBusMock,
     DescriptorProfile,
@@ -24,6 +27,15 @@ from scpn_mif_core.daq import (
     helion_descriptor_profile,
     tae_descriptor_profile,
 )
+from scpn_mif_core.daq.bus_mock import DeliveryMode
+
+
+def _fnv1a32_for_wire_contract(payload: bytes) -> int:
+    value = 0x811C9DC5
+    for byte in payload:
+        value ^= byte
+        value = (value * 0x01000193) & 0xFFFF_FFFF
+    return value
 
 
 def _helion_udp_frame(sequence: int = 7, t_ns: int = 1_000) -> RawDaqFrame:
@@ -68,7 +80,16 @@ def test_descriptor_profile_rejects_invalid_wire_descriptors(
 @pytest.mark.parametrize(
     ("frame_factory", "message"),
     [
-        (lambda: RawDaqFrame("invalid", helion_descriptor_profile(), 0, 0, (1.0, 2.0, 3.0, 4.0)), "mode"),
+        (
+            lambda: RawDaqFrame(
+                cast(DeliveryMode, "invalid"),
+                helion_descriptor_profile(),
+                0,
+                0,
+                (1.0, 2.0, 3.0, 4.0),
+            ),
+            "mode",
+        ),
         (
             lambda: RawDaqFrame("udp_multicast", helion_descriptor_profile(), -1, 0, (1.0, 2.0, 3.0, 4.0)),
             "sequence",
@@ -95,7 +116,7 @@ def test_raw_frame_rejects_invalid_temporal_and_value_contracts(
 @pytest.mark.parametrize(
     ("config_factory", "message"),
     [
-        (lambda: ReplayConfig("invalid", helion_descriptor_profile()), "mode"),
+        (lambda: ReplayConfig(cast(DeliveryMode, "invalid"), helion_descriptor_profile()), "mode"),
         (lambda: ReplayConfig("udp_multicast", helion_descriptor_profile(), ring_capacity=0), "ring_capacity"),
         (
             lambda: ReplayConfig("udp_multicast", helion_descriptor_profile(), min_replay_throughput_fps=0.0),
@@ -280,12 +301,20 @@ def test_decode_rejects_short_payload_length_value_count_and_profile_mismatch() 
 
 
 def test_decode_rejects_descriptor_value_count_that_does_not_match_profile() -> None:
-    encoded = bytearray(
-        RawDaqFrame("udp_multicast", tae_descriptor_profile(), 8, 1_100, (1.0, 2.0, 3.0, 4.0)).to_bytes()
-    )
-    encoded[28] = 3
-    encoded[32] = 24
-    encoded = encoded[:64]
+    payload = b"".join(struct.pack("<d", value) for value in (1.0, 2.0, 3.0))
+    encoded = struct.pack(
+        "<8sHBBQQHHII",
+        DAQ_MAGIC,
+        DAQ_FRAME_VERSION,
+        1,
+        2,
+        8,
+        1_100,
+        3,
+        0,
+        len(payload),
+        _fnv1a32_for_wire_contract(payload),
+    ) + payload
 
     with pytest.raises(ValueError, match="value count"):
         decode_daq_frame(bytes(encoded))
