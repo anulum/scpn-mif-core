@@ -16,10 +16,17 @@ dtheta_i/dt =
   omega_i(t)
   + sum_{j != i} K_ij / (1 + |z_i - z_j| / L_z)
       * sin(theta_j - theta_i - alpha)
-  + gamma * sum_{j != i} (v_i - v_j) / (|v_i| + epsilon_v)
+  + gamma * sum_{j != i}
+      (v_i - v_j) / (0.5 * (|v_i| + |v_j|) + epsilon_v)
 
 omega_i(t) = omega_i0 + omega_rate_i * t
 ```
+
+The Doppler denominator is pair-normalised by the characteristic speed of the
+interacting pair, not by the observer channel alone. For unequal-speed
+two-body pairs this keeps the velocity correction equal and opposite, and it
+prevents a stationary channel from receiving an unbounded relative-velocity
+impulse.
 
 The carrier advances positions with `dz_i/dt = v_i`. That axial update is
 included only to evaluate the MIF-001 chamber-centre lock window; the
@@ -63,7 +70,8 @@ The committed acceptance scenario uses two counter-propagating channels:
 
 With `doppler_strength_rad_s = 2.0e6`, the model reaches the phase window
 inside the spatial window. With the Doppler term removed, the same scenario
-misses the phase window; this is covered in Python, Rust, and Julia tests.
+misses the phase window. Python, Rust, and Julia tests also cover the
+pair-antisymmetry invariant for unequal-speed two-body Doppler corrections.
 
 ## Benchmarks
 
@@ -76,14 +84,14 @@ process startup.
 
 | Group | Backend | Mean | Result |
 |---|---:|---:|---|
-| `derivatives_3` | Rust | 516 ns | fastest |
-| `derivatives_3` | Python | 21.69 us | 42.0x slower than Rust |
-| `trace_120` | Rust | 69.93 us | fastest |
-| `trace_120` | Python | 16.40 ms | 234.6x slower than Rust |
-| `trace_120` | Julia CLI | 1.68 s | CLI startup comparison |
-| `affine_trace_1000` | Rust | 369.44 us | fastest |
-| `affine_trace_1000` | Python | 85.99 ms | 232.8x slower than Rust |
-| `affine_trace_1000` | Julia CLI | 1.66 s | CLI startup comparison |
+| `derivatives_3` | Rust | 483 ns | fastest |
+| `derivatives_3` | Python | 21.88 us | 45.3x slower than Rust |
+| `trace_120` | Rust | 78.16 us | fastest |
+| `trace_120` | Python | 15.59 ms | 199.4x slower than Rust |
+| `trace_120` | Julia CLI | 1.49 s | CLI startup comparison |
+| `affine_trace_1000` | Rust | 374.86 us | fastest |
+| `affine_trace_1000` | Python | 88.32 ms | 235.6x slower than Rust |
+| `affine_trace_1000` | Julia CLI | 1.72 s | CLI startup comparison |
 
 Raw summary: `bench/results/doppler_kuramoto.json`.
 

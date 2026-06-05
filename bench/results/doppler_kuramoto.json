@@ -3,7 +3,7 @@
   "kernel": "doppler_kuramoto",
   "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
   "python_version": "3.12.3",
-  "datetime": "2026-06-04T12:55:33.321929+00:00",
+  "datetime": "2026-06-05T01:03:28.183055+00:00",
   "notes": [
     "Julia is measured through the package CLI harness; the recorded timing includes Julia process startup.",
     "Non-isolated local comparison run on a workstation with powersave governor and nontrivial host load; do not treat as a production performance claim."
@@ -12,73 +12,73 @@
     {
       "name": "test_bench_python_derivatives_3",
       "group": "doppler_kuramoto.derivatives_3",
-      "mean_ns": 21688.358780617516,
-      "stddev_ns": 7590.113543371113,
-      "median_ns": 18619.466572999954,
-      "ops_per_s": 46107.68431651368,
-      "rounds": 2760
+      "mean_ns": 21881.221025328254,
+      "stddev_ns": 2993.4825040766775,
+      "median_ns": 20840.205252170563,
+      "ops_per_s": 45701.28873715348,
+      "rounds": 6317
     },
     {
       "name": "test_bench_rust_derivatives_3",
       "group": "doppler_kuramoto.derivatives_3",
-      "mean_ns": 516.2982882469978,
-      "stddev_ns": 270.3628314886297,
-      "median_ns": 488.01302909851074,
-      "ops_per_s": 1936864.8371764473,
-      "rounds": 108121
+      "mean_ns": 482.707445307861,
+      "stddev_ns": 55.10455539210645,
+      "median_ns": 472.5530743598938,
+      "ops_per_s": 2071648.1788720293,
+      "rounds": 103789
     },
     {
       "name": "test_bench_python_trace_120",
       "group": "doppler_kuramoto.trace_120",
-      "mean_ns": 16402318.07020978,
-      "stddev_ns": 3207325.371053737,
-      "median_ns": 15372775.02939105,
-      "ops_per_s": 60.966992331176655,
-      "rounds": 71
+      "mean_ns": 15588581.77017872,
+      "stddev_ns": 1338044.0603047625,
+      "median_ns": 15206034.993752837,
+      "ops_per_s": 64.14951755989891,
+      "rounds": 66
     },
     {
       "name": "test_bench_rust_trace_120",
       "group": "doppler_kuramoto.trace_120",
-      "mean_ns": 69925.82190187843,
-      "stddev_ns": 10974.226121828699,
-      "median_ns": 67717.04647690058,
-      "ops_per_s": 14300.868732057575,
-      "rounds": 10574
+      "mean_ns": 78162.46054704461,
+      "stddev_ns": 8266.920482043613,
+      "median_ns": 76130.96386194229,
+      "ops_per_s": 12793.865405479624,
+      "rounds": 11028
     },
     {
       "name": "test_bench_julia_cli_trace_120",
       "group": "doppler_kuramoto.trace_120",
-      "mean_ns": 1679457005.6566348,
-      "stddev_ns": 489672868.57202804,
-      "median_ns": 1423771192.0868607,
-      "ops_per_s": 0.5954305448915137,
+      "mean_ns": 1487265611.6106858,
+      "stddev_ns": 80930151.54507047,
+      "median_ns": 1516404515.8308,
+      "ops_per_s": 0.6723748550314529,
       "rounds": 3
     },
     {
       "name": "test_bench_python_affine_trace_1000",
       "group": "doppler_kuramoto.affine_trace_1000",
-      "mean_ns": 85993305.35313736,
-      "stddev_ns": 2771289.200388783,
-      "median_ns": 85565846.41337395,
-      "ops_per_s": 11.62881221850273,
+      "mean_ns": 88319650.69596966,
+      "stddev_ns": 8608099.677267,
+      "median_ns": 85921152.14560181,
+      "ops_per_s": 11.322508548436023,
       "rounds": 12
     },
     {
       "name": "test_bench_rust_affine_trace_1000",
       "group": "doppler_kuramoto.affine_trace_1000",
-      "mean_ns": 369442.6930211123,
-      "stddev_ns": 57161.391011904605,
-      "median_ns": 350695.1034069061,
-      "ops_per_s": 2706.779749309736,
-      "rounds": 2575
+      "mean_ns": 374859.8796129617,
+      "stddev_ns": 61314.48311252801,
+      "median_ns": 344950.9385973215,
+      "ops_per_s": 2667.663450760556,
+      "rounds": 1909
     },
     {
       "name": "test_bench_julia_cli_affine_trace_1000",
       "group": "doppler_kuramoto.affine_trace_1000",
-      "mean_ns": 1664410929.971685,
-      "stddev_ns": 17305184.286073588,
-      "median_ns": 1659902904.8811646,
-      "ops_per_s": 0.6008131657829308,
+      "mean_ns": 1724346919.9941802,
+      "stddev_ns": 15375985.204596983,
+      "median_ns": 1729421814.903617,
+      "ops_per_s": 0.5799297046347117,
       "rounds": 3
     }
   ],
@@ -87,8 +87,8 @@
     "cpu_isolated": false,
     "isolation_method": "none; local workstation comparison run",
     "affinity_or_reserved_cores": "none",
-    "host_load_before": "4.37 4.75 4.42 29/2947 2116376",
-    "host_load_after": "3.38 4.38 4.31 4/2925 2118563",
+    "host_load_before": "3.68 4.01 3.69 6/3235 2600610",
+    "host_load_after": "3.30 3.88 3.66 3/3205 2601221",
     "cpu_governor": "powersave",
     "heavy_jobs_running": "not reserved; local load was nontrivial, so this is not a production benchmark claim",
     "runtime_versions": {

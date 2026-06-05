@@ -69,7 +69,8 @@ local physics/lifecycle surfaces:
 - MIF-006 AER spike-buffer decoder: Python reference, Rust PyO3 bridge,
   exact fixture vectors, benchmarked dispatch, and API documentation.
 - MIF-001 Doppler-Kuramoto kinematic carrier: Python reference, Rust kernel,
-  Julia counterpart, benchmarked dispatch, and API documentation.
+  Julia counterpart, pair-normalised Doppler correction, benchmarked dispatch,
+  and API documentation.
 - MIF-002 moving-frame UPDE carrier: Python reference, Rust kernel, Julia
   counterpart, benchmarked dispatch, and API documentation.
 - MIF-003 merge-window monitor: Python reference, Rust kernel, benchmarked

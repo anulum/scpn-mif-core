@@ -51,9 +51,29 @@ def test_derivative_matches_distance_weighted_doppler_formula() -> None:
     velocities = np.array([100.0, -50.0])
 
     got = doppler_derivatives(spec, phases, positions, velocities)
-    expected0 = 1.0 + 1.5 * math.sin(0.7 - 0.2 - 0.1) + 0.2 * (150.0 / 110.0)
-    expected1 = -1.0 + 2.5 * math.sin(0.2 - 0.7 - 0.1) + 0.2 * (-150.0 / 60.0)
+    pair_denom = 0.5 * (100.0 + 50.0) + 10.0
+    expected0 = 1.0 + 1.5 * math.sin(0.7 - 0.2 - 0.1) + 0.2 * (150.0 / pair_denom)
+    expected1 = -1.0 + 2.5 * math.sin(0.2 - 0.7 - 0.1) + 0.2 * (-150.0 / pair_denom)
     assert got == pytest.approx([expected0, expected1], rel=1e-15, abs=1e-15)
+
+
+def test_relative_velocity_doppler_is_pair_antisymmetric_for_unequal_speeds() -> None:
+    spec = DopplerKuramotoSpec(
+        omega_rad_s=[0.0, 0.0],
+        coupling_rad_s=[[0.0, 0.0], [0.0, 0.0]],
+        doppler_strength_rad_s=1.0,
+        velocity_epsilon_m_s=10.0,
+    )
+
+    got = doppler_derivatives(
+        spec,
+        phases_rad=[0.0, 0.0],
+        positions_m=[0.0, 0.0],
+        velocities_m_s=[120.0, -30.0],
+    )
+    expected = 150.0 / (0.5 * (120.0 + 30.0) + 10.0)
+
+    assert got == pytest.approx([expected, -expected], rel=1e-15, abs=1e-15)
 
 
 def test_global_phase_shift_leaves_derivatives_invariant() -> None:

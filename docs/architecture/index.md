@@ -21,15 +21,16 @@ v_zi, v_zj, and axial positions zᵢ, zⱼ:
 ```
 dθᵢ/dt = ωᵢ(t)
        + Kᵢⱼ / (1 + |zᵢ − zⱼ| / L_z) · sin(θⱼ − θᵢ − α)
-       + doppler_strength · (v_zi − v_zj) / (|v_zi| + ε_v)
+       + doppler_strength · (v_zi − v_zj) / (0.5 · (|v_zi| + |v_zj|) + ε_v)
 ```
 
 The distance-coupling term modulates K, the Doppler term corrects for
-relative motion. Both are extracted from the swarmalator family into
-reusable primitives in `scpn-phase-orchestrator` 0.7.0 (PHA-C.1, PHA-C.2).
-MIF-001 is implemented locally as an upstream-pending Python/Rust/Julia
-carrier with RK4 phase integration and linear axial positions for the
-chamber-centre acceptance window.
+relative motion using pair-symmetric characteristic-speed normalisation.
+Both are extracted from the swarmalator family into reusable primitives in
+`scpn-phase-orchestrator` 0.7.0 (PHA-C.1, PHA-C.2). MIF-001 is implemented
+locally as an upstream-pending Python/Rust/Julia carrier with RK4 phase
+integration and linear axial positions for the chamber-centre acceptance
+window.
 
 MIF-002 adds the chamber-fixed moving-frame layer:
 

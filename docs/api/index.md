@@ -34,8 +34,8 @@ under `docs/api/rust/` (built separately via `make bridge`).
 Implemented pre-alpha API pages:
 
 - [Doppler-Kuramoto](kinematic/doppler_kuramoto.md) — MIF-001,
-  Doppler-corrected axial Kuramoto carrier with Python, Rust, and Julia
-  surfaces.
+  pair-normalised Doppler-corrected axial Kuramoto carrier with Python, Rust,
+  and Julia surfaces.
 - [Moving-frame UPDE](kinematic/moving_frame_upde.md) — MIF-002,
   chamber-fixed absolute-position UPDE carrier with Python, Rust, and Julia
   surfaces.

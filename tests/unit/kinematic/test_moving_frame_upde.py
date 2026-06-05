@@ -52,8 +52,9 @@ def test_combined_derivative_contains_phase_and_absolute_position_rates() -> Non
 
     got = moving_frame_derivatives(spec, phases, positions, velocities)
 
-    expected0 = 1.0 + 1.5 * math.sin(0.7 - 0.2 - 0.1) + 0.2 * (150.0 / 110.0)
-    expected1 = -1.0 + 2.5 * math.sin(0.2 - 0.7 - 0.1) + 0.2 * (-150.0 / 60.0)
+    pair_denom = 0.5 * (100.0 + 50.0) + 10.0
+    expected0 = 1.0 + 1.5 * math.sin(0.7 - 0.2 - 0.1) + 0.2 * (150.0 / pair_denom)
+    expected1 = -1.0 + 2.5 * math.sin(0.2 - 0.7 - 0.1) + 0.2 * (-150.0 / pair_denom)
     assert got == pytest.approx([expected0, expected1, 100.0, -50.0], rel=1e-15, abs=1e-15)
 
 

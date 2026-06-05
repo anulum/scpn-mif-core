@@ -2,9 +2,9 @@
 # Moving-Frame UPDE
 
 MIF-002 implements the chamber-fixed moving-frame UPDE layer. It reuses
-the MIF-001 Doppler-Kuramoto phase derivative and advances the combined
-`[theta, z]` state with a fixed-step Dormand-Prince RK45 update so
-absolute axial positions can be evaluated against the chamber reference
+the MIF-001 pair-normalised Doppler-Kuramoto phase derivative and advances
+the combined `[theta, z]` state with a fixed-step Dormand-Prince RK45 update
+so absolute axial positions can be evaluated against the chamber reference
 point `z = 0`.
 
 ## Carrier
@@ -70,14 +70,14 @@ process startup.
 
 | Group | Backend | Mean | Result |
 |---|---:|---:|---|
-| `derivatives_2` | Rust | 566 ns | fastest |
-| `derivatives_2` | Python | 26.56 us | 46.9x slower than Rust |
-| `trace_120` | Rust | 150.26 us | fastest |
-| `trace_120` | Python | 28.99 ms | 193.0x slower than Rust |
-| `trace_120` | Julia CLI | 3.02 s | CLI startup comparison |
-| `affine_trace_1000` | Rust | 872.86 us | fastest |
-| `affine_trace_1000` | Python | 207.53 ms | 237.8x slower than Rust |
-| `affine_trace_1000` | Julia CLI | 3.07 s | CLI startup comparison |
+| `derivatives_2` | Rust | 436 ns | fastest |
+| `derivatives_2` | Python | 19.39 us | 44.5x slower than Rust |
+| `trace_120` | Rust | 133.66 us | fastest |
+| `trace_120` | Python | 28.49 ms | 213.1x slower than Rust |
+| `trace_120` | Julia CLI | 2.77 s | CLI startup comparison |
+| `affine_trace_1000` | Rust | 939.14 us | fastest |
+| `affine_trace_1000` | Python | 193.35 ms | 205.9x slower than Rust |
+| `affine_trace_1000` | Julia CLI | 2.94 s | CLI startup comparison |
 
 Raw summary: `bench/results/moving_frame_upde.json`.
 

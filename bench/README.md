@@ -39,9 +39,10 @@ Some facades have separate dispatch keys for scalar and batch paths when FFI
 transfer cost changes the winner. MIF-009 uses `physics.faraday_back_emf` for
 the scalar back-EMF call and `physics.faraday_recovery_waveform` for the
 4 096-sample waveform batch. MIF-001 uses `kinematic.doppler_kuramoto` for
-both the scalar derivative and the 120-step trace because Rust is fastest in
-both measured groups. MIF-002 uses `kinematic.moving_frame_upde` for both the
-combined derivative and the 120-step RK45 trace for the same reason. MIF-003
+the pair-normalised scalar derivative and the 120-step trace because Rust is
+fastest in both measured groups. MIF-002 uses `kinematic.moving_frame_upde`
+for both the combined derivative and the 120-step RK45 trace for the same
+reason. MIF-003
 uses `kinematic.merge_window` for both the single-sample predicate and the
 256-sample trace; Rust is fastest among its allocated Python and Rust surfaces.
 MIF-011 uses `kinematic.sampled_safety_certificate` for the 512-sample

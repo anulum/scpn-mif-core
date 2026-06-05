@@ -33,7 +33,7 @@ pub struct DopplerKuramotoSpec {
     pub omega_rate_rad_s2: Vec<f64>,
     /// Sakaguchi-style phase lag in radians.
     pub phase_lag_rad: f64,
-    /// Scale factor applied to each off-diagonal Doppler correction.
+    /// Scale factor applied to each off-diagonal pair-normalised Doppler correction.
     pub doppler_strength_rad_s: f64,
     /// Positive denominator guard for near-stationary channels.
     pub velocity_epsilon_m_s: f64,
@@ -297,11 +297,12 @@ pub fn doppler_derivatives_at_time(
     validate_state_vector("velocities_m_s", velocities_m_s, n)?;
     let mut out = spec.omega_at(t_s)?;
     for i in 0..n {
-        let denom = velocities_m_s[i].abs() + spec.velocity_epsilon_m_s;
         for j in 0..n {
             if i == j {
                 continue;
             }
+            let pair_speed = 0.5 * (velocities_m_s[i].abs() + velocities_m_s[j].abs());
+            let denom = pair_speed + spec.velocity_epsilon_m_s;
             let distance_decay =
                 1.0 + (positions_m[i] - positions_m[j]).abs() / spec.distance_scale_m;
             out[i] += (spec.coupling_rad_s[i][j] / distance_decay)
@@ -450,10 +451,28 @@ mod tests {
         )
         .unwrap();
         let got = doppler_derivatives(&spec, &[0.2, 0.7], &[0.0, 2.0], &[100.0, -50.0]).unwrap();
-        let expected0 = 1.0 + 1.5 * f64::sin(0.7 - 0.2 - 0.1) + 0.2 * (150.0 / 110.0);
-        let expected1 = -1.0 + 2.5 * f64::sin(0.2 - 0.7 - 0.1) + 0.2 * (-150.0 / 60.0);
+        let pair_denom = 0.5 * (100.0 + 50.0) + 10.0;
+        let expected0 = 1.0 + 1.5 * f64::sin(0.7 - 0.2 - 0.1) + 0.2 * (150.0 / pair_denom);
+        let expected1 = -1.0 + 2.5 * f64::sin(0.2 - 0.7 - 0.1) + 0.2 * (-150.0 / pair_denom);
         assert!((got[0] - expected0).abs() < 1e-15);
         assert!((got[1] - expected1).abs() < 1e-15);
+    }
+
+    #[test]
+    fn relative_velocity_doppler_is_pair_antisymmetric_for_unequal_speeds() {
+        let spec = DopplerKuramotoSpec::new(
+            vec![0.0, 0.0],
+            vec![vec![0.0, 0.0], vec![0.0, 0.0]],
+            0.0,
+            1.0,
+            10.0,
+            1.0,
+        )
+        .unwrap();
+        let got = doppler_derivatives(&spec, &[0.0, 0.0], &[0.0, 0.0], &[120.0, -30.0]).unwrap();
+        let expected = 150.0 / (0.5 * (120.0 + 30.0) + 10.0);
+        assert!((got[0] - expected).abs() < 1e-15);
+        assert!((got[1] + expected).abs() < 1e-15);
     }
 
     #[test]

@@ -58,6 +58,17 @@ end
     @test derivatives[1] ≈ expected0 rtol = 1e-12
     @test derivatives[2] ≈ expected1 rtol = 1e-12
 
+    pair_spec = DopplerKuramotoSpec(
+        [0.0, 0.0],
+        [0.0 0.0; 0.0 0.0];
+        doppler_strength_rad_s = 1.0,
+        velocity_epsilon_m_s = 10.0,
+    )
+    pair_derivatives = doppler_derivatives(pair_spec, [0.0, 0.0], [0.0, 0.0], [120.0, -30.0])
+    pair_expected = 150.0 / (0.5 * (120.0 + 30.0) + 10.0)
+    @test pair_derivatives[1] ≈ pair_expected rtol = 1e-15
+    @test pair_derivatives[2] ≈ -pair_expected rtol = 1e-15
+
     affine_spec = DopplerKuramotoSpec(
         [1_200.0],
         [0.0;;];

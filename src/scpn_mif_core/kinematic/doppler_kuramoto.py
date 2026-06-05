@@ -27,7 +27,7 @@ pointwise derivative is
           \\frac{K_{ij}}{1 + |z_i-z_j| / L_z}
           \\sin(\\theta_j - \\theta_i - \\alpha)
       + \\gamma \\sum_{j \\ne i}
-          \\frac{v_i-v_j}{|v_i| + \\epsilon_v}.
+          \\frac{v_i-v_j}{\\tfrac12(|v_i|+|v_j|) + \\epsilon_v}.
 
 where :math:`\\omega_i(t)=\\omega_{i,0}+\\dot\\omega_i t` for affine
 non-autonomous phase-law runs. The default
@@ -69,8 +69,8 @@ class DopplerKuramotoSpec:
     phase_lag_rad:
         Sakaguchi-style phase lag :math:`\\alpha` in radians.
     doppler_strength_rad_s:
-        Scale factor :math:`\\gamma` applied to each off-diagonal
-        relative-velocity Doppler correction.
+        Scale factor :math:`\\gamma` applied to each off-diagonal,
+        pair-normalised relative-velocity Doppler correction.
     velocity_epsilon_m_s:
         Positive denominator guard for stationary or near-stationary channels.
     distance_scale_m:
@@ -279,10 +279,11 @@ def doppler_derivatives(
     out = np.array(omega, dtype=np.float64, copy=True)
 
     for i in range(n):
-        denom = abs(velocities[i]) + spec.velocity_epsilon_m_s
         for j in range(n):
             if i == j:
                 continue
+            pair_speed = 0.5 * (abs(velocities[i]) + abs(velocities[j]))
+            denom = pair_speed + spec.velocity_epsilon_m_s
             distance_decay = 1.0 + abs(positions[i] - positions[j]) / spec.distance_scale_m
             out[i] += (coupling[i, j] / distance_decay) * math.sin(phases[j] - phases[i] - spec.phase_lag_rad)
             out[i] += spec.doppler_strength_rad_s * ((velocities[i] - velocities[j]) / denom)

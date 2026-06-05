@@ -107,9 +107,10 @@ function doppler_derivatives(
     velocities = _state_vector("velocities_m_s", velocities_m_s, n)
     out = omega_at(spec, t_s)
     for i in 1:n
-        denom = abs(velocities[i]) + spec.velocity_epsilon_m_s
         for j in 1:n
             i == j && continue
+            pair_speed = 0.5 * (abs(velocities[i]) + abs(velocities[j]))
+            denom = pair_speed + spec.velocity_epsilon_m_s
             distance_decay = 1.0 + abs(positions[i] - positions[j]) / spec.distance_scale_m
             out[i] += (spec.coupling_rad_s[i, j] / distance_decay) *
                 sin(phases[j] - phases[i] - spec.phase_lag_rad)
