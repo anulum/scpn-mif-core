@@ -28,6 +28,7 @@ import math
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
+from numbers import Integral
 from typing import Any, Self
 
 
@@ -99,7 +100,7 @@ class PlasmoidMergerSpec:
             "coalescence_delay_ticks",
             "phase_lock_delay_ticks",
         ):
-            value = int(getattr(self, field))
+            value = _integer_tick_count(field, getattr(self, field))
             if value < 1:
                 raise ValueError(f"{field} must be at least 1")
             object.__setattr__(self, field, value)
@@ -540,3 +541,9 @@ def _finite(name: str, value: float) -> float:
     if not math.isfinite(numeric):
         raise ValueError(f"{name} must be finite")
     return numeric
+
+
+def _integer_tick_count(name: str, value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, Integral):
+        raise ValueError(f"{name} must be an integer tick count")
+    return int(value)

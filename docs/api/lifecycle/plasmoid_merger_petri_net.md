@@ -22,6 +22,12 @@ matching Lean proof surface records the finite one-token marking invariant,
 transition preservation, terminal stability, and nominal reachability to
 `phase_locked`.
 
+Delay fields are discrete sampled tick counts, not continuous dwell times.
+Python rejects fractional or boolean delay values before coercion; Rust/PyO3
+accepts only integer tick-count arguments. This keeps the Python reference,
+Rust runtime, and CONTROL topology export aligned on the same sampled Petri-net
+semantics.
+
 ## Guards
 
 | From | To | Guard |
@@ -59,6 +65,7 @@ The committed MIF-012 tests cover:
 
 - nominal collision-to-phase-lock progression;
 - consecutive-delay behaviour for stochastic transitions;
+- fail-closed validation of discrete integer delay ticks;
 - abort routing for unsafe tilt or density asymmetry;
 - CONTROL topology export with both terminal inhibitor arcs;
 - the required boundedness campaign (`100 × 500`);

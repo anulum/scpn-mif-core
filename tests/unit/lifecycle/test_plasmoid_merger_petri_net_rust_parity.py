@@ -9,9 +9,11 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
 
-rust = pytest.importorskip(
+rust: Any = pytest.importorskip(
     "scpn_mif_core_rs",
     reason="Rust extension not built; run `make bridge` to enable parity tests.",
 )
@@ -125,6 +127,27 @@ def test_rust_verifiers_match_python_budget_summaries() -> None:
     assert rust_bounded[5] <= 1
     assert rust_live[0] is True
     assert rust_live[4]["phase_locked"] == 50
+
+
+def test_python_and_rust_reject_non_integral_delay_ticks() -> None:
+    with pytest.raises(ValueError, match="contact_delay_ticks must be an integer tick count"):
+        PlasmoidMergerSpec(
+            0.002,
+            3.0e5,
+            0.72,
+            0.12,
+            0.01,
+            5.0e4,
+            cast(int, 1.5),
+            2,
+            2,
+            3,
+            1.0,
+            0.35,
+        )
+
+    with pytest.raises(TypeError, match="int"):
+        rust.PlasmoidMergerSpec(0.002, 3.0e5, 0.72, 0.12, 0.01, 5.0e4, 1.5, 2, 2, 3, 1.0, 0.35)
 
 
 def test_dispatched_merger_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, replace
+from typing import cast
 
 import pytest
 from hypothesis import given, settings
@@ -236,6 +237,10 @@ def test_validation_rejects_invalid_probabilities_thresholds_and_observations() 
         replace(_spec(), firing_probability=1.5)
     with pytest.raises(ValueError, match="contact_delay_ticks must be at least 1"):
         replace(_spec(), contact_delay_ticks=0)
+    with pytest.raises(ValueError, match="reconnection_delay_ticks must be an integer tick count"):
+        replace(_spec(), reconnection_delay_ticks=cast(int, 1.5))
+    with pytest.raises(ValueError, match="phase_lock_delay_ticks must be an integer tick count"):
+        replace(_spec(), phase_lock_delay_ticks=cast(int, True))
     with pytest.raises(ValueError, match="separation_m must be non-negative"):
         _obs(separation_m=-1.0)
     with pytest.raises(ValueError, match="reconnection_flux_norm must lie in"):
