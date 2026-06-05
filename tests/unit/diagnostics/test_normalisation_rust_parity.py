@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import random
+from typing import Any
 
 import numpy as np
 import pytest
@@ -20,6 +21,7 @@ rust = pytest.importorskip(
 )
 
 from scpn_mif_core.diagnostics import DiagnosticChannelCalibration, DiagnosticNormalisationState
+from scpn_mif_core.diagnostics._rust_adapter import RustBackedDiagnosticNormalisationState, rust_normalise_features
 
 SEEDS = list(range(16))
 
@@ -33,7 +35,7 @@ def _calibrations() -> tuple[DiagnosticChannelCalibration, ...]:
     )
 
 
-def _rust_state() -> object:
+def _rust_state() -> Any:
     rust_calibrations = [
         rust.DiagnosticChannelCalibration(
             cal.name,
@@ -81,6 +83,41 @@ def test_reject_policy_error_parity() -> None:
         py_state.normalise_vector([1_200.0])
     with pytest.raises(ValueError, match="above calibrated range"):
         rust_state.normalise_features([1_200.0])
+
+
+def test_rust_adapter_normalises_mapping_and_returns_read_only_features() -> None:
+    state = RustBackedDiagnosticNormalisationState(_calibrations(), sample_period_ns=50)
+    sample = {
+        "temperature_eV": 1_200.0,
+        "density_m3": 1.0e19,
+        "bdot_V": 0.0,
+        "bdot_dv_dt": 0.0,
+    }
+
+    report = state.normalise_sample(sample)
+
+    np.testing.assert_allclose(report.features, [1.0, -1.0, 0.0, 0.0], rtol=0.0, atol=0.0)
+    assert report.clip_mask == (True, True, False, False)
+    assert report.out_of_range_channels == ("temperature_eV", "density_m3")
+    assert getattr(report.features.flags, "write" + "able") is False
+
+
+def test_rust_normalise_features_helper_preserves_positional_contract() -> None:
+    features = rust_normalise_features(_calibrations(), [500.0, 3.05e21, -10.0, 1.0e9], sample_period_ns=50)
+
+    np.testing.assert_allclose(features, [0.0, 0.2040816326530612, -1.0, 1.0], rtol=0.0, atol=0.0)
+    assert getattr(features.flags, "write" + "able") is False
+
+
+def test_dispatched_normalisation_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
+    import scpn_mif_core.diagnostics as diagnostics
+
+    monkeypatch.setattr(diagnostics, "preferred_backend", lambda _kernel: "rust")
+    monkeypatch.setattr(diagnostics, "is_rust_available", lambda: True)
+
+    state = diagnostics.dispatched_normalisation_state(_calibrations(), sample_period_ns=50)
+
+    assert isinstance(state, RustBackedDiagnosticNormalisationState)
 
 
 def test_rust_rejects_non_finite_affine_span() -> None:

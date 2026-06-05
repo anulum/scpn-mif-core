@@ -10,13 +10,18 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
+from typing import cast
 
 import numpy as np
 import pytest
 
 from scpn_mif_core.diagnostics import (
+    ClipPolicy,
     DiagnosticChannelCalibration,
     DiagnosticNormalisationState,
+    NormalisedDiagnosticSample,
+    dispatched_normalisation_state,
     fit_diagnostic_calibrations,
 )
 
@@ -73,7 +78,9 @@ def test_affine_mapping_and_manifest_fields() -> None:
     assert manifest["kernel"] == "diagnostics.normalisation"
     assert manifest["sample_period_ns"] == 50
     assert manifest["output_range"] == [-1.0, 1.0]
-    channel = manifest["channels"][0]
+    channels = manifest["channels"]
+    assert isinstance(channels, list)
+    channel = channels[0]
     assert isinstance(channel, dict)
     assert channel["physical_unit_range"] == [0.0, 1_000.0]
     assert channel["offset"] == 500.0
@@ -112,6 +119,63 @@ def test_reject_policy_raises_on_out_of_range_samples() -> None:
 
     with pytest.raises(ValueError, match="above calibrated range"):
         state.normalise_sample({"bdot_dv_dt": 2.0e9})
+
+    with pytest.raises(ValueError, match="below calibrated range"):
+        state.normalise_sample({"bdot_dv_dt": -2.0e9})
+
+
+@pytest.mark.parametrize(
+    ("calibration_factory", "message"),
+    [
+        (lambda: DiagnosticChannelCalibration("", "V", -10.0, 10.0, "clip", "calibration"), "name"),
+        (lambda: DiagnosticChannelCalibration("bdot_V", " ", -10.0, 10.0, "clip", "calibration"), "unit"),
+        (lambda: DiagnosticChannelCalibration("bdot_V", "V", -10.0, 10.0, "clip", ""), "provenance"),
+        (
+            lambda: DiagnosticChannelCalibration(
+                "bdot_V",
+                "V",
+                -10.0,
+                10.0,
+                cast(ClipPolicy, "hold"),
+                "calibration",
+            ),
+            "clip_policy",
+        ),
+        (lambda: DiagnosticChannelCalibration("bdot_V", "V", -10.0, 10.0, "clip", "calibration", -1), "aer_address"),
+    ],
+)
+def test_calibration_rejects_malformed_identity_policy_and_aer_fields(
+    calibration_factory: Callable[[], DiagnosticChannelCalibration],
+    message: str,
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        calibration_factory()
+
+
+@pytest.mark.parametrize(
+    ("sample", "message"),
+    [
+        ({"temperature_eV": 500.0, "density_m3": 2.5e21}, "missing calibrated channel"),
+        ({"temperature_eV": 500.0, "density_m3": 2.5e21, "bdot_V": float("inf")}, "finite"),
+    ],
+)
+def test_normalise_sample_rejects_missing_and_non_finite_measurements(
+    sample: dict[str, float],
+    message: str,
+) -> None:
+    with pytest.raises(ValueError, match=message):
+        DiagnosticNormalisationState(_calibrations()).normalise_sample(sample)
+
+
+def test_normalised_sample_rejects_shape_mask_and_range_mismatches() -> None:
+    with pytest.raises(ValueError, match="one-dimensional"):
+        NormalisedDiagnosticSample(("temperature_eV",), np.asarray([[0.0]], dtype=np.float64), (False,), ())
+    with pytest.raises(ValueError, match="channel_names"):
+        NormalisedDiagnosticSample(("temperature_eV", "density_m3"), np.asarray([0.0], dtype=np.float64), (False,), ())
+    with pytest.raises(ValueError, match="clip_mask"):
+        NormalisedDiagnosticSample(("temperature_eV",), np.asarray([0.0], dtype=np.float64), (False, True), ())
+    with pytest.raises(ValueError, match="\\[-1, 1\\]"):
+        NormalisedDiagnosticSample(("temperature_eV",), np.asarray([1.1], dtype=np.float64), (False,), ())
 
 
 @pytest.mark.parametrize(
@@ -191,6 +255,28 @@ def test_fit_calibrations_preserves_unit_order_and_rejects_zero_span() -> None:
         )
 
 
+def test_fit_calibrations_rejects_empty_invalid_policy_and_non_finite_observations() -> None:
+    with pytest.raises(ValueError, match="at least one observation"):
+        fit_diagnostic_calibrations([], units={"temperature_eV": "eV"}, provenance="shot sweep")
+    with pytest.raises(ValueError, match="provenance"):
+        fit_diagnostic_calibrations([{"temperature_eV": 1.0}], units={"temperature_eV": "eV"}, provenance="")
+    with pytest.raises(ValueError, match="clip_policy"):
+        fit_diagnostic_calibrations(
+            [{"temperature_eV": 1.0}],
+            units={"temperature_eV": "eV"},
+            provenance="shot sweep",
+            clip_policy=cast(ClipPolicy, "hold"),
+        )
+    with pytest.raises(ValueError, match="unit declaration"):
+        fit_diagnostic_calibrations([{"temperature_eV": 1.0}], units={}, provenance="shot sweep")
+    with pytest.raises(ValueError, match="temperature_eV must be finite"):
+        fit_diagnostic_calibrations(
+            [{"temperature_eV": 1.0}, {"temperature_eV": math.inf}],
+            units={"temperature_eV": "eV"},
+            provenance="shot sweep",
+        )
+
+
 def test_batch_and_vector_normalisation_are_order_stable() -> None:
     state = DiagnosticNormalisationState(_calibrations())
     vector_sample = state.normalise_vector([250.0, 1.0e20, 10.0])
@@ -204,3 +290,39 @@ def test_batch_and_vector_normalisation_are_order_stable() -> None:
     np.testing.assert_allclose(vector_sample.features, [-0.5, -1.0, 1.0])
     np.testing.assert_array_equal(batch, [[-1.0, -1.0, -1.0], [1.0, 1.0, 1.0]])
     assert getattr(batch.flags, "write" + "able") is False
+
+
+def test_state_rejects_empty_duplicate_bad_period_and_vector_length() -> None:
+    calibration = _calibrations()[0]
+    with pytest.raises(ValueError, match="at least one calibration"):
+        DiagnosticNormalisationState(())
+    with pytest.raises(ValueError, match="sample_period_ns"):
+        DiagnosticNormalisationState((calibration,), sample_period_ns=0)
+    with pytest.raises(ValueError, match="unique"):
+        DiagnosticNormalisationState((calibration, calibration))
+
+    state = DiagnosticNormalisationState((calibration,))
+    with pytest.raises(ValueError, match="value vector length"):
+        state.normalise_vector([500.0, 501.0])
+
+
+def test_empty_batch_preserves_channel_width_and_is_read_only() -> None:
+    state = DiagnosticNormalisationState(_calibrations())
+    batch = state.normalise_batch(())
+
+    assert batch.shape == (0, 3)
+    assert getattr(batch.flags, "write" + "able") is False
+
+
+def test_dispatched_normalisation_uses_python_fallback_when_rust_is_not_available(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import scpn_mif_core.diagnostics as diagnostics
+
+    monkeypatch.setattr(diagnostics, "preferred_backend", lambda _kernel: "rust")
+    monkeypatch.setattr(diagnostics, "is_rust_available", lambda: False)
+
+    state = dispatched_normalisation_state(_calibrations(), sample_period_ns=50)
+
+    assert state.__class__ is DiagnosticNormalisationState
+    assert state.sample_period_ns == 50

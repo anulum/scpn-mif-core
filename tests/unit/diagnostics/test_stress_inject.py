@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
 
 from scpn_mif_core.diagnostics import (
@@ -19,6 +21,7 @@ from scpn_mif_core.diagnostics import (
     NoiseSpec,
     StressEnvelope,
     StressInjectionConfig,
+    dispatched_degraded_sensor_stream,
     evaluate_phase_lock_stability_campaigns,
     validate_stress_config,
 )
@@ -79,6 +82,27 @@ def test_noise_dropout_jitter_are_deterministic_and_logged() -> None:
     assert first[0].samples["temperature_eV"] != 500.0
 
 
+def test_frame_and_stress_specs_reject_invalid_bounds() -> None:
+    with pytest.raises(ValueError, match="t_ns"):
+        DiagnosticFrame(-1, {"temperature_eV": 500.0})
+    with pytest.raises(ValueError, match="temperature_eV must be finite"):
+        DiagnosticFrame(0, {"temperature_eV": float("nan")})
+    with pytest.raises(ValueError, match="noise sigma"):
+        NoiseSpec({"temperature_eV": -1.0})
+    with pytest.raises(ValueError, match="dropout probability"):
+        DropoutSpec({"temperature_eV": 1.1})
+    with pytest.raises(ValueError, match="jitter min_ns"):
+        JitterSpec(-1, 50, 1.0)
+    with pytest.raises(ValueError, match="greater than or equal"):
+        JitterSpec(50, 10, 1.0)
+    with pytest.raises(ValueError, match="probability"):
+        JitterSpec(10, 50, float("nan"))
+    with pytest.raises(ValueError, match="signed flag"):
+        JitterSpec(10, 50, 1.0, signed=cast(bool, 1))
+    with pytest.raises(ValueError, match="seed"):
+        StressInjectionConfig(-1, NoiseSpec({}), DropoutSpec({}))
+
+
 def test_signed_jitter_covers_early_and_late_arrivals() -> None:
     frames = tuple(
         DiagnosticFrame(
@@ -131,6 +155,29 @@ def test_stress_envelope_rejects_out_of_policy_inputs() -> None:
         )
 
 
+def test_stress_envelope_rejects_invalid_policy_bounds() -> None:
+    with pytest.raises(ValueError, match="maximum noise sigma"):
+        StressEnvelope(max_noise_sigma_by_channel={"temperature_eV": -1.0})
+    with pytest.raises(ValueError, match="max_dropout_probability"):
+        StressEnvelope(max_dropout_probability=1.5)
+    with pytest.raises(ValueError, match="jitter envelope"):
+        StressEnvelope(min_jitter_ns=20, max_jitter_ns=10)
+    with pytest.raises(ValueError, match="phase_lock_tolerance_rad"):
+        StressEnvelope(phase_lock_tolerance_rad=0.0)
+
+
+def test_validate_stress_config_rejects_channels_without_declared_noise_envelope() -> None:
+    config = StressInjectionConfig(
+        seed=1,
+        noise=NoiseSpec({"unknown_channel": 1.0}),
+        dropout=DropoutSpec({}),
+        jitter=JitterSpec(10, 50, 1.0),
+    )
+
+    with pytest.raises(ValueError, match="no noise envelope"):
+        validate_stress_config(config, StressEnvelope())
+
+
 def test_phase_lock_campaign_runs_100_seeds_inside_tolerance() -> None:
     config = StressInjectionConfig(
         seed=3,
@@ -157,6 +204,50 @@ def test_phase_lock_campaign_runs_100_seeds_inside_tolerance() -> None:
 def test_phase_lock_campaign_requires_regression_scale() -> None:
     with pytest.raises(ValueError, match="at least 100"):
         evaluate_phase_lock_stability_campaigns(_config(), campaign_count=99)
+
+
+def test_phase_lock_campaign_rejects_invalid_temporal_resolution() -> None:
+    with pytest.raises(ValueError, match="frames_per_campaign"):
+        evaluate_phase_lock_stability_campaigns(_config(), frames_per_campaign=0)
+    with pytest.raises(ValueError, match="dt_ns"):
+        evaluate_phase_lock_stability_campaigns(_config(), dt_ns=100)
+
+
+def test_phase_lock_campaign_reports_dropped_phase_and_tolerance_failures() -> None:
+    phase_dropout = StressInjectionConfig(
+        seed=11,
+        noise=NoiseSpec({}),
+        dropout=DropoutSpec({"phase_lock_error_rad": 1.0}),
+        jitter=JitterSpec(10, 50, 1.0),
+    )
+    dropped_report = evaluate_phase_lock_stability_campaigns(
+        phase_dropout,
+        StressEnvelope(max_dropout_probability=1.0),
+        campaign_count=100,
+        frames_per_campaign=1,
+        dt_ns=128,
+    )
+
+    assert not dropped_report.stable
+    assert len(dropped_report.failure_reasons) == 100
+    assert "dropped all phase-lock samples" in dropped_report.failure_reasons[0]
+
+    noisy_phase = StressInjectionConfig(
+        seed=17,
+        noise=NoiseSpec({"phase_lock_error_rad": 1.0e-3}),
+        dropout=DropoutSpec({}),
+        jitter=JitterSpec(10, 50, 1.0),
+    )
+    tolerance_report = evaluate_phase_lock_stability_campaigns(
+        noisy_phase,
+        StressEnvelope(phase_lock_tolerance_rad=1.0e-9),
+        campaign_count=100,
+        frames_per_campaign=2,
+        dt_ns=128,
+    )
+
+    assert not tolerance_report.stable
+    assert "phase-lock tolerance exceeded" in tolerance_report.failure_reasons
 
 
 def test_rejects_non_finite_noisy_sample() -> None:
@@ -187,3 +278,29 @@ def test_signed_jitter_rejects_negative_emitted_timestamp() -> None:
                 return
             raise
     pytest.fail("signed jitter did not exercise a negative emitted timestamp")
+
+
+def test_zero_probability_jitter_leaves_timestamps_unchanged() -> None:
+    config = StressInjectionConfig(
+        seed=7,
+        noise=NoiseSpec({}),
+        dropout=DropoutSpec({}),
+        jitter=JitterSpec(10, 50, 0.0),
+    )
+    result = DegradedSensorStream(config).apply_with_audit(_frames())
+
+    assert tuple(frame.t_ns for frame in result.frames) == (1_000, 1_100)
+    assert all(record.jitter_ns == 0 for record in result.records)
+
+
+def test_dispatched_stress_stream_uses_python_fallback_when_rust_is_not_available(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import scpn_mif_core.diagnostics as diagnostics
+
+    monkeypatch.setattr(diagnostics, "preferred_backend", lambda _kernel: "rust")
+    monkeypatch.setattr(diagnostics, "is_rust_available", lambda: False)
+
+    stream = dispatched_degraded_sensor_stream(_config())
+
+    assert stream.__class__ is DegradedSensorStream

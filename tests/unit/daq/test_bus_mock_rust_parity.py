@@ -91,9 +91,7 @@ def test_dispatched_bus_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch
 def test_rust_bus_rejects_sequence_replay_and_timestamp_regression() -> None:
     profile = helion_descriptor_profile()
     bus = RustBackedDataBusMock(ReplayConfig(mode="udp_multicast", profile=profile))
-    bus.inject_frame(
-        RawDaqFrame("udp_multicast", profile, sequence=7, t_ns=1_000, values=(500.0, 2.5e21, 0.0, 1.0e8))
-    )
+    bus.inject_frame(RawDaqFrame("udp_multicast", profile, sequence=7, t_ns=1_000, values=(500.0, 2.5e21, 0.0, 1.0e8)))
 
     with pytest.raises(ValueError, match="sequence"):
         bus.inject_frame(

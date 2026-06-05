@@ -70,6 +70,17 @@ def test_stress_injection_parity(seed: int) -> None:
             assert math.isclose(py_frame.samples[channel], rust_frame.samples[channel], rel_tol=1e-12, abs_tol=1e-12)
 
 
+def test_dispatched_stress_stream_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
+    import scpn_mif_core.diagnostics as diagnostics
+
+    monkeypatch.setattr(diagnostics, "preferred_backend", lambda _kernel: "rust")
+    monkeypatch.setattr(diagnostics, "is_rust_available", lambda: True)
+
+    stream = diagnostics.dispatched_degraded_sensor_stream(_config(7))
+
+    assert isinstance(stream, RustBackedDegradedSensorStream)
+
+
 def test_rust_rejects_bad_config_lengths() -> None:
     with pytest.raises(ValueError, match="same length"):
         rust.StressInjectionConfig(1, ["temperature_eV"], [1.0, 2.0], [0.0], 10, 50, 1.0, True)

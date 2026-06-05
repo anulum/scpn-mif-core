@@ -302,19 +302,22 @@ def test_decode_rejects_short_payload_length_value_count_and_profile_mismatch() 
 
 def test_decode_rejects_descriptor_value_count_that_does_not_match_profile() -> None:
     payload = b"".join(struct.pack("<d", value) for value in (1.0, 2.0, 3.0))
-    encoded = struct.pack(
-        "<8sHBBQQHHII",
-        DAQ_MAGIC,
-        DAQ_FRAME_VERSION,
-        1,
-        2,
-        8,
-        1_100,
-        3,
-        0,
-        len(payload),
-        _fnv1a32_for_wire_contract(payload),
-    ) + payload
+    encoded = (
+        struct.pack(
+            "<8sHBBQQHHII",
+            DAQ_MAGIC,
+            DAQ_FRAME_VERSION,
+            1,
+            2,
+            8,
+            1_100,
+            3,
+            0,
+            len(payload),
+            _fnv1a32_for_wire_contract(payload),
+        )
+        + payload
+    )
 
     with pytest.raises(ValueError, match="value count"):
         decode_daq_frame(bytes(encoded))
