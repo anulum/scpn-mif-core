@@ -1232,6 +1232,22 @@ impl PyCapacitorBank {
             .energy_j
     }
     #[getter]
+    fn capacitor_energy_j(&self) -> f64 {
+        self.inner
+            .lock()
+            .expect("CapacitorBank mutex poisoned")
+            .state()
+            .capacitor_energy_j
+    }
+    #[getter]
+    fn inductor_energy_j(&self) -> f64 {
+        self.inner
+            .lock()
+            .expect("CapacitorBank mutex poisoned")
+            .state()
+            .inductor_energy_j
+    }
+    #[getter]
     fn discharge_active(&self) -> bool {
         self.inner
             .lock()

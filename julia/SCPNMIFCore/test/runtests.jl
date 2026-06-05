@@ -177,7 +177,11 @@ end
     v_anal, i_anal = free_response(spec, 1.0e-5, v0)
     @test state.voltage_V ≈ v_anal rtol = 1.0e-3
     @test state.current_A ≈ i_anal rtol = 1.0e-3
-    @test state.energy_J ≈ 0.5 * spec.capacitance_F * state.voltage_V^2 rtol = 1e-15
+    expected_capacitor = 0.5 * spec.capacitance_F * state.voltage_V^2
+    expected_inductor = 0.5 * spec.inductance_H * state.current_A^2
+    @test state.capacitor_energy_J ≈ expected_capacitor rtol = 1e-15
+    @test state.inductor_energy_J ≈ expected_inductor rtol = 1e-15
+    @test state.energy_J ≈ expected_capacitor + expected_inductor rtol = 1e-15
 
     loaded = CapacitorBank(spec, v0)
     natural = CapacitorBank(spec, v0)

@@ -90,6 +90,8 @@ class RustBackedCapacitorBank(_PythonCapacitorBank):
             t=self._inner.t,
             voltage_V=self._inner.voltage_v,
             energy_J=self._inner.energy_j,
+            capacitor_energy_J=self._inner.capacitor_energy_j,
+            inductor_energy_J=self._inner.inductor_energy_j,
             current_A=self._inner.current_a,
             di_dt_A_s=self._inner.di_dt_a_s,
             discharge_active=self._inner.discharge_active,

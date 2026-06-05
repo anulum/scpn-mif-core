@@ -223,4 +223,7 @@ def test_energy_parity_after_natural_decay(seed: int) -> None:
     for _ in range(50):
         py_bank.step(dt)
         rust_bank.step(dt, 0.0)
-    assert _approx_equal(py_bank.state.energy_J, rust_bank.energy_j)
+    py_state = py_bank.state
+    assert _approx_equal(py_state.energy_J, rust_bank.energy_j)
+    assert _approx_equal(py_state.capacitor_energy_J, rust_bank.capacitor_energy_j)
+    assert _approx_equal(py_state.inductor_energy_J, rust_bank.inductor_energy_j)

@@ -15,6 +15,17 @@ non-negativity of capacitor energy, inductor energy, total stored energy, and
 linear recharge energy under the physical parameter ranges enforced by the
 runtime constructors.
 
+The observable `CapacitorBankState.energy_J` is the total stored
+electromagnetic energy,
+
+$$
+E_\mathrm{stored}(t) = \frac{1}{2} C v_C(t)^2 + \frac{1}{2} L i_L(t)^2,
+$$
+
+matching the Lean `storedEnergy` contract. The component fields
+`capacitor_energy_J` and `inductor_energy_J` expose the two addends for
+audits and cross-language parity checks.
+
 ## Carrier equations
 
 For a series RLC circuit driven by an initial bank voltage `v_C(0) = V_0` and
@@ -119,7 +130,7 @@ print(f"voltage = {bank.state.voltage_V:.3f} V, current = {bank.state.current_A:
 | Underdamped half-cycle swing below zero | 1 unit test passes |
 | Overdamped monotone decay over 1 ms | 1 unit test passes |
 | Constructor and reset guards (4 negative paths) | 4 unit tests pass |
-| Energy bookkeeping (½ C V²) | 1 unit test passes |
+| Total-energy bookkeeping (½ C V² + ½ L I²) and component exposure | 2 unit tests pass |
 | Lean proof surface | Stored-energy and recharge-energy sign contracts build with `lake build` |
 | State immutability | 2 unit tests pass |
 | Pulse-spec invariants | 3 unit tests pass |
@@ -132,7 +143,7 @@ print(f"voltage = {bank.state.voltage_V:.3f} V, current = {bank.state.current_A:
 | Recharge status (target, zero-t, long-t saturation, linear energy, negative-t, zero-power) | 6 unit tests pass |
 | Hypothesis property — natural response stays in the initial-voltage envelope | 80 randomised examples pass |
 | Python ↔ Rust parity across the regime grid and 16 random seeds | 142 parity tests pass at 1e-12 |
-| Julia reference — three regimes, free response, Crank-Nicolson stepping, external load, reset, rejection paths | 19 tests pass |
+| Julia reference — three regimes, free response, Crank-Nicolson stepping, total-energy components, external load, reset, rejection paths | 21 tests pass |
 | Total | Python/Rust core suite plus Julia reference tests pass under their dedicated gates |
 
 ## Benchmarks
@@ -164,16 +175,18 @@ validate parity and dispatch ordering rather than in-process kernel latency.
 
 | Operation                                     | Python (NumPy) | Rust     | Julia CLI | Dispatch order |
 | :---                                          | :---           | :---     | :---      | :--- |
-| `step` single Crank-Nicolson update           | 11.1 µs        | 164 ns   | 713 ms    | Rust, Python, Julia |
-| `step` 1 000-step batch                       | 11.7 ms        | 88.3 µs  | 3.46 s    | Rust, Python, Julia |
-| `free_response` analytical dispatch           | 868 ns         | 140 ns   | 321 ms    | Rust, Python, Julia |
+| `step` single Crank-Nicolson update           | 24.3 µs        | 260 ns   | 458 ms    | Rust, Python, Julia |
+| `step` 1 000-step batch                       | 23.7 ms        | 91.6 µs  | 3.09 s    | Rust, Python, Julia |
+| `free_response` analytical dispatch           | 811 ns         | 152 ns   | 278 ms    | Rust, Python, Julia |
 
 The Python and Rust paths agree at machine epsilon (≤ 10⁻¹² relative
 tolerance, verified across 142 parity tests in
-`tests/unit/lifecycle/test_capacitor_bank_rust_parity.py`). The Julia
+`tests/unit/lifecycle/test_capacitor_bank_rust_parity.py`), including total
+stored energy and the capacitor/inductor component fields. The Julia
 reference is covered by `julia/SCPNMIFCore/test/runtests.jl`, including all
 three damping regimes, natural free response, Crank-Nicolson stepping,
-external-load contrast, reset, and rejection paths.
+total-energy component bookkeeping, external-load contrast, reset, and
+rejection paths.
 
 ## Cross-repository touch points
 

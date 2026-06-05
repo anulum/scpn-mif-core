@@ -318,6 +318,22 @@ def test_initial_energy_matches_half_c_v_squared() -> None:
     v0 = 5000.0
     bank = CapacitorBank(spec, initial_voltage_V=v0)
     assert bank.state.energy_J == pytest.approx(0.5 * spec.capacitance_F * v0 * v0)
+    assert bank.state.capacitor_energy_J == pytest.approx(bank.state.energy_J)
+    assert bank.state.inductor_energy_J == pytest.approx(0.0)
+
+
+def test_state_energy_includes_capacitor_and_inductor_storage_after_current_builds() -> None:
+    spec = underdamped_spec()
+    bank = CapacitorBank(spec, initial_voltage_V=5000.0)
+    bank.step(1e-6)
+    state = bank.state
+    expected_capacitor = 0.5 * spec.capacitance_F * state.voltage_V**2
+    expected_inductor = 0.5 * spec.inductance_H * state.current_A**2
+
+    assert state.capacitor_energy_J == pytest.approx(expected_capacitor)
+    assert state.inductor_energy_J == pytest.approx(expected_inductor)
+    assert state.energy_J == pytest.approx(expected_capacitor + expected_inductor)
+    assert state.energy_J > state.capacitor_energy_J
 
 
 def test_state_is_immutable() -> None:

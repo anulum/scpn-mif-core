@@ -49,8 +49,9 @@ runtime certificate that checks the Lean sampled-envelope assumptions across
 Python, Rust, and the Julia audit package CLI.
 MIF-004 uses `lifecycle.pulsed_shot_fsm` for the eight-step lifecycle
 campaign; Rust is fastest among its allocated Python and Rust runtime surfaces.
-MIF-005 uses `lifecycle.capacitor_bank` for the series RLC bank; Rust is
-fastest across the Python, Rust, and Julia comparison groups.
+MIF-005 uses `lifecycle.capacitor_bank` for the series RLC bank with total
+stored-energy accounting; Rust is fastest across the Python, Rust, and Julia
+comparison groups.
 MIF-006 uses `aer.spike_buffer` for 256-event ring insertion and
 `aer.decode_rate` for rate-coded AER feature decoding; Rust is fastest across
 the allocated Python and Rust local surfaces.

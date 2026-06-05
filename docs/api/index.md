@@ -46,7 +46,8 @@ Implemented pre-alpha API pages:
 - [Pulsed-shot proof](formal/pulsed_shot.md) — MIF-004, Lean 4 adjacency
   determinism and minimal eight-step lifecycle proof.
 - [Capacitor bank](lifecycle/capacitor_bank.md) — MIF-005, series RLC
-  capacitor-bank model with Python, Rust, Julia, and Lean formal surfaces.
+  capacitor-bank model with total electromagnetic energy bookkeeping across
+  Python, Rust, Julia, and Lean formal surfaces.
 - [Capacitor-bank proof](formal/capacitor_bank.md) — MIF-005, Lean 4
   stored-energy and recharge-energy sign contracts.
 - [AER spike-buffer decoder](aer/spike_buffer.md) — MIF-006, AER ingress

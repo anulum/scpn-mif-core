@@ -46,6 +46,8 @@ struct CapacitorBankState
     t::Float64
     voltage_V::Float64
     energy_J::Float64
+    capacitor_energy_J::Float64
+    inductor_energy_J::Float64
     current_A::Float64
     di_dt_A_s::Float64
     discharge_active::Bool
@@ -175,10 +177,14 @@ end
 
 """Return an immutable observable snapshot of the bank."""
 function state(bank::CapacitorBank)::CapacitorBankState
+    capacitor_energy = 0.5 * bank.spec.capacitance_F * bank.voltage_V^2
+    inductor_energy = 0.5 * bank.spec.inductance_H * bank.current_A^2
     return CapacitorBankState(
         bank.t,
         bank.voltage_V,
-        0.5 * bank.spec.capacitance_F * bank.voltage_V^2,
+        capacitor_energy + inductor_energy,
+        capacitor_energy,
+        inductor_energy,
         bank.current_A,
         bank.di_dt_A_s,
         abs(bank.current_A) > 1e-9,

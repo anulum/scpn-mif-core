@@ -140,6 +140,8 @@ class CapacitorBankState:
     t: float
     voltage_V: float
     energy_J: float
+    capacitor_energy_J: float
+    inductor_energy_J: float
     current_A: float
     di_dt_A_s: float
     discharge_active: bool
@@ -321,10 +323,14 @@ class CapacitorBank:
     @property
     def state(self) -> CapacitorBankState:
         """Current observable state."""
+        capacitor_energy = 0.5 * self._spec.capacitance_F * self._v * self._v
+        inductor_energy = 0.5 * self._spec.inductance_H * self._i * self._i
         return CapacitorBankState(
             t=self._t,
             voltage_V=self._v,
-            energy_J=0.5 * self._spec.capacitance_F * self._v * self._v,
+            energy_J=capacitor_energy + inductor_energy,
+            capacitor_energy_J=capacitor_energy,
+            inductor_energy_J=inductor_energy,
             current_A=self._i,
             di_dt_A_s=self._di_dt,
             discharge_active=abs(self._i) > 1e-9,
@@ -398,10 +404,11 @@ class CapacitorBank:
         peak current observed during the run, and returns an
         :class:`EnergyReport` summarising the energy budget.
 
-        Energy bookkeeping always satisfies the invariant
-        ``energy_delivered + energy_remaining == initial_energy`` (the
-        residual ohmic dissipation in :math:`R` is folded into the
-        delivered amount, since it leaves the capacitor).
+        Energy bookkeeping always satisfies the sampled invariant
+        ``energy_delivered + energy_remaining == initial_total_energy`` where
+        total energy is :math:`\\tfrac12 C v_C^2 + \\tfrac12 L i_L^2`. The
+        delivered amount is the electromagnetic energy removed from storage by
+        the external load and the series resistance during the sampled pulse.
 
         Parameters
         ----------

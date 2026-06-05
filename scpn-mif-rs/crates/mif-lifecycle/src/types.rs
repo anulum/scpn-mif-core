@@ -129,8 +129,12 @@ pub struct CapacitorBankState {
     pub t: f64,
     /// Capacitor voltage, in volts.
     pub voltage_v: f64,
-    /// Stored capacitor energy, in joules.
+    /// Total stored electromagnetic energy, in joules.
     pub energy_j: f64,
+    /// Stored capacitor energy, in joules.
+    pub capacitor_energy_j: f64,
+    /// Stored inductor energy, in joules.
+    pub inductor_energy_j: f64,
     /// Inductor current, in amperes.
     pub current_a: f64,
     /// Time derivative of the inductor current, in amperes per second.

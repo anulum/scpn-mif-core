@@ -3,7 +3,7 @@
   "kernel": "capacitor_bank",
   "host": "x86_64",
   "python_version": "3.12.3",
-  "datetime": "2026-06-04T11:28:05.140596+00:00",
+  "datetime": "2026-06-05T00:50:55.192621+00:00",
   "notes": [
     "Local workstation comparison benchmark; not CPU-isolated per 2026-06-04 benchmark isolation broadcast. Julia entries include CLI startup and are dispatch-order evidence, not in-process kernel latency."
   ],
@@ -11,82 +11,82 @@
     {
       "name": "test_bench_python_step_single",
       "group": "capacitor_bank.step_single",
-      "mean_ns": 11141.037496214429,
-      "stddev_ns": 9239.79096473115,
-      "median_ns": 9676.208719611168,
-      "ops_per_s": 89758.24741096028,
-      "rounds": 5415
+      "mean_ns": 24269.364904314014,
+      "stddev_ns": 35557.87746636172,
+      "median_ns": 20663.836039602757,
+      "ops_per_s": 41204.20966690581,
+      "rounds": 2248
     },
     {
       "name": "test_bench_rust_step_single",
       "group": "capacitor_bank.step_single",
-      "mean_ns": 163.66455251383505,
-      "stddev_ns": 63.98807952285916,
-      "median_ns": 143.2490535080433,
-      "ops_per_s": 6110058.559659503,
-      "rounds": 131458
+      "mean_ns": 260.16102328057366,
+      "stddev_ns": 249.39207134564055,
+      "median_ns": 244.93783712387085,
+      "ops_per_s": 3843773.319270575,
+      "rounds": 132239
     },
     {
       "name": "test_bench_julia_cli_step_single",
       "group": "capacitor_bank.step_single",
-      "mean_ns": 713275407.3633502,
-      "stddev_ns": 574588718.5864381,
-      "median_ns": 395892259.19917226,
-      "ops_per_s": 1.401983006390951,
+      "mean_ns": 458003337.96069026,
+      "stddev_ns": 33431437.68176479,
+      "median_ns": 472958296.071738,
+      "ops_per_s": 2.1833902007190797,
       "rounds": 3
     },
     {
       "name": "test_bench_python_step_batch_1000",
       "group": "capacitor_bank.step_batch_1000",
-      "mean_ns": 11737915.540031869,
-      "stddev_ns": 2206339.2978560133,
-      "median_ns": 11101310.956291854,
-      "ops_per_s": 85.19400200057028,
-      "rounds": 68
+      "mean_ns": 23708539.757583488,
+      "stddev_ns": 9709401.089923017,
+      "median_ns": 21056910.97676754,
+      "ops_per_s": 42.178894618768624,
+      "rounds": 57
     },
     {
       "name": "test_bench_rust_step_batch_1000",
       "group": "capacitor_bank.step_batch_1000",
-      "mean_ns": 88257.05790584064,
-      "stddev_ns": 12216.65762662892,
-      "median_ns": 84716.12818539143,
-      "ops_per_s": 11330.538584991991,
-      "rounds": 9332
+      "mean_ns": 91590.64947888275,
+      "stddev_ns": 26720.418793905817,
+      "median_ns": 86083.0768942833,
+      "ops_per_s": 10918.14509111611,
+      "rounds": 7378
     },
     {
       "name": "test_bench_julia_cli_step_batch_1000",
       "group": "capacitor_bank.step_batch_1000",
-      "mean_ns": 3461950445.082039,
-      "stddev_ns": 64347007.55979482,
-      "median_ns": 3458097879.0763764,
-      "ops_per_s": 0.28885451015642793,
+      "mean_ns": 3090675498.126075,
+      "stddev_ns": 130749731.03362243,
+      "median_ns": 3119010198.1628685,
+      "ops_per_s": 0.3235538640683293,
       "rounds": 3
     },
     {
       "name": "test_bench_python_free_response",
       "group": "capacitor_bank.free_response",
-      "mean_ns": 868.1267696136839,
-      "stddev_ns": 299.3579627567821,
-      "median_ns": 813.9759302139282,
-      "ops_per_s": 1151905.4992913068,
-      "rounds": 36453
+      "mean_ns": 810.5449244708306,
+      "stddev_ns": 302.5611806748623,
+      "median_ns": 785.1049304008484,
+      "ops_per_s": 1233737.9086703386,
+      "rounds": 51515
     },
     {
       "name": "test_bench_rust_free_response",
       "group": "capacitor_bank.free_response",
-      "mean_ns": 139.6566559729831,
-      "stddev_ns": 37.09363849687123,
-      "median_ns": 130.36128038015121,
-      "ops_per_s": 7160417.76192502,
-      "rounds": 197352
+      "mean_ns": 151.73264805479064,
+      "stddev_ns": 43.89429664997553,
+      "median_ns": 135.2163963019848,
+      "ops_per_s": 6590539.43116382,
+      "rounds": 196270
     },
     {
       "name": "test_bench_julia_cli_free_response",
       "group": "capacitor_bank.free_response",
-      "mean_ns": 321381056.3708345,
-      "stddev_ns": 19680069.33082563,
-      "median_ns": 311070991.9128567,
-      "ops_per_s": 3.111571077935975,
+      "mean_ns": 277688713.97711337,
+      "stddev_ns": 13624999.001511695,
+      "median_ns": 271863569.971174,
+      "ops_per_s": 3.601154637067527,
       "rounds": 3
     }
   ],
@@ -96,8 +96,8 @@
     "cpu_isolated": false,
     "isolation_method": "none; local workstation comparison run",
     "affinity_or_reserved_cores": "none",
-    "host_load_before": "not recorded before this local run",
-    "host_load_after": "3.10 3.50 3.84 3/2823 1956250",
+    "host_load_before": "2.80 3.01 2.56 7/3215 2571685",
+    "host_load_after": "5.07 3.60 2.78 9/3244 2572511",
     "cpu_governor": "powersave",
     "heavy_jobs_running": "not reserved; user requested CPU-sensitive work earlier, so this is not a production benchmark claim",
     "runtime_versions": {

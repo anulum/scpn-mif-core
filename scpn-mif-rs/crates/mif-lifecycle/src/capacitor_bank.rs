@@ -125,10 +125,14 @@ impl CapacitorBank {
 
     /// Read the current observable state.
     pub fn state(&self) -> CapacitorBankState {
+        let capacitor_energy_j = 0.5 * self.spec.capacitance_f * self.v * self.v;
+        let inductor_energy_j = 0.5 * self.spec.inductance_h * self.i * self.i;
         CapacitorBankState {
             t: self.t,
             voltage_v: self.v,
-            energy_j: 0.5 * self.spec.capacitance_f * self.v * self.v,
+            energy_j: capacitor_energy_j + inductor_energy_j,
+            capacitor_energy_j,
+            inductor_energy_j,
             current_a: self.i,
             di_dt_a_s: self.di_dt,
             discharge_active: self.i.abs() > 1e-9,
@@ -267,6 +271,20 @@ mod tests {
         assert_eq!(bank.state().t, 0.0);
         assert_eq!(bank.state().voltage_v, 3000.0);
         assert_eq!(bank.state().current_a, 0.0);
+    }
+
+    #[test]
+    fn state_energy_includes_capacitor_and_inductor_storage() {
+        let spec = underdamped_spec();
+        let mut bank = CapacitorBank::new(spec, 5000.0).unwrap();
+        bank.step(1e-6, 0.0).unwrap();
+        let state = bank.state();
+        let expected_capacitor = 0.5 * spec.capacitance_f * state.voltage_v * state.voltage_v;
+        let expected_inductor = 0.5 * spec.inductance_h * state.current_a * state.current_a;
+        assert!((state.capacitor_energy_j - expected_capacitor).abs() < 1e-12);
+        assert!((state.inductor_energy_j - expected_inductor).abs() < 1e-12);
+        assert!((state.energy_j - (expected_capacitor + expected_inductor)).abs() < 1e-12);
+        assert!(state.energy_j > state.capacitor_energy_j);
     }
 
     #[test]

@@ -58,10 +58,13 @@ theorem recharge_energy_nonnegative
     0 ≤ rechargeEnergy rechargePowerW dtS
 ```
 
-This proof does not change the Crank-Nicolson integrator, analytical RLC
-response formulas, Rust kernel, Julia reference, or benchmark artefacts. It
-formalises the stored-energy and recharge-energy sign assumptions consumed by
-the pulsed-shot lifecycle gate.
+The runtime `CapacitorBankState.energy_J` field implements `storedEnergy`.
+The `capacitor_energy_J` and `inductor_energy_J` fields expose the individual
+addends used by this proof surface across the Python, Rust/PyO3, and Julia
+implementations. The proof still leaves the Crank-Nicolson integrator and
+analytical RLC response formulas unchanged; it formalises the stored-energy
+and recharge-energy sign assumptions consumed by the pulsed-shot lifecycle
+gate.
 
 ## Verification
 
