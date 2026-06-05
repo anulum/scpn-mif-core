@@ -37,7 +37,6 @@ benchmark_host = "i5-11600K (mining rig)"
 "lifecycle.capacitor_bank" = ["rust", "python", "julia"]
 "aer.spike_buffer" = ["rust", "python"]
 "aer.decode_rate" = ["rust", "python"]
-"physics.frc_rigid_rotor"             = ["python"]
 "physics.faraday_back_emf" = ["rust", "python"]
 "physics.faraday_recovery_waveform" = ["python", "rust", "julia"]
 # I/O hardening trio (MIF-016, MIF-017, MIF-018) — registered for the

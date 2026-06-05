@@ -23,6 +23,14 @@ from scpn_mif_core.physics.faraday_recovery import (
     magnetic_flux,
     recovered_power,
 )
+from scpn_mif_core.physics.fusion_frc_contract import (
+    FUSION_FRC_SURFACES,
+    FusionFRCContractReport,
+    FusionFRCSurface,
+    FusionFRCSurfaceReport,
+    inspect_fusion_frc_contract,
+    load_fusion_core,
+)
 
 _FARADAY_BACK_EMF_KERNEL = "physics.faraday_back_emf"
 _FARADAY_WAVEFORM_KERNEL = "physics.faraday_recovery_waveform"
@@ -86,15 +94,21 @@ def dispatched_evaluate_faraday_recovery(
 
 
 __all__ = [
+    "FUSION_FRC_SURFACES",
     "FaradayRecoveryReport",
     "FaradayRecoverySpec",
     "FaradayRecoveryState",
+    "FusionFRCContractReport",
+    "FusionFRCSurface",
+    "FusionFRCSurfaceReport",
     "dispatched_evaluate_faraday_recovery",
     "dispatched_faraday_back_emf",
     "evaluate_faraday_recovery",
     "evaluate_faraday_state",
     "faraday_back_emf",
     "flux_rate",
+    "inspect_fusion_frc_contract",
+    "load_fusion_core",
     "magnetic_flux",
     "recovered_power",
 ]

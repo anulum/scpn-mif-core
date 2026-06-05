@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from scpn_mif_core import _dispatch
@@ -105,12 +107,18 @@ def test_dispatch_faraday_waveform_listed() -> None:
     assert "julia" in backends, "julia benchmark surface must remain listed"
 
 
+def test_dispatch_excludes_fusion_owned_frc_kernels() -> None:
+    """FUSION-owned FRC physics must be consumed by contract, not MIF dispatch."""
+    assert _dispatch.available_backends("physics.frc_rigid_rotor") == ["python"]
+    assert "physics.frc_rigid_rotor" not in _dispatch.registered_kernels()
+
+
 def test_dispatch_is_rust_available_returns_bool() -> None:
     value = _dispatch.is_rust_available()
     assert isinstance(value, bool)
 
 
-def test_dispatch_reload_resets_cache(tmp_path, monkeypatch) -> None:
+def test_dispatch_reload_resets_cache(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Pointing the loader at a synthetic dispatch.toml and reloading picks it up."""
     fake_path = tmp_path / "dispatch.toml"
     fake_path.write_text(
@@ -123,7 +131,7 @@ def test_dispatch_reload_resets_cache(tmp_path, monkeypatch) -> None:
     assert _dispatch.preferred_backend("synthetic.kernel") == "mojo"
 
 
-def test_dispatch_handles_missing_table(tmp_path, monkeypatch) -> None:
+def test_dispatch_handles_missing_table(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """A non-existent dispatch.toml degrades to the ``['python']`` fallback."""
     missing = tmp_path / "absent.toml"
     monkeypatch.setattr(_dispatch, "_DISPATCH_PATH", missing)

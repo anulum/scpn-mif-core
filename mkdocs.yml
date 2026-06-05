@@ -113,6 +113,7 @@ nav:
           - Capacitor bank: api/lifecycle/capacitor_bank.md
           - Plasmoid-merger Petri net: api/lifecycle/plasmoid_merger_petri_net.md
       - Physics:
+          - FUSION FRC contract adapter: api/physics/fusion_frc_contract.md
           - Faraday recovery: api/physics/faraday_recovery.md
       - AER:
           - Spike-buffer decoder: api/aer/spike_buffer.md

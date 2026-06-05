@@ -40,8 +40,11 @@ UltraScale+ FPGAs.
 > MIF-005, MIF-009, MIF-011, and MIF-012. MIF-007 has Python golden-reference,
 > synthesisable SystemVerilog, Yosys, Verilator, and local regression evidence.
 > MIF-015 now has a local ADC/Q8.8/RTL-trace cosimulation harness for the
-> MIF-007 sensor path. Vivado ZU3EG timing, hardware waveform equivalence, and
-> the P6 hardware trigger chain remain open hardware/tooling lanes. See
+> MIF-007 sensor path. MIF also detects the accepted SCPN-FUSION-CORE FRC
+> contract surfaces without dispatching those FUSION-owned physics kernels
+> locally. Vivado ZU3EG timing, hardware waveform equivalence, full external
+> FUSION reference parity, and the P6 hardware trigger chain remain open
+> hardware/tooling lanes. See
 > [`docs/api/`](docs/api/index.md) for the implemented surfaces.
 
 ## Reading path

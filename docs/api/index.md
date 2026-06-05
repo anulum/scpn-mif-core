@@ -68,6 +68,9 @@ Implemented pre-alpha API pages:
   MIF-012, Lean 4 one-safety and nominal reachability skeleton.
 - [Faraday recovery](physics/faraday_recovery.md) — MIF-009, exact
   Faraday-law carrier with Python, Rust, Julia, and Lean formal surfaces.
+- [FUSION FRC contract adapter](physics/fusion_frc_contract.md) — consumer
+  contract for FUSION-owned FRC equilibrium, Hall/flux, compression, MRTI,
+  tilt, and compression-coupled Faraday surfaces.
 - [Faraday recovery proof](formal/faraday_recovery.md) — MIF-009, Lean 4
   energy-bookkeeping proof for the EMF and recovered-energy sign contracts.
 - [Kinematic safety](formal/kinematic_safety.md) — PHA-C.6/MIF-011, Lean 4

@@ -32,8 +32,9 @@ A specialised control layer that:
 
 - Compiles Kuramoto kinematic-merging equations into bit-true Q8.8
   SystemVerilog through the sibling `sc-neurocore` engine.
-- Consumes the rigid-rotor FRC equilibrium and two-fluid Hall-MHD pulsed
-  solver from `scpn-fusion-core`.
+- Consumes accepted FRC equilibrium, Hall/flux, compression, MRTI, tilt, and
+  compression-coupled recovery surfaces from `scpn-fusion-core` through
+  explicit contract tests.
 - Wires the pulsed-shot lifecycle and capacitor-bank state machine through
   `scpn-control`'s Petri-net and SNN runtime.
 - Hosts the timing-aware SymbiYosys property set that proves the sub-50
@@ -91,7 +92,11 @@ local physics/lifecycle surfaces:
   cycle-level valid/ready reference, one-million-sample no-drop reference
   campaign, Yosys synthesis smoke, Verilator cosimulation, benchmark evidence,
   and API documentation.
+- FUSION FRC contract adapter: optional sibling-package contract surface that
+  detects FUSION-owned FRC physics APIs and preserves blocked full-evidence
+  claim boundaries in MIF tests and reports.
 
-Self-consistent FRC compression, Hall-MHD, MRTI, and tilt-mode solvers remain
-blocked on the SCPN-FUSION-CORE ownership lane described in the internal
-upstream contracts.
+MIF still does not claim ownership of self-consistent FRC physics solvers.
+Those kernels remain owned by SCPN-FUSION-CORE; MIF consumes only the accepted
+public contract and keeps FUSION's blocked external-reference evidence statuses
+visible until they are resolved upstream.

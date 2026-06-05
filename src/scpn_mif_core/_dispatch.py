@@ -64,6 +64,11 @@ def available_backends(kernel: str) -> list[str]:
     return list(_load().get(kernel, ["python"]))
 
 
+def registered_kernels() -> list[str]:
+    """Return the kernel names explicitly registered in the dispatch table."""
+    return sorted(_load())
+
+
 def preferred_backend(kernel: str) -> str:
     """Return the single fastest backend listed for ``kernel``."""
     return available_backends(kernel)[0]
