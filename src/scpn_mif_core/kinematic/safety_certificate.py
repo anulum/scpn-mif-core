@@ -64,7 +64,11 @@ class KinematicSafetySpec:
 
 @dataclass(frozen=True)
 class KinematicSafetyCertificate:
-    """Trace-level certificate for the sampled Lean safety assumptions."""
+    """Trace-level certificate for the sampled Lean safety assumptions.
+
+    ``first_violation_index`` uses zero-based sample indices across Python,
+    Rust/PyO3, and Julia surfaces.
+    """
 
     passed: bool
     samples: int

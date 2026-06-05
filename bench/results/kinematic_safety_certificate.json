@@ -3,14 +3,14 @@
   "kernel": "kinematic_safety_certificate",
   "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
   "python_version": "3.12.3",
-  "datetime": "2026-06-04T17:50:58.510144+00:00",
+  "datetime": "2026-06-05T02:36:08.920659+00:00",
   "benchmark_context": {
     "command": "./.venv/bin/pytest bench/kernels/bench_kinematic_safety_certificate.py --benchmark-only --benchmark-json=bench/results/kinematic_safety_certificate_raw.json --no-cov",
     "cpu_isolated": false,
     "isolation_method": "none",
     "affinity": "none",
-    "host_load_before": "2.76 2.19 2.67 1/3186 2463718",
-    "host_load_after": "2.39 2.14 2.64 10/3193 2464321",
+    "host_load_before": "3.98 3.79 3.62 10/3215 2841733",
+    "host_load_after": "3.70 3.73 3.60 4/3228 2842395",
     "governor": "powersave",
     "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz, 6 cores / 12 threads",
     "runtime_versions": {
@@ -22,34 +22,35 @@
   },
   "notes": [
     "Local non-isolated comparison benchmark only; not a production latency claim.",
-    "MIF-011 sampled kinematic safety certificate has allocated Python, Rust, and Julia audit surfaces."
+    "MIF-011 sampled kinematic safety certificate has allocated Python, Rust, and Julia audit surfaces.",
+    "2026-06-05 rerun after zero-based first_violation_index parity hardening across runtime surfaces."
   ],
   "tests": [
     {
       "name": "test_bench_python_trace_512",
       "group": "kinematic_safety_certificate.trace_512",
-      "mean_ns": 53981.12405406925,
-      "stddev_ns": 5053.117344057579,
-      "median_ns": 52367.80270934105,
-      "ops_per_s": 18524.994014544183,
-      "rounds": 4193
+      "mean_ns": 54710.977532576995,
+      "stddev_ns": 11109.952843458674,
+      "median_ns": 51653.943955898285,
+      "ops_per_s": 18277.86753407142,
+      "rounds": 3005
     },
     {
       "name": "test_bench_rust_trace_512",
       "group": "kinematic_safety_certificate.trace_512",
-      "mean_ns": 5612.420711847756,
-      "stddev_ns": 968.4020278350228,
-      "median_ns": 5554.17500436306,
-      "ops_per_s": 178176.23648366408,
-      "rounds": 69984
+      "mean_ns": 5512.455479776285,
+      "stddev_ns": 749.3305760427808,
+      "median_ns": 5274.079740047455,
+      "ops_per_s": 181407.36077937152,
+      "rounds": 43208
     },
     {
       "name": "test_bench_julia_cli_trace_512",
       "group": "kinematic_safety_certificate.trace_512",
-      "mean_ns": 399173635.9118174,
-      "stddev_ns": 9350388.31026811,
-      "median_ns": 393929750.89140236,
-      "ops_per_s": 2.505175467602557,
+      "mean_ns": 726425961.3584727,
+      "stddev_ns": 440365781.03284436,
+      "median_ns": 475768987.0893955,
+      "ops_per_s": 1.3766027829318253,
       "rounds": 3
     }
   ]

@@ -167,8 +167,15 @@ end
         KinematicSafetySpec(; contraction = 0.5, disturbance_ratio = 0.1, numerical_tolerance_m = 0.0),
     )
     @test !failed.passed
-    @test failed.first_violation_index == 2
+    @test failed.first_violation_index == 1
     @test failed.max_step_violation_m > 0.0
+
+    initial_failed = certify_sampled_kinematic_safety(
+        [0.0025, 0.001],
+        KinematicSafetySpec(; contraction = 0.5, disturbance_ratio = 0.1, numerical_tolerance_m = 0.0),
+    )
+    @test !initial_failed.passed
+    @test initial_failed.first_violation_index == 0
 
     @test_throws ArgumentError KinematicSafetySpec(; contraction = 0.9, disturbance_ratio = 0.2)
     @test_throws ArgumentError certify_sampled_kinematic_safety(Float64[])

@@ -39,6 +39,18 @@ def test_rust_certificate_matches_python_for_failed_trace() -> None:
     assert rust_cert.first_violation_index == 1
 
 
+def test_rust_certificate_matches_python_for_initial_violation() -> None:
+    spec = KinematicSafetySpec(tolerance_m=0.002, contraction=0.5, disturbance_ratio=0.1, numerical_tolerance_m=0.0)
+    trace = [0.0025, 0.001]
+
+    rust_cert = rust_certify_sampled_kinematic_safety(trace, spec)
+    py_cert = certify_sampled_kinematic_safety(trace, spec)
+
+    assert rust_cert == py_cert
+    assert not rust_cert.passed
+    assert rust_cert.first_violation_index == 0
+
+
 def test_dispatched_certificate_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
     import scpn_mif_core.kinematic as kinematic
 

@@ -97,7 +97,7 @@ pub struct KinematicSafetyCertificate {
     pub minimum_step_slack_m: Option<f64>,
     /// Maximum one-step envelope violation in metres.
     pub max_step_violation_m: f64,
-    /// First violating sample index, if any.
+    /// First violating zero-based sample index, if any.
     pub first_violation_index: Option<usize>,
 }
 
@@ -244,6 +244,15 @@ mod tests {
         assert!(!cert.passed);
         assert_eq!(cert.first_violation_index, Some(1));
         assert!(cert.max_step_violation_m > 0.0);
+    }
+
+    #[test]
+    fn reports_initial_violation() {
+        let spec = KinematicSafetySpec::new(0.002, 0.5, 0.1, 0.0).expect("spec");
+        let cert = certify_sampled_kinematic_safety(&[0.0025, 0.001], spec).expect("certificate");
+
+        assert!(!cert.passed);
+        assert_eq!(cert.first_violation_index, Some(0));
     }
 
     #[test]

@@ -45,7 +45,12 @@ end
 budget_margin(spec::KinematicSafetySpec)::Float64 =
     1.0 - spec.contraction - spec.disturbance_ratio
 
-"""Certify a sampled axial-separation trace against the MIF-011 envelope."""
+"""
+Certify a sampled axial-separation trace against the MIF-011 envelope.
+
+`first_violation_index` uses zero-based sample indices for parity with the
+Python and Rust/PyO3 runtime surfaces.
+"""
 function certify_sampled_kinematic_safety(
     separation_m::AbstractVector,
     spec::KinematicSafetySpec = KinematicSafetySpec(),
@@ -89,9 +94,9 @@ function _first_kinematic_safety_violation(
     step_slacks::AbstractVector{Float64},
     numerical_tolerance::Float64,
 )
-    initial_margin < -numerical_tolerance && return 1
+    initial_margin < -numerical_tolerance && return 0
     for (idx, slack) in enumerate(step_slacks)
-        slack < -numerical_tolerance && return idx + 1
+        slack < -numerical_tolerance && return idx
     end
     return nothing
 end

@@ -71,6 +71,10 @@ assert certificate.passed
 
 The certificate reports initial margin, minimum one-step slack, maximum
 step-envelope violation, budget margin, and the first violating sample index.
+`first_violation_index` is always a zero-based sample index across the Python,
+Rust/PyO3, and Julia runtime surfaces: the initial sample reports `0`, the
+first one-step envelope violation reports `1`, and a passing trace reports
+`None`/`nothing`.
 `certify_positions_sampled_kinematic_safety(...)` converts a sampled
 multi-channel axial position trace into max-min separation before applying the
 same proof-assumption check.
