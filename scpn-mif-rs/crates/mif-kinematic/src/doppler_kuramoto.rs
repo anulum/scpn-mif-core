@@ -180,6 +180,12 @@ pub enum DopplerKuramotoError {
         /// Field name.
         field: &'static str,
     },
+    /// A time-like field was not strictly increasing.
+    #[error("{field} must be strictly increasing")]
+    NotStrictlyIncreasing {
+        /// Field name.
+        field: &'static str,
+    },
 }
 
 /// Stateful RK4 integrator for MIF-001.

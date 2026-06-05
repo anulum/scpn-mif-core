@@ -40,7 +40,8 @@ Implemented pre-alpha API pages:
   chamber-fixed absolute-position UPDE carrier with Python, Rust, and Julia
   surfaces and circular RK45 phase-error bookkeeping.
 - [Merge-window monitor](kinematic/merge_window.md) — MIF-003, spatial +
-  phase lock predicate with Python and Rust surfaces.
+  phase lock predicate with Python and Rust surfaces and strictly increasing
+  sample-time validation.
 - [Pulsed-shot FSM](lifecycle/pulsed_shot_fsm.md) — MIF-004, eight-state
   lifecycle scheduler with Python, Rust, and Lean surfaces.
 - [Pulsed-shot proof](formal/pulsed_shot.md) — MIF-004, Lean 4 adjacency

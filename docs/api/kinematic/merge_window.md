@@ -29,6 +29,11 @@ lock_achieved    = candidate_lock for N consecutive samples
 The default tolerances are `epsilon_theta = 0.01 rad`, `epsilon_z = 0.002 m`,
 and `N = 3`.
 
+Timed samples are required to be strictly increasing whenever `t_s` is
+provided. The full trace helper pre-validates `time_s`, and the stateful
+monitor rejects duplicate or backwards timestamps before mutating the lock
+streak.
+
 ## Python API
 
 ::: scpn_mif_core.kinematic.merge_window
@@ -59,19 +64,22 @@ The committed acceptance path uses a two-oscillator synthetic trace:
 - lock is reported only on the third consecutive candidate sample.
 
 Python tests cover the streak reset, full trace report, shape validation, and
-Python dispatch fallback. Rust parity tests cover the PyO3 monitor and the
-Rust-backed dispatch path.
+strictly increasing sample-time contract. Rust parity tests cover the PyO3
+monitor and the Rust-backed dispatch path, including backwards-time rejection.
 
 ## Benchmarks
 
 Measured on the local i5-11600K rig using Python 3.12.3 and Rust 1.85.0.
+This was a non-isolated workstation comparison with the CPU governor set to
+`powersave` and host load present; the numbers are for dispatch ordering, not
+production performance claims.
 
 | Group | Backend | Mean | Result |
 |---|---:|---:|---|
-| `evaluate_single` | Rust | 647 ns | fastest |
-| `evaluate_single` | Python | 18.45 us | 28.5x slower than Rust |
-| `trace_256` | Rust | 496.67 us | fastest |
-| `trace_256` | Python | 4.67 ms | 9.4x slower than Rust |
+| `evaluate_single` | Rust | 639 ns | fastest |
+| `evaluate_single` | Python | 18.51 us | 29.0x slower than Rust |
+| `trace_256` | Rust | 487.60 us | fastest |
+| `trace_256` | Python | 4.57 ms | 9.4x slower than Rust |
 
 Raw summary: `bench/results/merge_window.json`.
 

@@ -48,6 +48,14 @@ def test_rust_monitor_parity() -> None:
     assert py_monitor.first_lock_time_s == pytest.approx(rust_monitor.first_lock_time_s)
 
 
+def test_rust_monitor_rejects_backwards_sample_time() -> None:
+    rust_monitor = rust.MergeWindowMonitor(_rust_spec())
+    rust_monitor.evaluate([0.0, 0.001], [-0.001, 0.001], 1.0)
+
+    with pytest.raises(ValueError, match="strictly increasing"):
+        rust_monitor.evaluate([0.0, 0.001], [-0.001, 0.001], 0.5)
+
+
 def test_dispatched_merge_window_monitor_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
     import scpn_mif_core.kinematic as kinematic
 

@@ -79,12 +79,13 @@ pub struct MergeWindowSample {
     pub streak: usize,
 }
 
-/// Stateful spatial + phase merge-window monitor.
+/// Stateful spatial + phase merge-window monitor with monotone sample time.
 #[derive(Debug, Clone)]
 pub struct MergeWindowMonitor {
     spec: MergeWindowSpec,
     current_streak: usize,
     first_lock_time_s: Option<f64>,
+    last_time_s: Option<f64>,
 }
 
 impl MergeWindowMonitor {
@@ -94,6 +95,7 @@ impl MergeWindowMonitor {
             spec,
             current_streak: 0,
             first_lock_time_s: None,
+            last_time_s: None,
         }
     }
 
@@ -116,6 +118,7 @@ impl MergeWindowMonitor {
     pub fn reset(&mut self) {
         self.current_streak = 0;
         self.first_lock_time_s = None;
+        self.last_time_s = None;
     }
 
     /// Evaluate one sample and update the consecutive streak.
@@ -126,10 +129,8 @@ impl MergeWindowMonitor {
         t_s: Option<f64>,
     ) -> Result<MergeWindowSample, DopplerKuramotoError> {
         validate_state_pair(phases_rad, positions_m)?;
-        if let Some(t) = t_s {
-            if !t.is_finite() {
-                return Err(DopplerKuramotoError::NonFinite { field: "t_s" });
-            }
+        if let Some(time) = t_s {
+            validate_next_time("t_s", time, self.last_time_s)?;
         }
         let phase_error = phase_lock_error(phases_rad)?;
         let reference_error = reference_error(positions_m, self.spec.reference_point_m);
@@ -144,6 +145,9 @@ impl MergeWindowMonitor {
         let achieved = self.current_streak >= self.spec.consecutive_samples;
         if achieved && self.first_lock_time_s.is_none() {
             self.first_lock_time_s = t_s;
+        }
+        if t_s.is_some() {
+            self.last_time_s = t_s;
         }
         Ok(MergeWindowSample {
             t_s,
@@ -191,6 +195,22 @@ fn validate_positive(field: &'static str, value: f64) -> Result<f64, DopplerKura
         return Err(DopplerKuramotoError::NonPositive { field });
     }
     Ok(value)
+}
+
+fn validate_next_time(
+    field: &'static str,
+    time_s: f64,
+    last_time_s: Option<f64>,
+) -> Result<(), DopplerKuramotoError> {
+    if !time_s.is_finite() {
+        return Err(DopplerKuramotoError::NonFinite { field });
+    }
+    if let Some(last) = last_time_s {
+        if time_s <= last {
+            return Err(DopplerKuramotoError::NotStrictlyIncreasing { field });
+        }
+    }
+    Ok(())
 }
 
 fn separation(positions_m: &[f64]) -> f64 {
@@ -243,5 +263,25 @@ mod tests {
         assert!(samples[4].lock_achieved);
         assert_eq!(samples[4].streak, 3);
         assert_eq!(monitor.first_lock_time_s(), Some(4.0));
+    }
+
+    #[test]
+    fn rejects_non_monotone_sample_time() {
+        let spec = MergeWindowSpec::new(0.01, 0.002, 2, 0.0).unwrap();
+        let mut monitor = MergeWindowMonitor::new(spec);
+        monitor
+            .evaluate(&[0.0, 0.001], &[-0.001, 0.001], Some(1.0))
+            .unwrap();
+
+        assert!(
+            monitor
+                .evaluate(&[0.0, 0.001], &[-0.001, 0.001], Some(0.5))
+                .is_err()
+        );
+        assert!(
+            monitor
+                .evaluate(&[0.0, 0.001], &[-0.001, 0.001], Some(1.0))
+                .is_err()
+        );
     }
 }

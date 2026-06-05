@@ -77,6 +77,35 @@ def test_trace_reports_first_lock_time_and_samples() -> None:
     assert report.samples[-1].phase_lock_error_rad <= spec.phase_tolerance_rad
 
 
+def test_trace_rejects_non_monotone_sample_time() -> None:
+    phases = np.array([[0.0, 0.001], [0.0, 0.001], [0.0, 0.001]])
+    positions = np.array([[-0.001, 0.001], [-0.001, 0.001], [-0.001, 0.001]])
+
+    with pytest.raises(ValueError, match="strictly increasing"):
+        evaluate_merge_window_trace(
+            MergeWindowSpec(consecutive_samples=2),
+            time_s=[0.0, 1.0, 0.5],
+            phases_rad=phases,
+            positions_m=positions,
+        )
+
+    with pytest.raises(ValueError, match="strictly increasing"):
+        evaluate_merge_window_trace(
+            MergeWindowSpec(consecutive_samples=2),
+            time_s=[0.0, 1.0, 1.0],
+            phases_rad=phases,
+            positions_m=positions,
+        )
+
+
+def test_monitor_rejects_backwards_sample_time() -> None:
+    monitor = MergeWindowMonitor(MergeWindowSpec(consecutive_samples=2))
+    monitor.evaluate([0.0, 0.001], [-0.001, 0.001], t_s=1.0)
+
+    with pytest.raises(ValueError, match="strictly increasing"):
+        monitor.evaluate([0.0, 0.001], [-0.001, 0.001], t_s=0.5)
+
+
 def test_trace_rejects_shape_mismatch() -> None:
     with pytest.raises(ValueError, match="same shape"):
         evaluate_merge_window_trace(

@@ -43,9 +43,11 @@ the pair-normalised scalar derivative and the 120-step trace because Rust is
 fastest in both measured groups. MIF-002 uses `kinematic.moving_frame_upde`
 for both the combined derivative and the 120-step RK45 trace for the same
 reason; its embedded local-error estimate uses circular phase deltas and
-linear axial-position deltas. MIF-003
-uses `kinematic.merge_window` for both the single-sample predicate and the
-256-sample trace; Rust is fastest among its allocated Python and Rust surfaces.
+linear axial-position deltas. MIF-003 uses `kinematic.merge_window` for both
+the single-sample predicate and the 256-sample trace; Rust is fastest among
+its allocated Python and Rust surfaces. The committed MIF-003 benchmark is
+labelled as a non-isolated local comparison and records host load, governor,
+and runtime versions in `bench/results/merge_window.json`.
 MIF-011 uses `kinematic.sampled_safety_certificate` for the 512-sample
 runtime certificate that checks the Lean sampled-envelope assumptions across
 Python, Rust, and the Julia audit package CLI.
