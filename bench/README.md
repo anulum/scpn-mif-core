@@ -42,7 +42,8 @@ the scalar back-EMF call and `physics.faraday_recovery_waveform` for the
 the pair-normalised scalar derivative and the 120-step trace because Rust is
 fastest in both measured groups. MIF-002 uses `kinematic.moving_frame_upde`
 for both the combined derivative and the 120-step RK45 trace for the same
-reason. MIF-003
+reason; its embedded local-error estimate uses circular phase deltas and
+linear axial-position deltas. MIF-003
 uses `kinematic.merge_window` for both the single-sample predicate and the
 256-sample trace; Rust is fastest among its allocated Python and Rust surfaces.
 MIF-011 uses `kinematic.sampled_safety_certificate` for the 512-sample

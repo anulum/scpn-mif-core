@@ -25,7 +25,9 @@ The moving-frame surface adds:
 - `collision_imminent(eps_m)`: simultaneous reference-window predicate;
 - `reference_error_m`: max absolute distance from the reference;
 - `separation_m`: max-min axial spread across moving channels;
-- `local_error_estimate`: RK45 fifth/fourth order embedded difference.
+- `local_error_estimate`: RK45 fifth/fourth order embedded difference,
+  using circular deltas for phase components and linear deltas for axial
+  position components.
 
 ## Python API
 
@@ -57,7 +59,9 @@ The committed acceptance path uses the two-body chamber-centre scenario:
 After 100 steps both channels are inside the `±2 mm` reference window and
 the max-min separation is within `4 mm`. The first-step RK45 result is also
 checked against an independent Dormand-Prince tableau implementation in the
-Python tests.
+Python tests, including the branch-cut case where a phase crosses `+pi` and
+the local error must remain a circular embedded delta instead of a spurious
+`2*pi` jump.
 
 ## Benchmarks
 
@@ -70,14 +74,14 @@ process startup.
 
 | Group | Backend | Mean | Result |
 |---|---:|---:|---|
-| `derivatives_2` | Rust | 436 ns | fastest |
-| `derivatives_2` | Python | 19.39 us | 44.5x slower than Rust |
-| `trace_120` | Rust | 133.66 us | fastest |
-| `trace_120` | Python | 28.49 ms | 213.1x slower than Rust |
-| `trace_120` | Julia CLI | 2.77 s | CLI startup comparison |
-| `affine_trace_1000` | Rust | 939.14 us | fastest |
-| `affine_trace_1000` | Python | 193.35 ms | 205.9x slower than Rust |
-| `affine_trace_1000` | Julia CLI | 2.94 s | CLI startup comparison |
+| `derivatives_2` | Rust | 591 ns | fastest |
+| `derivatives_2` | Python | 19.56 us | 33.1x slower than Rust |
+| `trace_120` | Rust | 143.41 us | fastest |
+| `trace_120` | Python | 30.78 ms | 214.6x slower than Rust |
+| `trace_120` | Julia CLI | 2.74 s | CLI startup comparison |
+| `affine_trace_1000` | Rust | 865.91 us | fastest |
+| `affine_trace_1000` | Python | 199.23 ms | 230.1x slower than Rust |
+| `affine_trace_1000` | Julia CLI | 3.01 s | CLI startup comparison |
 
 Raw summary: `bench/results/moving_frame_upde.json`.
 

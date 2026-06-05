@@ -72,7 +72,9 @@ def test_random_vector_parity(seed: int) -> None:
 def test_reject_policy_error_parity() -> None:
     py_cal = DiagnosticChannelCalibration("temperature_eV", "eV", 0.0, 1_000.0, "reject", "thermal calibration")
     py_state = DiagnosticNormalisationState((py_cal,))
-    rust_cal = rust.DiagnosticChannelCalibration("temperature_eV", "eV", 0.0, 1_000.0, "reject", "thermal calibration", None)
+    rust_cal = rust.DiagnosticChannelCalibration(
+        "temperature_eV", "eV", 0.0, 1_000.0, "reject", "thermal calibration", None
+    )
     rust_state = rust.DiagnosticNormalisationState([rust_cal], None)
 
     with pytest.raises(ValueError, match="above calibrated range"):

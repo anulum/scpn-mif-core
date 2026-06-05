@@ -113,7 +113,7 @@ pub struct MovingFrameUPDEState {
     pub order_parameter: f64,
     /// Maximum circular pairwise phase separation in radians.
     pub phase_lock_error_rad: f64,
-    /// Fixed-step RK45 local error estimate.
+    /// Fixed-step RK45 local error estimate with circular phase deltas.
     pub local_error_estimate: f64,
 }
 
@@ -331,14 +331,10 @@ fn dormand_prince_step(
             (&k7, 1.0 / 40.0),
         ],
     );
+    let error = embedded_local_error(&y5, &y4, spec.n_oscillators());
     for value in y5.iter_mut().take(spec.n_oscillators()) {
         *value = wrap_phase(*value);
     }
-    let error = y5
-        .iter()
-        .zip(y4.iter())
-        .map(|(a, b)| (a - b).abs())
-        .fold(0.0_f64, f64::max);
     Ok((y5, error))
 }
 
@@ -383,6 +379,20 @@ fn lincomb(y0: &[f64], dt_s: f64, terms: &[(&Vec<f64>, f64)]) -> Vec<f64> {
         }
     }
     out
+}
+
+fn embedded_local_error(y5: &[f64], y4: &[f64], n_phases: usize) -> f64 {
+    let phase_error = y5
+        .iter()
+        .zip(y4.iter())
+        .take(n_phases)
+        .map(|(a, b)| wrap_phase(a - b).abs())
+        .fold(0.0_f64, f64::max);
+    y5.iter()
+        .zip(y4.iter())
+        .skip(n_phases)
+        .map(|(a, b)| (a - b).abs())
+        .fold(phase_error, f64::max)
 }
 
 fn separation(positions_m: &[f64]) -> f64 {
@@ -466,6 +476,26 @@ mod tests {
         assert_eq!(got.len(), 4);
         assert_eq!(got[2], 300_000.0);
         assert_eq!(got[3], -300_000.0);
+    }
+
+    #[test]
+    fn rk45_local_error_uses_circular_phase_delta_across_wrap() {
+        let spec =
+            MovingFrameUPDESpec::new(vec![10.0], vec![vec![0.0]], 0.0, 0.0, 1.0e-9, 1.0, 0.0)
+                .unwrap();
+        let mut engine = MovingFrameUPDE::new(
+            spec,
+            vec![std::f64::consts::PI - 0.01],
+            vec![0.0],
+            vec![0.0],
+        )
+        .unwrap();
+
+        let state = engine.step(0.002).unwrap();
+
+        assert!((state.phases_rad[0] - (-std::f64::consts::PI + 0.01)).abs() <= 1.0e-15);
+        assert!(state.positions_m[0].abs() <= 1.0e-15);
+        assert!(state.local_error_estimate <= 1.0e-14);
     }
 
     #[test]

@@ -72,7 +72,8 @@ local physics/lifecycle surfaces:
   Julia counterpart, pair-normalised Doppler correction, benchmarked dispatch,
   and API documentation.
 - MIF-002 moving-frame UPDE carrier: Python reference, Rust kernel, Julia
-  counterpart, benchmarked dispatch, and API documentation.
+  counterpart, circular RK45 phase-error bookkeeping, benchmarked dispatch,
+  and API documentation.
 - MIF-003 merge-window monitor: Python reference, Rust kernel, benchmarked
   dispatch, and API documentation.
 - MIF-004 pulsed-shot lifecycle FSM: Python reference, Rust kernel, Lean

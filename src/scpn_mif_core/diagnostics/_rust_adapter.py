@@ -125,9 +125,7 @@ class RustBackedDegradedSensorStream(DegradedSensorStream):
                 frame_index,
             )
             samples = {
-                name: value
-                for name, value in zip(channel_names, stressed_values, strict=True)
-                if value is not None
+                name: value for name, value in zip(channel_names, stressed_values, strict=True) if value is not None
             }
             frames.append(DiagnosticFrame(t_ns=emitted_t_ns, samples=samples))
             records.append(

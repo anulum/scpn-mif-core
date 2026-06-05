@@ -256,8 +256,8 @@ def decode_daq_frame(blob: bytes, profile: DescriptorProfile | None = None) -> R
     """Decode and validate a DAQ frame from the stable byte contract."""
     if len(blob) < _HEADER_LEN:
         raise ValueError("DAQ frame is shorter than the fixed header")
-    magic, version, mode_code, profile_code, sequence, t_ns, value_count, _reserved, payload_len, checksum = _HEADER.unpack(
-        blob[:_HEADER_LEN]
+    magic, version, mode_code, profile_code, sequence, t_ns, value_count, _reserved, payload_len, checksum = (
+        _HEADER.unpack(blob[:_HEADER_LEN])
     )
     if magic != DAQ_MAGIC:
         raise ValueError("invalid DAQ frame magic")

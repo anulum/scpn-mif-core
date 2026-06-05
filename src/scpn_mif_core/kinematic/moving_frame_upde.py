@@ -20,6 +20,8 @@ keeps minimal. The phase derivative is delegated to the MIF-001
 Doppler-Kuramoto carrier while this module advances the combined
 ``[theta, z]`` state with a fixed-step Dormand-Prince RK45 update and
 computes reference-window observables.
+The embedded RK error is evaluated with circular phase deltas for ``theta``
+components and linear deltas for chamber-frame ``z`` components.
 """
 
 from __future__ import annotations
@@ -333,8 +335,17 @@ def _dormand_prince_step(
     )
     n = spec.n_oscillators
     y5 = np.asarray(y5, dtype=np.float64)
+    error = _embedded_local_error(y5, y4, n)
     y5[:n] = _wrap_phases(y5[:n])
-    return y5, float(np.max(np.abs(y5 - y4)))
+    return y5, error
+
+
+def _embedded_local_error(y5: FloatArray, y4: FloatArray, n_phases: int) -> float:
+    phase_error = np.max(np.abs(_wrap_phases(y5[:n_phases] - y4[:n_phases])))
+    if y5.size == n_phases:
+        return float(phase_error)
+    position_error = np.max(np.abs(y5[n_phases:] - y4[n_phases:]))
+    return float(max(phase_error, position_error))
 
 
 def _separation(positions_m: FloatArray) -> float:

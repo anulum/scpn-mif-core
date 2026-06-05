@@ -131,6 +131,13 @@ end
     @test state.reference_error_m <= 2.0e-3
     @test state.separation_m <= 4.0e-3
     @test collision_imminent(engine; eps_m = 2.0e-3)
+
+    wrap_spec = MovingFrameUPDESpec([10.0], [0.0;;])
+    wrap_engine = MovingFrameUPDE(wrap_spec, [pi - 0.01], [0.0], [0.0])
+    wrap_state = step!(wrap_engine, 0.002)
+    @test wrap_state.phases_rad[1] ≈ -pi + 0.01 atol = 1.0e-15
+    @test wrap_state.positions_m[1] ≈ 0.0 atol = 1.0e-15
+    @test wrap_state.local_error_estimate <= 1.0e-14
 end
 
 @testset "MIF-011 Kinematic safety certificate" begin

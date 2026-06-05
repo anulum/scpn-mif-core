@@ -74,6 +74,25 @@ def test_rk45_step_matches_independent_dormand_prince_reference() -> None:
     assert state.local_error_estimate == pytest.approx(expected_err, rel=1e-12, abs=1e-18)
 
 
+def test_rk45_local_error_uses_circular_phase_delta_across_wrap() -> None:
+    spec = MovingFrameUPDESpec(
+        omega_rad_s=[10.0],
+        coupling_rad_s=[[0.0]],
+    )
+    engine = MovingFrameUPDE(
+        spec,
+        phases_rad=[math.pi - 0.01],
+        positions_m=[0.0],
+        velocities_m_s=[0.0],
+    )
+
+    state = engine.step(0.002)
+
+    assert state.phases_rad[0] == pytest.approx(-math.pi + 0.01, rel=0.0, abs=1.0e-15)
+    assert state.positions_m[0] == pytest.approx(0.0, rel=0.0, abs=1.0e-15)
+    assert state.local_error_estimate <= 1.0e-14
+
+
 def test_time_varying_omega_matches_affine_solution_through_upde() -> None:
     omega_0 = 1_200.0
     omega_rate = -20_000.0
@@ -255,5 +274,7 @@ def _dormand_prince_reference(
         + (187.0 / 2100.0) * k6
         + (1.0 / 40.0) * k7
     )
+    phase_error = np.max(np.abs(((y5[:2] - y4[:2] + math.pi) % (2.0 * math.pi)) - math.pi))
+    position_error = np.max(np.abs(y5[2:] - y4[2:]))
     y5[:2] = ((y5[:2] + math.pi) % (2.0 * math.pi)) - math.pi
-    return y5, float(np.max(np.abs(y5 - y4)))
+    return y5, float(max(phase_error, position_error))

@@ -38,7 +38,7 @@ Implemented pre-alpha API pages:
   and Julia surfaces.
 - [Moving-frame UPDE](kinematic/moving_frame_upde.md) — MIF-002,
   chamber-fixed absolute-position UPDE carrier with Python, Rust, and Julia
-  surfaces.
+  surfaces and circular RK45 phase-error bookkeeping.
 - [Merge-window monitor](kinematic/merge_window.md) — MIF-003, spatial +
   phase lock predicate with Python and Rust surfaces.
 - [Pulsed-shot FSM](lifecycle/pulsed_shot_fsm.md) — MIF-004, eight-state

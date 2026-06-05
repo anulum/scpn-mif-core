@@ -201,8 +201,10 @@ function _dormand_prince_step(
     k7 = f(y0 .+ dt .* ((35.0 / 384.0) .* k1 .+ (500.0 / 1113.0) .* k3 .+ (125.0 / 192.0) .* k4 .- (2187.0 / 6784.0) .* k5 .+ (11.0 / 84.0) .* k6), t_s + dt)
     y5 = y0 .+ dt .* ((35.0 / 384.0) .* k1 .+ (500.0 / 1113.0) .* k3 .+ (125.0 / 192.0) .* k4 .- (2187.0 / 6784.0) .* k5 .+ (11.0 / 84.0) .* k6)
     y4 = y0 .+ dt .* ((5179.0 / 57600.0) .* k1 .+ (7571.0 / 16695.0) .* k3 .+ (393.0 / 640.0) .* k4 .- (92097.0 / 339200.0) .* k5 .+ (187.0 / 2100.0) .* k6 .+ (1.0 / 40.0) .* k7)
+    phase_error = maximum(abs.(_angle_diff.(y5[1:n] .- y4[1:n])))
+    position_error = n == length(y5) ? 0.0 : maximum(abs.(y5[n+1:end] .- y4[n+1:end]))
     y5[1:n] .= _wrap_phases.(y5[1:n])
-    return y5, maximum(abs.(y5 .- y4))
+    return y5, max(phase_error, position_error)
 end
 
 function _separation(positions_m::Vector{Float64})::Float64
