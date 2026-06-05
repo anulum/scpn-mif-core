@@ -134,6 +134,37 @@ def test_invalid_calibration_ranges_raise(physical_min: float, physical_max: flo
         )
 
 
+def test_affine_coefficients_must_remain_finite() -> None:
+    with pytest.raises(ValueError, match="affine span"):
+        DiagnosticChannelCalibration(
+            name="wide_field_T",
+            unit="T",
+            physical_min=-1.0e308,
+            physical_max=1.0e308,
+            clip_policy="clip",
+            provenance="wide range calibration",
+        )
+
+
+def test_large_same_sign_range_uses_stable_midpoint() -> None:
+    calibration = DiagnosticChannelCalibration(
+        name="dense_plasma_m3",
+        unit="m^-3",
+        physical_min=1.0e308,
+        physical_max=1.2e308,
+        clip_policy="clip",
+        provenance="large finite range calibration",
+    )
+
+    assert math.isfinite(calibration.offset)
+    assert calibration.offset == pytest.approx(
+        calibration.physical_min + 0.5 * (calibration.physical_max - calibration.physical_min)
+    )
+    normalised, clipped = calibration.normalise_value(1.1e308)
+    assert normalised == pytest.approx(0.0, abs=1.0e-12)
+    assert not clipped
+
+
 def test_fit_calibrations_preserves_unit_order_and_rejects_zero_span() -> None:
     observations = [
         {"temperature_eV": 120.0, "density_m3": 1.0e20},

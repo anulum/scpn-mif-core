@@ -295,6 +295,21 @@ end
     reject_state = DiagnosticNormalisationState([reject_cal])
     @test_throws ArgumentError normalise_sample(reject_state, Dict("bdot_dv_dt" => 2.0e9))
     @test_throws ArgumentError DiagnosticChannelCalibration("flat", "V", 1.0, 1.0, "clip", "flat")
+    @test_throws ArgumentError DiagnosticChannelCalibration("wide_field_T", "T", -1.0e308, 1.0e308, "clip", "wide range calibration")
+
+    large_cal = DiagnosticChannelCalibration(
+        "dense_plasma_m3",
+        "m^-3",
+        1.0e308,
+        1.2e308,
+        "clip",
+        "large finite range calibration",
+    )
+    @test isfinite(SCPNMIFCore.offset(large_cal))
+    @test SCPNMIFCore.offset(large_cal) == large_cal.physical_min + 0.5 * (large_cal.physical_max - large_cal.physical_min)
+    normalised, clipped_flag = normalise_value(large_cal, 1.1e308)
+    @test normalised ≈ 0.0 atol = 1.0e-12
+    @test !clipped_flag
 end
 
 @testset "MIF-017 Diagnostic stress injection" begin

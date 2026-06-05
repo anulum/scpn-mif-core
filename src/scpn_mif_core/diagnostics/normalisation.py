@@ -26,6 +26,8 @@ Out-of-range behavior is explicit per channel: ``clip`` saturates
 deterministically at the endpoint and records a clip mask, while ``reject``
 raises. The resulting feature vectors are read-only ``float64`` NumPy arrays
 so downstream AER front-ends cannot observe overflow beyond ``[-1, 1]``.
+Finite endpoint pairs are also rejected when the derived affine span, offset,
+or scale would be non-finite.
 """
 
 from __future__ import annotations
@@ -71,6 +73,7 @@ class DiagnosticChannelCalibration:
         _require_finite("physical_max", self.physical_max)
         if self.physical_max <= self.physical_min:
             raise ValueError("physical_max must be greater than physical_min")
+        _validate_affine_coefficients(self.physical_min, self.physical_max)
         if self.clip_policy not in _ALLOWED_POLICIES:
             raise ValueError("clip_policy must be one of: clip, reject")
         if self.aer_address is not None and self.aer_address < 0:
@@ -79,12 +82,12 @@ class DiagnosticChannelCalibration:
     @property
     def offset(self) -> float:
         """Physical midpoint subtracted before applying ``scale``."""
-        return 0.5 * (self.physical_min + self.physical_max)
+        return self.physical_min + 0.5 * _affine_span(self.physical_min, self.physical_max)
 
     @property
     def scale(self) -> float:
         """Multiplicative factor from physical units into the normalized interval."""
-        return 2.0 / (self.physical_max - self.physical_min)
+        return 2.0 / _affine_span(self.physical_min, self.physical_max)
 
     def normalise_value(self, value: float) -> tuple[float, bool]:
         """Return ``(normalised_value, clipped)`` for a single channel sample."""
@@ -281,6 +284,23 @@ def _require_finite(name: str, value: float) -> float:
     if not math.isfinite(numeric):
         raise ValueError(f"{name} must be finite")
     return numeric
+
+
+def _affine_span(physical_min: float, physical_max: float) -> float:
+    span = physical_max - physical_min
+    if not math.isfinite(span) or span <= 0.0:
+        raise ValueError("affine span must be finite and strictly positive")
+    return span
+
+
+def _validate_affine_coefficients(physical_min: float, physical_max: float) -> None:
+    span = _affine_span(physical_min, physical_max)
+    offset = physical_min + 0.5 * span
+    scale = 2.0 / span
+    if not math.isfinite(offset):
+        raise ValueError("affine offset must be finite")
+    if not math.isfinite(scale) or scale <= 0.0:
+        raise ValueError("affine scale must be finite and strictly positive")
 
 
 def _clamp_unit_interval(value: float) -> float:

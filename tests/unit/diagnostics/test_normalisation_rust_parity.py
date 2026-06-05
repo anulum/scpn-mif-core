@@ -81,3 +81,10 @@ def test_reject_policy_error_parity() -> None:
         py_state.normalise_vector([1_200.0])
     with pytest.raises(ValueError, match="above calibrated range"):
         rust_state.normalise_features([1_200.0])
+
+
+def test_rust_rejects_non_finite_affine_span() -> None:
+    with pytest.raises(ValueError, match="affine span"):
+        rust.DiagnosticChannelCalibration(
+            "wide_field_T", "T", -1.0e308, 1.0e308, "clip", "wide range calibration", None
+        )

@@ -10,7 +10,8 @@
 //! Maps calibrated physical diagnostic channels into the closed interval
 //! `[-1, 1]` before AER encoding. The deterministic clip/reject policy is part
 //! of each channel calibration so the downstream front-end never receives an
-//! overflowing feature vector.
+//! overflowing feature vector. Calibration validation also rejects finite
+//! endpoint pairs that would produce non-finite affine coefficients.
 
 #![forbid(unsafe_code)]
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
@@ -102,12 +103,12 @@ impl DiagnosticChannelCalibration {
 
     /// Physical midpoint subtracted before applying [`Self::scale`].
     pub fn offset(&self) -> f64 {
-        0.5 * (self.physical_min + self.physical_max)
+        self.physical_min + 0.5 * self.affine_span()
     }
 
     /// Multiplicative factor from physical units into `[-1, 1]`.
     pub fn scale(&self) -> f64 {
-        2.0 / (self.physical_max - self.physical_min)
+        2.0 / self.affine_span()
     }
 
     /// Return `(normalised_value, clipped)` for one sample.
@@ -143,6 +144,28 @@ impl DiagnosticChannelCalibration {
         require_finite("physical_max", self.physical_max)?;
         if self.physical_max <= self.physical_min {
             return Err(DiagnosticError::InvalidRange);
+        }
+        self.validate_affine_coefficients()?;
+        Ok(())
+    }
+
+    fn affine_span(&self) -> f64 {
+        self.physical_max - self.physical_min
+    }
+
+    fn validate_affine_coefficients(&self) -> Result<(), DiagnosticError> {
+        let span = self.affine_span();
+        require_finite("affine span", span)?;
+        if span <= 0.0 {
+            return Err(DiagnosticError::InvalidRange);
+        }
+        require_finite("affine offset", self.physical_min + 0.5 * span)?;
+        let scale = 2.0 / span;
+        require_finite("affine scale", scale)?;
+        if scale <= 0.0 {
+            return Err(DiagnosticError::NonPositive {
+                field: "affine scale",
+            });
         }
         Ok(())
     }
@@ -707,6 +730,49 @@ mod tests {
             state.normalise_features(&[1200.0]),
             Err(DiagnosticError::AboveRange { .. })
         ));
+    }
+
+    #[test]
+    fn rejects_non_finite_affine_span() {
+        assert!(matches!(
+            DiagnosticChannelCalibration::new(
+                "wide_field_T",
+                "T",
+                -1.0e308,
+                1.0e308,
+                ClipPolicy::Clip,
+                "wide range calibration",
+                None,
+            ),
+            Err(DiagnosticError::NonFinite {
+                field: "affine span"
+            })
+        ));
+    }
+
+    #[test]
+    fn large_same_sign_range_uses_stable_midpoint() {
+        let calibration = DiagnosticChannelCalibration::new(
+            "dense_plasma_m3",
+            "m^-3",
+            1.0e308,
+            1.2e308,
+            ClipPolicy::Clip,
+            "large finite range calibration",
+            None,
+        )
+        .expect("valid calibration");
+
+        assert!(calibration.offset().is_finite());
+        assert_eq!(
+            calibration.offset(),
+            calibration.physical_min + 0.5 * (calibration.physical_max - calibration.physical_min)
+        );
+        let (normalised, clipped) = calibration
+            .normalise_value(1.1e308)
+            .expect("normalised value");
+        assert!(normalised.abs() <= 1.0e-12);
+        assert!(!clipped);
     }
 
     #[test]

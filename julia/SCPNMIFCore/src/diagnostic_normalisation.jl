@@ -14,7 +14,7 @@
 # TRACKED-ISSUE: docs/internal/development_plan.md#mif-016--io-normalisation-layer-for-dirty-diagnostics
 # LAST-SYNCED: 2026-06-04T0000
 
-"""Calibration record for one diagnostic channel."""
+"""Calibration record for one diagnostic channel with finite affine coefficients."""
 struct DiagnosticChannelCalibration
     name::String
     unit::String
@@ -41,6 +41,7 @@ struct DiagnosticChannelCalibration
         isfinite(low) || throw(ArgumentError("physical_min must be finite"))
         isfinite(high) || throw(ArgumentError("physical_max must be finite"))
         high > low || throw(ArgumentError("physical_max must be greater than physical_min"))
+        _validate_affine_coefficients(low, high)
         policy = String(clip_policy)
         policy in ("clip", "reject") || throw(ArgumentError("clip_policy must be one of: clip, reject"))
         if aer_address !== nothing && aer_address < 0
@@ -79,11 +80,27 @@ end
 
 """Physical midpoint subtracted before scale is applied."""
 offset(calibration::DiagnosticChannelCalibration)::Float64 =
-    0.5 * (calibration.physical_min + calibration.physical_max)
+    calibration.physical_min + 0.5 * _affine_span(calibration.physical_min, calibration.physical_max)
 
 """Multiplicative factor from physical units into `[-1, 1]`."""
 scale(calibration::DiagnosticChannelCalibration)::Float64 =
-    2.0 / (calibration.physical_max - calibration.physical_min)
+    2.0 / _affine_span(calibration.physical_min, calibration.physical_max)
+
+function _affine_span(physical_min::Float64, physical_max::Float64)::Float64
+    span = physical_max - physical_min
+    isfinite(span) && span > 0.0 || throw(ArgumentError("affine span must be finite and strictly positive"))
+    return span
+end
+
+function _validate_affine_coefficients(physical_min::Float64, physical_max::Float64)::Nothing
+    span = _affine_span(physical_min, physical_max)
+    affine_offset = physical_min + 0.5 * span
+    affine_scale = 2.0 / span
+    isfinite(affine_offset) || throw(ArgumentError("affine offset must be finite"))
+    isfinite(affine_scale) && affine_scale > 0.0 ||
+        throw(ArgumentError("affine scale must be finite and strictly positive"))
+    return nothing
+end
 
 """Normalise one physical sample and return `(value, clipped)`."""
 function normalise_value(calibration::DiagnosticChannelCalibration, value::Real)::Tuple{Float64, Bool}
