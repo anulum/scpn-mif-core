@@ -14,7 +14,7 @@ the canonical block in its source header:
     # OWNED-BY: scpn-phase-orchestrator
     # CONSUMED-BY: scpn-mif-core
     # SYNC-STATE: mirror
-    # UPSTREAM-PIN: scpn-phase-orchestrator@0.6.5
+    # UPSTREAM-PIN: scpn-phase-orchestrator@0.8.0
     # CONTRACT-TEST: tests/contract/test_phase_orch_kuramoto_contract.py
     # LAST-SYNCED: 2026-06-03T1852
 

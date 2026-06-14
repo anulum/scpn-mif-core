@@ -102,6 +102,7 @@ nav:
   - Home: index.md
   - Architecture:
       - architecture/index.md
+      - Dynamic compatibility matrix: generated/compatibility_matrix.md
   - API:
       - api/index.md
       - Kinematic:

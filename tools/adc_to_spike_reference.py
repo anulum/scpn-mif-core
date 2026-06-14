@@ -10,7 +10,7 @@
 # OWNED-BY: scpn-mif-core
 # CONSUMED-BY: sc-neurocore
 # SYNC-STATE: upstream-pending
-# UPSTREAM-PIN: sc-neurocore-engine@3.15.7
+# UPSTREAM-PIN: sc-neurocore-engine@3.15.25
 # CONTRACT-TEST: tests/unit/fpga/test_adc_to_spike_reference.py
 # TRACKED-ISSUE: docs/internal/upstream_contracts/01_sc_neurocore.md#c5-sensor-side-adc-spike-quantiser-hdl
 # LAST-SYNCED: 2026-06-04T0000

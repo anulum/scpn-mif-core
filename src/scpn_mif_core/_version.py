@@ -14,7 +14,6 @@ Kept in sync with:
 - ``Project.toml`` ``version``
 - ``CITATION.cff`` ``version``
 - ``src/scpn_mif_core/VERSION`` (one-line file)
-- ``docs/internal/compatibility_matrix.md`` row
 """
 
 from __future__ import annotations

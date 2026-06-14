@@ -52,7 +52,7 @@ UltraScale+ FPGAs.
 | Audience | Start here |
 |---|---|
 | Researcher evaluating fit | [Architecture overview](docs/architecture/index.md) |
-| Engineer pinning a dependency | [Compatibility matrix](docs/internal/compatibility_matrix.md) (internal) |
+| Engineer checking sibling readiness | [Dynamic compatibility matrix](docs/generated/compatibility_matrix.md) |
 | Contributor | [CONTRIBUTING](CONTRIBUTING.md) |
 | Security researcher | [SECURITY](SECURITY.md) |
 | Citation | [CITATION.cff](CITATION.cff) |
@@ -105,13 +105,20 @@ timed-automata back-end (see `hdl/formal/timing/`).
 
 ## Sibling repositories
 
-| Sibling | Role | Pin |
+MIF consumes sibling repositories through a generated compatibility report,
+not through hand-maintained equality pins. Regenerate it with:
+
+```bash
+python tools/generate_compatibility_matrix.py
+```
+
+| Sibling | Role | Dynamic status source |
 |---|---|---|
-| [`sc-neurocore-engine`](https://github.com/anulum/sc-neurocore) | SNN → SystemVerilog emitter, Q8.8 quantiser, AER HDL, SymbiYosys properties | 3.15.7 |
-| [`scpn-phase-orchestrator`](https://github.com/anulum/scpn-phase-orchestrator) | Kuramoto family, distance coupling, monitors, Rust kernel, Lean SPO base | 0.6.5 |
-| [`scpn-control`](https://github.com/anulum/scpn-control) | Petri-net runtime + formal verification, SNN controller, Rust hot path, replay | 0.20.3 |
-| [`scpn-fusion-core`](https://github.com/anulum/scpn-fusion-core) | Canonical physics-solver laboratory (Hall-MHD, MRTI, tilt, equilibrium) | 3.9.3 |
-| [`scpn-quantum-control`](https://github.com/anulum/scpn-quantum-control) | QAOA-MPC, pulse shaping, bridges, QRNG, PQC trigger signer | 0.9.9 |
+| [`sc-neurocore-engine`](https://github.com/anulum/sc-neurocore) | SNN → SystemVerilog emitter, Q8.8 quantiser, AER HDL, SymbiYosys properties | [`docs/generated/compatibility_matrix.md`](docs/generated/compatibility_matrix.md) |
+| [`scpn-phase-orchestrator`](https://github.com/anulum/scpn-phase-orchestrator) | Kuramoto family, distance coupling, monitors, Rust kernel, Lean SPO base | [`docs/generated/compatibility_matrix.md`](docs/generated/compatibility_matrix.md) |
+| [`scpn-control`](https://github.com/anulum/scpn-control) | Petri-net runtime + formal verification, SNN controller, Rust hot path, replay | [`docs/generated/compatibility_matrix.md`](docs/generated/compatibility_matrix.md) |
+| [`scpn-fusion-core`](https://github.com/anulum/scpn-fusion-core) | Canonical physics-solver laboratory (Hall-MHD, MRTI, tilt, equilibrium) | [`docs/generated/compatibility_matrix.md`](docs/generated/compatibility_matrix.md) |
+| [`scpn-quantum-control`](https://github.com/anulum/scpn-quantum-control) | QAOA-MPC, pulse shaping, bridges, QRNG, PQC trigger signer | [`docs/generated/compatibility_matrix.md`](docs/generated/compatibility_matrix.md) |
 
 ## Technical specification
 

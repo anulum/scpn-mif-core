@@ -5,26 +5,22 @@
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
 # SCPN-MIF-CORE — contract test: scpn-quantum-control QAOA-MPC surface.
-"""Contract test for the scpn-quantum-control QAOA-MPC surface.
-
-Pinned at `scpn-quantum-control == 0.9.9`. See
-`docs/internal/upstream_contracts/05_scpn_quantum_control.md` §A.
-"""
+"""Contract test for the deferred scpn-quantum-control MIF lane."""
 
 from __future__ import annotations
 
 import pytest
 
+from scpn_mif_core.ecosystem import STATUS_DEFERRED, STATUS_READY
+
 pytestmark = pytest.mark.contract
 
 
-def test_scpn_quantum_control_module_importable(scpn_quantum_control) -> None:
-    assert scpn_quantum_control is not None
+def test_scpn_quantum_control_mif_lane_explicitly_deferred(ecosystem_report) -> None:
+    row = ecosystem_report.require("scpn-quantum-control")
 
-
-def test_scpn_quantum_control_version_pin(scpn_quantum_control) -> None:
-    expected = "0.9.9"
-    actual = getattr(scpn_quantum_control, "__version__", None)
-    if actual is None:
-        pytest.skip("scpn_quantum_control does not expose __version__")
-    assert actual == expected, f"scpn-quantum-control pin drift: contract expects {expected}, installed {actual}"
+    assert row.source_version is not None
+    assert row.status == STATUS_DEFERRED
+    assert row.current_gate is False
+    assert row.surfaces[0].status == STATUS_READY
+    assert row.surfaces[1].status == STATUS_DEFERRED

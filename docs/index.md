@@ -47,17 +47,13 @@ A specialised control layer that:
 2. [API reference](api/index.md) — public Python and Rust surfaces.
 3. [Papers](papers/index.md) — peer-reviewed reference list.
 
-## Pinned dependencies
+## Dynamic compatibility
 
-| Sibling | Pin |
-|---|---|
-| `sc-neurocore-engine` | 3.15.7 |
-| `scpn-phase-orchestrator` | 0.6.5 |
-| `scpn-control` | 0.20.3 |
-| `scpn-fusion-core` | 3.9.3 |
-| `scpn-quantum-control` | 0.9.9 |
-
-See the compatibility matrix (internal) for the full bump history.
+Sibling readiness is generated from the live source trees and optional runtime
+imports, not from a hand-maintained fixed-pin table. See the
+[dynamic compatibility matrix](generated/compatibility_matrix.md) for source
+versions, import status, consumed surfaces, explicit FUSION external-reference
+blockers, and the deferred QUANTUM MIF lane.
 
 ## Status
 

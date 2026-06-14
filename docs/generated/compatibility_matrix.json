@@ -1,0 +1,148 @@
+{
+  "code_root": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE",
+  "generated_at_utc": "2026-06-14T07:48:39+00:00",
+  "siblings": [
+    {
+      "current_gate": true,
+      "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SC-NEUROCORE/src/sc_neurocore/__init__.py",
+      "import_status": "ok",
+      "import_version": "3.15.25",
+      "key": "sc-neurocore-engine",
+      "lane": "NEU-C.5 / MIF-007 hardware ingress",
+      "module": "sc_neurocore",
+      "notes": [
+        "Vivado timing remains a hardware/tooling gate, not a MIF solver blocker."
+      ],
+      "package": "sc-neurocore-engine",
+      "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SC-NEUROCORE",
+      "role": "SNN to SystemVerilog, Q8.8 ingress, AER HDL, UltraScale+ target contract",
+      "source_version": "3.15.25",
+      "status": "ready_with_hardware_gate",
+      "surfaces": [
+        {
+          "detail": "NEU-C.5 B-dot ADC to Q8.8 spike-rate contract",
+          "name": "ADC-to-spike quantiser documentation",
+          "status": "ready"
+        },
+        {
+          "detail": "Zynq UltraScale+ SystemVerilog target and timing gate",
+          "name": "UltraScale+ target contract",
+          "status": "ready"
+        }
+      ]
+    },
+    {
+      "current_gate": true,
+      "import_detail": "File \"/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR/src/scpn_phase_orchestrator/runtime/audit_stream.py\", line 23, in <module> | from google.protobuf import descriptor_pb2, descriptor_pool, message_factory | ModuleNotFoundError: No module named 'google.protobuf'",
+      "import_status": "error",
+      "import_version": null,
+      "key": "scpn-phase-orchestrator",
+      "lane": "PHA-C / MIF-001..MIF-003",
+      "module": "scpn_phase_orchestrator",
+      "notes": [
+        "Import may require PHASE runtime extras; source contract is still audited.",
+        "Runtime import is non-authoritative for this row and currently reports: File \"/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR/src/scpn_phase_orchestrator/runtime/audit_stream.py\", line 23, in <module> | from google.protobuf import descriptor_pb2, descriptor_pool, message_factory | ModuleNotFoundError: No module named 'google.protobuf'."
+      ],
+      "package": "scpn-phase-orchestrator",
+      "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR",
+      "role": "Kuramoto, Doppler, moving-frame UPDE, merge-window monitor",
+      "source_version": "0.8.0",
+      "status": "blocked_runtime_dependency",
+      "surfaces": [
+        {
+          "detail": "Distance-aware coupling for MIF phase carriers",
+          "name": "Spatial coupling modulator",
+          "status": "ready"
+        },
+        {
+          "detail": "Doppler and moving-frame phase carrier",
+          "name": "Moving-frame UPDE engine",
+          "status": "ready"
+        },
+        {
+          "detail": "Axial merge tolerance monitor consumed by MIF lifecycle gates",
+          "name": "Merge-window monitor",
+          "status": "ready"
+        }
+      ]
+    },
+    {
+      "current_gate": true,
+      "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-CONTROL/src/scpn_control/__init__.py",
+      "import_status": "ok",
+      "import_version": "0.20.7",
+      "key": "scpn-control",
+      "lane": "CON-C / MIF-004, MIF-005, MIF-012, MIF-018",
+      "module": "scpn_control",
+      "notes": [
+        "SCPN-CONTROL claims the pulsed-control lane completed at its current source version."
+      ],
+      "package": "scpn-control",
+      "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-CONTROL",
+      "role": "Pulsed-shot lifecycle, Petri-net runtime, capacitor bank, replay",
+      "source_version": "0.20.7",
+      "status": "ready",
+      "surfaces": [
+        {
+          "detail": "Public facade required by MIF capacitor-bank lifecycle bridge",
+          "name": "Capacitor-bank compatibility module",
+          "status": "ready"
+        }
+      ]
+    },
+    {
+      "current_gate": true,
+      "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-FUSION-CORE/src/scpn_fusion/__init__.py",
+      "import_status": "ok",
+      "import_version": "3.9.10",
+      "key": "scpn-fusion-core",
+      "lane": "FUS-C / B-lane FRC solver ownership",
+      "module": "scpn_fusion",
+      "notes": [
+        "FUSION owns the solver lane; MIF consumes accepted public surfaces."
+      ],
+      "package": "scpn-fusion-core",
+      "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-FUSION-CORE",
+      "role": "Canonical FRC physics solver laboratory consumed by MIF",
+      "source_version": "3.9.10",
+      "status": "ready_with_external_blockers",
+      "surfaces": [
+        {
+          "detail": "public symbols present; explicit evidence blockers remain: FUS-C.2:blocked_missing_public_digitised_reference, FUS-C.2:blocked_missing_public_same_case_reference, FUS-C.5:blocked_missing_public_digitised_reference, FUS-C.6:blocked_reconstructed_reference_not_public_digitised",
+          "name": "FUSION FRC public contract",
+          "status": "ready_with_external_blockers"
+        }
+      ]
+    },
+    {
+      "current_gate": false,
+      "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-QUANTUM-CONTROL/src/scpn_quantum_control/__init__.py",
+      "import_status": "ok",
+      "import_version": "0.9.6",
+      "key": "scpn-quantum-control",
+      "lane": "QUA-C deferred for current MIF gate",
+      "module": "scpn_quantum_control",
+      "notes": [
+        "Deferred by current ownership decision: other repositories perfect the lane first.",
+        "Runtime package metadata reports 0.9.6; sibling source declares 0.9.11."
+      ],
+      "package": "scpn-quantum-control",
+      "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-QUANTUM-CONTROL",
+      "role": "QAOA-MPC and future MIF-specific quantum-control bridge",
+      "source_version": "0.9.11",
+      "status": "deferred_not_required_for_current_gate",
+      "surfaces": [
+        {
+          "detail": "Existing generic control surface",
+          "name": "Generic QAOA-MPC",
+          "status": "ready"
+        },
+        {
+          "detail": "present: none; deferred missing names: QRNGStream, PqcTriggerSigner, FRCQAOAObjective, frc_pulsed_shot_cost, SubMicrosecondTracker, pulse_to_vivado_hls",
+          "name": "MIF-specific quantum-control names",
+          "status": "deferred_not_required_for_current_gate"
+        }
+      ]
+    }
+  ]
+}

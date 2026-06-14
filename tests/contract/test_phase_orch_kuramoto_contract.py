@@ -4,27 +4,23 @@
 # © Code 2020–2026 Miroslav Šotek. All rights reserved.
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
-# SCPN-MIF-CORE — contract test: scpn-phase-orchestrator Kuramoto surface.
-"""Contract test for the scpn-phase-orchestrator Kuramoto surface.
-
-Pinned at `scpn-phase-orchestrator == 0.6.5`. See
-`docs/internal/upstream_contracts/02_scpn_phase_orchestrator.md` §A.
-"""
+# SCPN-MIF-CORE — contract test: scpn-phase-orchestrator MIF carrier surface.
+"""Contract test for the dynamic scpn-phase-orchestrator MIF carrier surface."""
 
 from __future__ import annotations
 
 import pytest
 
+from scpn_mif_core.ecosystem import STATUS_READY
+
 pytestmark = pytest.mark.contract
 
 
-def test_scpn_phase_orchestrator_module_importable(scpn_phase_orchestrator) -> None:
-    assert scpn_phase_orchestrator is not None
+def test_scpn_phase_orchestrator_source_surfaces_ready(ecosystem_report) -> None:
+    row = ecosystem_report.require("scpn-phase-orchestrator")
 
-
-def test_scpn_phase_orchestrator_version_pin(scpn_phase_orchestrator) -> None:
-    expected = "0.6.5"
-    actual = getattr(scpn_phase_orchestrator, "__version__", None)
-    if actual is None:
-        pytest.skip("scpn_phase_orchestrator does not expose __version__")
-    assert actual == expected, f"scpn-phase-orchestrator pin drift: contract expects {expected}, installed {actual}"
+    assert row.source_version is not None
+    assert all(surface.status == STATUS_READY for surface in row.surfaces)
+    if row.import_status != "ok":
+        assert row.status == "blocked_runtime_dependency"
+        assert row.import_detail

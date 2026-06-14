@@ -4,27 +4,22 @@
 # © Code 2020–2026 Miroslav Šotek. All rights reserved.
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
-# SCPN-MIF-CORE — contract test: scpn-fusion-core JAX transport surface.
-"""Contract test for the scpn-fusion-core JAX transport solver surface.
-
-Pinned at `scpn-fusion-core == 3.9.3`. See
-`docs/internal/upstream_contracts/04_scpn_fusion_core.md` §A.
-"""
+# SCPN-MIF-CORE — contract test: scpn-fusion-core solver-owner surface.
+"""Contract test for the dynamic scpn-fusion-core solver-owner surface."""
 
 from __future__ import annotations
 
 import pytest
 
+from scpn_mif_core.ecosystem import STATUS_READY, STATUS_READY_WITH_BLOCKERS
+
 pytestmark = pytest.mark.contract
 
 
-def test_scpn_fusion_module_importable(scpn_fusion) -> None:
-    assert scpn_fusion is not None
+def test_scpn_fusion_solver_owner_surface_detected(ecosystem_report) -> None:
+    row = ecosystem_report.require("scpn-fusion-core")
 
-
-def test_scpn_fusion_version_pin(scpn_fusion) -> None:
-    expected = "3.9.3"
-    actual = getattr(scpn_fusion, "__version__", None)
-    if actual is None:
-        pytest.skip("scpn_fusion does not expose __version__")
-    assert actual == expected, f"scpn-fusion-core pin drift: contract expects {expected}, installed {actual}"
+    assert row.source_version is not None
+    assert row.status in {STATUS_READY, STATUS_READY_WITH_BLOCKERS}
+    assert row.surfaces[0].status in {STATUS_READY, STATUS_READY_WITH_BLOCKERS}
+    assert "FUSION owns the solver lane" in " ".join(row.notes)
