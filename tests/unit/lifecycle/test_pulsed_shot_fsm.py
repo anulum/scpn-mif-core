@@ -425,3 +425,20 @@ def test_dispatchers_fall_back_to_python(monkeypatch: pytest.MonkeyPatch) -> Non
 
     assert isinstance(dispatched_capacitor_bank(capacitor_spec), CapacitorBank)
     assert isinstance(dispatched_pulsed_shot_fsm(_spec()), PulsedShotFSM)
+
+
+def test_dispatched_pulsed_shot_fsm_falls_back_to_python_when_rust_adapter_is_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import sys
+
+    import scpn_mif_core.lifecycle as lifecycle
+
+    monkeypatch.setattr(lifecycle, "preferred_backend", lambda _kernel: "rust")
+    monkeypatch.setattr(lifecycle, "is_rust_available", lambda: True)
+    monkeypatch.setitem(sys.modules, "scpn_mif_core.lifecycle._rust_adapter", None)
+
+    fsm = dispatched_pulsed_shot_fsm(_spec())
+
+    assert isinstance(fsm, PulsedShotFSM)
+    assert fsm.state.name == ShotState.IDLE.name

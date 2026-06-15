@@ -42,7 +42,10 @@ def dispatched_data_bus_mock(config: ReplayConfig) -> DataBusMock:
     """Return a DAQ bus mock backed by the fastest available backend."""
     kernel = _UDP_KERNEL if config.mode == "udp_multicast" else _PCIE_KERNEL
     if preferred_backend(kernel) == "rust" and is_rust_available():
-        from scpn_mif_core.daq._rust_adapter import RustBackedDataBusMock
+        try:
+            from scpn_mif_core.daq._rust_adapter import RustBackedDataBusMock
+        except ModuleNotFoundError:
+            return DataBusMock(config)
 
         return RustBackedDataBusMock(config)
     return DataBusMock(config)

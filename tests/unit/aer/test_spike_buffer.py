@@ -219,6 +219,22 @@ def test_dispatched_decode_falls_back_to_python_when_buffer_is_python(monkeypatc
     assert features.tolist() == _fixture_doc()["expected_rate_features"]
 
 
+def test_dispatched_buffer_falls_back_to_python_when_rust_adapter_is_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import sys
+
+    import scpn_mif_core.aer as aer
+
+    monkeypatch.setattr(aer, "preferred_backend", lambda _kernel: "rust")
+    monkeypatch.setattr(aer, "is_rust_available", lambda: True)
+    monkeypatch.setitem(sys.modules, "scpn_mif_core.aer._rust_adapter", None)
+
+    buffer = aer.dispatched_aer_spike_buffer(capacity=16)
+
+    assert isinstance(buffer, SpikeBuffer)
+
+
 def test_aer_decode_rate_dispatch_is_registered() -> None:
     from scpn_mif_core import _dispatch
 

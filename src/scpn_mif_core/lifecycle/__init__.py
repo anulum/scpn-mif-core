@@ -81,7 +81,10 @@ def dispatched_capacitor_bank(spec: CapacitorBankSpec, initial_voltage_V: float 
     :class:`CapacitorBank` so downstream code stays backend-agnostic.
     """
     if preferred_backend(_CAPACITOR_BANK_KERNEL) == "rust" and is_rust_available():
-        from scpn_mif_core.lifecycle._rust_adapter import RustBackedCapacitorBank
+        try:
+            from scpn_mif_core.lifecycle._rust_adapter import RustBackedCapacitorBank
+        except ModuleNotFoundError:
+            return CapacitorBank(spec, initial_voltage_V=initial_voltage_V)
 
         return RustBackedCapacitorBank(spec, initial_voltage_V=initial_voltage_V)
     return CapacitorBank(spec, initial_voltage_V=initial_voltage_V)
@@ -90,7 +93,10 @@ def dispatched_capacitor_bank(spec: CapacitorBankSpec, initial_voltage_V: float 
 def dispatched_pulsed_shot_fsm(spec: PulsedShotSpec) -> PulsedShotFSM:
     """Return a pulsed-shot FSM backed by the fastest available backend."""
     if preferred_backend(_PULSED_SHOT_FSM_KERNEL) == "rust" and is_rust_available():
-        from scpn_mif_core.lifecycle._rust_adapter import RustBackedPulsedShotFSM
+        try:
+            from scpn_mif_core.lifecycle._rust_adapter import RustBackedPulsedShotFSM
+        except ModuleNotFoundError:
+            return PulsedShotFSM(spec)
 
         return cast(PulsedShotFSM, RustBackedPulsedShotFSM(spec))
     return PulsedShotFSM(spec)
@@ -102,7 +108,10 @@ def dispatched_plasmoid_merger_petri_net(
 ) -> PlasmoidMergerPetriNet:
     """Return a plasmoid-merger Petri net backed by the fastest available backend."""
     if preferred_backend(_PLASMOID_MERGER_KERNEL) == "rust" and is_rust_available():
-        from scpn_mif_core.lifecycle._rust_adapter import RustBackedPlasmoidMergerPetriNet
+        try:
+            from scpn_mif_core.lifecycle._rust_adapter import RustBackedPlasmoidMergerPetriNet
+        except ModuleNotFoundError:
+            return PlasmoidMergerPetriNet(spec, seed=seed)
 
         return cast(PlasmoidMergerPetriNet, RustBackedPlasmoidMergerPetriNet(spec, seed=seed))
     return PlasmoidMergerPetriNet(spec, seed=seed)

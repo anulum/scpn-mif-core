@@ -33,7 +33,10 @@ _DECODE_RATE_KERNEL = "aer.decode_rate"
 def dispatched_aer_spike_buffer(capacity: int) -> SpikeBuffer:
     """Return an AER spike buffer backed by the fastest available backend."""
     if preferred_backend(_SPIKE_BUFFER_KERNEL) == "rust" and is_rust_available():
-        from scpn_mif_core.aer._rust_adapter import RustBackedSpikeBuffer
+        try:
+            from scpn_mif_core.aer._rust_adapter import RustBackedSpikeBuffer
+        except ModuleNotFoundError:
+            return SpikeBuffer(capacity)
 
         return RustBackedSpikeBuffer(capacity)  # type: ignore[return-value]
     return SpikeBuffer(capacity)
@@ -42,7 +45,10 @@ def dispatched_aer_spike_buffer(capacity: int) -> SpikeBuffer:
 def dispatched_decode_spike_features(buffer: SpikeBuffer, spec: AERDecodeSpec) -> FloatArray:
     """Decode AER features through the fastest available backend for the strategy."""
     if spec.strategy == "rate" and preferred_backend(_DECODE_RATE_KERNEL) == "rust" and is_rust_available():
-        from scpn_mif_core.aer._rust_adapter import RustBackedSpikeBuffer, rust_decode_spike_features
+        try:
+            from scpn_mif_core.aer._rust_adapter import RustBackedSpikeBuffer, rust_decode_spike_features
+        except ModuleNotFoundError:
+            return decode_spike_features(buffer, spec)
 
         if isinstance(buffer, RustBackedSpikeBuffer):
             return rust_decode_spike_features(buffer, spec)

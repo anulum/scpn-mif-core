@@ -333,3 +333,18 @@ def test_dispatched_bus_uses_python_fallback_when_rust_is_not_available(monkeypa
 
     assert isinstance(bus, DataBusMock)
     assert bus.__class__ is DataBusMock
+
+
+def test_dispatched_bus_falls_back_to_python_when_rust_adapter_is_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    import sys
+
+    import scpn_mif_core.daq as daq
+
+    monkeypatch.setattr(daq, "preferred_backend", lambda _kernel: "rust")
+    monkeypatch.setattr(daq, "is_rust_available", lambda: True)
+    monkeypatch.setitem(sys.modules, "scpn_mif_core.daq._rust_adapter", None)
+
+    bus = dispatched_data_bus_mock(ReplayConfig(mode="pcie_dma_ring", profile=helion_descriptor_profile()))
+
+    assert isinstance(bus, DataBusMock)
+    assert bus.__class__ is DataBusMock

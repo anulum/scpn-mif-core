@@ -12,14 +12,15 @@ Gates (in order):
 
  1. `tools/check_sync_tags.py` — cross-repository sync-state validation.
  2. `tools/check_secrets.py` — basic secret-pattern scan.
- 3. `ruff check` and `ruff format --check`.
- 4. `mypy` (strict).
- 5. `pytest tests/unit/ tests/contract/` (full coverage gate).
- 6. `bandit` security lint.
- 7. `cargo fmt --check` and `cargo clippy -- -D warnings` (if Rust available).
- 8. `cargo test --workspace` (if Rust available).
- 9. `mkdocs build --strict` (if MkDocs available).
-10. Authorship-line presence in the last commit message.
+ 3. `tools/check_samsung_workspace.py` — Samsung GOTM workspace validation.
+ 4. `ruff check` and `ruff format --check`.
+ 5. `mypy` (strict).
+ 6. `pytest tests/unit/ tests/contract/` (full coverage gate).
+ 7. `bandit` security lint.
+ 8. `cargo fmt --check` and `cargo clippy -- -D warnings` (if Rust available).
+ 9. `cargo test --workspace` (if Rust available).
+10. `mkdocs build --strict` (if MkDocs available).
+11. Authorship-line presence in the last commit message.
 
 Usage:
     python tools/preflight.py            # full
@@ -91,6 +92,13 @@ def gate_pytest() -> GateResult:
     return _run("pytest", ["pytest", "tests/unit/", "tests/contract/", "-q"])
 
 
+def gate_samsung_workspace() -> GateResult:
+    return _run(
+        "samsung-workspace",
+        [sys.executable, str(REPO / "tools" / "check_samsung_workspace.py")],
+    )
+
+
 def gate_cargo_fmt() -> GateResult:
     return _run("cargo-fmt", ["cargo", "fmt", "--all", "--", "--check"], cwd=REPO / "scpn-mif-rs")
 
@@ -137,6 +145,7 @@ def main(argv: list[str] | None = None) -> int:
 
     gates.append(gate_sync_tags())
     gates.append(gate_secrets())
+    gates.append(gate_samsung_workspace())
     gates.append(gate_ruff())
     gates.append(gate_ruff_format())
     if shutil.which("mypy") is not None:

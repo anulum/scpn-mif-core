@@ -305,3 +305,20 @@ def test_dispatched_merger_falls_back_to_python_when_rust_unavailable(monkeypatc
 
     assert isinstance(net, PlasmoidMergerPetriNet)
     assert asdict(net.marking())["total_tokens"] == 1
+
+
+def test_dispatched_merger_falls_back_to_python_when_rust_adapter_is_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import sys
+
+    import scpn_mif_core.lifecycle as lifecycle
+
+    monkeypatch.setattr(lifecycle, "preferred_backend", lambda _kernel: "rust")
+    monkeypatch.setattr(lifecycle, "is_rust_available", lambda: True)
+    monkeypatch.setitem(sys.modules, "scpn_mif_core.lifecycle._rust_adapter", None)
+
+    net = dispatched_plasmoid_merger_petri_net(_spec(), seed=31)
+
+    assert isinstance(net, PlasmoidMergerPetriNet)
+    assert asdict(net.marking())["total_tokens"] == 1
