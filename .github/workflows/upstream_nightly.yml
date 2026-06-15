@@ -46,7 +46,7 @@ jobs:
             (echo "contract drift on ${{ matrix.sibling }}@main" && exit 1)
       - name: Open drift issue on failure
         if: failure()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const title = `Upstream drift: ${process.env.SIBLING}@main breaks MIF contract`;
