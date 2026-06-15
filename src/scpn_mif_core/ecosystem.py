@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
+import subprocess  # nosec B404  # controlled fixed-arg sibling inspection, never shell
 import sys
 import tomllib
 from collections.abc import Iterable, Mapping, Sequence
@@ -591,7 +591,7 @@ def _run_python(repo_path: Path, script: str, extra_paths: Sequence[str] = ()) -
     if existing:
         paths.append(existing)
     env["PYTHONPATH"] = os.pathsep.join(paths)
-    return subprocess.run(  # noqa: S603
+    return subprocess.run(  # noqa: S603  # nosec B603  # fixed sys.executable + internal script, shell=False
         [sys.executable, "-c", script],
         cwd=repo_path,
         env=env,

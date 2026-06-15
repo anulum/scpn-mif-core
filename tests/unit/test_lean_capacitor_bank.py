@@ -9,8 +9,11 @@
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 LEAN_ROOT = ROOT / "lean" / "SCPNMIF.lean"
@@ -42,6 +45,7 @@ def test_capacitor_bank_theorem_surface_exists() -> None:
     assert "admit" not in proof_text
 
 
+@pytest.mark.skipif(shutil.which("lake") is None, reason="Lean toolchain (lake) not available")
 def test_capacitor_bank_theorems_compile_with_lake() -> None:
     """Lean accepts the MIF-005 theorem file without axioms."""
     assert CAPACITOR_BANK.exists(), "missing MIF-005 Lean theorem file"

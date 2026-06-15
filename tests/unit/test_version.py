@@ -12,6 +12,8 @@ from __future__ import annotations
 import tomllib
 from pathlib import Path
 
+import pytest
+
 import scpn_mif_core
 
 REPO = Path(__file__).resolve().parents[2]
@@ -48,6 +50,10 @@ def test_julia_project_version_matches_module() -> None:
     assert target in text
 
 
+@pytest.mark.skipif(
+    not (REPO / ".agent_metadata.json").exists(),
+    reason="agent metadata file is gitignored and absent outside a local agent workspace",
+)
 def test_agent_metadata_version_matches_module() -> None:
     import json
 

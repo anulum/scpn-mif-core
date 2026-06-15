@@ -80,7 +80,9 @@ def _write_fake_phase(root: Path) -> None:
     _write_init(repo, "scpn_phase_orchestrator", "0.8.0")
     _write_source(repo, "coupling/spatial_modulator.py", "class SpatialCouplingModulator: pass\n")
     _write_source(repo, "upde/moving_frame.py", "class DopplerEngine: pass\nclass MovingFrameUPDEEngine: pass\n")
-    _write_source(repo, "monitor/merge_window.py", "class MergeWindowMonitor: pass\nclass MergeWindowToleranceProfile: pass\n")
+    _write_source(
+        repo, "monitor/merge_window.py", "class MergeWindowMonitor: pass\nclass MergeWindowToleranceProfile: pass\n"
+    )
 
 
 def _write_fake_control(root: Path) -> None:

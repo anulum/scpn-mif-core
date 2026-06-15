@@ -9,8 +9,11 @@
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 LEAN_ROOT = ROOT / "lean" / "SCPNMIF.lean"
@@ -65,6 +68,7 @@ def test_pulsed_shot_formal_docs_are_publicly_indexed() -> None:
     assert "- Pulsed-shot lifecycle: api/formal/pulsed_shot.md" in nav_text
 
 
+@pytest.mark.skipif(shutil.which("lake") is None, reason="Lean toolchain (lake) not available")
 def test_pulsed_shot_theorems_compile_with_lake() -> None:
     """Lean accepts the MIF-004 theorem file without axioms."""
     assert PULSED_SHOT.exists(), "missing MIF-004 Lean theorem file"

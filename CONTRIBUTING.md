@@ -13,6 +13,14 @@ pip install -e ".[dev]"
 pre-commit install
 ```
 
+Repository-locality requirement: this checkout is expected to live under the
+Samsung GOTM working tree at
+`/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-MIF-CORE`,
+on the ext4 `/media/anulum/GOTM` mount, with no symlinks inside the project
+tree. The local guard (`python tools/check_samsung_workspace.py`) runs as part
+of the pre-commit/preflight pipeline to prevent old-mirror, home-directory, or
+symlinked workspace states.
+
 Rust tool-chain (stable, edition 2024) is required for the PyO3 crates:
 
 ```bash
@@ -68,8 +76,7 @@ message; the commit gate enforces this.
 
 ## Repository commit gate (Tier 0)
 
-Every commit must satisfy the 14-point gate from `~/.claude/CLAUDE.md` and
-`agentic-shared/SHARED_CONTEXT.md`. The critical items:
+Every commit must satisfy the repository commit gate. The critical items:
 
 1. SPDX 7-line header on every new file.
 2. Exactly one authorship line in the commit message:
