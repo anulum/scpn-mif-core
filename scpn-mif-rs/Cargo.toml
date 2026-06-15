@@ -30,7 +30,7 @@ readme = "../README.md"
 
 [workspace.dependencies]
 # Numerical core
-ndarray = "0.16"
+ndarray = "0.17"
 ndarray-rand = "0.15"
 faer = "0.20"
 nalgebra = "0.33"
