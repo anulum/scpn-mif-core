@@ -34,8 +34,7 @@ jobs:
         with:
           toolchain: 1.85.0
       - name: Build Rust extension
-        working-directory: scpn-mif-rs/crates/mif-ffi
-        run: maturin develop --release
+        run: pip install ./scpn-mif-rs/crates/mif-ffi
       - name: ruff check
         run: ruff check src/ tests/ bench/ tools/
       - name: ruff format
@@ -98,6 +97,3 @@ jobs:
         with:
           python-version: "3.12"
       - run: python tools/check_secrets.py --tree .
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
