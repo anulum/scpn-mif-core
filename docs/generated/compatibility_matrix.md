@@ -12,17 +12,17 @@ This file is generated from the live sibling repository check. It records
 source versions, optional runtime import status, and the contract surfaces
 that MIF consumes. Static equality pins are not the compatibility authority.
 
-- Generated UTC: `2026-06-14T07:48:39+00:00`
+- Generated UTC: `2026-06-15T22:34:10+00:00`
 - Code root: `/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE`
 - Regenerate: `python tools/generate_compatibility_matrix.py`
 
 | Sibling | Source | Runtime | Status | Current gate | Lane |
 |---|---:|---:|---|---|---|
-| `sc-neurocore-engine` | `3.15.25` | `3.15.25` | `ready_with_hardware_gate` | yes | NEU-C.5 / MIF-007 hardware ingress |
-| `scpn-phase-orchestrator` | `0.8.0` | `error` | `blocked_runtime_dependency` | yes | PHA-C / MIF-001..MIF-003 |
-| `scpn-control` | `0.20.7` | `0.20.7` | `ready` | yes | CON-C / MIF-004, MIF-005, MIF-012, MIF-018 |
+| `sc-neurocore-engine` | `3.15.34` | `3.15.34` | `ready_with_hardware_gate` | yes | NEU-C.5 / MIF-007 hardware ingress |
+| `scpn-phase-orchestrator` | `0.9.0` | `0.8.0` | `ready` | yes | PHA-C / MIF-001..MIF-003 |
+| `scpn-control` | `0.21.0` | `0.20.7` | `ready` | yes | CON-C / MIF-004, MIF-005, MIF-012, MIF-018 |
 | `scpn-fusion-core` | `3.9.10` | `3.9.10` | `ready_with_external_blockers` | yes | FUS-C / B-lane FRC solver ownership |
-| `scpn-quantum-control` | `0.9.11` | `0.9.6` | `deferred_not_required_for_current_gate` | deferred | QUA-C deferred for current MIF gate |
+| `scpn-quantum-control` | `0.9.12` | `0.9.6` | `deferred_not_required_for_current_gate` | deferred | QUA-C deferred for current MIF gate |
 
 ## Surface Details
 
@@ -44,7 +44,7 @@ Notes:
 
 - Role: Kuramoto, Doppler, moving-frame UPDE, merge-window monitor
 - Repository: `/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR`
-- Import: `error` — File "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR/src/scpn_phase_orchestrator/runtime/audit_stream.py", line 23, in <module> | from google.protobuf import descriptor_pb2, descriptor_pool, message_factory | ModuleNotFoundError: No module named 'google.protobuf'
+- Import: `ok` — imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR/src/scpn_phase_orchestrator/__init__.py
 
 | Surface | Status | Detail |
 |---|---|---|
@@ -54,7 +54,7 @@ Notes:
 
 Notes:
 - Import may require PHASE runtime extras; source contract is still audited.
-- Runtime import is non-authoritative for this row and currently reports: File "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR/src/scpn_phase_orchestrator/runtime/audit_stream.py", line 23, in <module> | from google.protobuf import descriptor_pb2, descriptor_pool, message_factory | ModuleNotFoundError: No module named 'google.protobuf'.
+- Runtime package metadata reports 0.8.0; sibling source declares 0.9.0.
 
 ### `scpn-control`
 
@@ -68,6 +68,7 @@ Notes:
 
 Notes:
 - SCPN-CONTROL claims the pulsed-control lane completed at its current source version.
+- Runtime package metadata reports 0.20.7; sibling source declares 0.21.0.
 
 ### `scpn-fusion-core`
 
@@ -91,8 +92,8 @@ Notes:
 | Surface | Status | Detail |
 |---|---|---|
 | Generic QAOA-MPC | `ready` | Existing generic control surface |
-| MIF-specific quantum-control names | `deferred_not_required_for_current_gate` | present: none; deferred missing names: QRNGStream, PqcTriggerSigner, FRCQAOAObjective, frc_pulsed_shot_cost, SubMicrosecondTracker, pulse_to_vivado_hls |
+| MIF-specific quantum-control names | `ready` | Future named MIF lane surfaces, currently not required for this gate |
 
 Notes:
 - Deferred by current ownership decision: other repositories perfect the lane first.
-- Runtime package metadata reports 0.9.6; sibling source declares 0.9.11.
+- Runtime package metadata reports 0.9.6; sibling source declares 0.9.12.

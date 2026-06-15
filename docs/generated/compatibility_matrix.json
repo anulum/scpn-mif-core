@@ -1,12 +1,12 @@
 {
   "code_root": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE",
-  "generated_at_utc": "2026-06-14T07:48:39+00:00",
+  "generated_at_utc": "2026-06-15T22:34:10+00:00",
   "siblings": [
     {
       "current_gate": true,
       "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SC-NEUROCORE/src/sc_neurocore/__init__.py",
       "import_status": "ok",
-      "import_version": "3.15.25",
+      "import_version": "3.15.34",
       "key": "sc-neurocore-engine",
       "lane": "NEU-C.5 / MIF-007 hardware ingress",
       "module": "sc_neurocore",
@@ -16,7 +16,7 @@
       "package": "sc-neurocore-engine",
       "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SC-NEUROCORE",
       "role": "SNN to SystemVerilog, Q8.8 ingress, AER HDL, UltraScale+ target contract",
-      "source_version": "3.15.25",
+      "source_version": "3.15.34",
       "status": "ready_with_hardware_gate",
       "surfaces": [
         {
@@ -33,21 +33,21 @@
     },
     {
       "current_gate": true,
-      "import_detail": "File \"/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR/src/scpn_phase_orchestrator/runtime/audit_stream.py\", line 23, in <module> | from google.protobuf import descriptor_pb2, descriptor_pool, message_factory | ModuleNotFoundError: No module named 'google.protobuf'",
-      "import_status": "error",
-      "import_version": null,
+      "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR/src/scpn_phase_orchestrator/__init__.py",
+      "import_status": "ok",
+      "import_version": "0.8.0",
       "key": "scpn-phase-orchestrator",
       "lane": "PHA-C / MIF-001..MIF-003",
       "module": "scpn_phase_orchestrator",
       "notes": [
         "Import may require PHASE runtime extras; source contract is still audited.",
-        "Runtime import is non-authoritative for this row and currently reports: File \"/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR/src/scpn_phase_orchestrator/runtime/audit_stream.py\", line 23, in <module> | from google.protobuf import descriptor_pb2, descriptor_pool, message_factory | ModuleNotFoundError: No module named 'google.protobuf'."
+        "Runtime package metadata reports 0.8.0; sibling source declares 0.9.0."
       ],
       "package": "scpn-phase-orchestrator",
       "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR",
       "role": "Kuramoto, Doppler, moving-frame UPDE, merge-window monitor",
-      "source_version": "0.8.0",
-      "status": "blocked_runtime_dependency",
+      "source_version": "0.9.0",
+      "status": "ready",
       "surfaces": [
         {
           "detail": "Distance-aware coupling for MIF phase carriers",
@@ -75,12 +75,13 @@
       "lane": "CON-C / MIF-004, MIF-005, MIF-012, MIF-018",
       "module": "scpn_control",
       "notes": [
-        "SCPN-CONTROL claims the pulsed-control lane completed at its current source version."
+        "SCPN-CONTROL claims the pulsed-control lane completed at its current source version.",
+        "Runtime package metadata reports 0.20.7; sibling source declares 0.21.0."
       ],
       "package": "scpn-control",
       "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-CONTROL",
       "role": "Pulsed-shot lifecycle, Petri-net runtime, capacitor bank, replay",
-      "source_version": "0.20.7",
+      "source_version": "0.21.0",
       "status": "ready",
       "surfaces": [
         {
@@ -124,12 +125,12 @@
       "module": "scpn_quantum_control",
       "notes": [
         "Deferred by current ownership decision: other repositories perfect the lane first.",
-        "Runtime package metadata reports 0.9.6; sibling source declares 0.9.11."
+        "Runtime package metadata reports 0.9.6; sibling source declares 0.9.12."
       ],
       "package": "scpn-quantum-control",
       "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-QUANTUM-CONTROL",
       "role": "QAOA-MPC and future MIF-specific quantum-control bridge",
-      "source_version": "0.9.11",
+      "source_version": "0.9.12",
       "status": "deferred_not_required_for_current_gate",
       "surfaces": [
         {
@@ -138,9 +139,9 @@
           "status": "ready"
         },
         {
-          "detail": "present: none; deferred missing names: QRNGStream, PqcTriggerSigner, FRCQAOAObjective, frc_pulsed_shot_cost, SubMicrosecondTracker, pulse_to_vivado_hls",
+          "detail": "Future named MIF lane surfaces, currently not required for this gate",
           "name": "MIF-specific quantum-control names",
-          "status": "deferred_not_required_for_current_gate"
+          "status": "ready"
         }
       ]
     }
