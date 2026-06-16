@@ -36,7 +36,7 @@ jobs:
       - name: Generate Python SBOM
         run: |
           mkdir -p artifacts
-          cyclonedx-py environment -o artifacts/sbom-python.cdx.json --spec-version 1.5 --format json
+          cyclonedx-py environment -o artifacts/sbom-python.cdx.json --spec-version 1.5 --output-format JSON
       - uses: actions/upload-artifact@v4
         with:
           name: sbom-python
