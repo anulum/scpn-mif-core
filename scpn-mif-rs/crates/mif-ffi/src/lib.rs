@@ -112,7 +112,12 @@ type PyStressInjectedFrame = (u64, Vec<Option<f64>>, Vec<String>, Vec<String>);
 type PyDecodedDaqFrame = (String, String, u64, u64, Vec<f64>);
 
 /// PyO3 wrapper around the immutable `AerDecodeSpec`.
-#[pyclass(name = "AERDecodeSpec", module = "scpn_mif_core_rs", frozen, from_py_object)]
+#[pyclass(
+    name = "AERDecodeSpec",
+    module = "scpn_mif_core_rs",
+    frozen,
+    from_py_object
+)]
 #[derive(Clone, Copy)]
 struct PyAERDecodeSpec {
     inner: AerDecodeSpecRust,
@@ -394,7 +399,12 @@ impl PyDiagnosticNormalisationState {
 }
 
 /// PyO3 wrapper around MIF-017 diagnostic stress-injection config.
-#[pyclass(name = "StressInjectionConfig", module = "scpn_mif_core_rs", frozen, from_py_object)]
+#[pyclass(
+    name = "StressInjectionConfig",
+    module = "scpn_mif_core_rs",
+    frozen,
+    from_py_object
+)]
 #[derive(Clone)]
 struct PyStressInjectionConfig {
     inner: DiagnosticsStressInjectionConfig,
@@ -536,7 +546,12 @@ impl PyDataBusMock {
 }
 
 /// PyO3 wrapper around the immutable `FaradayRecoverySpec`.
-#[pyclass(name = "FaradayRecoverySpec", module = "scpn_mif_core_rs", frozen, from_py_object)]
+#[pyclass(
+    name = "FaradayRecoverySpec",
+    module = "scpn_mif_core_rs",
+    frozen,
+    from_py_object
+)]
 #[derive(Clone, Copy)]
 struct PyFaradayRecoverySpec {
     inner: CoreFaradayRecoverySpec,
@@ -569,7 +584,12 @@ impl PyFaradayRecoverySpec {
 }
 
 /// PyO3 wrapper around the immutable `DopplerKuramotoSpec`.
-#[pyclass(name = "DopplerKuramotoSpec", module = "scpn_mif_core_rs", frozen, from_py_object)]
+#[pyclass(
+    name = "DopplerKuramotoSpec",
+    module = "scpn_mif_core_rs",
+    frozen,
+    from_py_object
+)]
 #[derive(Clone)]
 struct PyDopplerKuramotoSpec {
     inner: KinematicDopplerKuramotoSpec,
@@ -664,7 +684,12 @@ impl PyDopplerKuramotoSpec {
 }
 
 /// PyO3 wrapper around the immutable `MovingFrameUPDESpec`.
-#[pyclass(name = "MovingFrameUPDESpec", module = "scpn_mif_core_rs", frozen, from_py_object)]
+#[pyclass(
+    name = "MovingFrameUPDESpec",
+    module = "scpn_mif_core_rs",
+    frozen,
+    from_py_object
+)]
 #[derive(Clone)]
 struct PyMovingFrameUPDESpec {
     inner: KinematicMovingFrameUPDESpec,
@@ -768,7 +793,12 @@ impl PyMovingFrameUPDESpec {
 }
 
 /// PyO3 wrapper around the immutable `MergeWindowSpec`.
-#[pyclass(name = "MergeWindowSpec", module = "scpn_mif_core_rs", frozen, from_py_object)]
+#[pyclass(
+    name = "MergeWindowSpec",
+    module = "scpn_mif_core_rs",
+    frozen,
+    from_py_object
+)]
 #[derive(Clone, Copy)]
 struct PyMergeWindowSpec {
     inner: KinematicMergeWindowSpec,
@@ -823,7 +853,12 @@ impl PyMergeWindowSpec {
 }
 
 /// PyO3 wrapper around the immutable `CapacitorBankSpec`.
-#[pyclass(name = "CapacitorBankSpec", module = "scpn_mif_core_rs", frozen, from_py_object)]
+#[pyclass(
+    name = "CapacitorBankSpec",
+    module = "scpn_mif_core_rs",
+    frozen,
+    from_py_object
+)]
 #[derive(Clone)]
 struct PyCapacitorBankSpec {
     inner: CapacitorBankSpec,
@@ -889,7 +924,12 @@ impl PyCapacitorBankSpec {
 }
 
 /// PyO3 wrapper around the immutable `PulsedShotSpec`.
-#[pyclass(name = "PulsedShotSpec", module = "scpn_mif_core_rs", frozen, from_py_object)]
+#[pyclass(
+    name = "PulsedShotSpec",
+    module = "scpn_mif_core_rs",
+    frozen,
+    from_py_object
+)]
 #[derive(Clone, Copy)]
 struct PyPulsedShotSpec {
     inner: LifecyclePulsedShotSpec,
@@ -993,7 +1033,12 @@ impl PyPulsedShotSpec {
 }
 
 /// PyO3 wrapper around the immutable `PlasmoidMergerSpec`.
-#[pyclass(name = "PlasmoidMergerSpec", module = "scpn_mif_core_rs", frozen, from_py_object)]
+#[pyclass(
+    name = "PlasmoidMergerSpec",
+    module = "scpn_mif_core_rs",
+    frozen,
+    from_py_object
+)]
 #[derive(Clone, Copy)]
 struct PyPlasmoidMergerSpec {
     inner: LifecyclePlasmoidMergerSpec,
@@ -1097,7 +1142,12 @@ impl PyPlasmoidMergerSpec {
 }
 
 /// PyO3 wrapper around immutable merger observations.
-#[pyclass(name = "MergerObservation", module = "scpn_mif_core_rs", frozen, from_py_object)]
+#[pyclass(
+    name = "MergerObservation",
+    module = "scpn_mif_core_rs",
+    frozen,
+    from_py_object
+)]
 #[derive(Clone, Copy)]
 struct PyMergerObservation {
     inner: LifecycleMergerObservation,
@@ -1128,7 +1178,12 @@ impl PyMergerObservation {
 }
 
 /// PyO3 wrapper around immutable plasma telemetry.
-#[pyclass(name = "PlasmaState", module = "scpn_mif_core_rs", frozen, from_py_object)]
+#[pyclass(
+    name = "PlasmaState",
+    module = "scpn_mif_core_rs",
+    frozen,
+    from_py_object
+)]
 #[derive(Clone, Copy)]
 struct PyPlasmaState {
     inner: LifecyclePlasmaState,
@@ -1159,7 +1214,12 @@ impl PyPlasmaState {
 }
 
 /// PyO3 wrapper around immutable bank telemetry.
-#[pyclass(name = "BankTelemetry", module = "scpn_mif_core_rs", frozen, from_py_object)]
+#[pyclass(
+    name = "BankTelemetry",
+    module = "scpn_mif_core_rs",
+    frozen,
+    from_py_object
+)]
 #[derive(Clone, Copy)]
 struct PyBankTelemetry {
     inner: LifecycleBankTelemetry,
