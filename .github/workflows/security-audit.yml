@@ -55,7 +55,7 @@ jobs:
           print(f'Wrote {len(lines)} requirements for pip-audit')
           PY
           pip-audit -r artifacts/pip-audit-requirements.txt --desc --format json --output artifacts/pip-audit.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: security-python-audit
@@ -77,7 +77,7 @@ jobs:
         run: |
           mkdir -p ../artifacts
           cargo audit --json > ../artifacts/cargo-audit.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: security-rust-audit

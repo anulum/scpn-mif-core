@@ -37,7 +37,7 @@ jobs:
         run: |
           mkdir -p artifacts
           cyclonedx-py environment -o artifacts/sbom-python.cdx.json --spec-version 1.5 --output-format JSON
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sbom-python
           path: artifacts/sbom-python.cdx.json
@@ -56,7 +56,7 @@ jobs:
           cargo install cargo-cyclonedx --locked
           cargo cyclonedx --format json --spec-version 1.5
           find . -name '*.cdx.json' -exec cp {} ../artifacts/sbom-rust/ \;
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sbom-rust
           path: artifacts/sbom-rust/
