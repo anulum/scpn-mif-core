@@ -244,3 +244,89 @@ def test_dispatched_doppler_kuramoto_falls_back_to_python(monkeypatch: pytest.Mo
     )
 
     assert isinstance(engine, DopplerKuramoto)
+
+
+def test_spec_rejects_coupling_shape_mismatch() -> None:
+    with pytest.raises(ValueError, match="n-by-n matrix"):
+        DopplerKuramotoSpec(
+            omega_rad_s=[1.0, 2.0],
+            coupling_rad_s=[[0.0, 1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+        )
+
+
+def test_spec_rejects_non_positive_velocity_epsilon() -> None:
+    with pytest.raises(ValueError, match="velocity_epsilon_m_s must be strictly positive"):
+        DopplerKuramotoSpec(omega_rad_s=[1.0], coupling_rad_s=[[0.0]], velocity_epsilon_m_s=0.0)
+
+
+def test_spec_rejects_two_dimensional_omega() -> None:
+    with pytest.raises(ValueError, match="one-dimensional"):
+        DopplerKuramotoSpec(omega_rad_s=[[1.0, 2.0]], coupling_rad_s=[[0.0]])
+
+
+def test_spec_rejects_empty_coupling_matrix() -> None:
+    with pytest.raises(ValueError, match="must not be empty"):
+        DopplerKuramotoSpec(omega_rad_s=[1.0], coupling_rad_s=np.empty((0, 0)))
+
+
+def test_spec_rejects_non_finite_coupling() -> None:
+    with pytest.raises(ValueError, match="must contain only finite values"):
+        DopplerKuramotoSpec(omega_rad_s=[1.0, 1.0], coupling_rad_s=[[0.0, float("inf")], [0.0, 0.0]])
+
+
+def test_omega_at_rejects_negative_time() -> None:
+    with pytest.raises(ValueError, match="t_s must be non-negative"):
+        _acceptance_spec(0.0).omega_at(-1.0)
+
+
+def test_engine_exposes_read_only_state_properties() -> None:
+    spec = _acceptance_spec(0.0)
+    engine = DopplerKuramoto(spec, phases_rad=[0.1, 0.2], positions_m=[0.0, 1.0], velocities_m_s=[10.0, -10.0])
+
+    assert engine.t_s == 0.0
+    np.testing.assert_allclose(engine.phases_rad, [0.1, 0.2])
+    np.testing.assert_allclose(engine.positions_m, [0.0, 1.0])
+    np.testing.assert_allclose(engine.velocities_m_s, [10.0, -10.0])
+    with pytest.raises(ValueError):
+        engine.phases_rad[0] = 9.0
+
+
+def test_engine_derivatives_default_and_explicit_match_function() -> None:
+    spec = _acceptance_spec(1.0e3)
+    phases, positions, velocities = [0.1, 0.4], [0.0, 0.5], [3.0e5, -3.0e5]
+    engine = DopplerKuramoto(spec, phases_rad=phases, positions_m=positions, velocities_m_s=velocities)
+
+    np.testing.assert_allclose(engine.derivatives(), doppler_derivatives(spec, phases, positions, velocities, t_s=0.0))
+    np.testing.assert_allclose(
+        engine.derivatives(phases_rad=[0.2, 0.5], positions_m=[0.1, 0.6], t_s=1.0e-3),
+        doppler_derivatives(spec, [0.2, 0.5], [0.1, 0.6], velocities, t_s=1.0e-3),
+    )
+
+
+def test_engine_copy_is_independent() -> None:
+    spec = _acceptance_spec(0.0)
+    engine = DopplerKuramoto(spec, phases_rad=[0.1, 0.2], positions_m=[0.0, 1.0], velocities_m_s=[5.0, -5.0])
+    engine.step(1.0e-4)
+    before = np.array(engine.phases_rad, copy=True)
+
+    clone = engine.copy()
+    assert clone.t_s == engine.t_s
+    clone.step(1.0e-4)
+
+    assert clone.t_s != engine.t_s
+    np.testing.assert_allclose(engine.phases_rad, before)
+
+
+def test_spec_rejects_non_finite_scalar_parameter() -> None:
+    with pytest.raises(ValueError, match="must be finite"):
+        DopplerKuramotoSpec(omega_rad_s=[1.0], coupling_rad_s=[[0.0]], phase_lag_rad=float("inf"))
+
+
+def test_spec_rejects_empty_omega() -> None:
+    with pytest.raises(ValueError, match="must not be empty"):
+        DopplerKuramotoSpec(omega_rad_s=[], coupling_rad_s=np.empty((0, 0)))
+
+
+def test_spec_rejects_non_finite_omega() -> None:
+    with pytest.raises(ValueError, match="must contain only finite values"):
+        DopplerKuramotoSpec(omega_rad_s=[float("inf"), 1.0], coupling_rad_s=[[0.0, 0.0], [0.0, 0.0]])
