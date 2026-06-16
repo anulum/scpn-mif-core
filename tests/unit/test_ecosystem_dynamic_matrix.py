@@ -11,11 +11,19 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from scpn_mif_core.ecosystem import (
+    STATUS_BLOCKED_RUNTIME,
+    STATUS_BLOCKED_SURFACE,
     STATUS_DEFERRED,
+    STATUS_MISSING_REPO,
     STATUS_READY,
     STATUS_READY_WITH_BLOCKERS,
     STATUS_READY_WITH_HARDWARE_GATE,
+    EcosystemReport,
+    SiblingReport,
+    SurfaceReport,
     compatibility_report_json,
     generate_ecosystem_report,
     render_compatibility_matrix,
@@ -156,3 +164,181 @@ def _write_source(repo: Path, relative: str, text: str, *, package: str = "scpn_
     path = repo / "src" / package / relative
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def test_require_raises_descriptive_keyerror_for_unknown_row(tmp_path: Path) -> None:
+    report = generate_ecosystem_report(tmp_path, generated_at_utc="2026-06-14T00:00:00+00:00")
+    with pytest.raises(KeyError, match="no row for 'does-not-exist'"):
+        report.require("does-not-exist")
+
+
+def test_failed_surfaces_lists_only_non_ready_surfaces() -> None:
+    ready = SurfaceReport("a", STATUS_READY, "ok")
+    blocked = SurfaceReport("b", STATUS_BLOCKED_SURFACE, "missing")
+    row = SiblingReport(
+        key="k",
+        package="p",
+        module="m",
+        repo_path="/tmp/p",
+        role="r",
+        lane="l",
+        current_gate=True,
+        source_version="1.0.0",
+        import_version="1.0.0",
+        import_status="ok",
+        import_detail="imported",
+        status=STATUS_BLOCKED_SURFACE,
+        surfaces=(ready, blocked),
+        notes=(),
+    )
+    assert row.failed_surfaces == (blocked,)
+
+
+def test_absent_sibling_repositories_are_reported_as_missing(tmp_path: Path) -> None:
+    report = generate_ecosystem_report(tmp_path, generated_at_utc="2026-06-14T00:00:00+00:00")
+    for row in report.siblings:
+        assert row.status == STATUS_MISSING_REPO
+        assert row.source_version is None
+        assert row.import_status == "missing"
+        assert row.surfaces == ()
+
+
+def test_pyproject_absent_yields_no_source_version(tmp_path: Path) -> None:
+    repo = tmp_path / "SCPN-CONTROL"
+    _write_init(repo, "scpn_control", "0.20.7")  # module but no pyproject.toml
+    report = generate_ecosystem_report(tmp_path, generated_at_utc="2026-06-14T00:00:00+00:00")
+    assert report.require("scpn-control").source_version is None
+
+
+def test_poetry_style_version_is_read(tmp_path: Path) -> None:
+    repo = tmp_path / "SCPN-CONTROL"
+    repo.mkdir(parents=True, exist_ok=True)
+    repo.joinpath("pyproject.toml").write_text(
+        '[tool.poetry]\nname = "scpn-control"\nversion = "9.8.7"\n', encoding="utf-8"
+    )
+    _write_init(repo, "scpn_control", "9.8.7")
+    assert generate_ecosystem_report(tmp_path).require("scpn-control").source_version == "9.8.7"
+
+
+def test_generic_surface_missing_file_blocks_the_row(tmp_path: Path) -> None:
+    repo = tmp_path / "SCPN-PHASE-ORCHESTRATOR"
+    _write_pyproject(repo, "scpn-phase-orchestrator", "0.8.0")
+    _write_init(repo, "scpn_phase_orchestrator", "0.8.0")
+    # Only one of the three required surface files exists.
+    _write_source(repo, "coupling/spatial_modulator.py", "class SpatialCouplingModulator: pass\n")
+    row = generate_ecosystem_report(tmp_path).require("scpn-phase-orchestrator")
+    assert row.status == STATUS_BLOCKED_SURFACE
+    assert any("missing file" in s.detail for s in row.failed_surfaces)
+
+
+def test_generic_surface_missing_token_blocks_the_row(tmp_path: Path) -> None:
+    repo = tmp_path / "SCPN-PHASE-ORCHESTRATOR"
+    _write_pyproject(repo, "scpn-phase-orchestrator", "0.8.0")
+    _write_init(repo, "scpn_phase_orchestrator", "0.8.0")
+    _write_source(repo, "coupling/spatial_modulator.py", "class SpatialCouplingModulator: pass\n")
+    _write_source(repo, "upde/moving_frame.py", "class DopplerEngine: pass\n")  # MovingFrameUPDEEngine missing
+    _write_source(
+        repo, "monitor/merge_window.py", "class MergeWindowMonitor: pass\nclass MergeWindowToleranceProfile: pass\n"
+    )
+    row = generate_ecosystem_report(tmp_path).require("scpn-phase-orchestrator")
+    assert row.status == STATUS_BLOCKED_SURFACE
+    assert any("missing tokens" in s.detail for s in row.failed_surfaces)
+
+
+def test_control_module_missing_symbols_blocks_surface(tmp_path: Path) -> None:
+    repo = tmp_path / "SCPN-CONTROL"
+    _write_pyproject(repo, "scpn-control", "0.20.7")
+    _write_init(repo, "scpn_control", "0.20.7")
+    module_dir = repo / "src" / "scpn_control" / "control"
+    module_dir.mkdir(parents=True, exist_ok=True)
+    module_dir.joinpath("__init__.py").write_text("", encoding="utf-8")
+    module_dir.joinpath("capacitor_bank.py").write_text("class CapacitorBank: pass\n", encoding="utf-8")
+    row = generate_ecosystem_report(tmp_path).require("scpn-control")
+    assert row.status == STATUS_BLOCKED_SURFACE
+    assert any("missing symbols" in s.detail for s in row.surfaces)
+
+
+def test_control_module_import_error_blocks_runtime(tmp_path: Path) -> None:
+    repo = tmp_path / "SCPN-CONTROL"
+    _write_pyproject(repo, "scpn-control", "0.20.7")
+    _write_init(repo, "scpn_control", "0.20.7")
+    module_dir = repo / "src" / "scpn_control" / "control"
+    module_dir.mkdir(parents=True, exist_ok=True)
+    module_dir.joinpath("__init__.py").write_text("", encoding="utf-8")
+    module_dir.joinpath("capacitor_bank.py").write_text("import this_module_does_not_exist_xyz\n", encoding="utf-8")
+    row = generate_ecosystem_report(tmp_path).require("scpn-control")
+    assert any(s.status == STATUS_BLOCKED_RUNTIME for s in row.surfaces)
+
+
+def test_fusion_contract_missing_symbols_blocks_surface(tmp_path: Path) -> None:
+    repo = tmp_path / "SCPN-FUSION-CORE"
+    _write_pyproject(repo, "scpn-fusion-core", "3.9.10")
+    _write_init(repo, "scpn_fusion", "3.9.10")
+    repo.joinpath("src/scpn_fusion/core.py").write_text("# no FUS-C symbols\n", encoding="utf-8")
+    row = generate_ecosystem_report(tmp_path).require("scpn-fusion-core")
+    assert row.status == STATUS_BLOCKED_SURFACE
+    assert any("missing symbols" in s.detail for s in row.surfaces)
+
+
+def test_runtime_version_mismatch_is_recorded_as_a_note(tmp_path: Path) -> None:
+    repo = tmp_path / "SCPN-CONTROL"
+    _write_pyproject(repo, "scpn-control", "0.20.7")
+    _write_init(repo, "scpn_control", "9.9.9")  # runtime __version__ differs from source pyproject
+    module_dir = repo / "src" / "scpn_control" / "control"
+    module_dir.mkdir(parents=True, exist_ok=True)
+    module_dir.joinpath("__init__.py").write_text("", encoding="utf-8")
+    module_dir.joinpath("capacitor_bank.py").write_text(
+        "\n".join(
+            f"class {name}: pass" if not name.startswith("free") else f"def {name}(): pass"
+            for name in (
+                "CapacitorBank",
+                "CapacitorBankSpec",
+                "CapacitorBankState",
+                "EnergyReport",
+                "PulseSpec",
+                "RLCRegime",
+                "free_response",
+            )
+        ),
+        encoding="utf-8",
+    )
+    row = generate_ecosystem_report(tmp_path).require("scpn-control")
+    assert any("9.9.9" in note and "0.20.7" in note for note in row.notes)
+
+
+def test_default_code_root_honours_environment_override(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from scpn_mif_core.ecosystem import default_code_root
+
+    monkeypatch.setenv("SCPN_MIF_ECOSYSTEM_ROOT", str(tmp_path))
+    monkeypatch.delenv("GOTM_CODE_ROOT", raising=False)
+    assert default_code_root() == tmp_path.resolve()
+
+
+def test_runtime_import_preserves_existing_pythonpath(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("PYTHONPATH", str(tmp_path))
+    _write_fake_control(tmp_path)
+    row = generate_ecosystem_report(tmp_path).require("scpn-control")
+    assert row.import_status == "ok"
+
+
+def test_render_handles_rows_without_notes() -> None:
+    row = SiblingReport(
+        key="scpn-control",
+        package="scpn-control",
+        module="scpn_control",
+        repo_path="/tmp/x",
+        role="r",
+        lane="l",
+        current_gate=True,
+        source_version="1.0.0",
+        import_version="1.0.0",
+        import_status="ok",
+        import_detail="imported",
+        status=STATUS_READY,
+        surfaces=(SurfaceReport("s", STATUS_READY, "ok"),),
+        notes=(),
+    )
+    report = EcosystemReport(generated_at_utc="2026-06-14T00:00:00+00:00", code_root="/tmp", siblings=(row,))
+    markdown = render_compatibility_matrix(report)
+    assert "Notes:" not in markdown
+    assert compatibility_report_json(report).strip().startswith("{")
