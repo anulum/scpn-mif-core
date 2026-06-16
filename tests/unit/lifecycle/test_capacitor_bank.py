@@ -665,3 +665,41 @@ def test_recharge_status_zero_power_returns_infinite_time() -> None:
     status = bank.recharge_status(1.0)
     assert status["time_to_full_s"] == float("inf")
     assert status["projected_voltage_V"] == pytest.approx(2000.0)
+
+
+def test_feasibility_rejects_pulse_exceeding_natural_peak_current() -> None:
+    bank = CapacitorBank(underdamped_spec(), initial_voltage_V=10_000.0)
+
+    ok, reason = bank.feasibility(PulseSpec(peak_current_A=1.0e12, duration_s=1.0e-6))
+
+    assert ok is False
+    assert "natural peak" in reason
+
+
+def test_feasibility_accepts_exp_decay_waveform_within_budget() -> None:
+    bank = CapacitorBank(underdamped_spec(), initial_voltage_V=10_000.0)
+
+    ok, _ = bank.feasibility(PulseSpec(peak_current_A=1.0, duration_s=1.0e-6, waveform="exp_decay"))
+
+    assert isinstance(ok, bool)
+
+
+def test_waveform_rms_fraction_rejects_unknown_waveform() -> None:
+    from scpn_mif_core.lifecycle.capacitor_bank import _waveform_rms_squared_fraction
+
+    with pytest.raises(ValueError, match="unknown waveform"):
+        _waveform_rms_squared_fraction("triangle")
+
+
+def test_dispatched_capacitor_bank_falls_back_to_python(monkeypatch: pytest.MonkeyPatch) -> None:
+    import sys
+
+    import scpn_mif_core.lifecycle as lifecycle
+
+    monkeypatch.setattr(lifecycle, "preferred_backend", lambda _kernel: "rust")
+    monkeypatch.setattr(lifecycle, "is_rust_available", lambda: True)
+    monkeypatch.setitem(sys.modules, "scpn_mif_core.lifecycle._rust_adapter", None)
+
+    bank = lifecycle.dispatched_capacitor_bank(underdamped_spec())
+
+    assert isinstance(bank, CapacitorBank)

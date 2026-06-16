@@ -322,3 +322,29 @@ def test_dispatched_merger_falls_back_to_python_when_rust_adapter_is_unavailable
 
     assert isinstance(net, PlasmoidMergerPetriNet)
     assert asdict(net.marking())["total_tokens"] == 1
+
+
+def test_rust_backed_plasmoid_merger_exposes_full_api(monkeypatch: pytest.MonkeyPatch) -> None:
+    from scpn_mif_core._dispatch import is_rust_available
+
+    if not is_rust_available():
+        pytest.skip("rust extension not built")
+
+    import scpn_mif_core.lifecycle as lifecycle
+
+    monkeypatch.setattr(lifecycle, "preferred_backend", lambda _kernel: "rust")
+    net = lifecycle.dispatched_plasmoid_merger_petri_net(_spec(), seed=7)
+
+    assert net.place is MergerPlace.APPROACH
+    assert net.audit_log == ()
+    assert asdict(net.marking())["total_tokens"] == 1
+
+    net.reset(seed=11)
+    assert net.place is MergerPlace.APPROACH
+
+
+def test_lcg_randrange_rejects_non_positive_stop() -> None:
+    from scpn_mif_core.lifecycle.plasmoid_merger_petri_net import _Lcg
+
+    with pytest.raises(ValueError, match="at least 1"):
+        _Lcg(7).randrange(0)
