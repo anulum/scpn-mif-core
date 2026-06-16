@@ -89,6 +89,21 @@ def test_rust_derivative_parity() -> None:
     assert np.allclose(py, got, rtol=PARITY_REL_TOL, atol=PARITY_ABS_TOL)
 
 
+def test_rust_adapter_doppler_derivatives_matches_python() -> None:
+    from scpn_mif_core.kinematic._rust_adapter import rust_doppler_derivatives
+
+    phases = [0.0, 0.25, -0.1]
+    positions = [-0.03, 0.03, 0.12]
+    velocities = [300_000.0, -300_000.0, 0.0]
+
+    np.testing.assert_allclose(
+        rust_doppler_derivatives(_py_spec(), phases, positions, velocities, t_s=1.0e-3),
+        doppler_derivatives(_py_spec(), phases, positions, velocities, t_s=1.0e-3),
+        rtol=PARITY_REL_TOL,
+        atol=PARITY_ABS_TOL,
+    )
+
+
 def test_rust_time_varying_derivative_and_step_parity() -> None:
     phases = [0.0, 0.2]
     positions = [0.0, 0.0]

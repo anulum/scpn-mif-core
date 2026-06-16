@@ -90,8 +90,6 @@ def certify_sampled_kinematic_safety(
     """Certify a sampled axial-separation trace against the MIF-011 envelope."""
     spec = KinematicSafetySpec() if spec is None else spec
     separation = _as_1d_float_array("separation_m", separation_m)
-    if separation.size == 0:
-        raise ValueError("separation_m must contain at least one sample")
     abs_separation = np.abs(separation)
     initial_margin = spec.tolerance_m - float(abs_separation[0])
     step_slacks = _step_slacks(abs_separation, spec)

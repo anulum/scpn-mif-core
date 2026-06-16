@@ -215,6 +215,18 @@ def test_dispatched_moving_frame_upde_falls_back_to_python(monkeypatch: pytest.M
     assert isinstance(engine, MovingFrameUPDE)
 
 
+def test_embedded_local_error_handles_degenerate_phases_only_state() -> None:
+    from scpn_mif_core.kinematic.moving_frame_upde import _embedded_local_error
+
+    # The shared embedded-error helper falls back to the pure phase error when the
+    # state carries no position component (size == n_phases). The moving-frame
+    # engine never produces this, so the branch is exercised directly to document
+    # the helper's contract.
+    err = _embedded_local_error(np.array([0.5, -0.3]), np.array([0.4, -0.1]), n_phases=2)
+
+    assert err == pytest.approx(0.2)
+
+
 def _dormand_prince_reference(
     spec: MovingFrameUPDESpec,
     phases: np.ndarray,

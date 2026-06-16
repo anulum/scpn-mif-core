@@ -180,3 +180,28 @@ def test_trace_rejects_non_finite_positions() -> None:
         evaluate_merge_window_trace(
             MergeWindowSpec(), time_s=[0.0], phases_rad=[[0.0, 0.1]], positions_m=[[0.0, float("inf")]]
         )
+
+
+def test_rust_backed_merge_window_monitor_exposes_full_api(monkeypatch: pytest.MonkeyPatch) -> None:
+    from scpn_mif_core._dispatch import is_rust_available
+
+    if not is_rust_available():
+        pytest.skip("rust extension not built")
+
+    import scpn_mif_core.kinematic as kinematic
+
+    monkeypatch.setattr(kinematic, "preferred_backend", lambda _kernel: "rust")
+    monitor = kinematic.dispatched_merge_window_monitor(MergeWindowSpec(consecutive_samples=2))
+
+    assert monitor.current_streak == 0
+    assert monitor.first_lock_time_s is None
+
+    monitor.evaluate(phases_rad=[0.0, 0.0], positions_m=[0.0, 0.0], t_s=0.0)
+    locked = monitor.evaluate(phases_rad=[0.0, 0.0], positions_m=[0.0, 0.0], t_s=1.0e-6)
+
+    assert locked.lock_achieved
+    assert monitor.first_lock_time_s == pytest.approx(1.0e-6)
+
+    monitor.reset()
+    assert monitor.current_streak == 0
+    assert monitor.first_lock_time_s is None
