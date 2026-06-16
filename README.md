@@ -7,6 +7,10 @@
 
 # SCPN-MIF-CORE — Magneto-Inertial Fusion Core
 
+<p align="center">
+  <img src="docs/assets/scpn_mif_core_landing.png" width="100%" alt="SCPN-MIF-CORE — Magneto-Inertial Fusion pulsed-FRC kinematic and RTL hot-path laboratory">
+</p>
+
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL_3.0--or--later-blue.svg)](LICENSE)
 [![CI](https://github.com/anulum/scpn-mif-core/actions/workflows/ci.yml/badge.svg)](https://github.com/anulum/scpn-mif-core/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/anulum/scpn-mif-core/actions/workflows/codeql.yml/badge.svg)](https://github.com/anulum/scpn-mif-core/actions/workflows/codeql.yml)
