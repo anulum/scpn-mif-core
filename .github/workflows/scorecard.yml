@@ -2,10 +2,10 @@
 name: OpenSSF Scorecard
 
 on:
-  push:
-    branches: [main]
+  branch_protection_rule:
   schedule:
     - cron: "47 6 * * 1"
+  workflow_dispatch:
 
 concurrency:
   group: scorecard-${{ github.ref }}
