@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# SCPN-MIF-CORE — stale issue and pull-request sweep.
+name: Stale
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: stale-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v10
+        with:
+          days-before-stale: 60
+          days-before-close: 14
+          stale-issue-label: stale
+          stale-pr-label: stale
+          stale-issue-message: >
+            This issue has had no activity for 60 days. It will be closed in 14
+            days unless there is new activity. Remove the `stale` label or comment
+            to keep it open.
+          stale-pr-message: >
+            This pull request has had no activity for 60 days. It will be closed
+            in 14 days unless there is new activity.
+          close-issue-message: Closed due to inactivity. Re-open if still relevant.
+          close-pr-message: Closed due to inactivity. Re-open if still relevant.
+          exempt-issue-labels: pinned,security,roadmap
+          exempt-pr-labels: pinned,security,dependencies
