@@ -25,4 +25,3 @@ mif-diagnostics = { path = "../mif-diagnostics" }
 mif-daq = { path = "../mif-daq" }
 mif-fpga = { path = "../mif-fpga" }
 pyo3 = { workspace = true }
-numpy = { workspace = true }
