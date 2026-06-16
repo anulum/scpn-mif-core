@@ -32,7 +32,7 @@ jobs:
       - run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
-          python -m pip install --no-deps cyclonedx-bom
+          python -m pip install cyclonedx-bom
       - name: Generate Python SBOM
         run: |
           mkdir -p artifacts
@@ -52,15 +52,14 @@ jobs:
       - uses: actions/checkout@v5
       - uses: dtolnay/rust-toolchain@stable
       - run: |
-          mkdir -p ../artifacts
+          mkdir -p ../artifacts/sbom-rust
           cargo install cargo-cyclonedx --locked
-          cargo cyclonedx --manifest-path Cargo.toml --format json --spec-version 1.5
-          test -f scpn-mif-rs.cdx.json
-          mv scpn-mif-rs.cdx.json ../artifacts/sbom-rust.cdx.json
+          cargo cyclonedx --format json --spec-version 1.5
+          find . -name '*.cdx.json' -exec cp {} ../artifacts/sbom-rust/ \;
       - uses: actions/upload-artifact@v4
         with:
           name: sbom-rust
-          path: artifacts/sbom-rust.cdx.json
+          path: artifacts/sbom-rust/
 
   attach-release-assets:
     if: github.event_name == 'release'
@@ -79,7 +78,5 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${GITHUB_REF_NAME}" \
-            artifacts/sbom-python.cdx.json \
-            artifacts/sbom-rust.cdx.json \
-            --clobber
+          mapfile -t sboms < <(find artifacts -name '*.cdx.json')
+          gh release upload "${GITHUB_REF_NAME}" "${sboms[@]}" --clobber
