@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# SCPN-MIF-CORE — maturin build configuration for the native acceleration extension
+[build-system]
+requires = ["maturin>=1.12,<2"]
+build-backend = "maturin"
+
+[project]
+name = "scpn-mif-core-rs"
+description = "Native PyO3 acceleration extension for SCPN-MIF-CORE (module scpn_mif_core_rs)"
+requires-python = ">=3.12,<3.13"
+dynamic = ["version"]
+
+[tool.maturin]
+module-name = "scpn_mif_core_rs"
+manifest-path = "Cargo.toml"
