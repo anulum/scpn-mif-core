@@ -31,7 +31,7 @@ jobs:
           pip install -e ".[dev]"
       - name: Install Rust 1.85
         run: |
-          rustup toolchain install 1.85.0 --profile minimal
+          rustup toolchain list | grep -q '^1\.85\.0' || rustup toolchain install 1.85.0 --profile minimal
           rustup default 1.85.0
       - name: Build Rust extension
         env:
