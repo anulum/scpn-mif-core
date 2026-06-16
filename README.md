@@ -7,6 +7,10 @@
 
 # SCPN-MIF-CORE — Magneto-Inertial Fusion Core
 
+<p align="center">
+  <img src="docs/assets/scpn_mif_core_landing.png" width="100%" alt="SCPN-MIF-CORE — Magneto-Inertial Fusion pulsed-FRC kinematic and RTL hot-path laboratory">
+</p>
+
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL_3.0--or--later-blue.svg)](LICENSE)
 [![CI](https://github.com/anulum/scpn-mif-core/actions/workflows/ci.yml/badge.svg)](https://github.com/anulum/scpn-mif-core/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/anulum/scpn-mif-core/actions/workflows/codeql.yml/badge.svg)](https://github.com/anulum/scpn-mif-core/actions/workflows/codeql.yml)
@@ -119,6 +123,30 @@ python tools/generate_compatibility_matrix.py
 | [`scpn-control`](https://github.com/anulum/scpn-control) | Petri-net runtime + formal verification, SNN controller, Rust hot path, replay | [`docs/generated/compatibility_matrix.md`](docs/generated/compatibility_matrix.md) |
 | [`scpn-fusion-core`](https://github.com/anulum/scpn-fusion-core) | Canonical physics-solver laboratory (Hall-MHD, MRTI, tilt, equilibrium) | [`docs/generated/compatibility_matrix.md`](docs/generated/compatibility_matrix.md) |
 | [`scpn-quantum-control`](https://github.com/anulum/scpn-quantum-control) | QAOA-MPC, pulse shaping, bridges, QRNG, PQC trigger signer | [`docs/generated/compatibility_matrix.md`](docs/generated/compatibility_matrix.md) |
+
+The specific contract lanes MIF consumes, developed in the siblings under the
+bidirectional sync protocol, are:
+
+- **`scpn-fusion-core` — FUS-C.1…C.7**: FRC rigid-rotor equilibrium, two-fluid
+  Hall-MHD pulsed solver, non-adiabatic flux constraint, MRTI and tilt-mode
+  trackers, pulsed compression. Fusion Core owns the solver mathematics; MIF
+  consumes the public contract through `scpn_mif_core.physics.fusion_frc_contract`
+  without duplicating the kernels.
+- **`scpn-control` — CON-C.1…C.7**: pulsed-scenario scheduler, capacitor-bank
+  state model, AER control observation, replay schema, NMPC pulsed-shot adapter,
+  multi-shot campaign orchestrator, PREEMPT_RT runtime binding.
+- **`scpn-phase-orchestrator` — PHA-C.1…C.6**: spatial coupling modulator,
+  Doppler engine, moving-frame UPDE engine, merge-window monitor, time-varying
+  angular frequency, and Lean 4 kinematic safety lemmas.
+- **`sc-neurocore-engine` — NEU-C.1…C.6**: UltraScale+ synthesis target,
+  timing-aware formal framework, mixed-precision Q8.8/Q16.16, AER priority queue,
+  ADC-to-spike quantiser HDL, and the DCLS Q8.8 RTL path.
+- **`scpn-quantum-control` — QUA-C.1…C.6**: QRNG stream, PQC trigger signer,
+  FRC QAOA-MPC cost, UltraScale+ HLS codegen, sub-microsecond tracker, and NV
+  magnetometry. This lane is deferred for the current MIF gate.
+
+Live readiness and version status for every lane are derived from sibling source
+by the generated matrix, never from static equality pins.
 
 ## Technical specification
 
