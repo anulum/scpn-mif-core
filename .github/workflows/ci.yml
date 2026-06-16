@@ -34,6 +34,8 @@ jobs:
           rustup toolchain install 1.85.0 --profile minimal
           rustup default 1.85.0
       - name: Build Rust extension
+        env:
+          RUSTUP_TOOLCHAIN: "1.85.0"
         run: pip install ./scpn-mif-rs/crates/mif-ffi
       - name: ruff check
         run: ruff check src/ tests/ bench/ tools/
