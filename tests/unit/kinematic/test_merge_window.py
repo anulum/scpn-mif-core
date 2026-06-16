@@ -132,3 +132,51 @@ def test_dispatched_merge_window_monitor_falls_back_to_python(monkeypatch: pytes
     monitor = kinematic.dispatched_merge_window_monitor(MergeWindowSpec())
 
     assert isinstance(monitor, MergeWindowMonitor)
+
+
+def test_evaluate_rejects_position_phase_size_mismatch() -> None:
+    monitor = MergeWindowMonitor(MergeWindowSpec())
+    with pytest.raises(ValueError, match="same number of samples"):
+        monitor.evaluate(phases_rad=[0.0, 0.1], positions_m=[0.0])
+
+
+def test_evaluate_single_oscillator_reports_zero_separation() -> None:
+    sample = MergeWindowMonitor(MergeWindowSpec()).evaluate(phases_rad=[0.0], positions_m=[0.005])
+    assert isinstance(sample, MergeWindowSample)
+    assert sample.separation_m == 0.0
+
+
+def test_trace_rejects_one_dimensional_phases() -> None:
+    with pytest.raises(ValueError, match="phases_rad must be a two-dimensional array"):
+        evaluate_merge_window_trace(MergeWindowSpec(), time_s=[0.0], phases_rad=[0.0, 0.1], positions_m=[[0.0, 0.1]])
+
+
+def test_trace_rejects_one_dimensional_positions() -> None:
+    with pytest.raises(ValueError, match="positions_m must be a two-dimensional array"):
+        evaluate_merge_window_trace(MergeWindowSpec(), time_s=[0.0], phases_rad=[[0.0, 0.1]], positions_m=[0.0, 0.1])
+
+
+def test_trace_rejects_shape_mismatch() -> None:
+    with pytest.raises(ValueError, match="same shape"):
+        evaluate_merge_window_trace(MergeWindowSpec(), time_s=[0.0], phases_rad=[[0.0, 0.1]], positions_m=[[0.0]])
+
+
+def test_trace_rejects_row_count_mismatch() -> None:
+    with pytest.raises(ValueError, match="same number of rows"):
+        evaluate_merge_window_trace(
+            MergeWindowSpec(), time_s=[0.0, 1.0e-6], phases_rad=[[0.0, 0.1]], positions_m=[[0.0, 0.1]]
+        )
+
+
+def test_trace_rejects_non_finite_phases() -> None:
+    with pytest.raises(ValueError, match="phases_rad must contain only finite values"):
+        evaluate_merge_window_trace(
+            MergeWindowSpec(), time_s=[0.0], phases_rad=[[0.0, float("inf")]], positions_m=[[0.0, 0.1]]
+        )
+
+
+def test_trace_rejects_non_finite_positions() -> None:
+    with pytest.raises(ValueError, match="positions_m must contain only finite values"):
+        evaluate_merge_window_trace(
+            MergeWindowSpec(), time_s=[0.0], phases_rad=[[0.0, 0.1]], positions_m=[[0.0, float("inf")]]
+        )
