@@ -207,6 +207,7 @@ end
     @test isfinite(i_over)
 
     bank = CapacitorBank(spec, v0)
+    @test natural_peak_current_A(bank) ≈ v0 / sqrt(spec.inductance_H / spec.capacitance_F)
     state = nothing
     for _ in 1:100
         state = step!(bank, 1.0e-7)

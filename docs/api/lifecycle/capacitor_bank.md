@@ -145,7 +145,7 @@ print(f"voltage = {bank.state.voltage_V:.3f} V, current = {bank.state.current_A:
 | Discharge regime, duration, peak-current recording | 3 unit tests pass |
 | Load-drained-more-than-natural contrast | 1 unit test passes |
 | Discharge guards (zero dt, zero n_steps) | 2 unit tests pass |
-| Feasibility happy path, energy-rejection, Z₀-rejection | 4 unit tests pass |
+| Feasibility happy path, energy-rejection, Z₀-rejection, and named natural-peak formula | 6 unit tests pass |
 | Recharge status (target, zero-t, long-t saturation, linear energy, negative-t, zero-power) | 6 unit tests pass |
 | Hypothesis property — natural response stays in the initial-voltage envelope | 80 randomised examples pass |
 | Python ↔ Rust parity across the regime grid and 16 random seeds | 144 parity tests pass at 1e-12 |
@@ -173,6 +173,11 @@ pytest bench/kernels/bench_capacitor_bank.py --benchmark-only
 Results land in `bench/results/capacitor_bank.json`; the multi-language
 dispatch table at `bench/dispatch.toml` is updated to track the fastest
 measured backend.
+
+The named natural-peak current bound is not a benchmarked kernel path. It is a
+single state observable used by the Python feasibility guard
+(`natural_peak_current_a`) and mirrored in the Rust (`natural_peak_current_a`)
+and Julia (`natural_peak_current_A`) lifecycle surfaces for formula parity.
 
 Measured on the local workstation with Python 3.12.3, Rust 1.85.0, and Julia
 1.12.6. This is local comparison evidence, not CPU-isolated production

@@ -344,6 +344,19 @@ class CapacitorBank:
         """Current observable state."""
         return _build_state(self._spec, self._t, self._v, self._i, self._di_dt)
 
+    @property
+    def natural_peak_current_a(self) -> float:
+        """Return the instantaneous short-circuit current bound.
+
+        Returns
+        -------
+        float
+            Conservative natural-response bound ``|v_C| / sqrt(L / C)`` in
+            amperes for an initially charged, zero-current series LC bank.
+        """
+        characteristic_impedance = math.sqrt(self._spec.inductance_H / self._spec.capacitance_F)
+        return abs(self._v) / characteristic_impedance
+
     def reset(self, voltage_V: float = 0.0) -> None:
         """Reset the bank to ``voltage_V`` with zero current and ``t = 0``."""
         voltage = _require_finite("reset voltage", voltage_V)
@@ -482,8 +495,7 @@ class CapacitorBank:
         """
         v_now = self.state.voltage_V
         if v_now > 0.0:
-            z0 = math.sqrt(self._spec.inductance_H / self._spec.capacitance_F)
-            max_natural_current = v_now / z0
+            max_natural_current = self.natural_peak_current_a
             if pulse.peak_current_A > max_natural_current:
                 return (
                     False,

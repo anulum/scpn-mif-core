@@ -182,6 +182,12 @@ function state(bank::CapacitorBank)::CapacitorBankState
     return _capacitor_state(bank.spec, bank.t, bank.voltage_V, bank.current_A, bank.di_dt_A_s)
 end
 
+"""Return the instantaneous short-circuit current bound `abs(v_C) / sqrt(L / C)`."""
+function natural_peak_current_A(bank::CapacitorBank)::Float64
+    characteristic_impedance = sqrt(bank.spec.inductance_H / bank.spec.capacitance_F)
+    return abs(bank.voltage_V) / characteristic_impedance
+end
+
 """Reset a bank to `voltage_V` with zero current and time."""
 function reset!(bank::CapacitorBank, voltage_V::Real = 0.0)::CapacitorBankState
     voltage = _validate_capacitor_non_negative("reset voltage", voltage_V)

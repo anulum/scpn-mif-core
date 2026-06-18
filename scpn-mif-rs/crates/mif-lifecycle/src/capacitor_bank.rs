@@ -142,6 +142,12 @@ impl CapacitorBank {
         }
     }
 
+    /// Return the instantaneous short-circuit current bound `|v_C| / sqrt(L / C)`.
+    pub fn natural_peak_current_a(&self) -> f64 {
+        let characteristic_impedance = (self.spec.inductance_h / self.spec.capacitance_f).sqrt();
+        self.v.abs() / characteristic_impedance
+    }
+
     /// Reset the bank to `voltage_v` with zero current and `t = 0`.
     pub fn reset(&mut self, voltage_v: f64) -> Result<(), ConstructError> {
         require_construct_finite("voltage_v", voltage_v)?;
@@ -335,6 +341,14 @@ mod tests {
         assert!((state.inductor_energy_j - expected_inductor).abs() < 1e-12);
         assert!((state.energy_j - (expected_capacitor + expected_inductor)).abs() < 1e-12);
         assert!(state.energy_j > state.capacitor_energy_j);
+    }
+
+    #[test]
+    fn natural_peak_current_matches_characteristic_impedance_bound() {
+        let spec = underdamped_spec();
+        let bank = CapacitorBank::new(spec, 5000.0).unwrap();
+        let expected = 5000.0 / (spec.inductance_h / spec.capacitance_f).sqrt();
+        assert!((bank.natural_peak_current_a() - expected).abs() < 1e-12);
     }
 
     #[test]

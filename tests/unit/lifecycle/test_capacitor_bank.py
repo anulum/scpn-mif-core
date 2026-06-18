@@ -90,6 +90,14 @@ def test_spec_is_immutable() -> None:
         spec.capacitance_F = 1.0  # type: ignore[misc]
 
 
+def test_bank_spec_property_exposes_validated_spec() -> None:
+    spec = underdamped_spec()
+    bank = CapacitorBank(spec, initial_voltage_V=5000.0)
+
+    assert bank.spec is spec
+    assert bank.spec.critical_resistance == pytest.approx(2.0)
+
+
 def test_spec_rejects_non_positive_capacitance() -> None:
     with pytest.raises(ValueError, match="capacitance_F"):
         CapacitorBankSpec(
@@ -199,6 +207,14 @@ def test_resonant_frequency_formula_correct() -> None:
     spec = underdamped_spec()
     expected = 1.0 / math.sqrt(spec.inductance_H * spec.capacitance_F)
     assert spec.resonant_frequency == pytest.approx(expected)
+
+
+def test_natural_peak_current_matches_characteristic_impedance_bound() -> None:
+    spec = underdamped_spec()
+    bank = CapacitorBank(spec, initial_voltage_V=5000.0)
+    expected = 5000.0 / math.sqrt(spec.inductance_H / spec.capacitance_F)
+
+    assert bank.natural_peak_current_a == pytest.approx(expected)
 
 
 # ---------------------------------------------------------------------------
@@ -599,7 +615,7 @@ def test_feasibility_rejects_peak_exceeding_natural_current() -> None:
     spec = underdamped_spec()
     bank = CapacitorBank(spec, initial_voltage_V=5000.0)
     # Z0 = sqrt(L / C) = 1 ohm; max natural at V=5000 is 5000 A.
-    pulse = PulseSpec(peak_current_A=20_000.0, duration_s=1e-6, waveform="half_sine")
+    pulse = PulseSpec(peak_current_A=bank.natural_peak_current_a * 1.01, duration_s=1e-6, waveform="half_sine")
     feasible, reason = bank.feasibility(pulse)
     assert feasible is False
     assert "natural peak" in reason
