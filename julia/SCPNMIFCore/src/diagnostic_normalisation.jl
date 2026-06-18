@@ -94,9 +94,7 @@ end
 
 function _validate_affine_coefficients(physical_min::Float64, physical_max::Float64)::Nothing
     span = _affine_span(physical_min, physical_max)
-    affine_offset = physical_min + 0.5 * span
     affine_scale = 2.0 / span
-    isfinite(affine_offset) || throw(ArgumentError("affine offset must be finite"))
     isfinite(affine_scale) && affine_scale > 0.0 ||
         throw(ArgumentError("affine scale must be finite and strictly positive"))
     return nothing

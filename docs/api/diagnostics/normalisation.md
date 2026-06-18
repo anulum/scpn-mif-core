@@ -24,8 +24,8 @@ closed with a deterministic error. Every output vector is a read-only
 
 Calibration validation also checks the derived affine coefficients, not only
 the raw endpoint values. A finite endpoint pair is rejected if the physical
-span, offset, or scale would become non-finite. The midpoint is computed as
-`x_min + 0.5 * (x_max - x_min)` so large same-sign physical ranges keep a
+span or scale would become non-finite. The midpoint is computed as `x_min +
+0.5 * (x_max - x_min)` so finite endpoints with a finite positive span keep a
 finite offset instead of overflowing through `x_min + x_max`.
 
 ## Python API
@@ -64,8 +64,8 @@ The committed tests verify:
 - exact affine mapping and manifest fields;
 - deterministic clipping and bounded AER features;
 - reject-policy failure semantics;
-- invalid range, non-finite, non-finite affine-coefficient,
-  missing-channel, and zero-span fit guards;
+- invalid range, non-finite endpoint, non-finite affine-span,
+  subnormal-scale, missing-channel, and zero-span fit guards;
 - Python/Rust parity across 16 seeded random vectors;
 - Julia reference behavior in `julia/SCPNMIFCore/test/runtests.jl`.
 

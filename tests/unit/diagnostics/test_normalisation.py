@@ -209,6 +209,16 @@ def test_affine_coefficients_must_remain_finite() -> None:
             provenance="wide range calibration",
         )
 
+    with pytest.raises(ValueError, match="affine scale"):
+        DiagnosticChannelCalibration(
+            name="subnormal_probe_V",
+            unit="V",
+            physical_min=0.0,
+            physical_max=5.0e-324,
+            clip_policy="clip",
+            provenance="subnormal span calibration",
+        )
+
 
 def test_large_same_sign_range_uses_stable_midpoint() -> None:
     calibration = DiagnosticChannelCalibration(

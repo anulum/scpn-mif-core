@@ -11,7 +11,9 @@
 //! `[-1, 1]` before AER encoding. The deterministic clip/reject policy is part
 //! of each channel calibration so the downstream front-end never receives an
 //! overflowing feature vector. Calibration validation also rejects finite
-//! endpoint pairs that would produce non-finite affine coefficients.
+//! endpoint pairs that would produce a non-finite affine span or scale. The
+//! stable midpoint offset is finite whenever both endpoints and the span are
+//! finite.
 
 #![forbid(unsafe_code)]
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
@@ -159,7 +161,6 @@ impl DiagnosticChannelCalibration {
         if span <= 0.0 {
             return Err(DiagnosticError::InvalidRange);
         }
-        require_finite("affine offset", self.physical_min + 0.5 * span)?;
         let scale = 2.0 / span;
         require_finite("affine scale", scale)?;
         if scale <= 0.0 {
@@ -775,6 +776,24 @@ mod tests {
             ),
             Err(DiagnosticError::NonFinite {
                 field: "affine span"
+            })
+        ));
+    }
+
+    #[test]
+    fn rejects_non_finite_affine_scale() {
+        assert!(matches!(
+            DiagnosticChannelCalibration::new(
+                "subnormal_probe_v",
+                "V",
+                0.0,
+                f64::from_bits(1),
+                ClipPolicy::Clip,
+                "subnormal span calibration",
+                None,
+            ),
+            Err(DiagnosticError::NonFinite {
+                field: "affine scale"
             })
         ));
     }

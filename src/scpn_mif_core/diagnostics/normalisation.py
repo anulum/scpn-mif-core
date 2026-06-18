@@ -26,8 +26,9 @@ Out-of-range behavior is explicit per channel: ``clip`` saturates
 deterministically at the endpoint and records a clip mask, while ``reject``
 raises. The resulting feature vectors are read-only ``float64`` NumPy arrays
 so downstream AER front-ends cannot observe overflow beyond ``[-1, 1]``.
-Finite endpoint pairs are also rejected when the derived affine span, offset,
-or scale would be non-finite.
+Finite endpoint pairs are also rejected when the derived affine span or scale
+would be non-finite. The stable midpoint offset remains finite whenever both
+endpoints and the span are finite.
 """
 
 from __future__ import annotations
@@ -295,10 +296,7 @@ def _affine_span(physical_min: float, physical_max: float) -> float:
 
 def _validate_affine_coefficients(physical_min: float, physical_max: float) -> None:
     span = _affine_span(physical_min, physical_max)
-    offset = physical_min + 0.5 * span
     scale = 2.0 / span
-    if not math.isfinite(offset):
-        raise ValueError("affine offset must be finite")
     if not math.isfinite(scale) or scale <= 0.0:
         raise ValueError("affine scale must be finite and strictly positive")
 

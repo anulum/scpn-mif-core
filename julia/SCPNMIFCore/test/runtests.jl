@@ -298,6 +298,7 @@ end
     @test_throws ArgumentError normalise_sample(reject_state, Dict("bdot_dv_dt" => 2.0e9))
     @test_throws ArgumentError DiagnosticChannelCalibration("flat", "V", 1.0, 1.0, "clip", "flat")
     @test_throws ArgumentError DiagnosticChannelCalibration("wide_field_T", "T", -1.0e308, 1.0e308, "clip", "wide range calibration")
+    @test_throws ArgumentError DiagnosticChannelCalibration("subnormal_probe_V", "V", 0.0, 5.0e-324, "clip", "subnormal span calibration")
 
     large_cal = DiagnosticChannelCalibration(
         "dense_plasma_m3",
