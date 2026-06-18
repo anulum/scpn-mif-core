@@ -51,6 +51,11 @@ class FusionFRCContractReport:
         return all(surface.present for surface in self.surfaces)
 
     @property
+    def ready_for_full_evidence(self) -> bool:
+        """Return whether public symbols are present without blocked evidence claims."""
+        return self.ready_for_mif_integration and not self.blocked_claim_boundaries
+
+    @property
     def missing_required_symbols(self) -> tuple[str, ...]:
         """Return missing symbols as ``FUS-C.X:symbol`` entries."""
         missing: list[str] = []

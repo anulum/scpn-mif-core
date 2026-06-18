@@ -15,6 +15,12 @@ detects the public API shape and claim-boundary statuses.
 The adapter answers one operational question: can MIF wire against the current
 FUSION FRC surfaces without duplicating physics kernels locally?
 
+The report intentionally separates symbol readiness from physics-evidence
+readiness. `ready_for_mif_integration` only means that the required callable
+surface is present. `ready_for_full_evidence` is stricter: every required symbol
+must be present and no FUSION status hook may report a `blocked_*` evidence
+boundary.
+
 It checks the seven FUSION-owned surfaces:
 
 | ID | Surface | MIF use |
@@ -53,6 +59,8 @@ downstream reports.
 The MIF contract tests include:
 
 - module-specific adapter tests using a synthetic FUSION core object;
+- explicit separation between API-symbol readiness and full-evidence readiness;
+- malformed claim-status hooks ignored unless they return a string status;
 - a sibling contract test that imports `scpn_fusion.core` when the ecosystem
   extra is installed;
 - a dispatch hygiene test ensuring FUSION-owned FRC physics is not registered

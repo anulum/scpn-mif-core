@@ -84,6 +84,7 @@ def test_contract_report_preserves_blocked_claim_boundaries() -> None:
     report = inspect_fusion_frc_contract(fusion_core)
 
     assert report.ready_for_mif_integration
+    assert not report.ready_for_full_evidence
     assert report.blocked_claim_boundaries == (
         "FUS-C.1:blocked_reconstructed_reference_not_public_digitised",
         "FUS-C.2:blocked_missing_public_digitised_reference",
@@ -96,6 +97,7 @@ def test_contract_report_lists_missing_required_symbols() -> None:
     report = inspect_fusion_frc_contract(SimpleNamespace())
 
     assert not report.ready_for_mif_integration
+    assert not report.ready_for_full_evidence
     assert "FUS-C.1:RigidRotorFRCInputs" in report.missing_required_symbols
     assert "FUS-C.7:integrated_recovery_energy" in report.missing_required_symbols
 
@@ -132,6 +134,43 @@ def test_contract_report_accepts_string_status_and_ignores_malformed_hooks() -> 
     report = inspect_fusion_frc_contract(fusion_core)
 
     assert report.blocked_claim_boundaries == ("FUS-C.2:blocked_missing_public_digitised_reference",)
+    assert not report.ready_for_full_evidence
+
+
+def test_contract_report_distinguishes_symbol_readiness_from_full_evidence_readiness() -> None:
+    fusion_core = SimpleNamespace(
+        RigidRotorFRCInputs=object,
+        solve_frc_equilibrium=lambda: None,
+        rotating_frc_bvp_acceptance_status=lambda: {"claim": "missing status key"},
+        solve_flux_evolution_nonadiabatic=lambda: None,
+        HallMHDPulsedConfig=object,
+        initial_hall_mhd_pulsed_state=lambda: None,
+        step_hall_mhd_pulsed=lambda: None,
+        run_hall_mhd_pulsed=lambda: None,
+        ono_fig4_acceptance_status=lambda: object(),
+        gkeyll_small_hall_acceptance_status=lambda: {"status": "accepted_public_digitised_reference"},
+        PulsedCompressionConfig=object,
+        initial_pulsed_compression_state=lambda: None,
+        step_pulsed_compression=lambda: None,
+        run_pulsed_compression=lambda: None,
+        slough_fig5_acceptance_status=lambda: {"status": "accepted_public_digitised_reference"},
+        MRTISpectrumTracker=object,
+        mrti_growth_rate=lambda: None,
+        track_mrti_from_pulsed_compression=lambda: None,
+        frc_tilt_growth_rate=lambda: None,
+        tilt_mode_report=lambda: None,
+        tilt_mode_trajectory_from_pulsed_compression=lambda: None,
+        belova_table1_acceptance_status=lambda: "accepted_public_digitised_reference",
+        faraday_back_emf=lambda: None,
+        faraday_trajectory_from_pulsed_compression=lambda: None,
+        integrated_recovery_energy=lambda: None,
+    )
+
+    report = inspect_fusion_frc_contract(fusion_core)
+
+    assert report.ready_for_mif_integration
+    assert report.blocked_claim_boundaries == ()
+    assert report.ready_for_full_evidence
 
 
 def test_contract_loads_optional_fusion_core(monkeypatch: pytest.MonkeyPatch) -> None:

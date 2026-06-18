@@ -30,4 +30,5 @@ def test_scpn_fusion_frc_claim_boundaries_are_explicit() -> None:
     report = inspect_fusion_frc_contract(fusion_core)
 
     assert report.blocked_claim_boundaries
+    assert not report.ready_for_full_evidence
     assert all(status.startswith("FUS-C.") for status in report.blocked_claim_boundaries)
