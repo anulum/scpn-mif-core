@@ -64,11 +64,15 @@ The Python reference remains available for deterministic debugging and tests.
 The committed MIF-012 tests cover:
 
 - nominal collision-to-phase-lock progression;
-- consecutive-delay behaviour for stochastic transitions;
+- deterministic transition-delay behaviour for reconnection, coalescence, and
+  final phase lock;
+- reset semantics with and without stochastic reseeding;
 - fail-closed validation of discrete integer delay ticks;
 - abort routing for unsafe tilt or density asymmetry;
-- CONTROL topology export with both terminal inhibitor arcs;
+- CONTROL topology export with both terminal inhibitor arcs and the default
+  pinned import path;
 - the required boundedness campaign (`100 × 500`);
+- explicit broken-marking detection in the boundedness verifier;
 - the required liveness campaign (`1 000 × 200`);
 - property-based one-safe marking preservation;
 - Lean one-token marking and nominal reachability proofs;

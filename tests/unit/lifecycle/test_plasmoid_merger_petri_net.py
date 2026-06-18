@@ -16,9 +16,12 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
+import scpn_mif_core.lifecycle.plasmoid_merger_petri_net as merger_module
 from scpn_mif_core.lifecycle import (
+    MergerMarking,
     MergerObservation,
     MergerPlace,
+    MergerStep,
     MergerTransition,
     PlasmoidMergerPetriNet,
     PlasmoidMergerSpec,
@@ -109,6 +112,46 @@ def test_reconnection_delay_requires_consecutive_guard_satisfaction() -> None:
     assert second.fired is True
 
 
+def test_coalescence_delay_requires_consecutive_density_window_satisfaction() -> None:
+    net = PlasmoidMergerPetriNet(_spec(), seed=14)
+    net.step(_obs(separation_m=0.0015))
+    net.step(_obs(separation_m=0.0014, reconnection_flux_norm=0.80))
+    net.step(_obs(separation_m=0.0013, reconnection_flux_norm=0.82))
+
+    first = net.step(_obs(separation_m=0.0011, reconnection_flux_norm=0.88, density_asymmetry=0.08))
+    second = net.step(_obs(separation_m=0.0010, reconnection_flux_norm=0.90, density_asymmetry=0.07))
+
+    assert first.place is MergerPlace.RECONNECTION
+    assert first.transition is MergerTransition.COALESCE_PLASMOIDS
+    assert first.reason == "waiting for transition delay"
+    assert second.place is MergerPlace.COALESCENCE
+    assert second.transition is MergerTransition.COALESCE_PLASMOIDS
+    assert second.fired is True
+
+
+def test_phase_lock_delay_requires_consecutive_spatial_phase_density_satisfaction() -> None:
+    net = PlasmoidMergerPetriNet(_spec(), seed=15)
+    for observation in _nominal_campaign()[:5]:
+        net.step(observation)
+
+    first = net.step(
+        _obs(separation_m=0.0008, reconnection_flux_norm=0.92, density_asymmetry=0.06, phase_lock_error_rad=0.006)
+    )
+    second = net.step(
+        _obs(separation_m=0.0007, reconnection_flux_norm=0.93, density_asymmetry=0.05, phase_lock_error_rad=0.005)
+    )
+    third = net.step(
+        _obs(separation_m=0.0006, reconnection_flux_norm=0.94, density_asymmetry=0.04, phase_lock_error_rad=0.004)
+    )
+
+    assert first.place is MergerPlace.COALESCENCE
+    assert first.transition is MergerTransition.ACHIEVE_PHASE_LOCK
+    assert second.place is MergerPlace.COALESCENCE
+    assert second.dwell_ticks == 2
+    assert third.place is MergerPlace.PHASE_LOCKED
+    assert third.fired is True
+
+
 def test_guard_drop_clears_pending_transition_and_stalls() -> None:
     net = PlasmoidMergerPetriNet(_spec(), seed=12)
     net.step(_obs(separation_m=0.0015))
@@ -164,6 +207,20 @@ def test_reset_copy_and_terminal_places_are_stable() -> None:
     assert net.marking().tokens[MergerPlace.APPROACH] == 1
 
 
+def test_reset_without_seed_clears_state_without_reseeding_rng() -> None:
+    spec = replace(_spec(), firing_probability=0.5)
+    net = PlasmoidMergerPetriNet(spec, seed=37)
+    net.step(_obs(separation_m=0.0015))
+    copied_rng_state = net.copy()
+
+    net.reset()
+    copied_rng_state.reset()
+
+    assert net.place is MergerPlace.APPROACH
+    assert net.audit_log == ()
+    assert net.step(_obs(separation_m=0.0015)).reason == copied_rng_state.step(_obs(separation_m=0.0015)).reason
+
+
 def test_boundedness_verification_passes_required_budget() -> None:
     report = verify_merger_boundedness(_spec(), trials=100, steps_per_trial=500, seed=17)
 
@@ -172,6 +229,37 @@ def test_boundedness_verification_passes_required_budget() -> None:
     assert report.steps_per_trial == 500
     assert report.failures == ()
     assert report.max_tokens_per_place <= 1
+
+
+def test_boundedness_verification_reports_broken_one_safe_marking(monkeypatch: pytest.MonkeyPatch) -> None:
+    class BrokenMergerPetriNet:
+        place = MergerPlace.APPROACH
+
+        def __init__(self, _spec: PlasmoidMergerSpec, seed: int) -> None:
+            self.seed = seed
+
+        def step(self, _observation: MergerObservation) -> object:
+            marking = MergerMarking(
+                tokens={place: (2 if place is MergerPlace.APPROACH else 0) for place in MergerPlace},
+                total_tokens=2,
+            )
+            return MergerStep(
+                tick=1,
+                place=MergerPlace.APPROACH,
+                transition=None,
+                fired=False,
+                reason="injected broken marking",
+                dwell_ticks=0,
+                marking=marking,
+            )
+
+    monkeypatch.setattr(merger_module, "PlasmoidMergerPetriNet", BrokenMergerPetriNet)
+
+    report = verify_merger_boundedness(_spec(), trials=1, steps_per_trial=1, seed=17)
+
+    assert report.passed is False
+    assert report.failures == ("trial 0 step 0 broke one-safe marking",)
+    assert report.max_tokens_per_place == 2
 
 
 def test_liveness_verification_passes_required_budget() -> None:
@@ -293,6 +381,42 @@ def test_control_petri_net_builder_uses_pinned_surface_calls() -> None:
     assert [transition["inhibitor_arcs"] for transition in net.transitions] == [
         ("phase_locked", "abort") for _ in MergerTransition
     ]
+
+
+def test_control_petri_net_builder_uses_default_control_import(monkeypatch: pytest.MonkeyPatch) -> None:
+    class DummyControlNet:
+        def __init__(self) -> None:
+            self.places: list[tuple[str, int]] = []
+            self.transitions: list[str] = []
+            self.validated = False
+
+        def add_place(self, name: str, m0: int) -> None:
+            self.places.append((name, m0))
+
+        def add_transition(
+            self,
+            name: str,
+            threshold: float,
+            delay_ticks: int,
+            inhibitor_arcs: tuple[str, ...],
+        ) -> None:
+            del threshold, delay_ticks, inhibitor_arcs
+            self.transitions.append(name)
+
+        def validate_topology(self) -> None:
+            self.validated = True
+
+    def fake_import_module(name: str) -> object:
+        assert name == "scpn_control.scpn.structure"
+        return type("ControlStructure", (), {"StochasticPetriNet": DummyControlNet})
+
+    monkeypatch.setattr(merger_module.importlib, "import_module", fake_import_module)
+
+    net = build_control_petri_net(_spec())
+
+    assert net.validated is True
+    assert net.places[0] == ("approach", 1)
+    assert net.transitions[-1] == "abort_unstable"
 
 
 def test_dispatched_merger_falls_back_to_python_when_rust_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
