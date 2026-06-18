@@ -25,6 +25,7 @@ def test_contract_report_detects_present_fusion_frc_surfaces() -> None:
     fusion_core = SimpleNamespace(
         RigidRotorFRCInputs=object,
         solve_frc_equilibrium=lambda: None,
+        rotating_frc_bvp_acceptance_status=lambda: {"status": "blocked_reconstructed_reference_not_public_digitised"},
         solve_flux_evolution_nonadiabatic=lambda: None,
         HallMHDPulsedConfig=object,
         initial_hall_mhd_pulsed_state=lambda: None,
@@ -56,6 +57,7 @@ def test_contract_report_preserves_blocked_claim_boundaries() -> None:
     fusion_core = SimpleNamespace(
         RigidRotorFRCInputs=object,
         solve_frc_equilibrium=lambda: None,
+        rotating_frc_bvp_acceptance_status=lambda: {"status": "blocked_reconstructed_reference_not_public_digitised"},
         solve_flux_evolution_nonadiabatic=lambda: None,
         HallMHDPulsedConfig=object,
         initial_hall_mhd_pulsed_state=lambda: None,
@@ -83,6 +85,7 @@ def test_contract_report_preserves_blocked_claim_boundaries() -> None:
 
     assert report.ready_for_mif_integration
     assert report.blocked_claim_boundaries == (
+        "FUS-C.1:blocked_reconstructed_reference_not_public_digitised",
         "FUS-C.2:blocked_missing_public_digitised_reference",
         "FUS-C.5:blocked_missing_public_digitised_reference",
         "FUS-C.6:blocked_missing_public_digitised_reference",
@@ -101,6 +104,7 @@ def test_contract_report_accepts_string_status_and_ignores_malformed_hooks() -> 
     fusion_core = SimpleNamespace(
         RigidRotorFRCInputs=object,
         solve_frc_equilibrium=lambda: None,
+        rotating_frc_bvp_acceptance_status=lambda: {"status": object()},
         solve_flux_evolution_nonadiabatic=lambda: None,
         HallMHDPulsedConfig=object,
         initial_hall_mhd_pulsed_state=lambda: None,

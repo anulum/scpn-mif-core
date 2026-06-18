@@ -21,7 +21,7 @@ from typing import SupportsFloat, SupportsIndex, cast
 
 import numpy as np
 import scpn_mif_core_rs as _rust
-from numpy.typing import ArrayLike
+from numpy.typing import ArrayLike, NDArray
 
 from scpn_mif_core.kinematic.doppler_kuramoto import (
     DopplerKuramotoSpec,
@@ -160,7 +160,7 @@ def rust_doppler_derivatives(
     positions_m: ArrayLike,
     velocities_m_s: ArrayLike,
     t_s: float = 0.0,
-) -> np.ndarray:
+) -> NDArray[np.float64]:
     """Return Rust-computed Doppler-Kuramoto phase derivatives."""
     return _readonly(
         np.asarray(
@@ -182,7 +182,7 @@ def rust_moving_frame_derivatives(
     positions_m: ArrayLike,
     velocities_m_s: ArrayLike,
     t_s: float = 0.0,
-) -> np.ndarray:
+) -> NDArray[np.float64]:
     """Return Rust-computed moving-frame derivatives."""
     return _readonly(
         np.asarray(

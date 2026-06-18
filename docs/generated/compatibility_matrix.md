@@ -12,16 +12,16 @@ This file is generated from the live sibling repository check. It records
 source versions, optional runtime import status, and the contract surfaces
 that MIF consumes. Static equality pins are not the compatibility authority.
 
-- Generated UTC: `2026-06-15T22:34:10+00:00`
+- Generated UTC: `2026-06-18T18:35:50+00:00`
 - Code root: `/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE`
 - Regenerate: `python tools/generate_compatibility_matrix.py`
 
 | Sibling | Source | Runtime | Status | Current gate | Lane |
 |---|---:|---:|---|---|---|
 | `sc-neurocore-engine` | `3.15.34` | `3.15.34` | `ready_with_hardware_gate` | yes | NEU-C.5 / MIF-007 hardware ingress |
-| `scpn-phase-orchestrator` | `0.9.0` | `0.8.0` | `ready` | yes | PHA-C / MIF-001..MIF-003 |
-| `scpn-control` | `0.21.0` | `0.20.7` | `ready` | yes | CON-C / MIF-004, MIF-005, MIF-012, MIF-018 |
-| `scpn-fusion-core` | `3.9.10` | `3.9.10` | `ready_with_external_blockers` | yes | FUS-C / B-lane FRC solver ownership |
+| `scpn-phase-orchestrator` | `0.9.0` | `0.9.0` | `ready` | yes | PHA-C / MIF-001..MIF-003 |
+| `scpn-control` | `0.21.0` | `0.21.0` | `ready` | yes | CON-C / MIF-004, MIF-005, MIF-012, MIF-018 |
+| `scpn-fusion-core` | `3.9.11` | `3.9.11` | `ready_with_external_blockers` | yes | FUS-C / B-lane FRC solver ownership |
 | `scpn-quantum-control` | `0.9.12` | `0.9.6` | `deferred_not_required_for_current_gate` | deferred | QUA-C deferred for current MIF gate |
 
 ## Surface Details
@@ -54,7 +54,6 @@ Notes:
 
 Notes:
 - Import may require PHASE runtime extras; source contract is still audited.
-- Runtime package metadata reports 0.8.0; sibling source declares 0.9.0.
 
 ### `scpn-control`
 
@@ -68,7 +67,6 @@ Notes:
 
 Notes:
 - SCPN-CONTROL claims the pulsed-control lane completed at its current source version.
-- Runtime package metadata reports 0.20.7; sibling source declares 0.21.0.
 
 ### `scpn-fusion-core`
 
@@ -78,7 +76,7 @@ Notes:
 
 | Surface | Status | Detail |
 |---|---|---|
-| FUSION FRC public contract | `ready_with_external_blockers` | public symbols present; explicit evidence blockers remain: FUS-C.2:blocked_missing_public_digitised_reference, FUS-C.2:blocked_missing_public_same_case_reference, FUS-C.5:blocked_missing_public_digitised_reference, FUS-C.6:blocked_reconstructed_reference_not_public_digitised |
+| FUSION FRC public contract | `ready_with_external_blockers` | public symbols present; explicit evidence blockers remain: FUS-C.1:blocked_missing_verified_steinhauer_rotating_closure, FUS-C.2:blocked_missing_public_digitised_reference, FUS-C.2:blocked_missing_public_same_case_reference, FUS-C.5:blocked_missing_public_digitised_reference, FUS-C.6:blocked_reconstructed_reference_not_public_digitised |
 
 Notes:
 - FUSION owns the solver lane; MIF consumes accepted public surfaces.

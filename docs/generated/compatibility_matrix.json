@@ -1,6 +1,6 @@
 {
   "code_root": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE",
-  "generated_at_utc": "2026-06-15T22:34:10+00:00",
+  "generated_at_utc": "2026-06-18T18:35:50+00:00",
   "siblings": [
     {
       "current_gate": true,
@@ -35,13 +35,12 @@
       "current_gate": true,
       "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR/src/scpn_phase_orchestrator/__init__.py",
       "import_status": "ok",
-      "import_version": "0.8.0",
+      "import_version": "0.9.0",
       "key": "scpn-phase-orchestrator",
       "lane": "PHA-C / MIF-001..MIF-003",
       "module": "scpn_phase_orchestrator",
       "notes": [
-        "Import may require PHASE runtime extras; source contract is still audited.",
-        "Runtime package metadata reports 0.8.0; sibling source declares 0.9.0."
+        "Import may require PHASE runtime extras; source contract is still audited."
       ],
       "package": "scpn-phase-orchestrator",
       "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR",
@@ -70,13 +69,12 @@
       "current_gate": true,
       "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-CONTROL/src/scpn_control/__init__.py",
       "import_status": "ok",
-      "import_version": "0.20.7",
+      "import_version": "0.21.0",
       "key": "scpn-control",
       "lane": "CON-C / MIF-004, MIF-005, MIF-012, MIF-018",
       "module": "scpn_control",
       "notes": [
-        "SCPN-CONTROL claims the pulsed-control lane completed at its current source version.",
-        "Runtime package metadata reports 0.20.7; sibling source declares 0.21.0."
+        "SCPN-CONTROL claims the pulsed-control lane completed at its current source version."
       ],
       "package": "scpn-control",
       "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-CONTROL",
@@ -95,7 +93,7 @@
       "current_gate": true,
       "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-FUSION-CORE/src/scpn_fusion/__init__.py",
       "import_status": "ok",
-      "import_version": "3.9.10",
+      "import_version": "3.9.11",
       "key": "scpn-fusion-core",
       "lane": "FUS-C / B-lane FRC solver ownership",
       "module": "scpn_fusion",
@@ -105,11 +103,11 @@
       "package": "scpn-fusion-core",
       "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-FUSION-CORE",
       "role": "Canonical FRC physics solver laboratory consumed by MIF",
-      "source_version": "3.9.10",
+      "source_version": "3.9.11",
       "status": "ready_with_external_blockers",
       "surfaces": [
         {
-          "detail": "public symbols present; explicit evidence blockers remain: FUS-C.2:blocked_missing_public_digitised_reference, FUS-C.2:blocked_missing_public_same_case_reference, FUS-C.5:blocked_missing_public_digitised_reference, FUS-C.6:blocked_reconstructed_reference_not_public_digitised",
+          "detail": "public symbols present; explicit evidence blockers remain: FUS-C.1:blocked_missing_verified_steinhauer_rotating_closure, FUS-C.2:blocked_missing_public_digitised_reference, FUS-C.2:blocked_missing_public_same_case_reference, FUS-C.5:blocked_missing_public_digitised_reference, FUS-C.6:blocked_reconstructed_reference_not_public_digitised",
           "name": "FUSION FRC public contract",
           "status": "ready_with_external_blockers"
         }

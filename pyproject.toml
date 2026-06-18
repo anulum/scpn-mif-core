@@ -115,25 +115,31 @@ select = [
     "PT",            # pytest-style
     "PIE",           # misc
     "C4",            # comprehensions
+    "D",             # pydocstyle docstrings
 ]
 ignore = [
     "E501",     # line length handled by formatter
     "S101",     # assert is fine in tests
+    "D105",     # magic methods validate invariants; public contracts are documented on classes and methods
+    "D301",     # existing math docstrings use escaped LaTeX; content quality is enforced by D1xx/D2xx/D4xx
     "RUF003",   # EN DASH in copyright year ranges is the ANULUM branding standard
     "N803",     # SI-unit-suffixed argument names (initial_voltage_V) are intentional scientific convention
     "N815",     # SI-unit-suffixed dataclass field names (capacitance_F, voltage_max_V) likewise
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S", "PT011", "PT012", "E402"]
-"bench/**/*.py" = ["S"]
+"tests/**/*.py" = ["S", "PT011", "PT012", "E402", "D"]
+"bench/**/*.py" = ["S", "D"]
 "examples/**/*.py" = ["S"]
-"tools/**/*.py" = ["S"]
-"conftest.py" = ["S"]
+"tools/**/*.py" = ["S", "D"]
+"conftest.py" = ["S", "D"]
 # Parity tests intentionally use `pytest.importorskip` before further imports,
 # quote forward references to the runtime-resolved Rust extension module, and
 # use the multiplication sign in mathematical prose.
 "tests/unit/lifecycle/test_capacitor_bank_rust_parity.py" = ["UP037", "RUF002"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
 
 [tool.mypy]
 python_version = "3.12"

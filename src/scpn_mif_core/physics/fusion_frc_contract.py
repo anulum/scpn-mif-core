@@ -74,6 +74,7 @@ FUSION_FRC_SURFACES: tuple[FusionFRCSurface, ...] = (
         module_id="FUS-C.1",
         name="FRC rigid-rotor equilibrium",
         required_symbols=("RigidRotorFRCInputs", "solve_frc_equilibrium"),
+        claim_status_functions=("rotating_frc_bvp_acceptance_status",),
     ),
     FusionFRCSurface(
         module_id="FUS-C.2",

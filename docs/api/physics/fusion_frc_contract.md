@@ -19,7 +19,7 @@ It checks the seven FUSION-owned surfaces:
 
 | ID | Surface | MIF use |
 | :--- | :--- | :--- |
-| FUS-C.1 | FRC rigid-rotor equilibrium | startup state for compression and stability diagnostics |
+| FUS-C.1 | FRC rigid-rotor equilibrium | startup state for compression and stability diagnostics; rotating-BVP acceptance status remains visible to MIF |
 | FUS-C.2 | axisymmetric pulsed Hall-MHD carrier | flux evolution input to trigger/replay work |
 | FUS-C.3 | non-adiabatic flux constraint | carrier equation used by compression coupling |
 | FUS-C.4 | MRTI growth spectrum | compression-instability preemption diagnostic |
@@ -28,9 +28,12 @@ It checks the seven FUSION-owned surfaces:
 | FUS-C.7 | Faraday recovery over compression trajectories | recovery-energy accounting over FUS-C.6 trajectories |
 
 Several FUSION surfaces intentionally expose fail-closed claim boundaries while
-external public digitised-reference parity remains unavailable. MIF may consume
-the accepted executable carrier only if those blocked full-evidence statuses are
-kept visible in documentation, tests, and downstream reports.
+external public digitised-reference parity remains unavailable. MIF preserves
+the FUS-C.1 rotating-BVP status, the FUS-C.2 Ono/Gkeyll Hall-MHD statuses, the
+FUS-C.5 Belova tilt status, and the FUS-C.6 Slough compression status in its
+readiness report. MIF may consume the accepted executable carrier only if those
+blocked full-evidence statuses are kept visible in documentation, tests, and
+downstream reports.
 
 ## Public Python API
 

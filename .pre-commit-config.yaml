@@ -45,3 +45,9 @@ repos:
         entry: python tools/check_secrets.py
         language: system
         pass_filenames: false
+
+      - id: mypy-strict
+        name: mypy strict type gate
+        entry: mypy src/scpn_mif_core/ tools/
+        language: system
+        pass_filenames: false

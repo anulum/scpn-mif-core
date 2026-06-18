@@ -106,7 +106,7 @@ def test_monitor_rejects_backwards_sample_time() -> None:
         monitor.evaluate([0.0, 0.001], [-0.001, 0.001], t_s=0.5)
 
 
-def test_trace_rejects_shape_mismatch() -> None:
+def test_trace_rejects_sample_shape_mismatch() -> None:
     with pytest.raises(ValueError, match="same shape"):
         evaluate_merge_window_trace(
             MergeWindowSpec(),
