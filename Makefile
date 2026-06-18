@@ -113,7 +113,10 @@ docs-build:
 
 # ── Benchmarks ─────────────────────────────────────────────────────────
 bench:
-	pytest bench/ --benchmark-only --benchmark-json=bench/results/python_latest.json
+	mkdir -p bench/results/local
+	PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest -p pytest_cov -p pytest_benchmark.plugin \
+		bench/ --benchmark-only --no-cov -o python_files="bench_*.py" \
+		--benchmark-json=bench/results/local/python_latest.json
 
 bench-rust:
 	cd scpn-mif-rs && cargo bench --workspace

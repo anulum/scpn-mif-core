@@ -93,7 +93,16 @@ labelled as non-isolated local comparisons in
 ```bash
 make bench                      # full Python benchmark suite
 make bench-rust                 # cargo bench --workspace
-pytest bench/kernels/ -k doppler --benchmark-only
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python -m pytest \
+  -p pytest_cov -p pytest_benchmark.plugin \
+  bench/kernels/ -k doppler --benchmark-only --no-cov \
+  -o python_files="bench_*.py"
 ```
+
+`make bench` uses the same isolated pytest plugin contract so globally
+installed pytest plugins cannot perturb physics-kernel collection or convert
+third-party warnings into benchmark failures. It writes local comparison output
+to `bench/results/local/python_latest.json`, which is intentionally gitignored;
+promoted per-kernel result files remain explicit review artifacts.
 
 Implementation lands in P1 (kinematic kernels) and P2 (physics kernels).
