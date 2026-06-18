@@ -80,6 +80,14 @@ def test_python_and_rust_reject_non_finite_derived_observables() -> None:
         rust.recovered_power(rust_spec, 1e200)
 
 
+def test_python_and_rust_zero_coupling_return_zero_power_without_squaring_emf() -> None:
+    py_spec = FaradayRecoverySpec(turns=1.0, load_resistance_ohm=1.0, coupling_efficiency=0.0)
+    rust_spec = rust.FaradayRecoverySpec(1.0, 1.0, 0.0)
+
+    assert recovered_power(py_spec, 1e200) == 0.0
+    assert rust.recovered_power(rust_spec, 1e200) == 0.0
+
+
 def test_waveform_faraday_recovery_parity() -> None:
     spec = FaradayRecoverySpec(turns=32.0, load_resistance_ohm=4.0, coupling_efficiency=0.9)
     rust_spec = rust.FaradayRecoverySpec(32.0, 4.0, 0.9)
@@ -109,6 +117,38 @@ def test_waveform_faraday_recovery_parity() -> None:
     assert _approx_equal(py_report.recovered_energy_J, rust_energy)
     assert _approx_equal(py_report.peak_abs_back_emf_V, rust_peak_emf)
     assert _approx_equal(py_report.peak_recovered_power_W, rust_peak_power)
+
+
+def test_python_and_rust_zero_coupling_waveform_parity() -> None:
+    spec = FaradayRecoverySpec(turns=1.0, load_resistance_ohm=1.0, coupling_efficiency=0.0)
+    rust_spec = rust.FaradayRecoverySpec(1.0, 1.0, 0.0)
+    time_s = np.array([0.0, 1.0])
+    radius_m = np.array([1.0, 1.0])
+    radial_velocity_m_s = np.array([0.0, 0.0])
+    magnetic_field_t = np.array([0.0, 0.0])
+    magnetic_field_rate_t_s = np.array([1e200, 1e200])
+
+    py_report = evaluate_faraday_recovery(
+        spec,
+        time_s,
+        radius_m,
+        radial_velocity_m_s,
+        magnetic_field_t,
+        magnetic_field_rate_t_s,
+    )
+    _, rust_power, rust_energy, _, rust_peak_power = rust.evaluate_faraday_recovery(
+        rust_spec,
+        time_s.tolist(),
+        radius_m.tolist(),
+        radial_velocity_m_s.tolist(),
+        magnetic_field_t.tolist(),
+        magnetic_field_rate_t_s.tolist(),
+    )
+
+    assert np.all(py_report.recovered_power_W == 0.0)
+    assert np.allclose(py_report.recovered_power_W, rust_power, rtol=0.0, atol=0.0)
+    assert py_report.recovered_energy_J == rust_energy == 0.0
+    assert py_report.peak_recovered_power_W == rust_peak_power == 0.0
 
 
 def test_dispatched_faraday_back_emf_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:

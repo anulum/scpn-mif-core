@@ -160,6 +160,7 @@ end
 """Return instantaneous recovered load power in watts."""
 function recovered_power(spec::FaradayRecoverySpec, back_emf_V::Real)::Float64
     emf = _require_finite("back_emf_V", back_emf_V)
+    spec.coupling_efficiency == 0.0 && return 0.0
     power = spec.coupling_efficiency * emf^2 / spec.load_resistance_ohm
     return _require_finite("recovered_power_W", power)
 end
@@ -182,7 +183,9 @@ function evaluate_faraday_recovery(
     flux = pi .* radii .^ 2 .* fields
     dflux_dt = pi .* (radii .^ 2 .* field_rates .+ 2.0 .* radii .* velocities .* fields)
     emf = -spec.turns .* dflux_dt
-    power = spec.coupling_efficiency .* emf .^ 2 ./ spec.load_resistance_ohm
+    power = spec.coupling_efficiency == 0.0 ?
+        zeros(Float64, length(emf)) :
+        spec.coupling_efficiency .* emf .^ 2 ./ spec.load_resistance_ohm
     _require_finite_vector("flux_Wb", flux)
     _require_finite_vector("flux_rate_Wb_s", dflux_dt)
     _require_finite_vector("back_emf_V", emf)

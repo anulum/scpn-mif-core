@@ -181,6 +181,9 @@ pub fn recovered_power(
     back_emf_v: f64,
 ) -> Result<f64, FaradayRecoveryError> {
     let emf = validate_finite("back_emf_v", back_emf_v)?;
+    if spec.coupling_efficiency == 0.0 {
+        return Ok(0.0);
+    }
     validate_finite(
         "recovered_power_W",
         spec.coupling_efficiency * emf * emf / spec.load_resistance_ohm,
@@ -424,5 +427,24 @@ mod tests {
                 field: "recovered_power_W"
             })
         );
+    }
+
+    #[test]
+    fn zero_coupling_returns_zero_power_without_squaring_emf() {
+        let spec = FaradayRecoverySpec::new(1.0, 1.0, 0.0).unwrap();
+        assert_eq!(recovered_power(&spec, 1e200).unwrap(), 0.0);
+
+        let report = evaluate_faraday_recovery(
+            &spec,
+            &[0.0, 1.0],
+            &[1.0, 1.0],
+            &[0.0, 0.0],
+            &[0.0, 0.0],
+            &[1e200, 1e200],
+        )
+        .unwrap();
+        assert_eq!(report.recovered_power_w, vec![0.0, 0.0]);
+        assert_eq!(report.recovered_energy_j, 0.0);
+        assert_eq!(report.peak_recovered_power_w, 0.0);
     }
 }

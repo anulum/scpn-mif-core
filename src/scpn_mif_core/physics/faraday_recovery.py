@@ -160,6 +160,8 @@ def faraday_back_emf(
 def recovered_power(spec: FaradayRecoverySpec, back_emf_V: float) -> float:
     """Return instantaneous load power from a Thevenin EMF source."""
     emf = _require_finite("back_emf_V", back_emf_V)
+    if spec.coupling_efficiency == 0.0:
+        return 0.0
     power = spec.coupling_efficiency * emf * emf / spec.load_resistance_ohm
     return _require_finite_observable("recovered_power_W", power)
 
@@ -224,7 +226,10 @@ def evaluate_faraday_recovery(
         flux = math.pi * radii * radii * fields
         dflux_dt = math.pi * (radii * radii * field_rates + 2.0 * radii * velocities * fields)
         emf = -spec.turns * dflux_dt
-        power = spec.coupling_efficiency * emf * emf / spec.load_resistance_ohm
+        if spec.coupling_efficiency == 0.0:
+            power = np.zeros_like(emf)
+        else:
+            power = spec.coupling_efficiency * emf * emf / spec.load_resistance_ohm
         dt = np.diff(time)
         energy = float(np.sum(0.5 * (power[:-1] + power[1:]) * dt))
     _require_finite_observable_array("flux_Wb", flux)

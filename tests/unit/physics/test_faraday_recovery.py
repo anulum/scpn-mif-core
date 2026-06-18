@@ -134,6 +134,28 @@ def test_recovered_power_rejects_non_finite_emf() -> None:
         recovered_power(spec, float("nan"))
 
 
+def test_zero_coupling_efficiency_returns_zero_power_without_squaring_emf() -> None:
+    spec = FaradayRecoverySpec(turns=10.0, load_resistance_ohm=1.0, coupling_efficiency=0.0)
+
+    assert recovered_power(spec, 1e200) == 0.0
+
+
+def test_zero_coupling_waveform_has_zero_power_and_energy_for_large_finite_emf() -> None:
+    spec = FaradayRecoverySpec(turns=1.0, load_resistance_ohm=1.0, coupling_efficiency=0.0)
+    report = evaluate_faraday_recovery(
+        spec,
+        np.array([0.0, 1.0]),
+        np.array([1.0, 1.0]),
+        np.array([0.0, 0.0]),
+        np.array([0.0, 0.0]),
+        np.array([1e200, 1e200]),
+    )
+
+    assert np.all(report.recovered_power_W == 0.0)
+    assert report.recovered_energy_J == 0.0
+    assert report.peak_recovered_power_W == 0.0
+
+
 def test_scalar_paths_reject_non_finite_derived_observables() -> None:
     spec = FaradayRecoverySpec(turns=1.0, load_resistance_ohm=1.0)
 

@@ -39,6 +39,11 @@ $$
 P_\mathrm{rec}(t) = \eta\,\mathcal{E}(t)^2 / R_\mathrm{load}.
 $$
 
+The degenerate `eta = 0` case is handled before squaring the EMF. A physically
+disconnected recovery channel therefore reports exactly zero recovered power
+and energy for any finite EMF, including finite EMF values whose square would
+overflow.
+
 Waveform energy is trapezoid-integrated over the explicit time grid.
 All executable Python, Rust/PyO3, and Julia surfaces fail closed if finite
 inputs would overflow any derived observable: flux, flux rate, back-EMF,
@@ -100,6 +105,7 @@ print(f"back-EMF = {state.back_emf_V:.3f} V")
 | Pointwise state typing and power bookkeeping | 1 unit test passes |
 | Waveform energy integration | constant-power case exact to machine epsilon |
 | Spec and scalar rejection paths | turns, load, efficiency, radius, non-finite EMF, and overflowed derived observables |
+| Zero-coupling recovery path | exact zero scalar power, waveform power, energy, and peak power without EMF squaring overflow |
 | Waveform rejection paths | non-monotonic time, one sample, shape mismatch, non-1D, empty, non-finite input, negative radius, and overflowed derived observables |
 | Hypothesis property | EMF is linear in effective turns over 80 randomised examples |
 | Python ↔ Rust parity | scalar, waveform, dispatch, and finite-observable rejection parity after `make bridge` |

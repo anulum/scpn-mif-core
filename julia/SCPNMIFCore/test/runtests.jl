@@ -40,6 +40,19 @@ end
     @test_throws ArgumentError flux_rate(1e154, 0.0, 0.0, 1e154)
     @test_throws ArgumentError faraday_back_emf(1.0, 0.0, 0.0, 1e154, 1e154)
     @test_throws ArgumentError recovered_power(FaradayRecoverySpec(1.0, 1.0), 1e200)
+    zero_coupling = FaradayRecoverySpec(1.0, 1.0; coupling_efficiency = 0.0)
+    @test recovered_power(zero_coupling, 1e200) == 0.0
+    zero_report = evaluate_faraday_recovery(
+        zero_coupling,
+        [0.0, 1.0],
+        [1.0, 1.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [1e200, 1e200],
+    )
+    @test all(zero_report.recovered_power_W .== 0.0)
+    @test zero_report.recovered_energy_J == 0.0
+    @test zero_report.peak_recovered_power_W == 0.0
     @test_throws ArgumentError evaluate_faraday_recovery(
         FaradayRecoverySpec(1.0, 1.0),
         [0.0, 1.0],
