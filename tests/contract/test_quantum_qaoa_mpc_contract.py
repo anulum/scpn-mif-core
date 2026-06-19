@@ -13,7 +13,7 @@ import pytest
 
 from scpn_mif_core.ecosystem import STATUS_DEFERRED, STATUS_READY
 
-pytestmark = pytest.mark.contract
+pytestmark = [pytest.mark.contract, pytest.mark.scpn_quantum_control]
 
 
 def test_scpn_quantum_control_mif_lane_explicitly_deferred(ecosystem_report) -> None:

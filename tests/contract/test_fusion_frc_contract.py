@@ -13,7 +13,7 @@ import pytest
 
 from scpn_mif_core.physics import inspect_fusion_frc_contract
 
-pytestmark = pytest.mark.contract
+pytestmark = [pytest.mark.contract, pytest.mark.scpn_fusion_core]
 
 
 def test_scpn_fusion_frc_surface_available() -> None:

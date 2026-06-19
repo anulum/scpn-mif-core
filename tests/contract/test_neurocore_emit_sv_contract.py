@@ -13,7 +13,7 @@ import pytest
 
 from scpn_mif_core.ecosystem import STATUS_READY, STATUS_READY_WITH_HARDWARE_GATE
 
-pytestmark = pytest.mark.contract
+pytestmark = [pytest.mark.contract, pytest.mark.sc_neurocore]
 
 
 def test_sc_neurocore_hardware_ingress_surface_ready(ecosystem_report) -> None:

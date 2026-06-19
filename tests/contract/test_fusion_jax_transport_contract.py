@@ -13,7 +13,7 @@ import pytest
 
 from scpn_mif_core.ecosystem import STATUS_READY, STATUS_READY_WITH_BLOCKERS
 
-pytestmark = pytest.mark.contract
+pytestmark = [pytest.mark.contract, pytest.mark.scpn_fusion_core]
 
 
 def test_scpn_fusion_solver_owner_surface_detected(ecosystem_report) -> None:

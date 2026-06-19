@@ -181,6 +181,11 @@ markers = [
     "preempt_rt: requires PREEMPT_RT kernel (MIF_PREEMPT_RT_CI=1)",
     "hardware: requires physical FPGA / ADC / NV-centre hardware",
     "contract: cross-repository contract test",
+    "sc_neurocore: contract test for the sc-neurocore sibling",
+    "scpn_phase_orchestrator: contract test for the scpn-phase-orchestrator sibling",
+    "scpn_control: contract test for the scpn-control sibling",
+    "scpn_fusion_core: contract test for the scpn-fusion-core sibling",
+    "scpn_quantum_control: contract test for the scpn-quantum-control sibling",
 ]
 filterwarnings = [
     "error",

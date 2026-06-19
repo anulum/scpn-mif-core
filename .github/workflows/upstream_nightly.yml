@@ -1,8 +1,18 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 name: Upstream nightly compatibility
 
-# Daily attempt to bump each pinned sibling repository to its latest main
-# and run the MIF contract test suite. See `docs/internal/bidirectional_sync_protocol.md`.
+# Daily check of each sibling repository's current `main` against the MIF
+# cross-repository contract suite.
+#
+# The dynamic compatibility report (`scpn_mif_core.ecosystem`) inspects sibling
+# *source trees* found under `SCPN_MIF_ECOSYSTEM_ROOT`, so each sibling is
+# checked out there and installed from that `main` checkout for the
+# runtime-import surfaces. Selection is by a per-sibling marker (test names use
+# underscores, repository names use hyphens, so a hyphenated `-k` filter matches
+# nothing). A sibling that cannot be checked out — for example after a
+# visibility change without a `SIBLING_CHECKOUT_TOKEN` — is skipped, not failed;
+# a genuine contract regression fails the job and opens a drift issue.
+# See `docs/internal/bidirectional_sync_protocol.md`.
 
 on:
   schedule:
@@ -12,50 +22,77 @@ on:
 permissions:
   contents: read
   issues: write
-  pull-requests: write
 
 jobs:
-  bump-trial:
-    name: Bump ${{ matrix.sibling }} and run contract tests
+  contract-trial:
+    name: Contract ${{ matrix.sibling.repo }}@main
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         sibling:
-          - sc-neurocore
-          - scpn-phase-orchestrator
-          - scpn-control
-          - scpn-fusion-core
-          - scpn-quantum-control
+          - { repo: sc-neurocore,            dir: SC-NEUROCORE,            marker: sc_neurocore }
+          - { repo: scpn-phase-orchestrator, dir: SCPN-PHASE-ORCHESTRATOR, marker: scpn_phase_orchestrator }
+          - { repo: scpn-control,            dir: SCPN-CONTROL,            marker: scpn_control }
+          - { repo: scpn-fusion-core,        dir: SCPN-FUSION-CORE,        marker: scpn_fusion_core }
+          - { repo: scpn-quantum-control,    dir: SCPN-QUANTUM-CONTROL,    marker: scpn_quantum_control }
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout MIF
+        uses: actions/checkout@v5
+
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Install ecosystem extras
+
+      - name: Install MIF with dev tooling
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev,ecosystem]" || true
-      - name: Install ${{ matrix.sibling }} from main
+          pip install -e ".[dev]"
+
+      - name: Checkout ${{ matrix.sibling.repo }}@main source tree
+        id: sibling
+        uses: actions/checkout@v5
+        continue-on-error: true
+        with:
+          repository: anulum/${{ matrix.sibling.repo }}
+          ref: main
+          path: _siblings/${{ matrix.sibling.dir }}
+          token: ${{ secrets.SIBLING_CHECKOUT_TOKEN || github.token }}
+
+      - name: Skip when the sibling is unavailable
+        if: steps.sibling.outcome != 'success'
         run: |
-          pip install "git+https://github.com/anulum/${{ matrix.sibling }}.git@main" || true
-      - name: Run contract tests for ${{ matrix.sibling }}
+          echo "::notice title=Sibling unavailable::${{ matrix.sibling.repo }}@main could not be checked out; contract test skipped (infrastructure, not contract drift)."
+
+      - name: Install ${{ matrix.sibling.repo }}@main for runtime-import surfaces
+        if: steps.sibling.outcome == 'success'
         run: |
-          pytest tests/contract/ -q -m contract -k "${{ matrix.sibling }}" || \
-            (echo "contract drift on ${{ matrix.sibling }}@main" && exit 1)
-      - name: Open drift issue on failure
+          pip install "./_siblings/${{ matrix.sibling.dir }}" \
+            || echo "::warning title=Sibling not installable::${{ matrix.sibling.repo }}@main is not pip-installable; only source-tree contract surfaces are checked."
+
+      - name: Run ${{ matrix.sibling.repo }} contract tests
+        if: steps.sibling.outcome == 'success'
+        env:
+          SCPN_MIF_ECOSYSTEM_ROOT: ${{ github.workspace }}/_siblings
+        run: pytest tests/contract/ -q --no-cov -m "contract and ${{ matrix.sibling.marker }}"
+
+      - name: Open drift issue on contract regression
         if: failure()
         uses: actions/github-script@v9
+        env:
+          SIBLING: ${{ matrix.sibling.repo }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
-            const title = `Upstream drift: ${process.env.SIBLING}@main breaks MIF contract`;
-            const body = `Nightly compatibility job at ${process.env.RUN_URL} failed for sibling ${process.env.SIBLING}. ` +
-                         `Inspect contract test output and bump or defer the pin per the bidirectional sync protocol.`;
+            const title = `Upstream drift: ${process.env.SIBLING}@main breaks the MIF contract`;
+            const body = `The nightly compatibility job at ${process.env.RUN_URL} found a contract ` +
+                         `regression for sibling \`${process.env.SIBLING}\`. Inspect the contract test ` +
+                         `output and update the MIF spec or the sibling per the bidirectional sync protocol.`;
             await github.rest.issues.create({
-              owner: context.repo.owner, repo: context.repo.repo, title, body,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
               labels: ['upstream-drift'],
             });
-        env:
-          SIBLING: ${{ matrix.sibling }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
