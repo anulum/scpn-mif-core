@@ -719,3 +719,16 @@ def test_dispatched_capacitor_bank_falls_back_to_python(monkeypatch: pytest.Monk
     bank = lifecycle.dispatched_capacitor_bank(underdamped_spec())
 
     assert isinstance(bank, CapacitorBank)
+
+
+def test_feasibility_with_empty_bank_skips_natural_peak_check() -> None:
+    bank = CapacitorBank(underdamped_spec(), initial_voltage_V=0.0)
+    pulse = PulseSpec(peak_current_A=100.0, duration_s=1e-4, waveform="half_sine")
+
+    feasible, reason = bank.feasibility(pulse)
+
+    # With zero stored voltage the natural-peak branch is skipped; the empty bank
+    # then fails the stored-energy check rather than the natural-peak guard.
+    assert feasible is False
+    assert "natural peak" not in reason
+    assert "exceeds available" in reason

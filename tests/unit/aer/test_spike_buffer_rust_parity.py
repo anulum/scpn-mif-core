@@ -115,3 +115,21 @@ def test_python_and_rust_reject_window_overflow() -> None:
             rust_buffer,
             rust.AERDecodeSpec(1, 2, "rate", start_ns=U64_MAX - 1),
         )
+
+
+def test_rust_backed_decode_raises_on_strategy_mismatch(monkeypatch: pytest.MonkeyPatch) -> None:
+    from scpn_mif_core.aer import _rust_adapter as adapter
+
+    buffer = adapter.RustBackedSpikeBuffer(8)
+    buffer.push(AERSpikeEvent(address=0, t_ns=10, polarity=1))
+    spec = AERDecodeSpec(n_channels=4, window_ns=100)  # default "rate" strategy
+
+    # If the Rust kernel ever returns a strategy other than the one requested,
+    # the adapter must refuse the result rather than silently mislabel it.
+    monkeypatch.setattr(
+        adapter._rust,
+        "decode_aer_observation",
+        lambda _buffer, _spec: ("temporal", 0, 100, 1, [0.0, 0.0, 0.0, 0.0]),
+    )
+    with pytest.raises(ValueError, match="Rust strategy mismatch"):
+        buffer.decode(spec)

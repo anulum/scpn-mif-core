@@ -258,3 +258,30 @@ def test_decode_output_rejects_mutation() -> None:
 
     with pytest.raises(ValueError, match="read-only"):
         features[0] = np.float64(1.0)
+
+
+def test_dispatched_decode_uses_python_for_non_rate_strategy() -> None:
+    spec = AERDecodeSpec(n_channels=4, window_ns=100, strategy="temporal")
+    dispatched = dispatched_decode_spike_features(_fixture_buffer(), spec)
+    reference = decode_spike_features(_fixture_buffer(), spec)
+    assert dispatched.tolist() == reference.tolist()
+
+
+def test_dispatched_decode_falls_back_when_rust_adapter_is_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    import sys
+
+    import scpn_mif_core.aer as aer
+
+    monkeypatch.setattr(aer, "preferred_backend", lambda _kernel: "rust")
+    monkeypatch.setattr(aer, "is_rust_available", lambda: True)
+    monkeypatch.setitem(sys.modules, "scpn_mif_core.aer._rust_adapter", None)
+
+    spec = AERDecodeSpec(n_channels=4, window_ns=100)
+    dispatched = dispatched_decode_spike_features(_fixture_buffer(), spec)
+    reference = decode_spike_features(_fixture_buffer(), spec)
+    assert dispatched.tolist() == reference.tolist()
+
+
+def test_spike_event_rejects_non_integer_polarity() -> None:
+    with pytest.raises(TypeError, match="polarity must be an integer"):
+        AERSpikeEvent(address=0, t_ns=0, polarity="positive")  # type: ignore[arg-type]

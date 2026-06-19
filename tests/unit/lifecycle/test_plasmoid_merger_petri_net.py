@@ -472,3 +472,36 @@ def test_lcg_randrange_rejects_non_positive_stop() -> None:
 
     with pytest.raises(ValueError, match="at least 1"):
         _Lcg(7).randrange(0)
+
+
+def _advance_to_place(net: PlasmoidMergerPetriNet, place: MergerPlace) -> None:
+    """Step the nominal campaign until the net first enters ``place``."""
+    for observation in _nominal_campaign():
+        if net.place is place:
+            return
+        net.step(observation)
+    assert net.place is place
+
+
+def test_reconnection_place_holds_when_coalescence_guard_unmet() -> None:
+    net = PlasmoidMergerPetriNet(_spec(), seed=7)
+    _advance_to_place(net, MergerPlace.RECONNECTION)
+
+    # Reconnection flux below the minimum leaves the coalescence transition
+    # disabled while the place stays safe (low tilt and density).
+    held = net.enabled_transition(_obs(reconnection_flux_norm=0.0, density_asymmetry=0.04, tilt_growth_rate_s=1.0e3))
+
+    assert held is None
+
+
+def test_coalescence_place_holds_when_phase_lock_guard_unmet() -> None:
+    net = PlasmoidMergerPetriNet(_spec(), seed=7)
+    _advance_to_place(net, MergerPlace.COALESCENCE)
+
+    # Phase-lock error above tolerance leaves the phase-lock transition disabled
+    # while the observation stays safe and spatially within contact.
+    held = net.enabled_transition(
+        _obs(phase_lock_error_rad=0.5, separation_m=0.0008, density_asymmetry=0.04, tilt_growth_rate_s=1.0e3)
+    )
+
+    assert held is None

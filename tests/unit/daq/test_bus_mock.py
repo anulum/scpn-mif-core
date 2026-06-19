@@ -348,3 +348,10 @@ def test_dispatched_bus_falls_back_to_python_when_rust_adapter_is_unavailable(mo
 
     assert isinstance(bus, DataBusMock)
     assert bus.__class__ is DataBusMock
+
+
+def test_profile_by_id_rejects_unknown_profile() -> None:
+    from scpn_mif_core.daq.bus_mock import _profile_by_id
+
+    with pytest.raises(ValueError, match="unknown DAQ descriptor profile"):
+        _profile_by_id("no_such_profile")
