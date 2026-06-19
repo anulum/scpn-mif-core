@@ -255,7 +255,8 @@ SIBLINGS: tuple[SiblingSpec, ...] = (
             ),
             SurfaceSpec(
                 name="MIF-specific quantum-control names",
-                detail="Future named MIF lane surfaces, currently not required for this gate",
+                detail="Named MIF-lane surfaces (QRNG stream, PQC trigger signer, FRC QAOA cost, "
+                "pulse-to-HLS), owned by and delivered in scpn-quantum-control",
                 tokens=(
                     "QRNGStream",
                     "PqcTriggerSigner",
@@ -266,7 +267,10 @@ SIBLINGS: tuple[SiblingSpec, ...] = (
                 ),
             ),
         ),
-        notes=("Deferred by current ownership decision: other repositories perfect the lane first.",),
+        notes=(
+            "MIF-lane crypto, entropy, QAOA-cost and HLS surfaces are owned by and delivered in "
+            "scpn-quantum-control; MIF consumes them as its release gate advances.",
+        ),
     ),
 )
 
