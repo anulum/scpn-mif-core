@@ -1,0 +1,50 @@
+{
+  "title": "SCPN-MIF-CORE: Deterministic Phase Synchronisation and Sub-50 ns FPGA Trigger Synthesis for High-Beta Pulsed Plasmas",
+  "description": "SCPN-MIF-CORE provides deterministic phase synchronisation and hardware synthesis for high-beta pulsed plasmas, targeting sub-50-nanosecond combinatorial sensor-to-actuator triggering on AMD Xilinx UltraScale+ FPGAs. It discards steady-state Grad-Shafranov logic in favour of rigid-rotor field-reversed-configuration equilibrium and two-fluid Hall-MHD with non-adiabatic flux evolution, and compiles Kuramoto kinematic merging models into bit-true Q8.8 SystemVerilog through the sibling sc-neurocore engine. The framework carries a multi-language compute chain (Python reference, Rust runtime, Julia/Go polyglot-parity references), 100% test coverage, libFuzzer harnesses for untrusted-input surfaces, and Lean 4 formal-verification gates.",
+  "creators": [
+    {
+      "name": "Sotek, Miroslav",
+      "affiliation": "ANULUM CH & LI",
+      "orcid": "0009-0009-3560-0851"
+    }
+  ],
+  "upload_type": "software",
+  "version": "0.0.1",
+  "publication_date": "2026-06-03",
+  "access_right": "open",
+  "license": "AGPL-3.0-or-later",
+  "keywords": [
+    "magneto-inertial-fusion",
+    "field-reversed-configuration",
+    "pulsed-plasma",
+    "kuramoto-synchronisation",
+    "spiking-neural-network",
+    "fixed-point",
+    "systemverilog",
+    "formal-verification",
+    "hall-mhd",
+    "magneto-rayleigh-taylor",
+    "SCPN"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/anulum/scpn-mif-core",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://github.com/anulum/sc-neurocore",
+      "relation": "isPartOf",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://github.com/anulum/scpn-fusion-core",
+      "relation": "references",
+      "scheme": "url"
+    }
+  ],
+  "communities": [
+    {"identifier": "zenodo"}
+  ],
+  "notes": "Part of the SCPN (Self-Consistent Phenomenological Network) research framework by ANULUM. Concepts 1996-2026, code 2020-2026, Miroslav Sotek."
+}
