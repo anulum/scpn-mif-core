@@ -49,6 +49,19 @@
   SystemVerilog, Python golden reference, Yosys smoke, one-million-sample
   no-drop reference campaign, and API documentation.
 
+### Repository hygiene
+
+- Corrected the OpenSSF Scorecard workflow's invalid top-level permissions
+  block that caused a workflow startup failure.
+- Installed the development extra in the pre-commit workflow so the
+  system-language hooks resolve mypy, numpy, and the package.
+- Removed the daily Vivado synthesis schedule that queued without an online
+  self-hosted runner; retained the HDL pull-request and manual-dispatch
+  triggers.
+- Rebuilt the upstream nightly compatibility workflow to select per-sibling
+  markers and check out each sibling's source tree for the dynamic
+  compatibility report.
+
 ## [0.0.1] - 2026-06-03
 
 ### Added
