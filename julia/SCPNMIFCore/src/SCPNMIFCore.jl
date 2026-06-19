@@ -40,6 +40,9 @@ export VERSION,
     JitterSpec,
     KINEMATIC_SAFETY_TOLERANCE_M,
     KinematicSafetySpec,
+    MergeWindowSample,
+    MergeWindowSpec,
+    MergeWindowTrace,
     MovingFrameUPDE,
     MovingFrameUPDEReport,
     MovingFrameUPDESpec,
@@ -58,6 +61,7 @@ export VERSION,
     collision_imminent,
     doppler_derivatives,
     evaluate_faraday_recovery,
+    evaluate_merge_window_trace,
     evaluate_doppler_kuramoto,
     evaluate_moving_frame_upde,
     faraday_back_emf,
@@ -90,6 +94,7 @@ include("capacitor_bank.jl")
 include("diagnostic_normalisation.jl")
 include("diagnostic_stress_inject.jl")
 include("kinematic_safety.jl")
+include("merge_window.jl")
 
 """
     FaradayRecoverySpec(turns, load_resistance_ohm; coupling_efficiency=1.0)

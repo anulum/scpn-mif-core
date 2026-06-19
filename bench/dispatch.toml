@@ -12,7 +12,7 @@
 # benchmark campaign. Manual edits are blocked by the preflight gate.
 
 schema_version = "1.0.0"
-last_updated = "2026-06-19T1809"
+last_updated = "2026-06-19T1902"
 benchmark_host = "i5-11600K (mining rig)"
 
 [kernels]
@@ -28,7 +28,7 @@ benchmark_host = "i5-11600K (mining rig)"
 # derivative, 120-step RK45 trace, and affine omega(t) moving-frame trace
 # on the same rig.
 "kinematic.moving_frame_upde" = ["rust", "python", "julia"]
-"kinematic.merge_window" = ["rust", "python"]
+"kinematic.merge_window" = ["rust", "python", "julia"]
 "lifecycle.pulsed_shot_fsm" = ["rust", "python"]
 "lifecycle.plasmoid_merger_petri_net" = ["rust", "python"]
 # MIF-005 capacitor bank: Rust is fastest for the single Crank-Nicolson step,

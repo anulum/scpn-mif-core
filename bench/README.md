@@ -44,10 +44,26 @@ fastest in both measured groups. MIF-002 uses `kinematic.moving_frame_upde`
 for both the combined derivative and the 120-step RK45 trace for the same
 reason; its embedded local-error estimate uses circular phase deltas and
 linear axial-position deltas. MIF-003 uses `kinematic.merge_window` for both
-the single-sample predicate and the 256-sample trace; Rust is fastest among
-its allocated Python and Rust surfaces. The committed MIF-003 benchmark is
-labelled as a non-isolated local comparison and records host load, governor,
-and runtime versions in `bench/results/merge_window.json`.
+the single-sample predicate and the 256-sample trace; Rust is fastest, Python
+is the reference fall-back, and Julia is a polyglot-parity reference on the
+trace group (CLI harness, process-startup dominated). The committed MIF-003
+benchmark is labelled as a non-isolated local comparison and records host load,
+governor, and runtime versions in `bench/results/merge_window.json`.
+
+Side-by-side mean over the `merge_window.trace_256` group, fastest first, from
+one consistent non-isolated run (`taskset -c 8-11`, host load ~5–7; absolute
+timings are noisy under contention but the ranking holds by orders of
+magnitude):
+
+| Backend | Mean | Relative to Rust | Surface |
+|---|---:|---:|---|
+| Rust   | 572 µs  | 1.0×  | runtime path (production) |
+| Python | 5.68 ms | 9.9×  | runtime reference fall-back |
+| Julia  | 1.09 s  | 1900× | parity reference via CLI (process-startup dominated) |
+
+The Julia path validates the first-lock timestamp (4 ns) and final streak
+against the Python and Rust trace; it is a parity reference, not a production
+runtime path — production stays on Rust/Python.
 MIF-011 uses `kinematic.sampled_safety_certificate` for the 512-sample
 runtime certificate that checks the Lean sampled-envelope assumptions across
 Python, Rust, and the Julia audit package CLI.

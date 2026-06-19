@@ -390,3 +390,51 @@ end
     @test overflow_error isa ArgumentError
     @test occursin("stressed sample", sprint(showerror, overflow_error))
 end
+
+@testset "MIF-003 merge-window monitor" begin
+    spec = MergeWindowSpec(
+        phase_tolerance_rad = 0.01,
+        spatial_tolerance_m = 0.002,
+        consecutive_samples = 3,
+        reference_point_m = 0.0,
+    )
+
+    rows = 256
+    time_s = collect(0:rows-1) .* 1.0e-9
+    phases = repeat([0.0 0.003 -0.002], rows)
+    positions = repeat([-0.001 0.0005 0.0015], rows)
+    # Row 1 fails the phase tolerance; row 2 fails the spatial tolerance; locking
+    # then begins on row 3 and reaches the consecutive threshold on row 5.
+    phases[1, 2] = 0.04
+    positions[2, :] = [-0.004, 0.0, 0.004]
+
+    trace = evaluate_merge_window_trace(spec, time_s, phases, positions)
+    @test trace.lock_achieved
+    @test trace.first_lock_time_s ≈ 4.0e-9 rtol = 1e-15
+    @test trace.samples[end].streak == rows - 2
+    @test trace.samples[1].candidate_lock == false
+    @test trace.samples[2].candidate_lock == false
+    @test trace.samples[5].lock_achieved
+
+    # A clean three-oscillator window is an immediate lock candidate.
+    single = evaluate_merge_window_trace(spec, [0.0], reshape([0.0, 0.003, -0.002], 1, 3), reshape([-0.001, 0.0005, 0.0015], 1, 3))
+    @test single.samples[1].candidate_lock
+    @test single.samples[1].separation_m ≈ 0.0025 rtol = 1e-15
+
+    nonincreasing = try
+        evaluate_merge_window_trace(spec, [0.0, 0.0], repeat([0.0 0.003 -0.002], 2), repeat([-0.001 0.0005 0.0015], 2))
+        nothing
+    catch err
+        err
+    end
+    @test nonincreasing isa ArgumentError
+    @test occursin("strictly increasing", sprint(showerror, nonincreasing))
+
+    shape_mismatch = try
+        evaluate_merge_window_trace(spec, [0.0], reshape([0.0, 0.003], 1, 2), reshape([-0.001, 0.0005, 0.0015], 1, 3))
+        nothing
+    catch err
+        err
+    end
+    @test shape_mismatch isa ArgumentError
+end

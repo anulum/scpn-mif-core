@@ -61,6 +61,14 @@ def test_dispatch_sampled_safety_certificate_listed() -> None:
     assert "julia" in backends, "julia audit surface must remain listed"
 
 
+def test_dispatch_merge_window_listed() -> None:
+    backends = _dispatch.available_backends("kinematic.merge_window")
+    assert backends, "kinematic.merge_window must be registered"
+    assert backends[0] == "rust", f"expected rust as fastest merge-window backend, got {backends!r}"
+    assert "python" in backends, "python must remain the fall-back option"
+    assert "julia" in backends, "julia parity benchmark surface must remain listed"
+
+
 def test_dispatch_diagnostic_normalisation_listed() -> None:
     backends = _dispatch.available_backends("diagnostics.normalisation")
     assert backends, "diagnostics.normalisation must be registered"

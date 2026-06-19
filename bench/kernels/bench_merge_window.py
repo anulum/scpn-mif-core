@@ -9,6 +9,10 @@
 
 from __future__ import annotations
 
+import shutil
+import subprocess
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -23,6 +27,8 @@ rust = pytest.importorskip(
     reason="Rust extension not built; run `make bridge` to enable Rust benchmarks.",
 )
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+JULIA_BIN = shutil.which("julia") or "/home/anulum/.juliaup/bin/julia"
 PHASE_TOLERANCE_RAD = 0.01
 SPATIAL_TOLERANCE_M = 0.002
 CONSECUTIVE_SAMPLES = 3
@@ -115,3 +121,40 @@ def test_bench_rust_trace_256(
     assert achieved
     assert first_lock_time_s == pytest.approx(4.0e-9)
     assert streak == TRACE_ROWS - 2
+
+
+def test_bench_julia_cli_trace_256(benchmark) -> None:
+    if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
+        pytest.skip("Julia executable not available")
+
+    julia_code = f"""
+        using SCPNMIFCore
+        rows = {TRACE_ROWS}
+        time_s = collect(0:rows-1) .* 1.0e-9
+        phases = repeat([0.0 0.003 -0.002], rows)
+        positions = repeat([-0.001 0.0005 0.0015], rows)
+        phases[1, 2] = 0.04
+        positions[2, :] = [-0.004, 0.0, 0.004]
+        spec = MergeWindowSpec(
+            phase_tolerance_rad={PHASE_TOLERANCE_RAD},
+            spatial_tolerance_m={SPATIAL_TOLERANCE_M},
+            consecutive_samples={CONSECUTIVE_SAMPLES},
+            reference_point_m=0.0,
+        )
+        trace = evaluate_merge_window_trace(spec, time_s, phases, positions)
+        print(trace.first_lock_time_s)
+    """
+
+    def call() -> None:
+        proc = subprocess.run(
+            [JULIA_BIN, f"--project={REPO_ROOT / 'julia' / 'SCPNMIFCore'}", "-e", julia_code],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        # Parity check: the first consecutive-sample lock lands on sample index 4
+        # (t = 4 ns), matching the Python and Rust trace_256 groups.
+        assert float(proc.stdout.strip()) == pytest.approx(4.0e-9)
+
+    benchmark.group = "merge_window.trace_256"
+    benchmark(call)
