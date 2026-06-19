@@ -12,7 +12,7 @@
 # benchmark campaign. Manual edits are blocked by the preflight gate.
 
 schema_version = "1.0.0"
-last_updated = "2026-06-19T1902"
+last_updated = "2026-06-19T1912"
 benchmark_host = "i5-11600K (mining rig)"
 
 [kernels]
@@ -35,8 +35,8 @@ benchmark_host = "i5-11600K (mining rig)"
 # 1 000-step batch, and analytical free-response groups. Julia is measured via
 # CLI startup and remains a research-reference backend, not the runtime path.
 "lifecycle.capacitor_bank" = ["rust", "python", "julia"]
-"aer.spike_buffer" = ["rust", "python"]
-"aer.decode_rate" = ["rust", "python"]
+"aer.spike_buffer" = ["rust", "python", "julia"]
+"aer.decode_rate" = ["rust", "python", "julia"]
 "physics.faraday_back_emf" = ["rust", "python"]
 "physics.faraday_recovery_waveform" = ["python", "rust", "julia"]
 # I/O hardening trio (MIF-016, MIF-017, MIF-018) — registered for the

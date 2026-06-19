@@ -438,3 +438,74 @@ end
     end
     @test shape_mismatch isa ArgumentError
 end
+
+@testset "MIF-006 AER spike buffer and decode" begin
+    events = [AERSpikeEvent(idx % 16, idx * 10, idx % 5 == 0 ? -1 : 1) for idx in 0:255]
+    buffer = AERSpikeBuffer(512)
+    for event in events
+        push_spike!(buffer, event)
+    end
+    @test length(buffer) == 256
+
+    spec = AERDecodeSpec(16, 4096, :rate, 0)
+    features = decode_spike_features(buffer, spec)
+    @test length(features) == 16
+    # 204 events carry +1 and 52 carry -1; all fall inside the 4096 ns window,
+    # so the summed rate is 152 / 4096.
+    @test sum(features) ≈ 152 / 4096 rtol = 1e-15
+
+    observation = decode_spike_observation(buffer, spec)
+    @test observation.spike_count == 256
+    @test observation.window_start_ns == 0
+    @test observation.window_stop_ns == 4096
+
+    # Temporal strategy encodes first-spike latency as 1 - (t - start) / window.
+    temporal = AERSpikeBuffer(8)
+    push_spike!(temporal, AERSpikeEvent(0, 0, 1))
+    push_spike!(temporal, AERSpikeEvent(1, 1024, 1))
+    temporal_features = decode_spike_features(temporal, AERDecodeSpec(2, 4096, :temporal, 0))
+    @test temporal_features[1] ≈ 1.0 rtol = 1e-15
+    @test temporal_features[2] ≈ 0.75 rtol = 1e-15
+
+    # Inter-spike-interval strategy is the reciprocal mean interval in 1/ns.
+    isi = AERSpikeBuffer(8)
+    push_spike!(isi, AERSpikeEvent(0, 0, 1))
+    push_spike!(isi, AERSpikeEvent(0, 100, 1))
+    push_spike!(isi, AERSpikeEvent(0, 300, 1))
+    isi_features = decode_spike_features(isi, AERDecodeSpec(1, 4096, :isi, 0))
+    @test isi_features[1] ≈ 2 / 300 rtol = 1e-15
+
+    # The ring evicts the oldest event past capacity.
+    ring = AERSpikeBuffer(2)
+    push_spike!(ring, AERSpikeEvent(0, 0, 1))
+    push_spike!(ring, AERSpikeEvent(1, 10, 1))
+    push_spike!(ring, AERSpikeEvent(2, 20, 1))
+    @test length(ring) == 2
+    @test ring.events[1].address == 1
+
+    monotone = try
+        bad = AERSpikeBuffer(4)
+        push_spike!(bad, AERSpikeEvent(0, 100, 1))
+        push_spike!(bad, AERSpikeEvent(0, 50, 1))
+        nothing
+    catch err
+        err
+    end
+    @test monotone isa ArgumentError
+    @test occursin("monotone", sprint(showerror, monotone))
+
+    out_of_range = try
+        small = AERSpikeBuffer(4)
+        push_spike!(small, AERSpikeEvent(5, 0, 1))
+        decode_spike_features(small, AERDecodeSpec(2, 4096, :rate, 0))
+        nothing
+    catch err
+        err
+    end
+    @test out_of_range isa ArgumentError
+    @test occursin("outside n_channels", sprint(showerror, out_of_range))
+
+    @test_throws ArgumentError AERSpikeEvent(0, 0, 2)
+    @test_throws ArgumentError AERDecodeSpec(0, 4096, :rate)
+    @test_throws ArgumentError AERDecodeSpec(16, 4096, :unknown)
+end

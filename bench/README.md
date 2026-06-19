@@ -73,8 +73,22 @@ MIF-005 uses `lifecycle.capacitor_bank` for the series RLC bank with total
 stored-energy accounting; Rust is fastest across the Python, Rust, and Julia
 comparison groups.
 MIF-006 uses `aer.spike_buffer` for 256-event ring insertion and
-`aer.decode_rate` for rate-coded AER feature decoding; Rust is fastest across
-the allocated Python and Rust local surfaces.
+`aer.decode_rate` for rate-coded AER feature decoding; Rust is fastest, Python
+is the reference fall-back, and Julia is a polyglot-parity reference (CLI
+harness, process-startup dominated) that reproduces the decode mathematics.
+
+Side-by-side mean per group, fastest first, from one consistent non-isolated run
+(`taskset -c 8-11`, host load ~10–17; absolute timings are noisy under heavy
+contention but the ranking holds by orders of magnitude):
+
+| Group | Rust | Python | Julia |
+|---|---:|---:|---:|
+| `aer_spike_buffer.push_256`  | 52.9 µs | 1.03 ms | 774 ms |
+| `aer_decode_rate.decode_256` | 5.76 µs | 286 µs  | 1.13 s |
+
+The Julia path validates the push count (256) and the channel-0 rate feature
+(8 / 4096) against the Python and Rust surfaces; it is a parity reference, not a
+production runtime path — production stays on Rust/Python.
 MIF-007 uses `adc_to_spike_quantiser` benchmark groups for the B-dot ADC to
 Q8.8 AER bridge. The Python no-backpressure and cycle-level golden references
 are measured alongside a Verilated SystemVerilog fixture. This is regression

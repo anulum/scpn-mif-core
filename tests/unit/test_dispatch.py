@@ -69,6 +69,22 @@ def test_dispatch_merge_window_listed() -> None:
     assert "julia" in backends, "julia parity benchmark surface must remain listed"
 
 
+def test_dispatch_aer_spike_buffer_listed() -> None:
+    backends = _dispatch.available_backends("aer.spike_buffer")
+    assert backends, "aer.spike_buffer must be registered"
+    assert backends[0] == "rust", f"expected rust as fastest spike-buffer backend, got {backends!r}"
+    assert "python" in backends, "python must remain the fall-back option"
+    assert "julia" in backends, "julia parity benchmark surface must remain listed"
+
+
+def test_dispatch_aer_decode_rate_listed() -> None:
+    backends = _dispatch.available_backends("aer.decode_rate")
+    assert backends, "aer.decode_rate must be registered"
+    assert backends[0] == "rust", f"expected rust as fastest decode-rate backend, got {backends!r}"
+    assert "python" in backends, "python must remain the fall-back option"
+    assert "julia" in backends, "julia parity benchmark surface must remain listed"
+
+
 def test_dispatch_diagnostic_normalisation_listed() -> None:
     backends = _dispatch.available_backends("diagnostics.normalisation")
     assert backends, "diagnostics.normalisation must be registered"

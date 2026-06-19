@@ -23,6 +23,9 @@ and ModelingToolkit.jl before Rust ports.
 module SCPNMIFCore
 
 export VERSION,
+    AERDecodeSpec,
+    AERSpikeBuffer,
+    AERSpikeEvent,
     CRITICALLY_DAMPED,
     CapacitorBank,
     CapacitorBankSpec,
@@ -72,6 +75,10 @@ export VERSION,
     calibration_manifest,
     budget_margin,
     certify_sampled_kinematic_safety,
+    clear!,
+    decode_spike_features,
+    decode_spike_observation,
+    push_spike!,
     moving_frame_derivatives,
     normalise_sample,
     normalise_value,
@@ -95,6 +102,7 @@ include("diagnostic_normalisation.jl")
 include("diagnostic_stress_inject.jl")
 include("kinematic_safety.jl")
 include("merge_window.jl")
+include("aer_spike.jl")
 
 """
     FaradayRecoverySpec(turns, load_resistance_ohm; coupling_efficiency=1.0)

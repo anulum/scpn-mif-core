@@ -9,6 +9,10 @@
 
 from __future__ import annotations
 
+import shutil
+import subprocess
+from pathlib import Path
+
 import pytest
 
 from scpn_mif_core.aer import AERDecodeSpec, AERSpikeEvent, SpikeBuffer, decode_spike_features
@@ -18,7 +22,10 @@ rust = pytest.importorskip(
     reason="Rust extension not built; run `make bridge` to enable Rust benchmarks.",
 )
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+JULIA_BIN = shutil.which("julia") or "/home/anulum/.juliaup/bin/julia"
 EVENTS = tuple((idx % 16, idx * 10, 1 if idx % 5 else -1) for idx in range(256))
+JULIA_EVENTS = "[AERSpikeEvent(idx % 16, idx * 10, idx % 5 == 0 ? -1 : 1) for idx in 0:255]"
 
 
 @pytest.fixture(scope="module")
@@ -85,3 +92,60 @@ def test_bench_rust_decode_rate(
 
     benchmark.group = "aer_decode_rate.decode_256"
     assert benchmark(call)[0] == pytest.approx(0.001953125)
+
+
+def test_bench_julia_cli_push_256(benchmark) -> None:
+    if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
+        pytest.skip("Julia executable not available")
+
+    julia_code = f"""
+        using SCPNMIFCore
+        events = {JULIA_EVENTS}
+        buffer = AERSpikeBuffer(512)
+        for event in events
+            push_spike!(buffer, event)
+        end
+        print(length(buffer))
+    """
+
+    def call() -> None:
+        proc = subprocess.run(
+            [JULIA_BIN, f"--project={REPO_ROOT / 'julia' / 'SCPNMIFCore'}", "-e", julia_code],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        assert int(proc.stdout.strip()) == len(EVENTS)
+
+    benchmark.group = "aer_spike_buffer.push_256"
+    benchmark(call)
+
+
+def test_bench_julia_cli_decode_rate(benchmark) -> None:
+    if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
+        pytest.skip("Julia executable not available")
+
+    julia_code = f"""
+        using SCPNMIFCore
+        events = {JULIA_EVENTS}
+        buffer = AERSpikeBuffer(512)
+        for event in events
+            push_spike!(buffer, event)
+        end
+        spec = AERDecodeSpec(16, 4096, :rate, 0)
+        features = decode_spike_features(buffer, spec)
+        print(features[1])
+    """
+
+    def call() -> None:
+        proc = subprocess.run(
+            [JULIA_BIN, f"--project={REPO_ROOT / 'julia' / 'SCPNMIFCore'}", "-e", julia_code],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        # Parity: channel 0 receives 12 positive and 4 negative spikes -> 8 / 4096.
+        assert float(proc.stdout.strip()) == pytest.approx(0.001953125)
+
+    benchmark.group = "aer_decode_rate.decode_256"
+    benchmark(call)
