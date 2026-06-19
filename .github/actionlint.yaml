@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# actionlint configuration — register the self-hosted Vivado runner label so the
+# synthesis workflow's `runs-on: [self-hosted, vivado-2024-2]` is recognised.
+self-hosted-runner:
+  labels:
+    - vivado-2024-2
