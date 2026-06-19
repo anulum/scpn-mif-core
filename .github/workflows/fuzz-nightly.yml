@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Fuzz nightly
+
+# Nightly libFuzzer run over the untrusted-input surfaces: the DAQ frame decoder,
+# the AER spike decoder, and the diagnostic normaliser. Each target runs for a
+# bounded wall-clock budget; a discovered crash fails the job and the reproducing
+# input is uploaded as an artifact. See scpn-mif-rs/fuzz/README.md.
+
+on:
+  schedule:
+    - cron: "41 2 * * *"   # 02:41 UTC daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fuzz-nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fuzz:
+    name: cargo-fuzz ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - decode_daq_frame
+          - decode_aer_observation
+          - normalise_diagnostic_features
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install nightly toolchain and cargo-fuzz
+        run: |
+          rustup toolchain install nightly --profile minimal
+          rustup default nightly
+          cargo install cargo-fuzz --locked
+      - name: Fuzz ${{ matrix.target }}
+        working-directory: scpn-mif-rs
+        run: cargo fuzz run ${{ matrix.target }} -- -max_total_time=300 -print_final_stats=1
+      - name: Upload reproducing input on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fuzz-artifacts-${{ matrix.target }}
+          path: scpn-mif-rs/fuzz/artifacts/
+          if-no-files-found: ignore

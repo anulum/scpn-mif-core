@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# SCPN-MIF-CORE — libFuzzer harnesses for untrusted-input surfaces.
+[package]
+name = "scpn-mif-core-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+arbitrary = { version = "1", features = ["derive"] }
+mif-daq = { path = "../crates/mif-daq" }
+mif-aer = { path = "../crates/mif-aer" }
+mif-diagnostics = { path = "../crates/mif-diagnostics" }
+
+[[bin]]
+name = "decode_daq_frame"
+path = "fuzz_targets/decode_daq_frame.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "decode_aer_observation"
+path = "fuzz_targets/decode_aer_observation.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "normalise_diagnostic_features"
+path = "fuzz_targets/normalise_diagnostic_features.rs"
+test = false
+doc = false
+bench = false
+
+# Standalone workspace so the libFuzzer crate is isolated from the parent
+# workspace's `cargo test --workspace` and clippy runs (it requires a nightly
+# toolchain and the cargo-fuzz sanitiser runtime).
+[workspace]
+
+[profile.release]
+debug = 1
