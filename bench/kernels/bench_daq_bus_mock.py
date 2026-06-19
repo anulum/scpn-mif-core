@@ -118,3 +118,22 @@ def test_bench_rust_pcie_dma_ring_256(benchmark) -> None:
 
     benchmark.group = "daq_pcie_dma_ring_mock.ring_256"
     benchmark(call)
+
+
+def test_bench_go_pcie_dma_ring_256(benchmark) -> None:
+    if GO_BIN is None:
+        pytest.skip("Go executable not available")
+
+    def call() -> None:
+        proc = subprocess.run(
+            [GO_BIN, "run", "./go/cmd/daqmock_probe", "pcie_dma_ring"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        # Parity check: the Go probe sums sequences 0..255 (= 32640) over the
+        # same 256-frame codec work the Python and Rust ring_256 groups perform.
+        assert int(proc.stdout.strip()) == 32640
+
+    benchmark.group = "daq_pcie_dma_ring_mock.ring_256"
+    benchmark.pedantic(call, rounds=3, iterations=1)

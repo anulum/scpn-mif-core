@@ -3,22 +3,22 @@
   "kernel": "daq_pcie_dma_ring_mock",
   "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
   "python_version": "3.12.3",
-  "datetime": "2026-06-05T10:50:22.342212+00:00",
+  "datetime": "2026-06-19T18:08:40.975899+00:00",
   "benchmark_context": {
-    "command": "./.venv/bin/pytest bench/kernels/bench_daq_bus_mock.py --benchmark-only --benchmark-json=bench/results/daq_bus_mock_raw.json --no-cov",
+    "command": "taskset -c 8-11 pytest bench/kernels/bench_daq_bus_mock.py --benchmark-only -k pcie --benchmark-json=daq_pcie_raw.json",
     "cpu_isolated": false,
-    "isolation_method": "none",
-    "affinity": "none",
-    "host_load_before": "not captured separately; raw run completed before summary conversion",
-    "host_load_after": "1.91 2.70 2.82 1/3204 3076556",
+    "isolation_method": "taskset affinity to logical cores 8-11; no kernel isolcpus reservation",
+    "affinity": "logical cores 8-11 of 12",
+    "host_load_before": "12.87 8.43 7.62 10/4017 2244689",
+    "host_load_after": "12.24 8.37 7.61 9/4014 2245935",
     "governor": "powersave",
     "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz, logical CPUs: 12",
     "runtime_versions": {
       "python": "3.12.3",
       "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
-      "go": "go version go1.26.2 linux/amd64"
+      "go": "go version go1.24.0 linux/amd64"
     },
-    "other_heavy_jobs": "not audited; loaded workstation context recorded via load average"
+    "other_heavy_jobs": "shared workstation under heavy contention (load ~12 on 6 physical cores) from concurrent CPU-bound jobs; absolute timings are noisy and the Go subprocess timing is dominated by go-run compile and process startup. The fastest-first ranking (rust < python < go) is robust to this load because the backends differ by orders of magnitude."
   },
   "contract": {
     "reserved_header_bits": "must be zero",
@@ -27,27 +27,37 @@
   },
   "notes": [
     "Local non-isolated comparison benchmark only; not a production latency claim.",
-    "MIF-018 PCIe DMA ring mock has allocated Python and Rust runtime surfaces.",
+    "MIF-018 PCIe DMA ring mock has allocated Python, Rust, and Go comparison surfaces; the Python and Rust runtime paths replay 256 frames through the ring buffer.",
+    "Go is a polyglot-parity reference measured via CLI subprocess (go run); the Go scaffold has no ring buffer, so it performs 256 sequential frame encode/decode round-trips over the same frame codec and validates the summed sequence checksum (32640).",
     "This report reflects fail-closed reserved-header, sequence-order, and timestamp-monotonic replay semantics."
   ],
   "tests": [
     {
       "name": "test_bench_python_pcie_dma_ring_256",
       "group": "daq_pcie_dma_ring_mock.ring_256",
-      "mean_ns": 4030597.648673734,
-      "stddev_ns": 124886.83514716501,
-      "median_ns": 3985875.9846538305,
-      "ops_per_s": 248.1021642854998,
-      "rounds": 237
+      "mean_ns": 5820855.268602,
+      "stddev_ns": 809080.142480,
+      "median_ns": 5582525.482168,
+      "ops_per_s": 171.796060,
+      "rounds": 112
     },
     {
       "name": "test_bench_rust_pcie_dma_ring_256",
       "group": "daq_pcie_dma_ring_mock.ring_256",
-      "mean_ns": 175080.91630324014,
-      "stddev_ns": 9858.22508237246,
-      "median_ns": 176005.9967637062,
-      "ops_per_s": 5711.64477039862,
-      "rounds": 5002
+      "mean_ns": 87289.079557,
+      "stddev_ns": 17149.617283,
+      "median_ns": 80105.965026,
+      "ops_per_s": 11456.186789,
+      "rounds": 2654
+    },
+    {
+      "name": "test_bench_go_pcie_dma_ring_256",
+      "group": "daq_pcie_dma_ring_mock.ring_256",
+      "mean_ns": 55239233.343552,
+      "stddev_ns": 32296319.315882,
+      "median_ns": 39433065.045159,
+      "ops_per_s": 18.103075,
+      "rounds": 3
     }
   ]
 }

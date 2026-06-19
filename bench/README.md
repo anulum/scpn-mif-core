@@ -82,11 +82,26 @@ governor, and runtime versions in
 `bench/results/diagnostic_stress_inject.json`.
 MIF-018 uses `daq.udp_multicast_mock` and `daq.pcie_dma_ring_mock` for
 byte-stable DAQ replay semantics. Rust is fastest for both allocated runtime
-surfaces. The UDP multicast mock also includes the optional Go scaffold as a
-network-service comparison surface. The committed MIF-018 benchmarks are
-labelled as non-isolated local comparisons in
-`bench/results/daq_udp_multicast_mock.json` and
+surfaces; Python is the reference fall-back and Go is an optional
+polyglot-parity comparison surface (a `go run` subprocess scaffold with no ring
+buffer). The committed MIF-018 benchmarks are labelled as non-isolated local
+comparisons in `bench/results/daq_udp_multicast_mock.json` and
 `bench/results/daq_pcie_dma_ring_mock.json`.
+
+Side-by-side mean over the 256-frame `daq_pcie_dma_ring_mock.ring_256` group,
+fastest first, from one consistent non-isolated run (`taskset -c 8-11`, host
+load ~12; absolute timings are noisy under contention but the ranking holds by
+orders of magnitude):
+
+| Backend | Mean | Relative to Rust | Surface |
+|---|---:|---:|---|
+| Rust   | 87.3 µs | 1.0× | runtime path (production) |
+| Python | 5.82 ms | 67× | runtime reference fall-back |
+| Go     | 55.2 ms | 633× | parity scaffold via `go run` (compile + startup dominated) |
+
+The Go figure measures 256 sequential frame encode/decode round-trips and
+validates the summed-sequence checksum (32640); it is a parity reference, not a
+production runtime path — production stays on Rust/Python.
 
 ## Running
 

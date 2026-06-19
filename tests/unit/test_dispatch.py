@@ -90,6 +90,7 @@ def test_dispatch_daq_pcie_dma_ring_mock_listed() -> None:
     assert backends, "daq.pcie_dma_ring_mock must be registered"
     assert backends[0] == "rust", f"expected rust as fastest PCIe DAQ backend, got {backends!r}"
     assert "python" in backends, "python must remain the fall-back option"
+    assert "go" in backends, "Go codec parity benchmark surface must remain listed"
 
 
 def test_dispatch_faraday_back_emf_listed() -> None:
