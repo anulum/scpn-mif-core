@@ -2,8 +2,9 @@
 name: Synthesis (Vivado, self-hosted)
 
 on:
-  schedule:
-    - cron: "23 4 * * *"   # 04:23 UTC daily
+  # No daily schedule: the self-hosted Vivado runner is not always online,
+  # and a scheduled run with no runner queues for 24 h and is then cancelled,
+  # which only adds noise. Run on HDL pull requests and on demand instead.
   pull_request:
     paths:
       - "hdl/**"
@@ -16,7 +17,7 @@ jobs:
   vivado-zu3eg:
     name: Vivado batch — ZU3EG
     runs-on: [self-hosted, vivado-2024-2]
-    if: contains(github.event.pull_request.labels.*.name, 'synth-required') || github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    if: contains(github.event.pull_request.labels.*.name, 'synth-required') || github.event_name == 'workflow_dispatch'
     timeout-minutes: 180
     env:
       MIF_VIVADO_CI: "1"
