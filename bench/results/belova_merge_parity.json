@@ -1,0 +1,139 @@
+{
+  "SPDX-License-Identifier": "AGPL-3.0-or-later",
+  "schema": "scpn-mif-core/belova-merge-parity/1.0.0",
+  "source": "Belova et al., arXiv:2501.03425, 'Hybrid simulations of FRC merging and compression' (HYM)",
+  "tau_window_tA": 40.0,
+  "tau_window_bound_tA": {
+    "lower": 33.125,
+    "upper": 49.025
+  },
+  "cases": [
+    {
+      "name": "fig1_merge",
+      "cite": "Fig 1, \u00a73.1",
+      "inputs": {
+        "xs": 0.69,
+        "elongation": 2.9,
+        "s_star": 25.6,
+        "vz_va": 0.2,
+        "delta_z_di": 180.0,
+        "compression": false
+      },
+      "di_per_rc": 0.026953,
+      "ballistic_closure_time_tA": 12.1289,
+      "monitor_first_lock_time_tA": 12.2,
+      "observed_merge": true,
+      "observed_merge_time_tA": 5.0,
+      "predicted_merge": true,
+      "classification_correct": true,
+      "reconnection_speedup": 2.4258
+    },
+    {
+      "name": "fig3_4_merge",
+      "cite": "Figs 3-4, \u00a73.1",
+      "inputs": {
+        "xs": 0.53,
+        "elongation": 1.5,
+        "s_star": 20.0,
+        "vz_va": 0.1,
+        "delta_z_di": 75.0,
+        "compression": false
+      },
+      "di_per_rc": 0.0265,
+      "ballistic_closure_time_tA": 9.9375,
+      "monitor_first_lock_time_tA": 9.9,
+      "observed_merge": true,
+      "observed_merge_time_tA": 6.5,
+      "predicted_merge": true,
+      "classification_correct": true,
+      "reconnection_speedup": 1.5288
+    },
+    {
+      "name": "fig5_merge_dz110",
+      "cite": "Fig 5, \u00a73.1",
+      "inputs": {
+        "xs": 0.53,
+        "elongation": 1.5,
+        "s_star": 20.0,
+        "vz_va": 0.05,
+        "delta_z_di": 110.0,
+        "compression": false
+      },
+      "di_per_rc": 0.0265,
+      "ballistic_closure_time_tA": 29.15,
+      "monitor_first_lock_time_tA": 28.9,
+      "observed_merge": true,
+      "observed_merge_time_tA": null,
+      "predicted_merge": true,
+      "classification_correct": true
+    },
+    {
+      "name": "fig5_merge_dz125",
+      "cite": "Fig 5, \u00a73.1",
+      "inputs": {
+        "xs": 0.53,
+        "elongation": 1.5,
+        "s_star": 20.0,
+        "vz_va": 0.05,
+        "delta_z_di": 125.0,
+        "compression": false
+      },
+      "di_per_rc": 0.0265,
+      "ballistic_closure_time_tA": 33.125,
+      "monitor_first_lock_time_tA": 32.8,
+      "observed_merge": true,
+      "observed_merge_time_tA": null,
+      "predicted_merge": true,
+      "classification_correct": true
+    },
+    {
+      "name": "fig5_no_merge_dz185",
+      "cite": "Fig 5, \u00a73.1",
+      "inputs": {
+        "xs": 0.53,
+        "elongation": 1.5,
+        "s_star": 20.0,
+        "vz_va": 0.05,
+        "delta_z_di": 185.0,
+        "compression": false
+      },
+      "di_per_rc": 0.0265,
+      "ballistic_closure_time_tA": 49.025,
+      "monitor_first_lock_time_tA": null,
+      "observed_merge": false,
+      "observed_merge_time_tA": null,
+      "predicted_merge": false,
+      "classification_correct": true
+    },
+    {
+      "name": "compression_merge",
+      "cite": "\u00a73.2, Conclusions",
+      "inputs": {
+        "xs": 0.69,
+        "elongation": 2.9,
+        "s_star": 25.6,
+        "vz_va": 0.05,
+        "delta_z_di": 125.0,
+        "compression": true
+      },
+      "di_per_rc": 0.026953,
+      "ballistic_closure_time_tA": 33.6914,
+      "monitor_first_lock_time_tA": 33.4,
+      "observed_merge": true,
+      "observed_merge_time_tA": 22.5,
+      "classification": "excluded-compression-FUSION-owned",
+      "reconnection_speedup": 1.4974
+    }
+  ],
+  "classification": {
+    "no_compression_cases": 5,
+    "correct": 5,
+    "all_correct": true
+  },
+  "notes": [
+    "Merge/no-merge is decided by the real MIF MergeWindowMonitor driven by Belova-normalized initial conditions; the monitor's first-lock time tracks the ballistic closure.",
+    "Ballistic closure is an UPPER BOUND on the merge time; the reconnection_speedup (~2.4 for Fig 1) is the mutual acceleration MIF delegates to FUSION (FUS-C.6, ADR 0001).",
+    "Compression cases are excluded from the kinematic classification: the increasing mirror field that drives them is FUSION-owned physics, not MIF kinematics.",
+    "tau_window_tA is a single calibrated threshold; the data bound it to the open interval in tau_window_bound_tA."
+  ]
+}

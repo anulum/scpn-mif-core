@@ -22,9 +22,9 @@ obtained:
                              **not a measured value**. The analog/mixed-signal
                              tiers (B-dot ADC conversion, AER serialisation, coil
                              gate driver) have no open-source-flow measurement;
-                             their nanoseconds are ``cycles × stated period`` and
-                             must be replaced with datasheet or post-route silicon
-                             numbers before any external timing claim.
+                             their nanoseconds are cycles times the stated period
+                             and must be replaced with datasheet or post-route
+                             silicon numbers before any external timing claim.
 
 The clock frequency is a **stated assumption** (the development-plan ZU3EG design
 target), not a post-route ``Fmax``. The honest conclusion this artifact supports
