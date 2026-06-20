@@ -90,11 +90,12 @@ def test_meets_floor(live: str, floor: str, expected: bool) -> None:
 # --------------------------------------------------------------------------- #
 # verify_floors — live ecosystem                                              #
 # --------------------------------------------------------------------------- #
-def test_live_ecosystem_satisfies_all_floors() -> None:
+def test_live_ecosystem_has_no_violations() -> None:
+    # Env-agnostic: holds where siblings are present (satisfied) and where they are
+    # absent, e.g. MIF-only CI (sibling_absent is not a violation). Every
+    # current-gate sibling must carry a declared floor.
     results = verify_floors()
     assert violations(results) == []
-    by_package = {r.package: r for r in results}
-    assert by_package["sc-neurocore-engine"].status == STATUS_SATISFIED
     assert all(r.floor is not None for r in results if r.current_gate)
 
 
@@ -188,7 +189,8 @@ def test_main_passes_on_live_ecosystem() -> None:
 
 
 def test_main_fails_on_violation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    # An impossible floor against the live tree forces a below_floor violation.
-    pyproject = _write_pyproject_floors(tmp_path / "pyproject.toml", {"scpn-control": "999.0.0"})
+    # An orphan floor (a package with no matching sibling) is a violation
+    # regardless of whether any sibling tree is present, so this holds in CI too.
+    pyproject = _write_pyproject_floors(tmp_path / "pyproject.toml", {"definitely-not-a-sibling": "1.0.0"})
     monkeypatch.setattr(verify_version_floors, "PYPROJECT_PATH", pyproject)
     assert main([]) == 1

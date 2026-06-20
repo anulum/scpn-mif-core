@@ -21,7 +21,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn version_is_pinned() {
-        assert_eq!(VERSION, "0.0.1");
+    fn version_is_wired_to_workspace_semver() {
+        // VERSION is derived from the workspace package version via
+        // CARGO_PKG_VERSION; assert it is a well-formed three-part numeric semver
+        // rather than a brittle literal. Cross-file version consistency (Cargo.toml
+        // matches the Python package) is enforced by the Python version test.
+        let parts: Vec<&str> = VERSION.split('.').collect();
+        assert_eq!(
+            parts.len(),
+            3,
+            "VERSION must be MAJOR.MINOR.PATCH: {VERSION}"
+        );
+        assert!(
+            parts
+                .iter()
+                .all(|part| !part.is_empty() && part.chars().all(|c| c.is_ascii_digit())),
+            "VERSION parts must be numeric: {VERSION}"
+        );
     }
 }
