@@ -19,7 +19,8 @@ pytestmark = [pytest.mark.contract, pytest.mark.scpn_control]
 def test_scpn_control_capacitor_bank_surface_ready(ecosystem_report) -> None:
     row = ecosystem_report.require("scpn-control")
 
-    assert row.source_version is not None
+    if row.source_version is None:
+        pytest.skip(f"{row.package} source tree is not present in this checkout")
     assert row.status == STATUS_READY
     assert row.import_status == "ok"
     assert all(surface.status == STATUS_READY for surface in row.surfaces)

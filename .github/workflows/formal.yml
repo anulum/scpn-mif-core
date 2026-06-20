@@ -25,11 +25,8 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
-      - name: Install Yosys + SymbiYosys
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            yosys symbiyosys z3 boolector
+      - name: Install OSS CAD Suite (Yosys + SymbiYosys + z3)
+        uses: YosysHQ/setup-oss-cad-suite@c7845bc0d335c8076aa22047e85972caa8a916df  # v4
       - name: Check formal proof-status manifest is current
         run: python3 tools/formal_manifest.py --check
       - name: Run MIF-010 property suites
