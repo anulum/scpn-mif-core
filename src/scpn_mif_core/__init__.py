@@ -33,6 +33,7 @@ from scpn_mif_core import aer as aer
 from scpn_mif_core import daq as daq
 from scpn_mif_core import diagnostics as diagnostics
 from scpn_mif_core import ecosystem as ecosystem
+from scpn_mif_core import interop as interop
 from scpn_mif_core import kinematic as kinematic
 from scpn_mif_core import lifecycle as lifecycle
 from scpn_mif_core import merge_trigger as merge_trigger
@@ -201,6 +202,44 @@ from scpn_mif_core.ecosystem import (
 )
 from scpn_mif_core.ecosystem import (
     render_compatibility_matrix as render_compatibility_matrix,
+)
+
+# Standards-interop seams — White-Rabbit/EPICS trigger I/O + ITER IMAS mapping
+from scpn_mif_core.interop import (
+    EPICS_PREFIX as EPICS_PREFIX,
+)
+from scpn_mif_core.interop import (
+    IMAS_COMMON_SUBSTRUCTURES as IMAS_COMMON_SUBSTRUCTURES,
+)
+from scpn_mif_core.interop import (
+    MIF_IMAS_INPUT_MAP as MIF_IMAS_INPUT_MAP,
+)
+from scpn_mif_core.interop import (
+    ImasInputMapping as ImasInputMapping,
+)
+from scpn_mif_core.interop import (
+    TriggerEgress as TriggerEgress,
+)
+from scpn_mif_core.interop import (
+    TriggerIngress as TriggerIngress,
+)
+from scpn_mif_core.interop import (
+    WhiteRabbitTimestamp as WhiteRabbitTimestamp,
+)
+from scpn_mif_core.interop import (
+    egress_latency_ps as egress_latency_ps,
+)
+from scpn_mif_core.interop import (
+    epics_channel as epics_channel,
+)
+from scpn_mif_core.interop import (
+    epics_channels as epics_channels,
+)
+from scpn_mif_core.interop import (
+    ids_names as ids_names,
+)
+from scpn_mif_core.interop import (
+    mapping_for as mapping_for,
 )
 from scpn_mif_core.kinematic import (
     KINEMATIC_SAFETY_TOLERANCE_M as KINEMATIC_SAFETY_TOLERANCE_M,
@@ -472,8 +511,11 @@ from scpn_mif_core.physics import (
 __all__ = [
     "DAQ_FRAME_VERSION",
     "DAQ_MAGIC",
+    "EPICS_PREFIX",
     "FUSION_FRC_SURFACES",
+    "IMAS_COMMON_SUBSTRUCTURES",
     "KINEMATIC_SAFETY_TOLERANCE_M",
+    "MIF_IMAS_INPUT_MAP",
     "SIBLINGS",
     "AERControlObservation",
     "AERDecodeSpec",
@@ -506,6 +548,7 @@ __all__ = [
     "FusionFRCContractReport",
     "FusionFRCSurface",
     "FusionFRCSurfaceReport",
+    "ImasInputMapping",
     "JitterSpec",
     "KinematicSafetyCertificate",
     "KinematicSafetySpec",
@@ -553,6 +596,9 @@ __all__ = [
     "SurfaceReport",
     "SurfaceSpec",
     "TransitionRecord",
+    "TriggerEgress",
+    "TriggerIngress",
+    "WhiteRabbitTimestamp",
     "__version__",
     "aer",
     "analytical_current_critically_damped",
@@ -587,7 +633,10 @@ __all__ = [
     "dispatched_sampled_kinematic_safety_certificate",
     "doppler_derivatives",
     "ecosystem",
+    "egress_latency_ps",
     "encode_daq_frame",
+    "epics_channel",
+    "epics_channels",
     "evaluate_doppler_kuramoto",
     "evaluate_faraday_recovery",
     "evaluate_faraday_state",
@@ -601,11 +650,14 @@ __all__ = [
     "free_response",
     "generate_ecosystem_report",
     "helion_descriptor_profile",
+    "ids_names",
     "inspect_fusion_frc_contract",
+    "interop",
     "kinematic",
     "lifecycle",
     "load_fusion_core",
     "magnetic_flux",
+    "mapping_for",
     "merge_trigger",
     "moving_frame_derivatives",
     "order_parameter",

@@ -115,6 +115,9 @@ nav:
           - 0006 Formal verification strategy: adr/0006-formal-verification-strategy.md
           - 0007 Validation and benchmark integrity: adr/0007-validation-and-benchmark-integrity.md
           - 0008 Combinational fast-veto lane: adr/0008-combinational-fast-veto-lane.md
+          - 0009 Standards-interop seams: adr/0009-standards-interop-seams.md
+      - Standards:
+          - Functional-safety readiness mapping: standards/safety_readiness_mapping.md
   - API:
       - api/index.md
       - Kinematic:
