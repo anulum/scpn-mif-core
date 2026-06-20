@@ -64,6 +64,15 @@ make synth-zu3eg     # roadmap: Vivado batch on ZU3EG (requires Vivado 2024.2 + 
 make synth-zu9eg     # roadmap: Vivado batch on ZU9EG
 ```
 
+A fully **open** (no-Vivado) place-and-route flow is not available for the
+UltraScale+ ZU3EG/ZU9EG targets: nextpnr-xilinx supports UltraScale+ only through
+RapidWright + Vivado, so it gives no capital-free post-route number for those
+parts. The only Vivado-free open flow (Yosys → nextpnr-xilinx → Project X-Ray →
+FASM) is **7-series**. The interim plan for a *measured* number is therefore a
+7-series part (xc7z020 / PYNQ-Z2) under the free Vivado ML Standard Edition,
+reported as an explicit **non-target lower bound**; the signed ZU3EG/ZU9EG timing
+report stays gated on a licensed Vivado install and the final SKU choice.
+
 MIF-007 has a portable Yosys parse/synthesis smoke, Python golden-reference
 tests, and Verilator cosimulation through `hdl/sim/adc_to_spike_quantiser_tb.cpp`.
 
