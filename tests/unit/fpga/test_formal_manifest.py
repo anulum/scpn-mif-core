@@ -28,9 +28,7 @@ def test_committed_manifest_is_current() -> None:
 
 def test_manifest_covers_every_discovered_sby() -> None:
     manifest = build_manifest()
-    discovered = sorted(
-        sby.stem for suite in SUITES for sby in (formal_manifest.FORMAL_ROOT / suite).glob("*.sby")
-    )
+    discovered = sorted(sby.stem for suite in SUITES for sby in (formal_manifest.FORMAL_ROOT / suite).glob("*.sby"))
     assert sorted(task["name"] for task in manifest["tasks"]) == discovered
     assert manifest["task_count"] == len(discovered)
 
