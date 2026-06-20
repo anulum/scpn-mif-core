@@ -50,6 +50,15 @@ def test_julia_project_version_matches_module() -> None:
     assert target in text
 
 
+def test_zenodo_metadata_version_matches_module() -> None:
+    # Zenodo reads .zenodo.json to label the archived release; a stale version here
+    # mislabels the DOI record even when the archived artifact is correct.
+    import json
+
+    meta = json.loads(_read_text(REPO / ".zenodo.json"))
+    assert meta["version"] == scpn_mif_core.__version__
+
+
 @pytest.mark.skipif(
     not (REPO / ".agent_metadata.json").exists(),
     reason="agent metadata file is gitignored and absent outside a local agent workspace",
