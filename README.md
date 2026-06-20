@@ -343,7 +343,7 @@ The broader public surface still stabilises at `0.1.0`.
 | Synthesisable HDL RTL modules | 1 |
 | Capability documentation pages | 25 |
 | Optional extras | 4 |
-| Python test files | 62 |
+| Python test files | 63 |
 | Public documentation pages | 25 |
 | GitHub Actions workflows | 14 |
 

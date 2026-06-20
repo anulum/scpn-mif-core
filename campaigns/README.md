@@ -39,3 +39,32 @@ Scope: this is a software-level kinematic Monte-Carlo over the MIF-owned
 decision, not an RTL or silicon measurement and not a self-consistent plasma
 simulation. The jitter perturbs initial conditions at the kinematic layer where
 the decision operates.
+
+## Faraday recovery over a prescribed compression stroke
+
+[`faraday_compression_recovery.py`](faraday_compression_recovery.py) prescribes an
+analytic FRC compression trajectory in the parameter regime of Slough, Votroubek
+& Pihl (2011) — a separatrix radius contracting from the decimetre to the
+centimetre scale over a few microseconds while the external field rises into the
+multi-tesla range — and evaluates the MIF-009 Faraday-law recovery carrier on it,
+reporting the induced back-EMF, the recovered power, and the delivered energy.
+
+![Faraday recovery over a prescribed compression stroke](results/faraday_compression_recovery.png)
+
+Result data: [`results/faraday_compression_recovery.json`](results/faraday_compression_recovery.json).
+
+Reproduce (deterministic — the trajectory is analytic):
+
+```bash
+python campaigns/faraday_compression_recovery.py
+```
+
+Scope: the compression trajectory is a **prescribed input**, not a self-consistent
+solve — the dynamics that would fix `R_s(t)` and `B_ext(t)` from the plasma state
+are owned by SCPN-FUSION-CORE (`FUS-C.6`). What this campaign demonstrates, and
+what the parity tests in [`tests/physics_parity/`](../tests/physics_parity/)
+verify, is that the MIF-owned recovery carrier is exact on a known trajectory:
+its product-rule flux derivative matches both the analytic closed form and an
+independent high-resolution finite difference, and its trapezoidal recovered
+energy matches an independent Simpson quadrature. Where the compiled Rust
+extension is present, the Python and Rust backends agree bit-for-bit.
