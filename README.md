@@ -24,7 +24,7 @@
 [![Lean: 4.13](https://img.shields.io/badge/lean-4.13-darkgreen.svg)](lean-toolchain)
 [![Go: 1.23](https://img.shields.io/badge/go-1.23-00ADD8.svg)](go.mod)
 [![Status: pre-alpha](https://img.shields.io/badge/status-pre--alpha-red.svg)](#status)
-[![DOI: pending](https://img.shields.io/badge/DOI-pending-yellow.svg)](CITATION.cff)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20768029.svg)](https://doi.org/10.5281/zenodo.20768029)
 
 Deterministic phase synchronisation and hardware synthesis for high-beta
 pulsed magneto-inertial fusion plasmas on field-reversed configurations.

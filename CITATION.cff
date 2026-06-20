@@ -9,6 +9,14 @@ cff-version: 1.2.0
 title: "SCPN-MIF-CORE"
 message: "If you use this software, please cite it using the metadata below."
 type: software
+doi: "10.5281/zenodo.20768029"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.20768029"
+    description: "Concept DOI (all versions)"
+  - type: doi
+    value: "10.5281/zenodo.20768030"
+    description: "Version 0.0.1 DOI"
 authors:
   - family-names: "Sotek"
     given-names: "Miroslav"
