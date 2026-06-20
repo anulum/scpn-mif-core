@@ -100,6 +100,8 @@ extra_javascript:
 
 nav:
   - Home: index.md
+  - Guides:
+      - Getting started: guides/getting_started.md
   - Architecture:
       - architecture/index.md
       - Dynamic compatibility matrix: generated/compatibility_matrix.md

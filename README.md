@@ -341,10 +341,10 @@ The broader public surface still stabilises at `0.1.0`.
 | Go parity sources | 2 |
 | Lean 4 proof modules | 8 |
 | Synthesisable HDL RTL modules | 1 |
-| Capability documentation pages | 24 |
+| Capability documentation pages | 25 |
 | Optional extras | 4 |
-| Python test files | 60 |
-| Public documentation pages | 24 |
+| Python test files | 61 |
+| Public documentation pages | 25 |
 | GitHub Actions workflows | 14 |
 
 Evidence boundary: this snapshot is a static inventory. Performance, coverage, hardware, and scientific-fidelity claims require their own committed evidence artifacts.

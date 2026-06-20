@@ -24,6 +24,7 @@
       "docs/architecture/index.md",
       "docs/assets/README.md",
       "docs/generated/compatibility_matrix.md",
+      "docs/guides/getting_started.md",
       "docs/index.md",
       "docs/papers/index.md"
     ],
@@ -426,7 +427,7 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 24,
+    "capability_documentation_pages": 25,
     "github_workflows": 14,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 1,
@@ -434,11 +435,11 @@
     "lean_proof_modules": 8,
     "optional_extras": 4,
     "public_api_exports": 147,
-    "public_documentation_pages": 24,
+    "public_documentation_pages": 25,
     "python_capability_classes": 76,
     "python_capability_source_modules": 19,
     "rust_workspace_crates": 10,
-    "test_files": 60
+    "test_files": 61
   },
   "documentation": {
     "public_pages": [
@@ -464,6 +465,7 @@
       "docs/architecture/index.md",
       "docs/assets/README.md",
       "docs/generated/compatibility_matrix.md",
+      "docs/guides/getting_started.md",
       "docs/index.md",
       "docs/papers/index.md"
     ]
@@ -686,6 +688,7 @@
       "tests/contract/test_phase_orch_kuramoto_contract.py",
       "tests/contract/test_quantum_qaoa_mpc_contract.py",
       "tests/integration/__init__.py",
+      "tests/integration/test_examples.py",
       "tests/physics_parity/__init__.py",
       "tests/unit/__init__.py",
       "tests/unit/aer/__init__.py",
