@@ -1,0 +1,56 @@
+{
+  "SPDX-License-Identifier": "AGPL-3.0-or-later",
+  "schema_version": "1.0.0",
+  "verifier": "tools/run_formal.py --suite all",
+  "task_count": 2,
+  "tasks": [
+    {
+      "suite": "safety",
+      "name": "mif_trigger_fabric_safety",
+      "sby": "hdl/formal/safety/mif_trigger_fabric_safety.sby",
+      "mode": "prove",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/mif_trigger_fabric_formal.sv",
+          "sha256": "ada262d10902a0c73a0a7b3c11a91b3c2d63e138cb968b47bad25a6c61b79c3e"
+        },
+        {
+          "path": "hdl/formal/safety/mif_trigger_fabric_safety.sby",
+          "sha256": "d067743df3719c5ec8eeccbd7cd9cf00c96cdf5a4d7426cc84cd80e210dd6c32"
+        },
+        {
+          "path": "hdl/src/triggers/mif_trigger_fabric.sv",
+          "sha256": "03c09f3a60b84af3eb993143943bef332af3d34cb9763a685318acae50d9811d"
+        }
+      ]
+    },
+    {
+      "suite": "liveness",
+      "name": "mif_trigger_fabric_liveness",
+      "sby": "hdl/formal/liveness/mif_trigger_fabric_liveness.sby",
+      "mode": "cover",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/liveness/mif_trigger_fabric_liveness.sby",
+          "sha256": "91cc2f60a135b67b7959b2d25b3e3c49254d8a8f25ece0e6ab38ef8e96627961"
+        },
+        {
+          "path": "hdl/formal/mif_trigger_fabric_formal.sv",
+          "sha256": "ada262d10902a0c73a0a7b3c11a91b3c2d63e138cb968b47bad25a6c61b79c3e"
+        },
+        {
+          "path": "hdl/src/triggers/mif_trigger_fabric.sv",
+          "sha256": "03c09f3a60b84af3eb993143943bef332af3d34cb9763a685318acae50d9811d"
+        }
+      ]
+    }
+  ]
+}

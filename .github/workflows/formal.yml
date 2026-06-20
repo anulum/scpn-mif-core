@@ -24,6 +24,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             yosys symbiyosys z3 boolector
+      - name: Check formal proof-status manifest is current
+        run: python3 tools/formal_manifest.py --check
       - name: Run MIF-010 property suites
         run: python3 tools/run_formal.py --suite all
 

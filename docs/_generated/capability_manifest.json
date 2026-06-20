@@ -448,7 +448,7 @@
     "python_capability_classes": 76,
     "python_capability_source_modules": 19,
     "rust_workspace_crates": 10,
-    "test_files": 66
+    "test_files": 67
   },
   "documentation": {
     "public_pages": [
@@ -722,6 +722,7 @@
       "tests/unit/fpga/__init__.py",
       "tests/unit/fpga/test_adc_to_spike_quantiser_hdl.py",
       "tests/unit/fpga/test_adc_to_spike_reference.py",
+      "tests/unit/fpga/test_formal_manifest.py",
       "tests/unit/fpga/test_mif_trigger_fabric_hdl.py",
       "tests/unit/fpga/test_run_formal.py",
       "tests/unit/fpga/test_trigger_fabric_reference.py",

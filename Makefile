@@ -141,7 +141,7 @@ build:
 # See hdl/README.md.
 formal:
 	@if [ -f tools/run_formal.py ]; then \
-		python tools/run_formal.py --suite all; \
+		python tools/formal_manifest.py --check && python tools/run_formal.py --suite all; \
 	else \
 		echo "make formal: roadmap-gated — tools/run_formal.py and hdl/formal/ are not yet present (MIF-010). See hdl/README.md."; \
 		exit 1; \
