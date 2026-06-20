@@ -1,0 +1,192 @@
+{
+  "SPDX-License-Identifier": "AGPL-3.0-or-later",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://anulum.github.io/scpn-mif-core/schemas/capability_manifest.schema.json",
+  "title": "SCPN MIF Core Capability Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "SPDX-License-Identifier",
+    "schema_version",
+    "project_label",
+    "generated_from",
+    "project",
+    "labels",
+    "counts",
+    "package_exports",
+    "capabilities",
+    "packaging",
+    "quality_gates",
+    "documentation",
+    "evidence_boundary"
+  ],
+  "properties": {
+    "SPDX-License-Identifier": {
+      "const": "AGPL-3.0-or-later"
+    },
+    "schema_version": {
+      "const": "capability-manifest.v1"
+    },
+    "project_label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generated_from": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["config", "generator", "schema"],
+      "properties": {
+        "config": { "type": "string", "minLength": 1 },
+        "generator": { "const": "tools/capability_manifest.py" },
+        "schema": { "const": "schemas/capability_manifest.schema.json" }
+      }
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "requires_python", "readme", "license"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "requires_python": { "type": "string", "minLength": 1 },
+        "readme": { "type": "string", "minLength": 1 },
+        "license": {}
+      }
+    },
+    "labels": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "minLength": 1 }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "public_api_exports",
+        "python_capability_source_modules",
+        "python_capability_classes",
+        "rust_workspace_crates",
+        "julia_reference_modules",
+        "go_parity_sources",
+        "lean_proof_modules",
+        "hdl_rtl_modules",
+        "capability_documentation_pages",
+        "optional_extras",
+        "test_files",
+        "public_documentation_pages",
+        "github_workflows"
+      ],
+      "patternProperties": {
+        "^[a-z_]+$": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "package_exports": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "python_source_modules",
+        "python_classes",
+        "rust_workspace_crates",
+        "julia_reference_modules",
+        "go_parity_sources",
+        "lean_proof_modules",
+        "hdl_rtl_modules",
+        "documentation_pages"
+      ],
+      "properties": {
+        "python_source_modules": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "python_classes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "path"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "path": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "rust_workspace_crates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "path"],
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "path": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "julia_reference_modules": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "go_parity_sources": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "lean_proof_modules": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "hdl_rtl_modules": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "documentation_pages": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "packaging": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["optional_extras"],
+      "properties": {
+        "optional_extras": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "quality_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["test_files", "github_workflows"],
+      "properties": {
+        "test_files": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "github_workflows": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "documentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["public_pages"],
+      "properties": {
+        "public_pages": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "evidence_boundary": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

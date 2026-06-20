@@ -1,0 +1,591 @@
+{
+  "SPDX-License-Identifier": "AGPL-3.0-or-later",
+  "capabilities": {
+    "documentation_pages": [
+      "docs/api/aer/spike_buffer.md",
+      "docs/api/daq/bus_mock.md",
+      "docs/api/diagnostics/normalisation.md",
+      "docs/api/diagnostics/stress_inject.md",
+      "docs/api/formal/capacitor_bank.md",
+      "docs/api/formal/faraday_recovery.md",
+      "docs/api/formal/kinematic_safety.md",
+      "docs/api/formal/plasmoid_merger_petri_net.md",
+      "docs/api/formal/pulsed_shot.md",
+      "docs/api/fpga/adc_to_spike_quantiser.md",
+      "docs/api/index.md",
+      "docs/api/kinematic/doppler_kuramoto.md",
+      "docs/api/kinematic/merge_window.md",
+      "docs/api/kinematic/moving_frame_upde.md",
+      "docs/api/lifecycle/capacitor_bank.md",
+      "docs/api/lifecycle/plasmoid_merger_petri_net.md",
+      "docs/api/lifecycle/pulsed_shot_fsm.md",
+      "docs/api/physics/faraday_recovery.md",
+      "docs/api/physics/fusion_frc_contract.md",
+      "docs/architecture/index.md",
+      "docs/assets/README.md",
+      "docs/generated/compatibility_matrix.md",
+      "docs/index.md",
+      "docs/papers/index.md"
+    ],
+    "go_parity_sources": [
+      "go/cmd/daqmock_probe/main.go",
+      "go/daqmock/frame.go"
+    ],
+    "hdl_rtl_modules": [
+      "hdl/src/sensors/adc_to_spike_quantiser.sv"
+    ],
+    "julia_reference_modules": [
+      "julia/SCPNMIFCore/src/SCPNMIFCore.jl",
+      "julia/SCPNMIFCore/src/aer_spike.jl",
+      "julia/SCPNMIFCore/src/capacitor_bank.jl",
+      "julia/SCPNMIFCore/src/diagnostic_normalisation.jl",
+      "julia/SCPNMIFCore/src/diagnostic_stress_inject.jl",
+      "julia/SCPNMIFCore/src/doppler_kuramoto.jl",
+      "julia/SCPNMIFCore/src/kinematic_safety.jl",
+      "julia/SCPNMIFCore/src/merge_window.jl",
+      "julia/SCPNMIFCore/src/moving_frame_upde.jl"
+    ],
+    "lean_proof_modules": [
+      "lean/SCPNMIF/Basic.lean",
+      "lean/SCPNMIF/CapacitorBank.lean",
+      "lean/SCPNMIF/FaradayRecovery.lean",
+      "lean/SCPNMIF/Kinematic.lean",
+      "lean/SCPNMIF/KinematicSafety.lean",
+      "lean/SCPNMIF/PlasmoidMergerPetriNet.lean",
+      "lean/SCPNMIF/PulsedShot.lean",
+      "lean/SCPNMIF.lean"
+    ],
+    "python_classes": [
+      {
+        "name": "AERControlObservation",
+        "path": "src/scpn_mif_core/aer/spike_buffer.py"
+      },
+      {
+        "name": "AERDecodeSpec",
+        "path": "src/scpn_mif_core/aer/spike_buffer.py"
+      },
+      {
+        "name": "AERDecodedObservation",
+        "path": "src/scpn_mif_core/aer/spike_buffer.py"
+      },
+      {
+        "name": "AERSpikeEvent",
+        "path": "src/scpn_mif_core/aer/spike_buffer.py"
+      },
+      {
+        "name": "BankTelemetry",
+        "path": "src/scpn_mif_core/lifecycle/pulsed_shot_fsm.py"
+      },
+      {
+        "name": "CapacitorBank",
+        "path": "src/scpn_mif_core/lifecycle/capacitor_bank.py"
+      },
+      {
+        "name": "CapacitorBankSpec",
+        "path": "src/scpn_mif_core/lifecycle/capacitor_bank.py"
+      },
+      {
+        "name": "CapacitorBankState",
+        "path": "src/scpn_mif_core/lifecycle/capacitor_bank.py"
+      },
+      {
+        "name": "DataBusMock",
+        "path": "src/scpn_mif_core/daq/bus_mock.py"
+      },
+      {
+        "name": "DegradedSensorStream",
+        "path": "src/scpn_mif_core/diagnostics/stress_inject.py"
+      },
+      {
+        "name": "DescriptorProfile",
+        "path": "src/scpn_mif_core/daq/bus_mock.py"
+      },
+      {
+        "name": "DiagnosticChannelCalibration",
+        "path": "src/scpn_mif_core/diagnostics/normalisation.py"
+      },
+      {
+        "name": "DiagnosticFrame",
+        "path": "src/scpn_mif_core/diagnostics/stress_inject.py"
+      },
+      {
+        "name": "DiagnosticNormalisationState",
+        "path": "src/scpn_mif_core/diagnostics/normalisation.py"
+      },
+      {
+        "name": "DopplerKuramoto",
+        "path": "src/scpn_mif_core/kinematic/doppler_kuramoto.py"
+      },
+      {
+        "name": "DopplerKuramotoReport",
+        "path": "src/scpn_mif_core/kinematic/doppler_kuramoto.py"
+      },
+      {
+        "name": "DopplerKuramotoSpec",
+        "path": "src/scpn_mif_core/kinematic/doppler_kuramoto.py"
+      },
+      {
+        "name": "DopplerKuramotoState",
+        "path": "src/scpn_mif_core/kinematic/doppler_kuramoto.py"
+      },
+      {
+        "name": "DropoutSpec",
+        "path": "src/scpn_mif_core/diagnostics/stress_inject.py"
+      },
+      {
+        "name": "EnergyReport",
+        "path": "src/scpn_mif_core/lifecycle/capacitor_bank.py"
+      },
+      {
+        "name": "FaradayRecoveryReport",
+        "path": "src/scpn_mif_core/physics/faraday_recovery.py"
+      },
+      {
+        "name": "FaradayRecoverySpec",
+        "path": "src/scpn_mif_core/physics/faraday_recovery.py"
+      },
+      {
+        "name": "FaradayRecoveryState",
+        "path": "src/scpn_mif_core/physics/faraday_recovery.py"
+      },
+      {
+        "name": "FusionFRCContractReport",
+        "path": "src/scpn_mif_core/physics/fusion_frc_contract.py"
+      },
+      {
+        "name": "FusionFRCSurface",
+        "path": "src/scpn_mif_core/physics/fusion_frc_contract.py"
+      },
+      {
+        "name": "FusionFRCSurfaceReport",
+        "path": "src/scpn_mif_core/physics/fusion_frc_contract.py"
+      },
+      {
+        "name": "JitterSpec",
+        "path": "src/scpn_mif_core/diagnostics/stress_inject.py"
+      },
+      {
+        "name": "KinematicSafetyCertificate",
+        "path": "src/scpn_mif_core/kinematic/safety_certificate.py"
+      },
+      {
+        "name": "KinematicSafetySpec",
+        "path": "src/scpn_mif_core/kinematic/safety_certificate.py"
+      },
+      {
+        "name": "MergeWindowMonitor",
+        "path": "src/scpn_mif_core/kinematic/merge_window.py"
+      },
+      {
+        "name": "MergeWindowSample",
+        "path": "src/scpn_mif_core/kinematic/merge_window.py"
+      },
+      {
+        "name": "MergeWindowSpec",
+        "path": "src/scpn_mif_core/kinematic/merge_window.py"
+      },
+      {
+        "name": "MergeWindowTrace",
+        "path": "src/scpn_mif_core/kinematic/merge_window.py"
+      },
+      {
+        "name": "MergerMarking",
+        "path": "src/scpn_mif_core/lifecycle/plasmoid_merger_petri_net.py"
+      },
+      {
+        "name": "MergerObservation",
+        "path": "src/scpn_mif_core/lifecycle/plasmoid_merger_petri_net.py"
+      },
+      {
+        "name": "MergerPlace",
+        "path": "src/scpn_mif_core/lifecycle/plasmoid_merger_petri_net.py"
+      },
+      {
+        "name": "MergerStep",
+        "path": "src/scpn_mif_core/lifecycle/plasmoid_merger_petri_net.py"
+      },
+      {
+        "name": "MergerTransition",
+        "path": "src/scpn_mif_core/lifecycle/plasmoid_merger_petri_net.py"
+      },
+      {
+        "name": "MergerTransitionRecord",
+        "path": "src/scpn_mif_core/lifecycle/plasmoid_merger_petri_net.py"
+      },
+      {
+        "name": "MergerVerificationReport",
+        "path": "src/scpn_mif_core/lifecycle/plasmoid_merger_petri_net.py"
+      },
+      {
+        "name": "MovingFrameUPDE",
+        "path": "src/scpn_mif_core/kinematic/moving_frame_upde.py"
+      },
+      {
+        "name": "MovingFrameUPDEReport",
+        "path": "src/scpn_mif_core/kinematic/moving_frame_upde.py"
+      },
+      {
+        "name": "MovingFrameUPDESpec",
+        "path": "src/scpn_mif_core/kinematic/moving_frame_upde.py"
+      },
+      {
+        "name": "MovingFrameUPDEState",
+        "path": "src/scpn_mif_core/kinematic/moving_frame_upde.py"
+      },
+      {
+        "name": "NoiseSpec",
+        "path": "src/scpn_mif_core/diagnostics/stress_inject.py"
+      },
+      {
+        "name": "NormalisedDiagnosticSample",
+        "path": "src/scpn_mif_core/diagnostics/normalisation.py"
+      },
+      {
+        "name": "PlasmaState",
+        "path": "src/scpn_mif_core/lifecycle/pulsed_shot_fsm.py"
+      },
+      {
+        "name": "PlasmoidMergerPetriNet",
+        "path": "src/scpn_mif_core/lifecycle/plasmoid_merger_petri_net.py"
+      },
+      {
+        "name": "PlasmoidMergerSpec",
+        "path": "src/scpn_mif_core/lifecycle/plasmoid_merger_petri_net.py"
+      },
+      {
+        "name": "PulseSpec",
+        "path": "src/scpn_mif_core/lifecycle/capacitor_bank.py"
+      },
+      {
+        "name": "PulsedShotFSM",
+        "path": "src/scpn_mif_core/lifecycle/pulsed_shot_fsm.py"
+      },
+      {
+        "name": "PulsedShotSpec",
+        "path": "src/scpn_mif_core/lifecycle/pulsed_shot_fsm.py"
+      },
+      {
+        "name": "RLCRegime",
+        "path": "src/scpn_mif_core/lifecycle/capacitor_bank.py"
+      },
+      {
+        "name": "RawDaqFrame",
+        "path": "src/scpn_mif_core/daq/bus_mock.py"
+      },
+      {
+        "name": "ReplayConfig",
+        "path": "src/scpn_mif_core/daq/bus_mock.py"
+      },
+      {
+        "name": "ReplayThroughputReport",
+        "path": "src/scpn_mif_core/daq/bus_mock.py"
+      },
+      {
+        "name": "RustBackedCapacitorBank",
+        "path": "src/scpn_mif_core/lifecycle/_rust_adapter.py"
+      },
+      {
+        "name": "RustBackedDataBusMock",
+        "path": "src/scpn_mif_core/daq/_rust_adapter.py"
+      },
+      {
+        "name": "RustBackedDegradedSensorStream",
+        "path": "src/scpn_mif_core/diagnostics/_rust_adapter.py"
+      },
+      {
+        "name": "RustBackedDiagnosticNormalisationState",
+        "path": "src/scpn_mif_core/diagnostics/_rust_adapter.py"
+      },
+      {
+        "name": "RustBackedDopplerKuramoto",
+        "path": "src/scpn_mif_core/kinematic/_rust_adapter.py"
+      },
+      {
+        "name": "RustBackedMergeWindowMonitor",
+        "path": "src/scpn_mif_core/kinematic/_rust_adapter.py"
+      },
+      {
+        "name": "RustBackedMovingFrameUPDE",
+        "path": "src/scpn_mif_core/kinematic/_rust_adapter.py"
+      },
+      {
+        "name": "RustBackedPlasmoidMergerPetriNet",
+        "path": "src/scpn_mif_core/lifecycle/_rust_adapter.py"
+      },
+      {
+        "name": "RustBackedPulsedShotFSM",
+        "path": "src/scpn_mif_core/lifecycle/_rust_adapter.py"
+      },
+      {
+        "name": "RustBackedSpikeBuffer",
+        "path": "src/scpn_mif_core/aer/_rust_adapter.py"
+      },
+      {
+        "name": "SchedulerAction",
+        "path": "src/scpn_mif_core/lifecycle/pulsed_shot_fsm.py"
+      },
+      {
+        "name": "SchedulerCommand",
+        "path": "src/scpn_mif_core/lifecycle/pulsed_shot_fsm.py"
+      },
+      {
+        "name": "ShotState",
+        "path": "src/scpn_mif_core/lifecycle/pulsed_shot_fsm.py"
+      },
+      {
+        "name": "SpikeBuffer",
+        "path": "src/scpn_mif_core/aer/spike_buffer.py"
+      },
+      {
+        "name": "StressCampaignReport",
+        "path": "src/scpn_mif_core/diagnostics/stress_inject.py"
+      },
+      {
+        "name": "StressEnvelope",
+        "path": "src/scpn_mif_core/diagnostics/stress_inject.py"
+      },
+      {
+        "name": "StressInjectionConfig",
+        "path": "src/scpn_mif_core/diagnostics/stress_inject.py"
+      },
+      {
+        "name": "StressInjectionRecord",
+        "path": "src/scpn_mif_core/diagnostics/stress_inject.py"
+      },
+      {
+        "name": "StressInjectionResult",
+        "path": "src/scpn_mif_core/diagnostics/stress_inject.py"
+      },
+      {
+        "name": "TransitionRecord",
+        "path": "src/scpn_mif_core/lifecycle/pulsed_shot_fsm.py"
+      }
+    ],
+    "python_source_modules": [
+      "src/scpn_mif_core/aer/_rust_adapter.py",
+      "src/scpn_mif_core/aer/spike_buffer.py",
+      "src/scpn_mif_core/daq/_rust_adapter.py",
+      "src/scpn_mif_core/daq/bus_mock.py",
+      "src/scpn_mif_core/diagnostics/_rust_adapter.py",
+      "src/scpn_mif_core/diagnostics/normalisation.py",
+      "src/scpn_mif_core/diagnostics/stress_inject.py",
+      "src/scpn_mif_core/kinematic/_rust_adapter.py",
+      "src/scpn_mif_core/kinematic/doppler_kuramoto.py",
+      "src/scpn_mif_core/kinematic/merge_window.py",
+      "src/scpn_mif_core/kinematic/moving_frame_upde.py",
+      "src/scpn_mif_core/kinematic/safety_certificate.py",
+      "src/scpn_mif_core/lifecycle/_rust_adapter.py",
+      "src/scpn_mif_core/lifecycle/capacitor_bank.py",
+      "src/scpn_mif_core/lifecycle/plasmoid_merger_petri_net.py",
+      "src/scpn_mif_core/lifecycle/pulsed_shot_fsm.py",
+      "src/scpn_mif_core/physics/_rust_adapter.py",
+      "src/scpn_mif_core/physics/faraday_recovery.py",
+      "src/scpn_mif_core/physics/fusion_frc_contract.py"
+    ],
+    "rust_workspace_crates": [
+      {
+        "name": "mif-aer",
+        "path": "scpn-mif-rs/crates/mif-aer"
+      },
+      {
+        "name": "mif-core",
+        "path": "scpn-mif-rs/crates/mif-core"
+      },
+      {
+        "name": "mif-daq",
+        "path": "scpn-mif-rs/crates/mif-daq"
+      },
+      {
+        "name": "mif-diagnostics",
+        "path": "scpn-mif-rs/crates/mif-diagnostics"
+      },
+      {
+        "name": "mif-ffi",
+        "path": "scpn-mif-rs/crates/mif-ffi"
+      },
+      {
+        "name": "mif-fpga",
+        "path": "scpn-mif-rs/crates/mif-fpga"
+      },
+      {
+        "name": "mif-kinematic",
+        "path": "scpn-mif-rs/crates/mif-kinematic"
+      },
+      {
+        "name": "mif-lifecycle",
+        "path": "scpn-mif-rs/crates/mif-lifecycle"
+      },
+      {
+        "name": "mif-types",
+        "path": "scpn-mif-rs/crates/mif-types"
+      },
+      {
+        "name": "scpn-mif-core-fuzz",
+        "path": "scpn-mif-rs/fuzz"
+      }
+    ]
+  },
+  "counts": {
+    "capability_documentation_pages": 24,
+    "github_workflows": 14,
+    "go_parity_sources": 2,
+    "hdl_rtl_modules": 1,
+    "julia_reference_modules": 9,
+    "lean_proof_modules": 8,
+    "optional_extras": 4,
+    "public_api_exports": 1,
+    "public_documentation_pages": 24,
+    "python_capability_classes": 76,
+    "python_capability_source_modules": 19,
+    "rust_workspace_crates": 10,
+    "test_files": 56
+  },
+  "documentation": {
+    "public_pages": [
+      "docs/api/aer/spike_buffer.md",
+      "docs/api/daq/bus_mock.md",
+      "docs/api/diagnostics/normalisation.md",
+      "docs/api/diagnostics/stress_inject.md",
+      "docs/api/formal/capacitor_bank.md",
+      "docs/api/formal/faraday_recovery.md",
+      "docs/api/formal/kinematic_safety.md",
+      "docs/api/formal/plasmoid_merger_petri_net.md",
+      "docs/api/formal/pulsed_shot.md",
+      "docs/api/fpga/adc_to_spike_quantiser.md",
+      "docs/api/index.md",
+      "docs/api/kinematic/doppler_kuramoto.md",
+      "docs/api/kinematic/merge_window.md",
+      "docs/api/kinematic/moving_frame_upde.md",
+      "docs/api/lifecycle/capacitor_bank.md",
+      "docs/api/lifecycle/plasmoid_merger_petri_net.md",
+      "docs/api/lifecycle/pulsed_shot_fsm.md",
+      "docs/api/physics/faraday_recovery.md",
+      "docs/api/physics/fusion_frc_contract.md",
+      "docs/architecture/index.md",
+      "docs/assets/README.md",
+      "docs/generated/compatibility_matrix.md",
+      "docs/index.md",
+      "docs/papers/index.md"
+    ]
+  },
+  "evidence_boundary": "Counts are file-system and static-source inventory only; benchmark, coverage, hardware, and scientific-fidelity claims remain governed by their dedicated evidence artifacts.",
+  "generated_from": {
+    "config": "tools/capability_manifest.toml",
+    "generator": "tools/capability_manifest.py",
+    "schema": "schemas/capability_manifest.schema.json"
+  },
+  "labels": {
+    "capability_documentation_pages": "Capability documentation pages",
+    "github_workflows": "GitHub Actions workflows",
+    "go_parity_sources": "Go parity sources",
+    "hdl_rtl_modules": "Synthesisable HDL RTL modules",
+    "julia_reference_modules": "Julia reference modules",
+    "lean_proof_modules": "Lean 4 proof modules",
+    "optional_extras": "Optional extras",
+    "public_api_exports": "Public API exports",
+    "public_documentation_pages": "Public documentation pages",
+    "python_capability_classes": "Python capability classes",
+    "python_capability_source_modules": "Python capability source modules",
+    "rust_workspace_crates": "Rust workspace crates",
+    "test_files": "Python test files",
+    "version": "Package version"
+  },
+  "package_exports": [
+    "__version__"
+  ],
+  "packaging": {
+    "optional_extras": [
+      "dev",
+      "docs",
+      "ecosystem",
+      "formal"
+    ]
+  },
+  "project": {
+    "license": {
+      "text": "AGPL-3.0-or-later"
+    },
+    "name": "scpn-mif-core",
+    "readme": "README.md",
+    "requires_python": ">=3.12,<3.13",
+    "version": "0.0.1"
+  },
+  "project_label": "SCPN MIF Core",
+  "quality_gates": {
+    "github_workflows": [
+      ".github/workflows/benchmark-nightly.yml",
+      ".github/workflows/ci.yml",
+      ".github/workflows/codeql.yml",
+      ".github/workflows/docs.yml",
+      ".github/workflows/formal.yml",
+      ".github/workflows/fuzz-nightly.yml",
+      ".github/workflows/pre-commit.yml",
+      ".github/workflows/release.yml",
+      ".github/workflows/sbom.yml",
+      ".github/workflows/scorecard.yml",
+      ".github/workflows/security-audit.yml",
+      ".github/workflows/stale.yml",
+      ".github/workflows/synthesis.yml",
+      ".github/workflows/upstream_nightly.yml"
+    ],
+    "test_files": [
+      "tests/__init__.py",
+      "tests/conftest.py",
+      "tests/contract/__init__.py",
+      "tests/contract/conftest.py",
+      "tests/contract/test_control_petri_net_contract.py",
+      "tests/contract/test_fusion_frc_contract.py",
+      "tests/contract/test_fusion_jax_transport_contract.py",
+      "tests/contract/test_neurocore_emit_sv_contract.py",
+      "tests/contract/test_phase_orch_kuramoto_contract.py",
+      "tests/contract/test_quantum_qaoa_mpc_contract.py",
+      "tests/integration/__init__.py",
+      "tests/physics_parity/__init__.py",
+      "tests/unit/__init__.py",
+      "tests/unit/aer/__init__.py",
+      "tests/unit/aer/test_spike_buffer.py",
+      "tests/unit/aer/test_spike_buffer_rust_parity.py",
+      "tests/unit/daq/test_bus_mock.py",
+      "tests/unit/daq/test_bus_mock_rust_parity.py",
+      "tests/unit/diagnostics/test_normalisation.py",
+      "tests/unit/diagnostics/test_normalisation_rust_parity.py",
+      "tests/unit/diagnostics/test_stress_inject.py",
+      "tests/unit/diagnostics/test_stress_inject_rust_parity.py",
+      "tests/unit/fpga/__init__.py",
+      "tests/unit/fpga/test_adc_to_spike_quantiser_hdl.py",
+      "tests/unit/fpga/test_adc_to_spike_reference.py",
+      "tests/unit/kinematic/__init__.py",
+      "tests/unit/kinematic/test_doppler_kuramoto.py",
+      "tests/unit/kinematic/test_doppler_kuramoto_rust_parity.py",
+      "tests/unit/kinematic/test_merge_window.py",
+      "tests/unit/kinematic/test_merge_window_rust_parity.py",
+      "tests/unit/kinematic/test_moving_frame_upde.py",
+      "tests/unit/kinematic/test_moving_frame_upde_rust_parity.py",
+      "tests/unit/kinematic/test_safety_certificate.py",
+      "tests/unit/kinematic/test_safety_certificate_rust_parity.py",
+      "tests/unit/lifecycle/__init__.py",
+      "tests/unit/lifecycle/test_capacitor_bank.py",
+      "tests/unit/lifecycle/test_capacitor_bank_rust_parity.py",
+      "tests/unit/lifecycle/test_plasmoid_merger_petri_net.py",
+      "tests/unit/lifecycle/test_plasmoid_merger_petri_net_rust_parity.py",
+      "tests/unit/lifecycle/test_pulsed_shot_fsm.py",
+      "tests/unit/lifecycle/test_pulsed_shot_fsm_rust_parity.py",
+      "tests/unit/lifecycle/test_rust_adapter.py",
+      "tests/unit/physics/__init__.py",
+      "tests/unit/physics/test_faraday_recovery.py",
+      "tests/unit/physics/test_faraday_recovery_rust_parity.py",
+      "tests/unit/physics/test_fusion_frc_contract.py",
+      "tests/unit/test_capability_manifest.py",
+      "tests/unit/test_dispatch.py",
+      "tests/unit/test_ecosystem_dynamic_matrix.py",
+      "tests/unit/test_lean_capacitor_bank.py",
+      "tests/unit/test_lean_faraday_recovery.py",
+      "tests/unit/test_lean_kinematic_safety.py",
+      "tests/unit/test_lean_plasmoid_merger_petri_net.py",
+      "tests/unit/test_lean_pulsed_shot.py",
+      "tests/unit/test_update_dispatch.py",
+      "tests/unit/test_version.py"
+    ]
+  },
+  "schema_version": "capability-manifest.v1"
+}

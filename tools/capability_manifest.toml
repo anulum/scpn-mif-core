@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# SCPN MIF Core capability manifest configuration
+
+project_label = "SCPN MIF Core"
+schema_version = "capability-manifest.v1"
+exclude_doc_parts = ["internal", "_build", "_generated"]
+
+[paths]
+json_output = "docs/_generated/capability_manifest.json"
+markdown_output = "docs/_generated/capability_snapshot.md"
+package_root = "src/scpn_mif_core"
+capability_sources = [
+  "src/scpn_mif_core/aer",
+  "src/scpn_mif_core/daq",
+  "src/scpn_mif_core/diagnostics",
+  "src/scpn_mif_core/kinematic",
+  "src/scpn_mif_core/lifecycle",
+  "src/scpn_mif_core/physics",
+]
+capability_docs = "docs"
+tests_root = "tests"
+docs_root = "docs"
+workflows_root = ".github/workflows"
+rust_workspace = "scpn-mif-rs"
+julia_sources = ["julia/SCPNMIFCore/src"]
+go_root = "go"
+lean_root = "lean"
+hdl_root = "hdl"
+
+[readme]
+path = "README.md"
+marker_start = "<!-- capability-snapshot:start -->"
+marker_end = "<!-- capability-snapshot:end -->"
+
+[labels]
+version = "Package version"
+public_api_exports = "Public API exports"
+python_capability_source_modules = "Python capability source modules"
+python_capability_classes = "Python capability classes"
+rust_workspace_crates = "Rust workspace crates"
+julia_reference_modules = "Julia reference modules"
+go_parity_sources = "Go parity sources"
+lean_proof_modules = "Lean 4 proof modules"
+hdl_rtl_modules = "Synthesisable HDL RTL modules"
+capability_documentation_pages = "Capability documentation pages"
+optional_extras = "Optional extras"
+test_files = "Python test files"
+public_documentation_pages = "Public documentation pages"
+github_workflows = "GitHub Actions workflows"
