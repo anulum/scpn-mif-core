@@ -118,6 +118,8 @@ nav:
           - 0009 Standards-interop seams: adr/0009-standards-interop-seams.md
       - Standards:
           - Functional-safety readiness mapping: standards/safety_readiness_mapping.md
+      - Validation:
+          - Belova FRC-merge reproduction: validation/belova_merge_reproduction.md
   - API:
       - api/index.md
       - Kinematic:

@@ -37,7 +37,8 @@
       "docs/guides/getting_started.md",
       "docs/index.md",
       "docs/papers/index.md",
-      "docs/standards/safety_readiness_mapping.md"
+      "docs/standards/safety_readiness_mapping.md",
+      "docs/validation/belova_merge_reproduction.md"
     ],
     "go_parity_sources": [
       "go/cmd/daqmock_probe/main.go",
@@ -440,7 +441,7 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 36,
+    "capability_documentation_pages": 37,
     "github_workflows": 14,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 3,
@@ -448,7 +449,7 @@
     "lean_proof_modules": 8,
     "optional_extras": 4,
     "public_api_exports": 160,
-    "public_documentation_pages": 36,
+    "public_documentation_pages": 37,
     "python_capability_classes": 76,
     "python_capability_source_modules": 19,
     "rust_workspace_crates": 10,
@@ -491,7 +492,8 @@
       "docs/guides/getting_started.md",
       "docs/index.md",
       "docs/papers/index.md",
-      "docs/standards/safety_readiness_mapping.md"
+      "docs/standards/safety_readiness_mapping.md",
+      "docs/validation/belova_merge_reproduction.md"
     ]
   },
   "evidence_boundary": "Counts are file-system and static-source inventory only; benchmark, coverage, hardware, and scientific-fidelity claims remain governed by their dedicated evidence artifacts.",
