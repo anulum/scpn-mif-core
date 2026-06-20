@@ -21,7 +21,7 @@ import importlib
 
 import scpn_mif_core
 
-SUBPACKAGES = ("kinematic", "lifecycle", "physics", "aer", "daq", "diagnostics", "ecosystem")
+SUBPACKAGES = ("kinematic", "lifecycle", "physics", "aer", "daq", "diagnostics", "ecosystem", "interop")
 # Top-level capability modules re-exported alongside the subpackages.
 TOP_LEVEL_MODULES = ("merge_trigger",)
 AGGREGATED_MODULES = (*SUBPACKAGES, *TOP_LEVEL_MODULES)
