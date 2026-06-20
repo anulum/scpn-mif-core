@@ -2,6 +2,12 @@
 name: Formal verification
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "hdl/**"
+      - "lean/**"
+      - ".github/workflows/formal.yml"
   pull_request:
     paths:
       - "hdl/**"
