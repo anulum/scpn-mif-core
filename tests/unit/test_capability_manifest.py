@@ -73,6 +73,20 @@ def test_manifest_scans_mif_core_polyglot_surfaces() -> None:
     assert counts["hdl_rtl_modules"] >= 1
 
 
+def test_hdl_rtl_scan_excludes_build_sandbox_and_formal_harness(tmp_path: Path) -> None:
+    hdl = tmp_path / "hdl"
+    (hdl / "src" / "triggers").mkdir(parents=True)
+    (hdl / "formal" / "safety").mkdir(parents=True)
+    (hdl / "formal" / "build" / "safety" / "task" / "src").mkdir(parents=True)
+    (hdl / "src" / "triggers" / "fabric.sv").write_text("module fabric; endmodule\n", encoding="utf-8")
+    (hdl / "formal" / "fabric_formal.sv").write_text("module fabric_formal; endmodule\n", encoding="utf-8")
+    (hdl / "formal" / "build" / "safety" / "task" / "src" / "fabric.sv").write_text("module x; endmodule\n", encoding="utf-8")
+
+    modules = TOOL._hdl_rtl_modules(hdl, repo=tmp_path)
+
+    assert modules == ["hdl/src/triggers/fabric.sv"]
+
+
 def test_internal_docs_are_excluded_from_public_inventory() -> None:
     manifest = TOOL.build_capability_manifest(_repo_root())
     public_pages = manifest["documentation"]["public_pages"]

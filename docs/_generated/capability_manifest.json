@@ -41,13 +41,6 @@
       "go/daqmock/frame.go"
     ],
     "hdl_rtl_modules": [
-      "hdl/formal/build/liveness/mif_trigger_fabric_liveness/engine_0/trace0_tb.v",
-      "hdl/formal/build/liveness/mif_trigger_fabric_liveness/engine_0/trace1_tb.v",
-      "hdl/formal/build/liveness/mif_trigger_fabric_liveness/src/mif_trigger_fabric.sv",
-      "hdl/formal/build/liveness/mif_trigger_fabric_liveness/src/mif_trigger_fabric_formal.sv",
-      "hdl/formal/build/safety/mif_trigger_fabric_safety/src/mif_trigger_fabric.sv",
-      "hdl/formal/build/safety/mif_trigger_fabric_safety/src/mif_trigger_fabric_formal.sv",
-      "hdl/formal/mif_trigger_fabric_formal.sv",
       "hdl/src/sensors/adc_to_spike_quantiser.sv",
       "hdl/src/triggers/mif_trigger_fabric.sv"
     ],
@@ -446,7 +439,7 @@
     "capability_documentation_pages": 33,
     "github_workflows": 14,
     "go_parity_sources": 2,
-    "hdl_rtl_modules": 9,
+    "hdl_rtl_modules": 2,
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,
     "optional_extras": 4,

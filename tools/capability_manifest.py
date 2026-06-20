@@ -57,6 +57,9 @@ DEFAULT_GO_ROOT = Path("go")
 DEFAULT_LEAN_ROOT = Path("lean")
 DEFAULT_HDL_ROOT = Path("hdl")
 HDL_SUFFIXES = (".sv", ".v", ".vhd", ".vhdl")
+# Path parts excluded from the synthesisable-RTL scan: the transient SymbiYosys
+# build sandbox and the formal property harnesses (assertions, not RTL).
+_HDL_EXCLUDED_PARTS = frozenset({"build", "formal"})
 LEAN_BUILD_FILES = ("lakefile.lean",)
 
 
@@ -587,7 +590,10 @@ def _hdl_rtl_modules(root: Path, *, repo: Path) -> list[str]:
         return []
     rows: set[str] = set()
     for suffix in HDL_SUFFIXES:
-        rows.update(_rel(path, repo) for path in sorted(root.rglob(f"*{suffix}")))
+        for path in sorted(root.rglob(f"*{suffix}")):
+            if _HDL_EXCLUDED_PARTS.intersection(path.parts):
+                continue
+            rows.add(_rel(path, repo))
     return sorted(rows)
 
 
