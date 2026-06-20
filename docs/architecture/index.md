@@ -27,7 +27,9 @@ dθᵢ/dt = ωᵢ(t)
 The distance-coupling term modulates K, the Doppler term corrects for
 relative motion using pair-symmetric characteristic-speed normalisation.
 Both are extracted from the swarmalator family into reusable primitives in
-`scpn-phase-orchestrator` 0.7.0 (PHA-C.1, PHA-C.2). MIF-001 is implemented
+`scpn-phase-orchestrator` (PHA-C.1, PHA-C.2; live versions are reported by the
+[dynamic compatibility matrix](../generated/compatibility_matrix.md), not pinned
+here). MIF-001 is implemented
 locally as an upstream-pending Python/Rust/Julia carrier with RK4 phase
 integration and linear axial positions for the chamber-centre acceptance
 window.
@@ -75,8 +77,10 @@ dψ/dt = −ψ / τ_ψ + R_null · E_θ − η_Spitzer · J_θ
 ```
 
 Reference: Ono et al. 1997, *Physics of Plasmas* 4, 1953, eq. 8.
-Implemented as `scpn_fusion.core.current_diffusion.solve_flux_evolution_nonadiabatic`
-in FUSION 4.0.0 (FUS-C.3).
+Implemented in `scpn-fusion-core` as
+`scpn_fusion.core.current_diffusion.solve_flux_evolution_nonadiabatic` (FUS-C.3);
+the live FUSION version is reported by the
+[dynamic compatibility matrix](../generated/compatibility_matrix.md).
 
 ### Magneto-Rayleigh-Taylor growth (FUSION-CORE)
 
@@ -85,8 +89,9 @@ in FUSION 4.0.0 (FUS-C.3).
 ```
 
 Reference: Velikovich et al. 2007, *Physics of Plasmas* 14, 022701, eq. 18.
-Implemented as `scpn_fusion.core.mrti.mrti_growth_rate` in FUSION 4.1.0
-(FUS-C.4).
+Implemented in `scpn-fusion-core` as `scpn_fusion.core.mrti.mrti_growth_rate`
+(FUS-C.4); the live FUSION version is reported by the
+[dynamic compatibility matrix](../generated/compatibility_matrix.md).
 
 ## Cross-repository ownership
 

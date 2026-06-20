@@ -37,8 +37,12 @@ A specialised control layer that:
   explicit contract tests.
 - Wires the pulsed-shot lifecycle and capacitor-bank state machine through
   `scpn-control`'s Petri-net and SNN runtime.
-- Hosts the timing-aware SymbiYosys property set that proves the sub-50
-  nanosecond latency end to end.
+- Hosts the MIF-010 SymbiYosys property set that proves the trigger fabric's
+  veto dominance, single-shot bound, and debounce no-underflow, and the fast-veto
+  lane's zero-cycle veto dominance, by k-induction. The sub-50-nanosecond
+  end-to-end latency is a decomposed, modelled budget (currently over target;
+  see `bench/results/trigger_latency_budget.json`), not a proved or measured
+  result; timing-aware proofs and post-route silicon timing closure are roadmap.
 
 ## Reading path
 
