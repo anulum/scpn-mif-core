@@ -40,7 +40,7 @@
       "depends_on": [
         {
           "path": "hdl/formal/mif_trigger_fabric_formal.sv",
-          "sha256": "ada262d10902a0c73a0a7b3c11a91b3c2d63e138cb968b47bad25a6c61b79c3e"
+          "sha256": "8731c15cc121397f24a8a191454667342ffdaf250bd51334ff03bc1df59adb90"
         },
         {
           "path": "hdl/formal/safety/mif_trigger_fabric_safety.sby",
@@ -92,7 +92,7 @@
         },
         {
           "path": "hdl/formal/mif_trigger_fabric_formal.sv",
-          "sha256": "ada262d10902a0c73a0a7b3c11a91b3c2d63e138cb968b47bad25a6c61b79c3e"
+          "sha256": "8731c15cc121397f24a8a191454667342ffdaf250bd51334ff03bc1df59adb90"
         },
         {
           "path": "hdl/src/triggers/mif_trigger_fabric.sv",

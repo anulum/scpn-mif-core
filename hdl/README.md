@@ -84,11 +84,14 @@ final fire output are combinational, but the fire decision requires
 registered one-shot, so the fabric is sequential, not a pure combinational path.
 The MIF-010
 property suites machine-check veto dominance, the trigger-gating condition, the
-single-shot bound (no double trigger), and the debounce no-underflow invariant
-by k-induction, and witness trigger reachability and one-shot clearing by bounded
-cover. Vivado timing closure (the sub-50-ns latency budget) remains gated on the
-FPGA workstation and final SKU choice; the open-source flow proves functional
-correctness, not the post-route timing number.
+single-shot bound (no double trigger), the debounce no-underflow invariant, and a
+**bounded cycle-latency** property (the lock-to-trigger latency is bounded by
+`LOCK_HOLD_CYCLES` cycles) by k-induction, and witness trigger reachability,
+one-shot clearing, and the trigger firing exactly at the latency bound by bounded
+cover. The latency bound is cycle-accurate; the nanosecond figure is a post-route
+silicon fact. Vivado timing closure (the sub-50-ns latency budget) remains gated on
+the FPGA workstation and final SKU choice; the open-source flow proves functional
+correctness and the cycle-latency bound, not the post-route timing number.
 
 The MIF-008 family also ships a genuinely registerless fast-veto lane
 (`mif_fast_veto_gate.sv`): a clock-free, stateless interlock that gates the

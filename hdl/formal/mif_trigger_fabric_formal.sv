@@ -75,6 +75,26 @@ module mif_trigger_fabric_formal #(
         end
     end
 
+    // Bounded cycle-latency tracking (MIF-010 timing tier, N2). `consec_lock`
+    // counts consecutive armed-lock cycles; it saturates one above the bound so the
+    // state space stays finite for k-induction. The trigger fires on the
+    // LOCK_HOLD_CYCLES-th sustained-lock cycle (consec_lock == LOCK_HOLD_CYCLES-1),
+    // so the lock-to-trigger latency is bounded by LOCK_HOLD_CYCLES cycles. This is
+    // a cycle-accurate bound; the nanosecond figure is a post-route silicon fact.
+    localparam int LAT_WIDTH = $clog2(LOCK_HOLD_CYCLES + 2);
+    localparam logic [LAT_WIDTH-1:0] LAT_BOUND = LOCK_HOLD_CYCLES[LAT_WIDTH-1:0];
+    logic [LAT_WIDTH-1:0] consec_lock;
+
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            consec_lock <= '0;
+        end else if (arm && lock_now) begin
+            consec_lock <= (consec_lock >= LAT_BOUND + 1'b1) ? consec_lock : consec_lock + 1'b1;
+        end else begin
+            consec_lock <= '0;
+        end
+    end
+
     always_ff @(posedge clk) begin
         if (rst_n) begin
             // Safety — the kinematic-envelope veto is absolute.
@@ -99,6 +119,15 @@ module mif_trigger_fabric_formal #(
 
             // Liveness — a trigger is reachable.
             cover (trigger);
+
+            // Bounded cycle-latency (N2) — the fabric cannot accumulate more than
+            // LOCK_HOLD_CYCLES consecutive armed-lock cycles without the one-shot
+            // having fired, so the lock-to-trigger latency is bounded by
+            // LOCK_HOLD_CYCLES cycles.
+            assert (consec_lock < LAT_BOUND || fired);
+
+            // Liveness — the trigger does fire exactly at the latency bound.
+            cover (trigger && consec_lock == LAT_BOUND - 1'b1);
         end
 
         if (rst_n && past_valid && $past(rst_n)) begin
