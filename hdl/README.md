@@ -8,34 +8,44 @@
 
 # HDL tree
 
-SystemVerilog (IEEE 1800-2017) sources, Vivado batch flow, and SymbiYosys
-property scripts for SCPN-MIF-CORE.
+SystemVerilog (IEEE 1800-2017) sources for SCPN-MIF-CORE. The current tree holds
+the MIF-007 sensor quantiser and its Verilator testbench. The Vivado batch flow,
+the SymbiYosys property scripts, and the synthesis/timing reports are roadmap
+items; the layout below marks each entry as present or planned.
 
 ## Layout
 
 ```
 hdl/
 ├── src/
-│   └── sensors/              MIF-007 ADC → Q8.8 AER spike quantiser
+│   └── sensors/              MIF-007 ADC → Q8.8 AER spike quantiser        [present]
 ├── sim/
-│   └── adc_to_spike_quantiser_tb.cpp
-├── targets/
+│   └── adc_to_spike_quantiser_tb.cpp                                       [present]
+├── targets/                                                                [roadmap]
 │   ├── ultrascale_plus/      UltraScale+ XDC, Tcl, IP catalog (depends on NEU-C.1)
 │   └── pynq_z2/              Zynq-7 PYNQ-Z2 (legacy, sc-neurocore inherits)
-├── formal/                   .sby + .sv property bindings
-│   ├── safety/               30 safety properties (MIF-010)
-│   ├── liveness/             25 liveness properties (MIF-010)
-│   └── timing/               15 timing-aware properties (MIF-010, depends on NEU-C.2)
-└── reports/                  archived synthesis + timing + utilisation reports
+├── formal/                   .sby + .sv property bindings (MIF-010)        [roadmap]
+│   ├── safety/               safety properties
+│   ├── liveness/             liveness properties
+│   └── timing/               timing-aware properties (depends on NEU-C.2)
+└── reports/                  archived synthesis + timing + utilisation     [roadmap]
 ```
 
 ## Build
 
+The portable Yosys parse/synthesis smoke for the present MIF-007 source runs today:
+
 ```bash
-make synth-zu3eg     # Vivado batch on ZU3EG (requires Vivado 2024.2)
-make synth-zu9eg     # Vivado batch on ZU9EG
-make formal          # SymbiYosys + nuXmv + Kind 2 proof run
 yosys -q -p "read_verilog -sv hdl/src/sensors/adc_to_spike_quantiser.sv; hierarchy -top adc_to_spike_quantiser; proc; opt; check"
+```
+
+The Vivado synthesis and SymbiYosys formal targets are roadmap-gated and report
+their unmet prerequisites rather than running against absent inputs:
+
+```bash
+make synth-zu3eg     # roadmap: Vivado batch on ZU3EG (requires Vivado 2024.2 + hdl/targets/)
+make synth-zu9eg     # roadmap: Vivado batch on ZU9EG
+make formal          # roadmap: SymbiYosys property run (requires hdl/formal/)
 ```
 
 MIF-007 currently has a portable Yosys parse/synthesis smoke, Python golden

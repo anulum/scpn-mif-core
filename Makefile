@@ -41,9 +41,9 @@ help:
 	@echo "  bridge          build Python extension from Rust (maturin develop)"
 	@echo "  build           build sdist + wheel"
 	@echo ""
-	@echo "  formal          run SymbiYosys + nuXmv + Kind 2 proofs"
-	@echo "  synth-zu3eg     Vivado batch synthesis on ZU3EG"
-	@echo "  synth-zu9eg     Vivado batch synthesis on ZU9EG"
+	@echo "  formal          run SymbiYosys property proofs (roadmap-gated)"
+	@echo "  synth-zu3eg     Vivado batch synthesis on ZU3EG (roadmap-gated)"
+	@echo "  synth-zu9eg     Vivado batch synthesis on ZU9EG (roadmap-gated)"
 	@echo "  cosim           Verilator + Q8.8 cosimulation"
 	@echo "  contract        cross-repository contract tests"
 	@echo ""
@@ -135,14 +135,32 @@ build:
 	python -m build
 
 # ── Formal verification + FPGA ─────────────────────────────────────────
+# The formal and synthesis targets are roadmap-gated. Until their inputs exist
+# they report the unmet prerequisite and exit non-zero, rather than running
+# against absent scripts or silently reporting success. See hdl/README.md.
 formal:
-	python tools/run_formal.py --suite all
+	@if [ -f tools/run_formal.py ]; then \
+		python tools/run_formal.py --suite all; \
+	else \
+		echo "make formal: roadmap-gated — tools/run_formal.py and hdl/formal/ are not yet present (MIF-010). See hdl/README.md."; \
+		exit 1; \
+	fi
 
 synth-zu3eg:
-	cd hdl/targets/ultrascale_plus && vivado -mode batch -source build_zu3eg.tcl
+	@if [ -f hdl/targets/ultrascale_plus/build_zu3eg.tcl ]; then \
+		cd hdl/targets/ultrascale_plus && vivado -mode batch -source build_zu3eg.tcl; \
+	else \
+		echo "make synth-zu3eg: roadmap-gated — hdl/targets/ultrascale_plus/build_zu3eg.tcl is not present; requires Vivado 2024.2, an FPGA SKU decision, and the NEU-C.1 UltraScale+ flow. See hdl/README.md."; \
+		exit 1; \
+	fi
 
 synth-zu9eg:
-	cd hdl/targets/ultrascale_plus && vivado -mode batch -source build_zu9eg.tcl
+	@if [ -f hdl/targets/ultrascale_plus/build_zu9eg.tcl ]; then \
+		cd hdl/targets/ultrascale_plus && vivado -mode batch -source build_zu9eg.tcl; \
+	else \
+		echo "make synth-zu9eg: roadmap-gated — hdl/targets/ultrascale_plus/build_zu9eg.tcl is not present; requires Vivado 2024.2, an FPGA SKU decision, and the NEU-C.1 UltraScale+ flow. See hdl/README.md."; \
+		exit 1; \
+	fi
 
 cosim:
 	pytest cosim/ -v

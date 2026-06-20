@@ -34,8 +34,12 @@
 
 Deterministic phase synchronisation and hardware synthesis for high-beta
 pulsed magneto-inertial fusion plasmas on field-reversed configurations.
-Sub-50-nanosecond combinatorial sensor-to-actuator triggering on AMD Xilinx
-UltraScale+ FPGAs.
+The engineering objective is sub-50-nanosecond combinatorial sensor-to-actuator
+triggering on AMD Xilinx UltraScale+ FPGAs; the present release ships the
+software kinematic, lifecycle, diagnostic, and AER surfaces that this trigger
+path consumes. The combinatorial trigger fabric, its timing-aware formal proof
+set, and the UltraScale+ timing-closure report are roadmap items (see
+[Status](#status)), not yet delivered capabilities.
 
 > **Status:** pre-alpha with P1 local surfaces in progress. The current
 > upstream-pending API set includes MIF-001 Doppler-Kuramoto synchronisation,
@@ -110,9 +114,13 @@ slow control ───┘   ↑
                           └── QAOA-MPC + PQC trigger signer (QUANTUM-CONTROL)
 ```
 
-Latency budget end to end: **≤ 50 nanoseconds** sensor edge → switch edge.
-Formal proof of the budget is mechanised in SymbiYosys with a nuXmv / Kind 2
-timed-automata back-end (see `hdl/formal/timing/`).
+Target latency budget end to end: **≤ 50 nanoseconds** sensor edge → switch edge.
+The budget is a design constraint on the planned combinatorial trigger fabric, not
+a measured result. The intended verification route is a timing-aware SymbiYosys
+property set with a nuXmv / Kind 2 timed-automata back-end; that property set and
+the `hdl/formal/` tree it lives in are roadmap items (see [Status](#status)). The
+delivered hardware surface today is the MIF-007 B-dot ADC → Q8.8 spike-rate
+quantiser (`hdl/src/sensors/`) with a Verilator cosimulation harness.
 
 ## Sibling repositories
 
@@ -320,7 +328,7 @@ The broader public surface still stabilises at `0.1.0`.
 | Synthesisable HDL RTL modules | 1 |
 | Capability documentation pages | 24 |
 | Optional extras | 4 |
-| Python test files | 56 |
+| Python test files | 57 |
 | Public documentation pages | 24 |
 | GitHub Actions workflows | 14 |
 
