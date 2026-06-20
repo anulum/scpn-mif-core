@@ -14,10 +14,9 @@ permissions:
 
 jobs:
   symbiyosys:
-    name: SymbiYosys + nuXmv + Kind 2
+    name: SymbiYosys (Yosys + z3)
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.changed_files, 'hdl/')
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
       - name: Install Yosys + SymbiYosys
@@ -25,17 +24,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             yosys symbiyosys z3 boolector
-      - name: Run SymbiYosys
-        run: |
-          if [ -d hdl/formal ]; then
-            for sby in hdl/formal/**/*.sby; do
-              echo "::group::sby: $sby"
-              sby -f "$sby" || exit 1
-              echo "::endgroup::"
-            done
-          else
-            echo "no formal scripts yet (P3+)"
-          fi
+      - name: Run MIF-010 property suites
+        run: python3 tools/run_formal.py --suite all
 
   lean:
     name: Lean 4 + mathlib4

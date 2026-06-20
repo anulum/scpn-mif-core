@@ -41,7 +41,7 @@ help:
 	@echo "  bridge          build Python extension from Rust (maturin develop)"
 	@echo "  build           build sdist + wheel"
 	@echo ""
-	@echo "  formal          run SymbiYosys property proofs (roadmap-gated)"
+	@echo "  formal          run MIF-010 SymbiYosys property proofs"
 	@echo "  synth-zu3eg     Vivado batch synthesis on ZU3EG (roadmap-gated)"
 	@echo "  synth-zu9eg     Vivado batch synthesis on ZU9EG (roadmap-gated)"
 	@echo "  cosim           Verilator + Q8.8 cosimulation"
@@ -135,9 +135,10 @@ build:
 	python -m build
 
 # ── Formal verification + FPGA ─────────────────────────────────────────
-# The formal and synthesis targets are roadmap-gated. Until their inputs exist
-# they report the unmet prerequisite and exit non-zero, rather than running
-# against absent scripts or silently reporting success. See hdl/README.md.
+# `formal` runs the MIF-010 SymbiYosys property suites; the runner reports the
+# unmet prerequisite and exits non-zero when SymbiYosys is absent, rather than
+# silently reporting success. The Vivado synthesis targets remain roadmap-gated.
+# See hdl/README.md.
 formal:
 	@if [ -f tools/run_formal.py ]; then \
 		python tools/run_formal.py --suite all; \

@@ -41,7 +41,15 @@
       "go/daqmock/frame.go"
     ],
     "hdl_rtl_modules": [
-      "hdl/src/sensors/adc_to_spike_quantiser.sv"
+      "hdl/formal/build/liveness/mif_trigger_fabric_liveness/engine_0/trace0_tb.v",
+      "hdl/formal/build/liveness/mif_trigger_fabric_liveness/engine_0/trace1_tb.v",
+      "hdl/formal/build/liveness/mif_trigger_fabric_liveness/src/mif_trigger_fabric.sv",
+      "hdl/formal/build/liveness/mif_trigger_fabric_liveness/src/mif_trigger_fabric_formal.sv",
+      "hdl/formal/build/safety/mif_trigger_fabric_safety/src/mif_trigger_fabric.sv",
+      "hdl/formal/build/safety/mif_trigger_fabric_safety/src/mif_trigger_fabric_formal.sv",
+      "hdl/formal/mif_trigger_fabric_formal.sv",
+      "hdl/src/sensors/adc_to_spike_quantiser.sv",
+      "hdl/src/triggers/mif_trigger_fabric.sv"
     ],
     "julia_reference_modules": [
       "julia/SCPNMIFCore/src/SCPNMIFCore.jl",
@@ -438,7 +446,7 @@
     "capability_documentation_pages": 33,
     "github_workflows": 14,
     "go_parity_sources": 2,
-    "hdl_rtl_modules": 1,
+    "hdl_rtl_modules": 9,
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,
     "optional_extras": 4,
@@ -447,7 +455,7 @@
     "python_capability_classes": 76,
     "python_capability_source_modules": 19,
     "rust_workspace_crates": 10,
-    "test_files": 63
+    "test_files": 66
   },
   "documentation": {
     "public_pages": [
@@ -721,6 +729,9 @@
       "tests/unit/fpga/__init__.py",
       "tests/unit/fpga/test_adc_to_spike_quantiser_hdl.py",
       "tests/unit/fpga/test_adc_to_spike_reference.py",
+      "tests/unit/fpga/test_mif_trigger_fabric_hdl.py",
+      "tests/unit/fpga/test_run_formal.py",
+      "tests/unit/fpga/test_trigger_fabric_reference.py",
       "tests/unit/kinematic/__init__.py",
       "tests/unit/kinematic/test_doppler_kuramoto.py",
       "tests/unit/kinematic/test_doppler_kuramoto_rust_parity.py",

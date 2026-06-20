@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SCPN-MIF-CORE — MIF-010 trigger-fabric liveness witnesses (bounded cover).
+# Shows the trigger is reachable and the one-shot can clear for a re-arm.
+
+[options]
+mode cover
+depth 20
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv -formal mif_trigger_fabric.sv
+read_verilog -sv -formal mif_trigger_fabric_formal.sv
+prep -top mif_trigger_fabric_formal
+
+[files]
+../../src/triggers/mif_trigger_fabric.sv
+../mif_trigger_fabric_formal.sv

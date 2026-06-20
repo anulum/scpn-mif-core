@@ -37,9 +37,12 @@ pulsed magneto-inertial fusion plasmas on field-reversed configurations.
 The engineering objective is sub-50-nanosecond combinatorial sensor-to-actuator
 triggering on AMD Xilinx UltraScale+ FPGAs; the present release ships the
 software kinematic, lifecycle, diagnostic, and AER surfaces that this trigger
-path consumes. The combinatorial trigger fabric, its timing-aware formal proof
-set, and the UltraScale+ timing-closure report are roadmap items (see
-[Status](#status)), not yet delivered capabilities.
+path consumes. The combinatorial trigger fabric (MIF-008) is present in
+synthesisable SystemVerilog with its core safety and liveness properties
+machine-checked on the open-source flow (MIF-010). The timing-aware formal
+proofs and the UltraScale+ timing-closure report that would establish the
+sub-50-nanosecond budget on silicon remain roadmap items (see [Status](#status)),
+not yet delivered capabilities.
 
 > **Status:** pre-alpha with P1 local surfaces in progress. The current
 > upstream-pending API set includes MIF-001 Doppler-Kuramoto synchronisation,
@@ -54,8 +57,13 @@ set, and the UltraScale+ timing-closure report are roadmap items (see
 > Lean proofs cover the current safety/bookkeeping contracts for MIF-004,
 > MIF-005, MIF-009, MIF-011, and MIF-012. MIF-007 has Python golden-reference,
 > synthesisable SystemVerilog, Yosys, Verilator, and local regression evidence.
-> MIF-015 now has a local ADC/Q8.8/RTL-trace cosimulation harness for the
-> MIF-007 sensor path. MIF also detects the accepted SCPN-FUSION-CORE FRC
+> MIF-008 adds the combinatorial trigger fabric in synthesisable SystemVerilog
+> with a Verilator self-check; MIF-010 proves its veto-dominance, single-shot,
+> and debounce no-underflow safety properties by k-induction and witnesses
+> trigger reachability and one-shot clearing by bounded cover, via SymbiYosys
+> (Yosys + z3). MIF-015 now has local cosimulation harnesses for the MIF-007
+> sensor path (ADC/Q8.8/RTL trace) and the MIF-008 trigger fabric (bit-true
+> Python-versus-Verilator). MIF also detects the accepted SCPN-FUSION-CORE FRC
 > contract surfaces without dispatching those FUSION-owned physics kernels
 > locally. Vivado ZU3EG timing, hardware waveform equivalence, full external
 > FUSION reference parity, and the P6 hardware trigger chain remain open
@@ -130,12 +138,14 @@ slow control ───┘   ↑
 ```
 
 Target latency budget end to end: **≤ 50 nanoseconds** sensor edge → switch edge.
-The budget is a design constraint on the planned combinatorial trigger fabric, not
-a measured result. The intended verification route is a timing-aware SymbiYosys
-property set with a nuXmv / Kind 2 timed-automata back-end; that property set and
-the `hdl/formal/` tree it lives in are roadmap items (see [Status](#status)). The
-delivered hardware surface today is the MIF-007 B-dot ADC → Q8.8 spike-rate
-quantiser (`hdl/src/sensors/`) with a Verilator cosimulation harness.
+The budget is a design constraint on the combinatorial trigger fabric, not a
+measured result: meeting it on silicon needs a timing-aware property set with a
+timed-automata back-end and an UltraScale+ timing-closure report, which remain
+roadmap items (see [Status](#status)). The delivered hardware surface today is the
+MIF-007 B-dot ADC → Q8.8 spike-rate quantiser (`hdl/src/sensors/`) and the
+MIF-008 combinatorial trigger fabric (`hdl/src/triggers/`), each with a Verilator
+cosimulation harness; the MIF-008 functional safety and liveness properties are
+machine-checked by the MIF-010 SymbiYosys suites in `hdl/formal/`.
 
 ## Sibling repositories
 
@@ -340,10 +350,10 @@ The broader public surface still stabilises at `0.1.0`.
 | Julia reference modules | 9 |
 | Go parity sources | 2 |
 | Lean 4 proof modules | 8 |
-| Synthesisable HDL RTL modules | 1 |
+| Synthesisable HDL RTL modules | 9 |
 | Capability documentation pages | 33 |
 | Optional extras | 4 |
-| Python test files | 63 |
+| Python test files | 66 |
 | Public documentation pages | 33 |
 | GitHub Actions workflows | 14 |
 

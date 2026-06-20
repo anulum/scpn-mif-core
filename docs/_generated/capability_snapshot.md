@@ -13,10 +13,10 @@
 | Julia reference modules | 9 |
 | Go parity sources | 2 |
 | Lean 4 proof modules | 8 |
-| Synthesisable HDL RTL modules | 1 |
+| Synthesisable HDL RTL modules | 9 |
 | Capability documentation pages | 33 |
 | Optional extras | 4 |
-| Python test files | 63 |
+| Python test files | 66 |
 | Public documentation pages | 33 |
 | GitHub Actions workflows | 14 |
 
