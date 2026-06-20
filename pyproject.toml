@@ -134,6 +134,7 @@ ignore = [
 "tests/**/*.py" = ["S", "PT011", "PT012", "E402", "D"]
 "bench/**/*.py" = ["S", "D"]
 "examples/**/*.py" = ["S"]
+"campaigns/**/*.py" = ["S"]
 "tools/**/*.py" = ["S", "D"]
 "conftest.py" = ["S", "D"]
 # Parity tests intentionally use `pytest.importorskip` before further imports,
@@ -197,7 +198,7 @@ filterwarnings = [
 ]
 
 [tool.bandit]
-exclude_dirs = ["tests", "bench", "examples", "lean", "go", "scpn-mif-rs", "hdl"]
+exclude_dirs = ["tests", "bench", "examples", "campaigns", "lean", "go", "scpn-mif-rs", "hdl"]
 skips = ["B101"]  # assert is fine
 
 [tool.coverage.run]
@@ -207,6 +208,7 @@ omit = [
     "*/tests/*",
     "*/bench/*",
     "*/examples/*",
+    "*/campaigns/*",
 ]
 
 [tool.coverage.report]

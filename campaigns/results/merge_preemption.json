@@ -1,0 +1,134 @@
+{
+  "description": "FRC merge-trigger preemption decision boundary (software kinematic Monte-Carlo)",
+  "fire_to_abort_boundary_m": 0.0008818181818181817,
+  "jitter": {
+    "phase_rad": 0.002,
+    "position_m": 0.0001,
+    "velocity_m_s": 0.05
+  },
+  "points": [
+    {
+      "abort_bank_fraction": 0.0,
+      "abort_unsafe_fraction": 0.17,
+      "fire_fraction": 0.83,
+      "half_separation_m": 0.0002,
+      "hold_no_lock_fraction": 0.0,
+      "trials": 200
+    },
+    {
+      "abort_bank_fraction": 0.0,
+      "abort_unsafe_fraction": 0.21,
+      "fire_fraction": 0.79,
+      "half_separation_m": 0.0003,
+      "hold_no_lock_fraction": 0.0,
+      "trials": 200
+    },
+    {
+      "abort_bank_fraction": 0.0,
+      "abort_unsafe_fraction": 0.285,
+      "fire_fraction": 0.715,
+      "half_separation_m": 0.0004,
+      "hold_no_lock_fraction": 0.0,
+      "trials": 200
+    },
+    {
+      "abort_bank_fraction": 0.0,
+      "abort_unsafe_fraction": 0.215,
+      "fire_fraction": 0.785,
+      "half_separation_m": 0.0005,
+      "hold_no_lock_fraction": 0.0,
+      "trials": 200
+    },
+    {
+      "abort_bank_fraction": 0.0,
+      "abort_unsafe_fraction": 0.305,
+      "fire_fraction": 0.695,
+      "half_separation_m": 0.0006,
+      "hold_no_lock_fraction": 0.0,
+      "trials": 200
+    },
+    {
+      "abort_bank_fraction": 0.0,
+      "abort_unsafe_fraction": 0.36,
+      "fire_fraction": 0.64,
+      "half_separation_m": 0.0007,
+      "hold_no_lock_fraction": 0.0,
+      "trials": 200
+    },
+    {
+      "abort_bank_fraction": 0.0,
+      "abort_unsafe_fraction": 0.41,
+      "fire_fraction": 0.59,
+      "half_separation_m": 0.0008,
+      "hold_no_lock_fraction": 0.0,
+      "trials": 200
+    },
+    {
+      "abort_bank_fraction": 0.0,
+      "abort_unsafe_fraction": 0.52,
+      "fire_fraction": 0.48,
+      "half_separation_m": 0.0009,
+      "hold_no_lock_fraction": 0.0,
+      "trials": 200
+    },
+    {
+      "abort_bank_fraction": 0.0,
+      "abort_unsafe_fraction": 0.755,
+      "fire_fraction": 0.245,
+      "half_separation_m": 0.001,
+      "hold_no_lock_fraction": 0.0,
+      "trials": 200
+    },
+    {
+      "abort_bank_fraction": 0.0,
+      "abort_unsafe_fraction": 0.925,
+      "fire_fraction": 0.075,
+      "half_separation_m": 0.0011,
+      "hold_no_lock_fraction": 0.0,
+      "trials": 200
+    },
+    {
+      "abort_bank_fraction": 0.0,
+      "abort_unsafe_fraction": 1.0,
+      "fire_fraction": 0.0,
+      "half_separation_m": 0.0012,
+      "hold_no_lock_fraction": 0.0,
+      "trials": 200
+    },
+    {
+      "abort_bank_fraction": 0.0,
+      "abort_unsafe_fraction": 1.0,
+      "fire_fraction": 0.0,
+      "half_separation_m": 0.0013,
+      "hold_no_lock_fraction": 0.0,
+      "trials": 200
+    },
+    {
+      "abort_bank_fraction": 0.0,
+      "abort_unsafe_fraction": 1.0,
+      "fire_fraction": 0.0,
+      "half_separation_m": 0.0014,
+      "hold_no_lock_fraction": 0.0,
+      "trials": 200
+    },
+    {
+      "abort_bank_fraction": 0.0,
+      "abort_unsafe_fraction": 1.0,
+      "fire_fraction": 0.0,
+      "half_separation_m": 0.0015,
+      "hold_no_lock_fraction": 0.0,
+      "trials": 200
+    },
+    {
+      "abort_bank_fraction": 0.0,
+      "abort_unsafe_fraction": 1.0,
+      "fire_fraction": 0.0,
+      "half_separation_m": 0.0016,
+      "hold_no_lock_fraction": 0.0,
+      "trials": 200
+    }
+  ],
+  "safety_tolerance_m": 0.002,
+  "seed": 20260620,
+  "trials_per_point": 200
+}

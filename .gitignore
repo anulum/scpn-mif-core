@@ -130,5 +130,6 @@ data/
 *.gif
 *.png
 !docs/**/*.png
+!campaigns/results/*.png
 *.h5
 *.hdf5
