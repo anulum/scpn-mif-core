@@ -89,7 +89,15 @@ firing into an unsafe merge is the failure the pipeline exists to preempt.
 
 ## The command line
 
-The same decision runs from a JSON scenario file:
+A fresh `pip install` runs a useful decision immediately, with no input file:
+
+```bash
+scpn-mif demo                       # built-in two-plasmoid scenario, human-readable
+scpn-mif demo --json                # the decision as JSON
+scpn-mif demo --emit-scenario > scenario.json   # save the scenario to adapt
+```
+
+The same decision then runs from your own JSON scenario file:
 
 ```bash
 scpn-mif run scenario.json          # human-readable

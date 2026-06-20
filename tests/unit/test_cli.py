@@ -22,8 +22,8 @@ from typing import Any
 import pytest
 
 from scpn_mif_core import __version__
-from scpn_mif_core.cli import main, report_to_dict, scenario_from_mapping
-from scpn_mif_core.merge_trigger import MergeTriggerScenario, evaluate_merge_trigger
+from scpn_mif_core.cli import DEMO_SCENARIO, main, report_to_dict, scenario_from_mapping
+from scpn_mif_core.merge_trigger import MergeTriggerOutcome, MergeTriggerScenario, evaluate_merge_trigger
 
 _FIRE_SCENARIO: dict[str, Any] = {
     "moving_frame": {
@@ -160,3 +160,32 @@ def test_report_to_dict_exposes_all_decision_fields() -> None:
     assert payload["outcome"] == "fire"
     for key in ("reason", "lock_achieved", "safety_passed", "bank_feasible", "recovered_energy_J"):
         assert key in payload
+
+
+# --------------------------------------------------------------------------- #
+# demo (zero-file pip-install-to-first-result)                                 #
+# --------------------------------------------------------------------------- #
+def test_demo_runs_built_in_scenario_to_fire(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["demo"]) == 0
+    out = capsys.readouterr().out
+    assert "outcome:" in out
+    assert "fire" in out
+
+
+def test_demo_emits_json_report(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["demo", "--json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["outcome"] == "fire"
+
+
+def test_demo_emit_scenario_round_trips_through_run(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["demo", "--emit-scenario"]) == 0
+    emitted = json.loads(capsys.readouterr().out)
+    assert emitted == DEMO_SCENARIO
+    report = evaluate_merge_trigger(scenario_from_mapping(emitted))
+    assert report.outcome is MergeTriggerOutcome.FIRE
+
+
+def test_demo_scenario_is_valid_and_fires() -> None:
+    report = evaluate_merge_trigger(scenario_from_mapping(DEMO_SCENARIO))
+    assert report.outcome is MergeTriggerOutcome.FIRE

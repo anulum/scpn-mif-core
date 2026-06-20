@@ -17,6 +17,10 @@ Subcommands
 ``run``
     Load an FRC merge-trigger scenario from a JSON file, run the decision
     pipeline, and print the outcome (human-readable or JSON).
+``demo``
+    Run a built-in two-plasmoid merge-trigger scenario with no input file, so a
+    fresh ``pip install`` yields a useful result immediately. ``--emit-scenario``
+    prints the scenario as JSON (ready to save and feed to ``run``).
 
 The ``run`` scenario file mirrors :class:`scpn_mif_core.merge_trigger.MergeTriggerScenario`:
 each nested object maps to the matching spec dataclass. ``recovery`` and
@@ -88,6 +92,15 @@ def _build_parser() -> argparse.ArgumentParser:
     run.add_argument("--json", action="store_true", help="emit the full report as JSON")
     run.set_defaults(handler=_cmd_run)
 
+    demo = sub.add_parser("demo", help="run a built-in merge-trigger scenario (no input file)")
+    demo.add_argument("--json", action="store_true", help="emit the report as JSON")
+    demo.add_argument(
+        "--emit-scenario",
+        action="store_true",
+        help="print the built-in scenario as JSON (save it and feed it to `run`) instead of running it",
+    )
+    demo.set_defaults(handler=_cmd_demo)
+
     return parser
 
 
@@ -109,6 +122,48 @@ def _cmd_run(args: argparse.Namespace) -> int:
     if args.json:
         print(json.dumps(report_to_dict(report), indent=2, sort_keys=True))
     else:
+        print(_format_report(report))
+    return 0
+
+
+# A representative two-plasmoid scenario that drives a FIRE decision. Kept as a
+# plain JSON-serialisable mapping so `demo --emit-scenario` round-trips through
+# `run` and a bare `pip install` yields a useful result with no input file.
+DEMO_SCENARIO: dict[str, Any] = {
+    "moving_frame": {
+        "omega_rad_s": [1.0, 1.0],
+        "coupling_rad_s": [[0.0, 50.0], [50.0, 0.0]],
+        "doppler_strength_rad_s": 0.0,
+        "distance_scale_m": 1.0,
+    },
+    "initial_phases_rad": [0.0, 0.004],
+    "initial_positions_m": [-5.0e-4, 5.0e-4],
+    "velocities_m_s": [0.0, 0.0],
+    "dt_s": 1.0e-3,
+    "steps": 256,
+    "merge_window": {"phase_tolerance_rad": 0.01, "spatial_tolerance_m": 0.002, "consecutive_samples": 3},
+    "safety": {},
+    "bank": {
+        "capacitance_F": 1.0e-3,
+        "inductance_H": 1.0e-6,
+        "series_resistance_ohm": 1.0e-3,
+        "voltage_max_V": 2.0e4,
+        "recharge_power_kW": 10.0,
+    },
+    "bank_initial_voltage_V": 2.0e4,
+    "compression_pulse": {"peak_current_A": 1.0e5, "duration_s": 1.0e-5, "waveform": "half_sine"},
+}
+
+
+def _cmd_demo(args: argparse.Namespace) -> int:
+    if args.emit_scenario:
+        print(json.dumps(DEMO_SCENARIO, indent=2, sort_keys=True))
+        return 0
+    report = evaluate_merge_trigger(scenario_from_mapping(DEMO_SCENARIO))
+    if args.json:
+        print(json.dumps(report_to_dict(report), indent=2, sort_keys=True))
+    else:
+        print("Built-in two-plasmoid FRC merge-trigger scenario:\n")
         print(_format_report(report))
     return 0
 
