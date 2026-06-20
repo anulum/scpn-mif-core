@@ -450,7 +450,7 @@
     "python_capability_classes": 76,
     "python_capability_source_modules": 19,
     "rust_workspace_crates": 10,
-    "test_files": 70
+    "test_files": 71
   },
   "documentation": {
     "public_pages": [
@@ -766,6 +766,7 @@
       "tests/unit/test_merge_trigger.py",
       "tests/unit/test_public_api_facade.py",
       "tests/unit/test_update_dispatch.py",
+      "tests/unit/test_verify_version_floors.py",
       "tests/unit/test_version.py"
     ]
   },

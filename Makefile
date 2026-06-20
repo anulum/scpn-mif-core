@@ -7,7 +7,7 @@
 .PHONY: help install install-dev test test-rust test-julia test-lean test-go test-all \
         lint fmt mypy bandit sast preflight preflight-fast \
         docs docs-build bench bench-rust bridge build \
-        formal synth-zu3eg synth-zu9eg cosim contract \
+        formal synth-zu3eg synth-zu9eg cosim contract verify-floors \
         install-hooks clean
 
 help:
@@ -45,7 +45,8 @@ help:
 	@echo "  synth-zu3eg     Vivado batch synthesis on ZU3EG (roadmap-gated)"
 	@echo "  synth-zu9eg     Vivado batch synthesis on ZU9EG (roadmap-gated)"
 	@echo "  cosim           Verilator + Q8.8 cosimulation"
-	@echo "  contract        cross-repository contract tests"
+	@echo "  verify-floors   check live sibling versions meet the declared floors"
+	@echo "  contract        cross-repository contract tests (runs verify-floors first)"
 	@echo ""
 	@echo "  clean           remove all build, test, and bench artefacts"
 
@@ -166,7 +167,10 @@ synth-zu9eg:
 cosim:
 	pytest cosim/ -v
 
-contract:
+verify-floors:
+	python -m tools.verify_version_floors
+
+contract: verify-floors
 	pytest tests/contract/ -v
 
 # ── Cleaning ───────────────────────────────────────────────────────────
