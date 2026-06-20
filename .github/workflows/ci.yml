@@ -45,8 +45,12 @@ jobs:
         run: mypy src/scpn_mif_core/ tools/
       - name: bandit
         run: bandit -r src/scpn_mif_core/ -c pyproject.toml -q
-      - name: pytest
-        run: pytest tests/unit/ -v --cov=scpn_mif_core --cov-report=xml --cov-report=term
+      - name: pytest (full tree under the 100% coverage gate)
+        run: pytest tests/ --cov=scpn_mif_core --cov-report=xml --cov-report=term
+      - name: Install Verilator for cosimulation
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends verilator
+      - name: cosim (bit-true Python vs Verilator, no coverage gate)
+        run: pytest cosim/ --no-cov -p no:randomly
       - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7

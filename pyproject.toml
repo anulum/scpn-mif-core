@@ -175,6 +175,11 @@ addopts = [
     "-ra",
     "--strict-markers",
     "--strict-config",
+    # Block a globally-installed pytest-nengo plugin from leaking into the suite
+    # (it imports nengo at collection, raising a numpy.core DeprecationWarning that
+    # the error filter promotes to a collection failure). No-op when absent (CI).
+    "-p",
+    "no:nengo",
     "--cov=scpn_mif_core",
     "--cov-report=term-missing",
     "--cov-report=xml",
