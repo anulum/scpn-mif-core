@@ -22,6 +22,7 @@ responsibly:
 
 We will acknowledge receipt within 48 hours and aim to provide a fix within
 7 days for critical issues. The project lead handles disclosure coordination.
+Reporters are credited in the published advisory unless they request anonymity.
 
 ## Scope
 
