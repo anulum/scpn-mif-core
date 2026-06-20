@@ -5,18 +5,603 @@
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
 # SCPN-MIF-CORE — Python package root.
+
 """SCPN-MIF-CORE — Magneto-Inertial Fusion Core.
 
 Deterministic phase synchronisation and hardware synthesis for high-beta
 pulsed magneto-inertial fusion plasmas on field-reversed configurations.
 
-This package is the Python entry point. Hot kernels live under the Rust
-workspace at ``scpn-mif-rs/`` and are exposed through the ``mif-ffi`` crate
-once the bridge is built (see ``make bridge``).
+This module is the curated public surface. It re-exports the full public API of
+every capability subpackage so a caller can reach any documented symbol from the
+top level (for example ``from scpn_mif_core import DopplerKuramoto``) while the
+subpackages remain importable for domain-scoped use (``scpn_mif_core.kinematic``).
+Hot kernels live under the Rust workspace at ``scpn-mif-rs/`` and are selected
+transparently by the ``dispatched_*`` entry points via the benchmark-ranked
+dispatch table; the pure-Python reference runs when the extension is absent.
+
+The ``dispatched_*`` functions are the recommended entry points for every
+compute kernel. The ``Spec``/``State``/``Report`` dataclasses are the typed
+inputs and outputs those entry points consume and return.
 """
 
 from __future__ import annotations
 
+from scpn_mif_core import (
+    aer as aer,
+)
+from scpn_mif_core import (
+    daq as daq,
+)
+from scpn_mif_core import (
+    diagnostics as diagnostics,
+)
+from scpn_mif_core import (
+    ecosystem as ecosystem,
+)
+from scpn_mif_core import (
+    kinematic as kinematic,
+)
+from scpn_mif_core import (
+    lifecycle as lifecycle,
+)
+from scpn_mif_core import (
+    physics as physics,
+)
 from scpn_mif_core._version import __version__
 
-__all__ = ["__version__"]
+# AER ingress — spike buffer and rate/temporal/ISI decode
+from scpn_mif_core.aer import (
+    AERControlObservation as AERControlObservation,
+)
+from scpn_mif_core.aer import (
+    AERDecodedObservation as AERDecodedObservation,
+)
+from scpn_mif_core.aer import (
+    AERDecodeSpec as AERDecodeSpec,
+)
+from scpn_mif_core.aer import (
+    AERSpikeEvent as AERSpikeEvent,
+)
+from scpn_mif_core.aer import (
+    SpikeBuffer as SpikeBuffer,
+)
+from scpn_mif_core.aer import (
+    decode_spike_features as decode_spike_features,
+)
+from scpn_mif_core.aer import (
+    decode_spike_observation as decode_spike_observation,
+)
+from scpn_mif_core.aer import (
+    dispatched_aer_spike_buffer as dispatched_aer_spike_buffer,
+)
+from scpn_mif_core.aer import (
+    dispatched_decode_spike_features as dispatched_decode_spike_features,
+)
+
+# DAQ bus — frame codec, UDP/PCIe replay mock, reactor descriptor profiles
+from scpn_mif_core.daq import (
+    DAQ_FRAME_VERSION as DAQ_FRAME_VERSION,
+)
+from scpn_mif_core.daq import (
+    DAQ_MAGIC as DAQ_MAGIC,
+)
+from scpn_mif_core.daq import (
+    DataBusMock as DataBusMock,
+)
+from scpn_mif_core.daq import (
+    DeliveryMode as DeliveryMode,
+)
+from scpn_mif_core.daq import (
+    DescriptorProfile as DescriptorProfile,
+)
+from scpn_mif_core.daq import (
+    RawDaqFrame as RawDaqFrame,
+)
+from scpn_mif_core.daq import (
+    ReplayConfig as ReplayConfig,
+)
+from scpn_mif_core.daq import (
+    ReplayThroughputReport as ReplayThroughputReport,
+)
+from scpn_mif_core.daq import (
+    decode_daq_frame as decode_daq_frame,
+)
+from scpn_mif_core.daq import (
+    dispatched_data_bus_mock as dispatched_data_bus_mock,
+)
+from scpn_mif_core.daq import (
+    encode_daq_frame as encode_daq_frame,
+)
+from scpn_mif_core.daq import (
+    helion_descriptor_profile as helion_descriptor_profile,
+)
+from scpn_mif_core.daq import (
+    tae_descriptor_profile as tae_descriptor_profile,
+)
+
+# Diagnostics — calibration/normalisation and degraded-sensor stress injection
+from scpn_mif_core.diagnostics import (
+    ClipPolicy as ClipPolicy,
+)
+from scpn_mif_core.diagnostics import (
+    DegradedSensorStream as DegradedSensorStream,
+)
+from scpn_mif_core.diagnostics import (
+    DiagnosticChannelCalibration as DiagnosticChannelCalibration,
+)
+from scpn_mif_core.diagnostics import (
+    DiagnosticFrame as DiagnosticFrame,
+)
+from scpn_mif_core.diagnostics import (
+    DiagnosticNormalisationState as DiagnosticNormalisationState,
+)
+from scpn_mif_core.diagnostics import (
+    DropoutSpec as DropoutSpec,
+)
+from scpn_mif_core.diagnostics import (
+    FloatArray as FloatArray,
+)
+from scpn_mif_core.diagnostics import (
+    JitterSpec as JitterSpec,
+)
+from scpn_mif_core.diagnostics import (
+    NoiseSpec as NoiseSpec,
+)
+from scpn_mif_core.diagnostics import (
+    NormalisedDiagnosticSample as NormalisedDiagnosticSample,
+)
+from scpn_mif_core.diagnostics import (
+    StressCampaignReport as StressCampaignReport,
+)
+from scpn_mif_core.diagnostics import (
+    StressEnvelope as StressEnvelope,
+)
+from scpn_mif_core.diagnostics import (
+    StressInjectionConfig as StressInjectionConfig,
+)
+from scpn_mif_core.diagnostics import (
+    StressInjectionRecord as StressInjectionRecord,
+)
+from scpn_mif_core.diagnostics import (
+    StressInjectionResult as StressInjectionResult,
+)
+from scpn_mif_core.diagnostics import (
+    dispatched_degraded_sensor_stream as dispatched_degraded_sensor_stream,
+)
+from scpn_mif_core.diagnostics import (
+    dispatched_normalisation_state as dispatched_normalisation_state,
+)
+from scpn_mif_core.diagnostics import (
+    evaluate_phase_lock_stability_campaigns as evaluate_phase_lock_stability_campaigns,
+)
+from scpn_mif_core.diagnostics import (
+    fit_diagnostic_calibrations as fit_diagnostic_calibrations,
+)
+from scpn_mif_core.diagnostics import (
+    validate_stress_config as validate_stress_config,
+)
+from scpn_mif_core.ecosystem import (
+    SIBLINGS as SIBLINGS,
+)
+
+# Ecosystem — sibling-repository compatibility report
+from scpn_mif_core.ecosystem import (
+    EcosystemReport as EcosystemReport,
+)
+from scpn_mif_core.ecosystem import (
+    SiblingReport as SiblingReport,
+)
+from scpn_mif_core.ecosystem import (
+    SiblingSpec as SiblingSpec,
+)
+from scpn_mif_core.ecosystem import (
+    SurfaceReport as SurfaceReport,
+)
+from scpn_mif_core.ecosystem import (
+    SurfaceSpec as SurfaceSpec,
+)
+from scpn_mif_core.ecosystem import (
+    compatibility_report_json as compatibility_report_json,
+)
+from scpn_mif_core.ecosystem import (
+    default_code_root as default_code_root,
+)
+from scpn_mif_core.ecosystem import (
+    generate_ecosystem_report as generate_ecosystem_report,
+)
+from scpn_mif_core.ecosystem import (
+    render_compatibility_matrix as render_compatibility_matrix,
+)
+from scpn_mif_core.kinematic import (
+    KINEMATIC_SAFETY_TOLERANCE_M as KINEMATIC_SAFETY_TOLERANCE_M,
+)
+
+# Kinematic FRC merging — Doppler-Kuramoto, moving-frame UPDE, merge-window, safety
+from scpn_mif_core.kinematic import (
+    DopplerKuramoto as DopplerKuramoto,
+)
+from scpn_mif_core.kinematic import (
+    DopplerKuramotoReport as DopplerKuramotoReport,
+)
+from scpn_mif_core.kinematic import (
+    DopplerKuramotoSpec as DopplerKuramotoSpec,
+)
+from scpn_mif_core.kinematic import (
+    DopplerKuramotoState as DopplerKuramotoState,
+)
+from scpn_mif_core.kinematic import (
+    KinematicSafetyCertificate as KinematicSafetyCertificate,
+)
+from scpn_mif_core.kinematic import (
+    KinematicSafetySpec as KinematicSafetySpec,
+)
+from scpn_mif_core.kinematic import (
+    MergeWindowMonitor as MergeWindowMonitor,
+)
+from scpn_mif_core.kinematic import (
+    MergeWindowSample as MergeWindowSample,
+)
+from scpn_mif_core.kinematic import (
+    MergeWindowSpec as MergeWindowSpec,
+)
+from scpn_mif_core.kinematic import (
+    MergeWindowTrace as MergeWindowTrace,
+)
+from scpn_mif_core.kinematic import (
+    MovingFrameUPDE as MovingFrameUPDE,
+)
+from scpn_mif_core.kinematic import (
+    MovingFrameUPDEReport as MovingFrameUPDEReport,
+)
+from scpn_mif_core.kinematic import (
+    MovingFrameUPDESpec as MovingFrameUPDESpec,
+)
+from scpn_mif_core.kinematic import (
+    MovingFrameUPDEState as MovingFrameUPDEState,
+)
+from scpn_mif_core.kinematic import (
+    certify_positions_sampled_kinematic_safety as certify_positions_sampled_kinematic_safety,
+)
+from scpn_mif_core.kinematic import (
+    certify_sampled_kinematic_safety as certify_sampled_kinematic_safety,
+)
+from scpn_mif_core.kinematic import (
+    dispatched_doppler_kuramoto as dispatched_doppler_kuramoto,
+)
+from scpn_mif_core.kinematic import (
+    dispatched_merge_window_monitor as dispatched_merge_window_monitor,
+)
+from scpn_mif_core.kinematic import (
+    dispatched_moving_frame_upde as dispatched_moving_frame_upde,
+)
+from scpn_mif_core.kinematic import (
+    dispatched_sampled_kinematic_safety_certificate as dispatched_sampled_kinematic_safety_certificate,
+)
+from scpn_mif_core.kinematic import (
+    doppler_derivatives as doppler_derivatives,
+)
+from scpn_mif_core.kinematic import (
+    evaluate_doppler_kuramoto as evaluate_doppler_kuramoto,
+)
+from scpn_mif_core.kinematic import (
+    evaluate_merge_window_trace as evaluate_merge_window_trace,
+)
+from scpn_mif_core.kinematic import (
+    evaluate_moving_frame_upde as evaluate_moving_frame_upde,
+)
+from scpn_mif_core.kinematic import (
+    moving_frame_derivatives as moving_frame_derivatives,
+)
+from scpn_mif_core.kinematic import (
+    order_parameter as order_parameter,
+)
+from scpn_mif_core.kinematic import (
+    phase_lock_error as phase_lock_error,
+)
+
+# Pulsed-shot lifecycle — capacitor bank, shot FSM, plasmoid-merger Petri net
+from scpn_mif_core.lifecycle import (
+    BankTelemetry as BankTelemetry,
+)
+from scpn_mif_core.lifecycle import (
+    CapacitorBank as CapacitorBank,
+)
+from scpn_mif_core.lifecycle import (
+    CapacitorBankSpec as CapacitorBankSpec,
+)
+from scpn_mif_core.lifecycle import (
+    CapacitorBankState as CapacitorBankState,
+)
+from scpn_mif_core.lifecycle import (
+    EnergyReport as EnergyReport,
+)
+from scpn_mif_core.lifecycle import (
+    MergerMarking as MergerMarking,
+)
+from scpn_mif_core.lifecycle import (
+    MergerObservation as MergerObservation,
+)
+from scpn_mif_core.lifecycle import (
+    MergerPlace as MergerPlace,
+)
+from scpn_mif_core.lifecycle import (
+    MergerStep as MergerStep,
+)
+from scpn_mif_core.lifecycle import (
+    MergerTransition as MergerTransition,
+)
+from scpn_mif_core.lifecycle import (
+    MergerTransitionRecord as MergerTransitionRecord,
+)
+from scpn_mif_core.lifecycle import (
+    MergerVerificationReport as MergerVerificationReport,
+)
+from scpn_mif_core.lifecycle import (
+    PlasmaState as PlasmaState,
+)
+from scpn_mif_core.lifecycle import (
+    PlasmoidMergerPetriNet as PlasmoidMergerPetriNet,
+)
+from scpn_mif_core.lifecycle import (
+    PlasmoidMergerSpec as PlasmoidMergerSpec,
+)
+from scpn_mif_core.lifecycle import (
+    PulsedShotFSM as PulsedShotFSM,
+)
+from scpn_mif_core.lifecycle import (
+    PulsedShotSpec as PulsedShotSpec,
+)
+from scpn_mif_core.lifecycle import (
+    PulseSpec as PulseSpec,
+)
+from scpn_mif_core.lifecycle import (
+    RLCRegime as RLCRegime,
+)
+from scpn_mif_core.lifecycle import (
+    SchedulerAction as SchedulerAction,
+)
+from scpn_mif_core.lifecycle import (
+    SchedulerCommand as SchedulerCommand,
+)
+from scpn_mif_core.lifecycle import (
+    ShotState as ShotState,
+)
+from scpn_mif_core.lifecycle import (
+    TransitionRecord as TransitionRecord,
+)
+from scpn_mif_core.lifecycle import (
+    analytical_current_critically_damped as analytical_current_critically_damped,
+)
+from scpn_mif_core.lifecycle import (
+    analytical_current_overdamped as analytical_current_overdamped,
+)
+from scpn_mif_core.lifecycle import (
+    analytical_current_underdamped as analytical_current_underdamped,
+)
+from scpn_mif_core.lifecycle import (
+    analytical_voltage_critically_damped as analytical_voltage_critically_damped,
+)
+from scpn_mif_core.lifecycle import (
+    analytical_voltage_overdamped as analytical_voltage_overdamped,
+)
+from scpn_mif_core.lifecycle import (
+    analytical_voltage_underdamped as analytical_voltage_underdamped,
+)
+from scpn_mif_core.lifecycle import (
+    build_control_petri_net as build_control_petri_net,
+)
+from scpn_mif_core.lifecycle import (
+    dispatched_capacitor_bank as dispatched_capacitor_bank,
+)
+from scpn_mif_core.lifecycle import (
+    dispatched_plasmoid_merger_petri_net as dispatched_plasmoid_merger_petri_net,
+)
+from scpn_mif_core.lifecycle import (
+    dispatched_pulsed_shot_fsm as dispatched_pulsed_shot_fsm,
+)
+from scpn_mif_core.lifecycle import (
+    free_response as free_response,
+)
+from scpn_mif_core.lifecycle import (
+    verify_merger_boundedness as verify_merger_boundedness,
+)
+from scpn_mif_core.lifecycle import (
+    verify_merger_liveness as verify_merger_liveness,
+)
+
+# Physics — Faraday recovery and the FUSION FRC consumption contract
+from scpn_mif_core.physics import (
+    FUSION_FRC_SURFACES as FUSION_FRC_SURFACES,
+)
+from scpn_mif_core.physics import (
+    FaradayRecoveryReport as FaradayRecoveryReport,
+)
+from scpn_mif_core.physics import (
+    FaradayRecoverySpec as FaradayRecoverySpec,
+)
+from scpn_mif_core.physics import (
+    FaradayRecoveryState as FaradayRecoveryState,
+)
+from scpn_mif_core.physics import (
+    FusionFRCContractReport as FusionFRCContractReport,
+)
+from scpn_mif_core.physics import (
+    FusionFRCSurface as FusionFRCSurface,
+)
+from scpn_mif_core.physics import (
+    FusionFRCSurfaceReport as FusionFRCSurfaceReport,
+)
+from scpn_mif_core.physics import (
+    dispatched_evaluate_faraday_recovery as dispatched_evaluate_faraday_recovery,
+)
+from scpn_mif_core.physics import (
+    dispatched_faraday_back_emf as dispatched_faraday_back_emf,
+)
+from scpn_mif_core.physics import (
+    evaluate_faraday_recovery as evaluate_faraday_recovery,
+)
+from scpn_mif_core.physics import (
+    evaluate_faraday_state as evaluate_faraday_state,
+)
+from scpn_mif_core.physics import (
+    faraday_back_emf as faraday_back_emf,
+)
+from scpn_mif_core.physics import (
+    flux_rate as flux_rate,
+)
+from scpn_mif_core.physics import (
+    inspect_fusion_frc_contract as inspect_fusion_frc_contract,
+)
+from scpn_mif_core.physics import (
+    load_fusion_core as load_fusion_core,
+)
+from scpn_mif_core.physics import (
+    magnetic_flux as magnetic_flux,
+)
+from scpn_mif_core.physics import (
+    recovered_power as recovered_power,
+)
+
+__all__ = [
+    "DAQ_FRAME_VERSION",
+    "DAQ_MAGIC",
+    "FUSION_FRC_SURFACES",
+    "KINEMATIC_SAFETY_TOLERANCE_M",
+    "SIBLINGS",
+    "AERControlObservation",
+    "AERDecodeSpec",
+    "AERDecodedObservation",
+    "AERSpikeEvent",
+    "BankTelemetry",
+    "CapacitorBank",
+    "CapacitorBankSpec",
+    "CapacitorBankState",
+    "ClipPolicy",
+    "DataBusMock",
+    "DegradedSensorStream",
+    "DeliveryMode",
+    "DescriptorProfile",
+    "DiagnosticChannelCalibration",
+    "DiagnosticFrame",
+    "DiagnosticNormalisationState",
+    "DopplerKuramoto",
+    "DopplerKuramotoReport",
+    "DopplerKuramotoSpec",
+    "DopplerKuramotoState",
+    "DropoutSpec",
+    "EcosystemReport",
+    "EnergyReport",
+    "FaradayRecoveryReport",
+    "FaradayRecoverySpec",
+    "FaradayRecoveryState",
+    "FloatArray",
+    "FusionFRCContractReport",
+    "FusionFRCSurface",
+    "FusionFRCSurfaceReport",
+    "JitterSpec",
+    "KinematicSafetyCertificate",
+    "KinematicSafetySpec",
+    "MergeWindowMonitor",
+    "MergeWindowSample",
+    "MergeWindowSpec",
+    "MergeWindowTrace",
+    "MergerMarking",
+    "MergerObservation",
+    "MergerPlace",
+    "MergerStep",
+    "MergerTransition",
+    "MergerTransitionRecord",
+    "MergerVerificationReport",
+    "MovingFrameUPDE",
+    "MovingFrameUPDEReport",
+    "MovingFrameUPDESpec",
+    "MovingFrameUPDEState",
+    "NoiseSpec",
+    "NormalisedDiagnosticSample",
+    "PlasmaState",
+    "PlasmoidMergerPetriNet",
+    "PlasmoidMergerSpec",
+    "PulseSpec",
+    "PulsedShotFSM",
+    "PulsedShotSpec",
+    "RLCRegime",
+    "RawDaqFrame",
+    "ReplayConfig",
+    "ReplayThroughputReport",
+    "SchedulerAction",
+    "SchedulerCommand",
+    "ShotState",
+    "SiblingReport",
+    "SiblingSpec",
+    "SpikeBuffer",
+    "StressCampaignReport",
+    "StressEnvelope",
+    "StressInjectionConfig",
+    "StressInjectionRecord",
+    "StressInjectionResult",
+    "SurfaceReport",
+    "SurfaceSpec",
+    "TransitionRecord",
+    "__version__",
+    "aer",
+    "analytical_current_critically_damped",
+    "analytical_current_overdamped",
+    "analytical_current_underdamped",
+    "analytical_voltage_critically_damped",
+    "analytical_voltage_overdamped",
+    "analytical_voltage_underdamped",
+    "build_control_petri_net",
+    "certify_positions_sampled_kinematic_safety",
+    "certify_sampled_kinematic_safety",
+    "compatibility_report_json",
+    "daq",
+    "decode_daq_frame",
+    "decode_spike_features",
+    "decode_spike_observation",
+    "default_code_root",
+    "diagnostics",
+    "dispatched_aer_spike_buffer",
+    "dispatched_capacitor_bank",
+    "dispatched_data_bus_mock",
+    "dispatched_decode_spike_features",
+    "dispatched_degraded_sensor_stream",
+    "dispatched_doppler_kuramoto",
+    "dispatched_evaluate_faraday_recovery",
+    "dispatched_faraday_back_emf",
+    "dispatched_merge_window_monitor",
+    "dispatched_moving_frame_upde",
+    "dispatched_normalisation_state",
+    "dispatched_plasmoid_merger_petri_net",
+    "dispatched_pulsed_shot_fsm",
+    "dispatched_sampled_kinematic_safety_certificate",
+    "doppler_derivatives",
+    "ecosystem",
+    "encode_daq_frame",
+    "evaluate_doppler_kuramoto",
+    "evaluate_faraday_recovery",
+    "evaluate_faraday_state",
+    "evaluate_merge_window_trace",
+    "evaluate_moving_frame_upde",
+    "evaluate_phase_lock_stability_campaigns",
+    "faraday_back_emf",
+    "fit_diagnostic_calibrations",
+    "flux_rate",
+    "free_response",
+    "generate_ecosystem_report",
+    "helion_descriptor_profile",
+    "inspect_fusion_frc_contract",
+    "kinematic",
+    "lifecycle",
+    "load_fusion_core",
+    "magnetic_flux",
+    "moving_frame_derivatives",
+    "order_parameter",
+    "phase_lock_error",
+    "physics",
+    "recovered_power",
+    "render_compatibility_matrix",
+    "tae_descriptor_profile",
+    "validate_stress_config",
+    "verify_merger_boundedness",
+    "verify_merger_liveness",
+]
