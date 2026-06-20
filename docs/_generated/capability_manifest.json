@@ -450,7 +450,7 @@
     "python_capability_classes": 76,
     "python_capability_source_modules": 19,
     "rust_workspace_crates": 10,
-    "test_files": 68
+    "test_files": 69
   },
   "documentation": {
     "public_pages": [
@@ -730,6 +730,7 @@
       "tests/unit/fpga/test_mif_trigger_fabric_hdl.py",
       "tests/unit/fpga/test_run_formal.py",
       "tests/unit/fpga/test_trigger_fabric_reference.py",
+      "tests/unit/fpga/test_trigger_latency_budget.py",
       "tests/unit/kinematic/__init__.py",
       "tests/unit/kinematic/test_doppler_kuramoto.py",
       "tests/unit/kinematic/test_doppler_kuramoto_rust_parity.py",

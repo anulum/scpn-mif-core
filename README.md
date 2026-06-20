@@ -153,9 +153,13 @@ path, not a measured result; the delivered MIF-008 fabric is a clocked debounced
 trigger, and meeting the end-to-end budget on silicon needs a timing-aware
 property set with a timed-automata back-end and an UltraScale+ timing-closure
 report, which remain roadmap items (see [Status](#status)). It is also a
-decomposed budget, not a single number: the combinational decision tier can be
-sub-50 ns, while the B-dot ADC conversion and AER serialisation tiers add their
-own latency and are bounded separately. The combinational decision tier is
+decomposed budget, not a single number, and a recomputable artifact rather than a
+claim: `bench/results/trigger_latency_budget.json` (regenerate with `python -m
+tools.trigger_latency_budget`) breaks the path into tiers, each labelled as a
+genuine cycle count or an explicit modelled assumption. Under those assumptions
+the modelled B-dot ADC conversion and coil-driver tiers dominate and the hot path
+is over the 50 ns target — the combinational decision tier is a single clock
+period, while the analog tiers, not the logic, set the latency. The combinational decision tier is
 realised today by the registerless fast-veto lane, whose zero-cycle veto
 dominance is machine-checked; the debounced fabric remains the multi-cycle
 safety-qualified path that the lane gates ([ADR 0008](docs/adr/0008-combinational-fast-veto-lane.md)).
@@ -372,7 +376,7 @@ The broader public surface still stabilises at `0.1.0`.
 | Synthesisable HDL RTL modules | 3 |
 | Capability documentation pages | 34 |
 | Optional extras | 4 |
-| Python test files | 68 |
+| Python test files | 69 |
 | Public documentation pages | 34 |
 | GitHub Actions workflows | 14 |
 

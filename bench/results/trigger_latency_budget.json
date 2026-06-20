@@ -1,0 +1,70 @@
+{
+  "SPDX-License-Identifier": "AGPL-3.0-or-later",
+  "schema": "scpn-mif-core/trigger-latency-budget/1.0.0",
+  "target_ns": 50.0,
+  "clock": {
+    "basis": "stated-assumption",
+    "fmax_mhz": 250.0,
+    "period_ns": 4.0,
+    "rationale": "Development-plan ZU3EG design target (WNS > 0 at 250 MHz); an assumption, not a post-route Fmax."
+  },
+  "tiers": [
+    {
+      "name": "bdot_adc_conversion",
+      "basis": "modelled-assumption",
+      "cycles": 6,
+      "ns": 24.0,
+      "rationale": "Representative high-speed pipelined ADC conversion of the B-dot probe sample. Illustrative cycle-equivalents at the stated clock; replace with the chosen converter's datasheet aperture + conversion latency."
+    },
+    {
+      "name": "adc_spike_quantiser",
+      "basis": "derived-from-rtl",
+      "cycles": 1,
+      "ns": 4.0,
+      "rationale": "MIF-007 quantiser registers aer_valid one clock after adc_valid (single always_ff stage)."
+    },
+    {
+      "name": "aer_serialisation",
+      "basis": "modelled-assumption",
+      "cycles": 2,
+      "ns": 8.0,
+      "rationale": "Address-event handshake serialisation across the sensor link into the fabric. Illustrative; replace with the measured link turnaround."
+    },
+    {
+      "name": "fabric_combinational_decision",
+      "basis": "derived-from-formal",
+      "cycles": 1,
+      "ns": 4.0,
+      "rationale": "The registerless fast-veto lane is combinational: zero added cycles (MIF-010 zero-cycle proof). Bounded here by one clock period of combinational propagation at the stated clock."
+    },
+    {
+      "name": "coil_gate_driver",
+      "basis": "modelled-assumption",
+      "cycles": 4,
+      "ns": 16.0,
+      "rationale": "Isolated gate-driver propagation and switch turn-on into the compression coil. Analog; expressed as cycle-equivalents at the stated clock for comparability, not a measured driver delay."
+    }
+  ],
+  "debounce_qualification": {
+    "name": "fabric_debounce_qualification",
+    "basis": "derived-from-rtl",
+    "cycles": 3,
+    "ns": 12.0,
+    "rationale": "Deliberate multi-cycle sustained-lock debounce (LOCK_HOLD_CYCLES) counted from the bit-true reference. A safety latency by design, NOT part of the combinational hot path, so it is excluded from the hot-path total."
+  },
+  "totals": {
+    "hot_path_ns": 56.0,
+    "modelled_assumption_ns": 48.0,
+    "derived_ns": 8.0,
+    "meets_target_under_assumptions": false
+  },
+  "verification": {
+    "fast_veto_zero_cycle": true,
+    "basis": "Confirmed from the combinational fast-veto reference (bit-true with the RTL); the MIF-010 proof establishes it for all inputs."
+  },
+  "notes": [
+    "Hot-path total excludes the deliberate debounce qualification (a multi-cycle safety latency, reported separately).",
+    "Modelled-assumption tiers are illustrative cycle-equivalents at the stated clock, NOT measured nanoseconds; they dominate the budget and gate the end-to-end target on ADC selection and silicon timing closure (ADR 0005, ADR 0006).",
+    "The combinational fabric decision is a single-period slice; the analog ADC conversion and coil driver dominate, which is the honest answer to the objection that ADC + serialisation, not the logic, set the latency."
+  ]
+}
