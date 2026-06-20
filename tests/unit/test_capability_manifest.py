@@ -80,7 +80,9 @@ def test_hdl_rtl_scan_excludes_build_sandbox_and_formal_harness(tmp_path: Path) 
     (hdl / "formal" / "build" / "safety" / "task" / "src").mkdir(parents=True)
     (hdl / "src" / "triggers" / "fabric.sv").write_text("module fabric; endmodule\n", encoding="utf-8")
     (hdl / "formal" / "fabric_formal.sv").write_text("module fabric_formal; endmodule\n", encoding="utf-8")
-    (hdl / "formal" / "build" / "safety" / "task" / "src" / "fabric.sv").write_text("module x; endmodule\n", encoding="utf-8")
+    (hdl / "formal" / "build" / "safety" / "task" / "src" / "fabric.sv").write_text(
+        "module x; endmodule\n", encoding="utf-8"
+    )
 
     modules = TOOL._hdl_rtl_modules(hdl, repo=tmp_path)
 
