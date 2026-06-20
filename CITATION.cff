@@ -17,6 +17,9 @@ identifiers:
   - type: doi
     value: "10.5281/zenodo.20768030"
     description: "Version 0.0.1 DOI"
+  - type: doi
+    value: "10.5281/zenodo.20778130"
+    description: "Version 0.1.0 DOI"
 authors:
   - family-names: "Sotek"
     given-names: "Miroslav"
