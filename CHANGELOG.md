@@ -10,6 +10,8 @@
 
 ## Unreleased
 
+## [0.1.0] - 2026-06-20
+
 ### Added
 
 - MIF-001 Doppler-corrected kinematic Kuramoto carrier with RK4 phase
@@ -48,6 +50,46 @@
 - MIF-007 B-dot ADC to Q8.8 AER spike-rate quantiser with synthesizable
   SystemVerilog, Python golden reference, Yosys smoke, one-million-sample
   no-drop reference campaign, and API documentation.
+- MIF-006 AER spike-buffer ring and rate-coded decode with Python API, Rust
+  `mif-aer` kernel, PyO3 bindings, Julia parity reference, parity tests,
+  benchmark summary, and fastest-measured dispatch entry.
+- MIF-016 diagnostic normalisation and MIF-017 sensor stress injection with
+  Python APIs, Rust kernels, PyO3 bindings, Julia parity references, parity
+  tests, benchmark summaries, and dispatch entries.
+- MIF-018 DAQ bus replay (UDP multicast and PCIe DMA ring mocks) with
+  byte-stable semantics, Python API, Rust kernels, Go parity scaffold,
+  benchmark summaries, and dispatch entries.
+- MIF-008 trigger fabric: a clocked, debounced single-shot compression trigger
+  in synthesisable SystemVerilog with a cycle-accurate Python golden reference
+  and a Verilator self-check.
+- MIF-008 registerless combinational fast-veto lane: a clock-free, stateless
+  interlock that gates the debounced fabric's qualified fire, with golden
+  reference, Verilator testbench, and bit-true cosimulation.
+- MIF-010 SymbiYosys property suites proving veto dominance, the single-shot
+  bound, and debounce no-underflow for the fabric by k-induction, and zero-cycle
+  veto dominance, subtractivity, and permit gating for the fast-veto lane, with a
+  proof-status manifest and a drift gate.
+- MIF-015 cosimulation harnesses comparing the Python golden references against
+  the Verilator RTL bit-true for the sensor quantiser, trigger fabric, and
+  fast-veto lane, with adversarial fault-injection cases.
+- Curated public API facade re-exporting the stable cross-domain surface, with a
+  capability manifest and drift gate.
+- End-to-end FRC merge-trigger orchestrator (`evaluate_merge_trigger`) composing
+  the kinematic, lifecycle, safety, and bank surfaces, with a `scpn-mif`
+  command-line interface and runnable examples.
+- Faraday recovery parity against the prescribed-compression reference checked
+  by independent analytic, finite-difference, and Simpson oracles.
+- Decomposed sensor-edge to trigger-edge latency budget artifact with explicit
+  derived versus modelled-assumption tiers.
+- Belova-anchored FRC-merge kinematic parity for the merge-window monitor,
+  reproducing the reported merge and no-merge outcomes and reporting ballistic
+  closure as an explicit upper bound.
+- Sibling version-floor verification gate checking live sibling versions against
+  the declared `[ecosystem]` minimum floors.
+- Architecture decision records 0001 through 0008 documenting scope, the
+  acceleration chain, upstream-pending carriers, the API facade, delivered versus
+  roadmap honesty, the formal-verification strategy, validation integrity, and
+  the two trigger lanes.
 
 ### Repository hygiene
 
