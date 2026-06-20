@@ -41,8 +41,12 @@ path consumes. The trigger fabric (MIF-008) — a clocked, debounced single-shot
 trigger whose `lock_now`/fire output is combinational while the fire decision
 spans `LOCK_HOLD_CYCLES` consecutive locked cycles — is present in synthesisable
 SystemVerilog with its core safety and liveness properties machine-checked on the
-open-source flow (MIF-010). A genuinely registerless combinational fast-veto
-variant is on the near-term roadmap. The timing-aware formal
+open-source flow (MIF-010). Alongside it, a genuinely registerless combinational
+fast-veto lane is now present: a clock-free, stateless interlock whose zero-cycle
+veto dominance is proved on the same open-source flow, so the kinematic-safety
+veto suppresses a fire in the same cycle without waiting on the debounce. The two
+lanes are delimited in [ADR 0008](docs/adr/0008-combinational-fast-veto-lane.md).
+The timing-aware formal
 proofs and the UltraScale+ timing-closure report that would establish the
 sub-50-nanosecond budget on silicon remain roadmap items (see [Status](#status)),
 not yet delivered capabilities.
@@ -61,11 +65,14 @@ not yet delivered capabilities.
 > MIF-005, MIF-009, MIF-011, and MIF-012. MIF-007 has Python golden-reference,
 > synthesisable SystemVerilog, Yosys, Verilator, and local regression evidence.
 > MIF-008 adds the clocked, debounced single-shot trigger fabric in synthesisable
-> SystemVerilog with a Verilator self-check; MIF-010 proves its veto-dominance, single-shot,
-> and debounce no-underflow safety properties by k-induction and witnesses
-> trigger reachability and one-shot clearing by bounded cover, via SymbiYosys
-> (Yosys + z3). MIF-015 now has local cosimulation harnesses for the MIF-007
-> sensor path (ADC/Q8.8/RTL trace) and the MIF-008 trigger fabric (bit-true
+> SystemVerilog with a Verilator self-check, plus a registerless combinational
+> fast-veto lane (clock-free interlock) in the same family; MIF-010 proves the
+> fabric's veto-dominance, single-shot, and debounce no-underflow safety
+> properties by k-induction, the fast-veto lane's zero-cycle veto dominance,
+> subtractivity, and permit gating by k-induction, and witnesses reachability for
+> both by bounded cover, via SymbiYosys (Yosys + z3). MIF-015 now has local
+> cosimulation harnesses for the MIF-007 sensor path (ADC/Q8.8/RTL trace), the
+> MIF-008 trigger fabric, and the fast-veto lane (all bit-true
 > Python-versus-Verilator). MIF also detects the accepted SCPN-FUSION-CORE FRC
 > contract surfaces without dispatching those FUSION-owned physics kernels
 > locally. Vivado ZU3EG timing, hardware waveform equivalence, full external
@@ -148,11 +155,16 @@ property set with a timed-automata back-end and an UltraScale+ timing-closure
 report, which remain roadmap items (see [Status](#status)). It is also a
 decomposed budget, not a single number: the combinational decision tier can be
 sub-50 ns, while the B-dot ADC conversion and AER serialisation tiers add their
-own latency and are bounded separately. The delivered hardware surface today is
+own latency and are bounded separately. The combinational decision tier is
+realised today by the registerless fast-veto lane, whose zero-cycle veto
+dominance is machine-checked; the debounced fabric remains the multi-cycle
+safety-qualified path that the lane gates ([ADR 0008](docs/adr/0008-combinational-fast-veto-lane.md)).
+The delivered hardware surface today is
 the MIF-007 B-dot ADC → Q8.8 spike-rate quantiser (`hdl/src/sensors/`) and the
-MIF-008 debounced trigger fabric (`hdl/src/triggers/`), each with a Verilator
-cosimulation harness; the MIF-008 functional safety and liveness properties are
-machine-checked by the MIF-010 SymbiYosys suites in `hdl/formal/`.
+MIF-008 debounced trigger fabric with its registerless fast-veto lane
+(`hdl/src/triggers/`), each with a Verilator cosimulation harness; the MIF-008
+functional safety and liveness properties for both lanes are machine-checked by
+the MIF-010 SymbiYosys suites in `hdl/formal/`.
 
 ## Sibling repositories
 
@@ -357,11 +369,11 @@ The broader public surface still stabilises at `0.1.0`.
 | Julia reference modules | 9 |
 | Go parity sources | 2 |
 | Lean 4 proof modules | 8 |
-| Synthesisable HDL RTL modules | 2 |
-| Capability documentation pages | 33 |
+| Synthesisable HDL RTL modules | 3 |
+| Capability documentation pages | 34 |
 | Optional extras | 4 |
-| Python test files | 67 |
-| Public documentation pages | 33 |
+| Python test files | 68 |
+| Public documentation pages | 34 |
 | GitHub Actions workflows | 14 |
 
 Evidence boundary: this snapshot is a static inventory. Performance, coverage, hardware, and scientific-fidelity claims require their own committed evidence artifacts.

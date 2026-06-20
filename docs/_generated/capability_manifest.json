@@ -9,6 +9,7 @@
       "docs/adr/0005-delivered-versus-roadmap-honesty.md",
       "docs/adr/0006-formal-verification-strategy.md",
       "docs/adr/0007-validation-and-benchmark-integrity.md",
+      "docs/adr/0008-combinational-fast-veto-lane.md",
       "docs/adr/index.md",
       "docs/api/aer/spike_buffer.md",
       "docs/api/daq/bus_mock.md",
@@ -42,6 +43,7 @@
     ],
     "hdl_rtl_modules": [
       "hdl/src/sensors/adc_to_spike_quantiser.sv",
+      "hdl/src/triggers/mif_fast_veto_gate.sv",
       "hdl/src/triggers/mif_trigger_fabric.sv"
     ],
     "julia_reference_modules": [
@@ -436,19 +438,19 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 33,
+    "capability_documentation_pages": 34,
     "github_workflows": 14,
     "go_parity_sources": 2,
-    "hdl_rtl_modules": 2,
+    "hdl_rtl_modules": 3,
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,
     "optional_extras": 4,
     "public_api_exports": 147,
-    "public_documentation_pages": 33,
+    "public_documentation_pages": 34,
     "python_capability_classes": 76,
     "python_capability_source_modules": 19,
     "rust_workspace_crates": 10,
-    "test_files": 67
+    "test_files": 68
   },
   "documentation": {
     "public_pages": [
@@ -459,6 +461,7 @@
       "docs/adr/0005-delivered-versus-roadmap-honesty.md",
       "docs/adr/0006-formal-verification-strategy.md",
       "docs/adr/0007-validation-and-benchmark-integrity.md",
+      "docs/adr/0008-combinational-fast-veto-lane.md",
       "docs/adr/index.md",
       "docs/api/aer/spike_buffer.md",
       "docs/api/daq/bus_mock.md",
@@ -722,6 +725,7 @@
       "tests/unit/fpga/__init__.py",
       "tests/unit/fpga/test_adc_to_spike_quantiser_hdl.py",
       "tests/unit/fpga/test_adc_to_spike_reference.py",
+      "tests/unit/fpga/test_fast_veto_gate_reference.py",
       "tests/unit/fpga/test_formal_manifest.py",
       "tests/unit/fpga/test_mif_trigger_fabric_hdl.py",
       "tests/unit/fpga/test_run_formal.py",

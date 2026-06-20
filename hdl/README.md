@@ -9,8 +9,9 @@
 # HDL tree
 
 SystemVerilog (IEEE 1800-2017) sources for SCPN-MIF-CORE. The current tree holds
-the MIF-007 sensor quantiser, the MIF-008 trigger fabric, their Verilator
-testbenches, and the MIF-010 SymbiYosys property suites. The Vivado batch flow,
+the MIF-007 sensor quantiser, the MIF-008 trigger fabric and its registerless
+fast-veto lane, their Verilator testbenches, and the MIF-010 SymbiYosys property
+suites. The Vivado batch flow,
 the UltraScale+ targets, and the synthesis/timing reports remain roadmap items;
 the layout below marks each entry as present or planned.
 
@@ -20,14 +21,16 @@ the layout below marks each entry as present or planned.
 hdl/
 ├── src/
 │   ├── sensors/              MIF-007 ADC → Q8.8 AER spike quantiser        [present]
-│   └── triggers/             MIF-008 compression trigger fabric            [present]
+│   └── triggers/             MIF-008 trigger fabric + fast-veto lane       [present]
 ├── sim/
 │   ├── adc_to_spike_quantiser_tb.cpp                                       [present]
-│   └── mif_trigger_fabric_tb.cpp                                           [present]
+│   ├── mif_trigger_fabric_tb.cpp                                           [present]
+│   └── mif_fast_veto_gate_tb.cpp                                           [present]
 ├── formal/                   MIF-010 SymbiYosys property suites
 │   ├── mif_trigger_fabric_formal.sv  trigger-fabric property harness       [present]
-│   ├── safety/               k-induction safety proofs                     [present]
-│   ├── liveness/             bounded-cover liveness witnesses              [present]
+│   ├── mif_fast_veto_gate_formal.sv  fast-veto-lane property harness       [present]
+│   ├── safety/               k-induction safety proofs (both lanes)        [present]
+│   ├── liveness/             bounded-cover liveness witnesses (both lanes) [present]
 │   └── timing/               timing-aware properties (depends on NEU-C.2)  [roadmap]
 ├── targets/                                                                [roadmap]
 │   ├── ultrascale_plus/      UltraScale+ XDC, Tcl, IP catalog (depends on NEU-C.1)
@@ -42,6 +45,7 @@ The portable Yosys parse/synthesis smoke for the present sources runs today:
 ```bash
 yosys -q -p "read_verilog -sv hdl/src/sensors/adc_to_spike_quantiser.sv; hierarchy -top adc_to_spike_quantiser; proc; opt; check"
 yosys -q -p "read_verilog -sv hdl/src/triggers/mif_trigger_fabric.sv; hierarchy -top mif_trigger_fabric; proc; opt; check"
+yosys -q -p "read_verilog -sv hdl/src/triggers/mif_fast_veto_gate.sv; hierarchy -top mif_fast_veto_gate; proc; opt; check"
 ```
 
 The MIF-010 formal proofs run on the open-source flow (Yosys + SymbiYosys + z3):
@@ -77,11 +81,22 @@ cover. Vivado timing closure (the sub-50-ns latency budget) remains gated on the
 FPGA workstation and final SKU choice; the open-source flow proves functional
 correctness, not the post-route timing number.
 
+The MIF-008 family also ships a genuinely registerless fast-veto lane
+(`mif_fast_veto_gate.sv`): a clock-free, stateless interlock that gates the
+debounced fabric's qualified fire. Because it has no registers, the MIF-010
+property set proves its veto dominance, subtractivity (a fire implies an upstream
+qualified fire), and exact permit gating as *zero-cycle* relations — they hold in
+the same cycle the inputs are applied, so the kinematic-safety veto suppresses a
+fire without waiting on the debounce. The lane and the debounced fabric are the
+combinational and the safety-qualified halves of the MIF-008 decision; their roles
+are delimited in `docs/adr/0008-combinational-fast-veto-lane.md`.
+
 MIF-015 provides local Python cosimulation harnesses. `cosim/mif007_adc_to_spike.py`
-compares the ADC → Q8.8 → AER path against the cycle-level RTL reference, and
+compares the ADC → Q8.8 → AER path against the cycle-level RTL reference,
 `cosim/mif008_trigger_fabric.py` drives the same stimulus through the Python
-golden reference and the Verilator-built trigger fabric and checks the two cycle
-traces are bit-true.
+golden reference and the Verilator-built trigger fabric, and
+`cosim/fast_veto_gate.py` does the same for the fast-veto lane; each checks the
+two traces are bit-true.
 
 ## References
 

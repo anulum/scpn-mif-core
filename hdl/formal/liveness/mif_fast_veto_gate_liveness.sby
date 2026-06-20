@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SCPN-MIF-CORE — MIF-010 fast-veto-lane liveness witnesses (bounded cover).
+# Shows a gated fire is reachable and that the lane genuinely suppresses a
+# qualified fire under an asserted veto (the zero-cycle interlock at work).
+
+[options]
+mode cover
+depth 2
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv -formal mif_fast_veto_gate.sv
+read_verilog -sv -formal mif_fast_veto_gate_formal.sv
+prep -top mif_fast_veto_gate_formal
+
+[files]
+../../src/triggers/mif_fast_veto_gate.sv
+../mif_fast_veto_gate_formal.sv

@@ -13,11 +13,11 @@
 | Julia reference modules | 9 |
 | Go parity sources | 2 |
 | Lean 4 proof modules | 8 |
-| Synthesisable HDL RTL modules | 2 |
-| Capability documentation pages | 33 |
+| Synthesisable HDL RTL modules | 3 |
+| Capability documentation pages | 34 |
 | Optional extras | 4 |
-| Python test files | 67 |
-| Public documentation pages | 33 |
+| Python test files | 68 |
+| Public documentation pages | 34 |
 | GitHub Actions workflows | 14 |
 
 Evidence boundary: this snapshot is a static inventory. Performance, coverage, hardware, and scientific-fidelity claims require their own committed evidence artifacts.

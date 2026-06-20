@@ -2,8 +2,32 @@
   "SPDX-License-Identifier": "AGPL-3.0-or-later",
   "schema_version": "1.0.0",
   "verifier": "tools/run_formal.py --suite all",
-  "task_count": 2,
+  "task_count": 4,
   "tasks": [
+    {
+      "suite": "safety",
+      "name": "mif_fast_veto_gate_safety",
+      "sby": "hdl/formal/safety/mif_fast_veto_gate_safety.sby",
+      "mode": "prove",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/mif_fast_veto_gate_formal.sv",
+          "sha256": "9b417db5362940b669269d45e762e0bdcaf2e83241c1d44b6457d3ac0f9b1cf7"
+        },
+        {
+          "path": "hdl/formal/safety/mif_fast_veto_gate_safety.sby",
+          "sha256": "354fe9a2cd6c95882a363636c6d3e6eafe321d2734028a3f71cd0db0ed7eef9d"
+        },
+        {
+          "path": "hdl/src/triggers/mif_fast_veto_gate.sv",
+          "sha256": "8de67ed04240707ee6e7fca10ce44f74a32985b85f5c88722ee2507ae210cf7c"
+        }
+      ]
+    },
     {
       "suite": "safety",
       "name": "mif_trigger_fabric_safety",
@@ -25,6 +49,30 @@
         {
           "path": "hdl/src/triggers/mif_trigger_fabric.sv",
           "sha256": "03c09f3a60b84af3eb993143943bef332af3d34cb9763a685318acae50d9811d"
+        }
+      ]
+    },
+    {
+      "suite": "liveness",
+      "name": "mif_fast_veto_gate_liveness",
+      "sby": "hdl/formal/liveness/mif_fast_veto_gate_liveness.sby",
+      "mode": "cover",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/liveness/mif_fast_veto_gate_liveness.sby",
+          "sha256": "f016304d91537c9c92fe4c98edf4e8e82a73bc14d0e880a9b397304b01ac9acb"
+        },
+        {
+          "path": "hdl/formal/mif_fast_veto_gate_formal.sv",
+          "sha256": "9b417db5362940b669269d45e762e0bdcaf2e83241c1d44b6457d3ac0f9b1cf7"
+        },
+        {
+          "path": "hdl/src/triggers/mif_fast_veto_gate.sv",
+          "sha256": "8de67ed04240707ee6e7fca10ce44f74a32985b85f5c88722ee2507ae210cf7c"
         }
       ]
     },

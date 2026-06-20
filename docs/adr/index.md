@@ -25,3 +25,4 @@ The format is a trimmed [MADR](https://adr.github.io/madr/): *Status*,
 | [0005](0005-delivered-versus-roadmap-honesty.md) | Separate delivered capability from roadmap; gate unimplemented tooling | Accepted |
 | [0006](0006-formal-verification-strategy.md) | Two-tier formal verification: Lean for software invariants, open-source flow for HDL | Accepted |
 | [0007](0007-validation-and-benchmark-integrity.md) | Validation against cited publications and independent references; no fabricated numbers | Accepted |
+| [0008](0008-combinational-fast-veto-lane.md) | Two MIF-008 trigger lanes: debounced safety-qualified path and registerless zero-cycle fast-veto lane | Accepted |

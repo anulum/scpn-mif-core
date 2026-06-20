@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SCPN-MIF-CORE — MIF-010 fast-veto-lane safety proofs (zero-cycle, k-induction).
+# Proves zero-cycle veto dominance, the subtractive-lane bound (a fire implies a
+# qualified fire), and exact permit/interlock gating for the combinational
+# MIF-008 fast-veto lane. The device under test has no registers, so a proved
+# relation holds in the same cycle the inputs are applied.
+
+[options]
+mode prove
+depth 2
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv -formal mif_fast_veto_gate.sv
+read_verilog -sv -formal mif_fast_veto_gate_formal.sv
+prep -top mif_fast_veto_gate_formal
+
+[files]
+../../src/triggers/mif_fast_veto_gate.sv
+../mif_fast_veto_gate_formal.sv
