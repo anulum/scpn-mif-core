@@ -14,6 +14,22 @@ under `docs/api/rust/` (built separately via `make bridge`).
 
 ## Python
 
+The package root re-exports the full public API of every capability subpackage,
+so any documented symbol is reachable from the top level (for example
+`from scpn_mif_core import DopplerKuramoto, evaluate_merge_trigger`). The
+subpackages remain importable for domain-scoped use (`scpn_mif_core.kinematic`).
+
+### End-to-end pipeline
+
+`scpn_mif_core.merge_trigger.evaluate_merge_trigger` composes the MIF-owned
+kinematic, safety, capacitor-bank, and Faraday-recovery surfaces into a single
+fire/abort/hold decision for an FRC merge. It evolves the moving-frame `[θ, z]`
+trajectory, decides phase-and-spatial lock, certifies the sampled kinematic
+safety envelope, checks the capacitor bank can deliver the requested compression
+pulse, and optionally estimates Faraday energy recovery for a prescribed
+expansion trajectory. The self-consistent expansion physics is owned by
+SCPN-FUSION-CORE and supplied as an explicit prescribed input.
+
 ::: scpn_mif_core
     options:
       show_root_heading: true

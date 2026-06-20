@@ -433,12 +433,12 @@
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,
     "optional_extras": 4,
-    "public_api_exports": 141,
+    "public_api_exports": 147,
     "public_documentation_pages": 24,
     "python_capability_classes": 76,
     "python_capability_source_modules": 19,
     "rust_workspace_crates": 10,
-    "test_files": 58
+    "test_files": 59
   },
   "documentation": {
     "public_pages": [
@@ -516,6 +516,7 @@
     "DropoutSpec",
     "EcosystemReport",
     "EnergyReport",
+    "ExpansionTrajectory",
     "FUSION_FRC_SURFACES",
     "FaradayRecoveryReport",
     "FaradayRecoverySpec",
@@ -528,6 +529,9 @@
     "KINEMATIC_SAFETY_TOLERANCE_M",
     "KinematicSafetyCertificate",
     "KinematicSafetySpec",
+    "MergeTriggerOutcome",
+    "MergeTriggerReport",
+    "MergeTriggerScenario",
     "MergeWindowMonitor",
     "MergeWindowSample",
     "MergeWindowSpec",
@@ -608,6 +612,7 @@
     "evaluate_doppler_kuramoto",
     "evaluate_faraday_recovery",
     "evaluate_faraday_state",
+    "evaluate_merge_trigger",
     "evaluate_merge_window_trace",
     "evaluate_moving_frame_upde",
     "evaluate_phase_lock_stability_campaigns",
@@ -622,6 +627,7 @@
     "lifecycle",
     "load_fusion_core",
     "magnetic_flux",
+    "merge_trigger",
     "moving_frame_derivatives",
     "order_parameter",
     "phase_lock_error",
@@ -724,6 +730,7 @@
       "tests/unit/test_lean_plasmoid_merger_petri_net.py",
       "tests/unit/test_lean_pulsed_shot.py",
       "tests/unit/test_makefile_roadmap_targets.py",
+      "tests/unit/test_merge_trigger.py",
       "tests/unit/test_public_api_facade.py",
       "tests/unit/test_update_dispatch.py",
       "tests/unit/test_version.py"

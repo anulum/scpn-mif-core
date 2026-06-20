@@ -22,11 +22,14 @@ import importlib
 import scpn_mif_core
 
 SUBPACKAGES = ("kinematic", "lifecycle", "physics", "aer", "daq", "diagnostics", "ecosystem")
+# Top-level capability modules re-exported alongside the subpackages.
+TOP_LEVEL_MODULES = ("merge_trigger",)
+AGGREGATED_MODULES = (*SUBPACKAGES, *TOP_LEVEL_MODULES)
 
 
 def _expected_surface() -> set[str]:
-    surface: set[str] = {"__version__", *SUBPACKAGES}
-    for name in SUBPACKAGES:
+    surface: set[str] = {"__version__", *AGGREGATED_MODULES}
+    for name in AGGREGATED_MODULES:
         module = importlib.import_module(f"scpn_mif_core.{name}")
         surface.update(module.__all__)
     return surface
@@ -47,7 +50,7 @@ def test_every_exported_name_resolves() -> None:
 
 
 def test_subpackages_are_exposed_as_attributes() -> None:
-    for name in SUBPACKAGES:
+    for name in AGGREGATED_MODULES:
         module = getattr(scpn_mif_core, name)
         assert module.__name__ == f"scpn_mif_core.{name}"
 

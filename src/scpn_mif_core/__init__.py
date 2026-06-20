@@ -12,41 +12,31 @@ Deterministic phase synchronisation and hardware synthesis for high-beta
 pulsed magneto-inertial fusion plasmas on field-reversed configurations.
 
 This module is the curated public surface. It re-exports the full public API of
-every capability subpackage so a caller can reach any documented symbol from the
-top level (for example ``from scpn_mif_core import DopplerKuramoto``) while the
-subpackages remain importable for domain-scoped use (``scpn_mif_core.kinematic``).
-Hot kernels live under the Rust workspace at ``scpn-mif-rs/`` and are selected
-transparently by the ``dispatched_*`` entry points via the benchmark-ranked
-dispatch table; the pure-Python reference runs when the extension is absent.
+every capability subpackage and the top-level merge-trigger pipeline so a caller
+can reach any documented symbol from the top level (for example
+``from scpn_mif_core import evaluate_merge_trigger``) while the subpackages remain
+importable for domain-scoped use (``scpn_mif_core.kinematic``). Hot kernels live
+under the Rust workspace at ``scpn-mif-rs/`` and are selected transparently by the
+``dispatched_*`` entry points via the benchmark-ranked dispatch table; the
+pure-Python reference runs when the extension is absent.
 
-The ``dispatched_*`` functions are the recommended entry points for every
-compute kernel. The ``Spec``/``State``/``Report`` dataclasses are the typed
-inputs and outputs those entry points consume and return.
+The ``dispatched_*`` functions are the recommended entry points for every compute
+kernel. The ``Spec``/``State``/``Report`` dataclasses are the typed inputs and
+outputs those entry points consume and return. :func:`evaluate_merge_trigger`
+composes the kinematic, safety, lifecycle, and recovery surfaces into one
+end-to-end FRC merge fire/abort/hold decision.
 """
 
 from __future__ import annotations
 
-from scpn_mif_core import (
-    aer as aer,
-)
-from scpn_mif_core import (
-    daq as daq,
-)
-from scpn_mif_core import (
-    diagnostics as diagnostics,
-)
-from scpn_mif_core import (
-    ecosystem as ecosystem,
-)
-from scpn_mif_core import (
-    kinematic as kinematic,
-)
-from scpn_mif_core import (
-    lifecycle as lifecycle,
-)
-from scpn_mif_core import (
-    physics as physics,
-)
+from scpn_mif_core import aer as aer
+from scpn_mif_core import daq as daq
+from scpn_mif_core import diagnostics as diagnostics
+from scpn_mif_core import ecosystem as ecosystem
+from scpn_mif_core import kinematic as kinematic
+from scpn_mif_core import lifecycle as lifecycle
+from scpn_mif_core import merge_trigger as merge_trigger
+from scpn_mif_core import physics as physics
 from scpn_mif_core._version import __version__
 
 # AER ingress — spike buffer and rate/temporal/ISI decode
@@ -409,6 +399,23 @@ from scpn_mif_core.lifecycle import (
     verify_merger_liveness as verify_merger_liveness,
 )
 
+# Merge-trigger pipeline — end-to-end FRC merge fire/abort/hold decision
+from scpn_mif_core.merge_trigger import (
+    ExpansionTrajectory as ExpansionTrajectory,
+)
+from scpn_mif_core.merge_trigger import (
+    MergeTriggerOutcome as MergeTriggerOutcome,
+)
+from scpn_mif_core.merge_trigger import (
+    MergeTriggerReport as MergeTriggerReport,
+)
+from scpn_mif_core.merge_trigger import (
+    MergeTriggerScenario as MergeTriggerScenario,
+)
+from scpn_mif_core.merge_trigger import (
+    evaluate_merge_trigger as evaluate_merge_trigger,
+)
+
 # Physics — Faraday recovery and the FUSION FRC consumption contract
 from scpn_mif_core.physics import (
     FUSION_FRC_SURFACES as FUSION_FRC_SURFACES,
@@ -491,6 +498,7 @@ __all__ = [
     "DropoutSpec",
     "EcosystemReport",
     "EnergyReport",
+    "ExpansionTrajectory",
     "FaradayRecoveryReport",
     "FaradayRecoverySpec",
     "FaradayRecoveryState",
@@ -501,6 +509,9 @@ __all__ = [
     "JitterSpec",
     "KinematicSafetyCertificate",
     "KinematicSafetySpec",
+    "MergeTriggerOutcome",
+    "MergeTriggerReport",
+    "MergeTriggerScenario",
     "MergeWindowMonitor",
     "MergeWindowSample",
     "MergeWindowSpec",
@@ -580,6 +591,7 @@ __all__ = [
     "evaluate_doppler_kuramoto",
     "evaluate_faraday_recovery",
     "evaluate_faraday_state",
+    "evaluate_merge_trigger",
     "evaluate_merge_window_trace",
     "evaluate_moving_frame_upde",
     "evaluate_phase_lock_stability_campaigns",
@@ -594,6 +606,7 @@ __all__ = [
     "lifecycle",
     "load_fusion_core",
     "magnetic_flux",
+    "merge_trigger",
     "moving_frame_derivatives",
     "order_parameter",
     "phase_lock_error",
