@@ -105,6 +105,15 @@ nav:
   - Architecture:
       - architecture/index.md
       - Dynamic compatibility matrix: generated/compatibility_matrix.md
+      - Decision records:
+          - adr/index.md
+          - 0001 Repository scope and ownership: adr/0001-repository-scope-and-ownership-boundaries.md
+          - 0002 Multi-language acceleration and dispatch: adr/0002-multi-language-acceleration-and-dispatch.md
+          - 0003 Upstream-pending carriers and prescribed inputs: adr/0003-upstream-pending-carriers-and-prescribed-inputs.md
+          - 0004 Curated public API facade: adr/0004-curated-public-api-facade.md
+          - 0005 Delivered versus roadmap honesty: adr/0005-delivered-versus-roadmap-honesty.md
+          - 0006 Formal verification strategy: adr/0006-formal-verification-strategy.md
+          - 0007 Validation and benchmark integrity: adr/0007-validation-and-benchmark-integrity.md
   - API:
       - api/index.md
       - Kinematic:

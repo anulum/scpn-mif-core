@@ -2,6 +2,14 @@
   "SPDX-License-Identifier": "AGPL-3.0-or-later",
   "capabilities": {
     "documentation_pages": [
+      "docs/adr/0001-repository-scope-and-ownership-boundaries.md",
+      "docs/adr/0002-multi-language-acceleration-and-dispatch.md",
+      "docs/adr/0003-upstream-pending-carriers-and-prescribed-inputs.md",
+      "docs/adr/0004-curated-public-api-facade.md",
+      "docs/adr/0005-delivered-versus-roadmap-honesty.md",
+      "docs/adr/0006-formal-verification-strategy.md",
+      "docs/adr/0007-validation-and-benchmark-integrity.md",
+      "docs/adr/index.md",
       "docs/api/aer/spike_buffer.md",
       "docs/api/daq/bus_mock.md",
       "docs/api/diagnostics/normalisation.md",
@@ -427,7 +435,7 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 25,
+    "capability_documentation_pages": 33,
     "github_workflows": 14,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 1,
@@ -435,7 +443,7 @@
     "lean_proof_modules": 8,
     "optional_extras": 4,
     "public_api_exports": 147,
-    "public_documentation_pages": 25,
+    "public_documentation_pages": 33,
     "python_capability_classes": 76,
     "python_capability_source_modules": 19,
     "rust_workspace_crates": 10,
@@ -443,6 +451,14 @@
   },
   "documentation": {
     "public_pages": [
+      "docs/adr/0001-repository-scope-and-ownership-boundaries.md",
+      "docs/adr/0002-multi-language-acceleration-and-dispatch.md",
+      "docs/adr/0003-upstream-pending-carriers-and-prescribed-inputs.md",
+      "docs/adr/0004-curated-public-api-facade.md",
+      "docs/adr/0005-delivered-versus-roadmap-honesty.md",
+      "docs/adr/0006-formal-verification-strategy.md",
+      "docs/adr/0007-validation-and-benchmark-integrity.md",
+      "docs/adr/index.md",
       "docs/api/aer/spike_buffer.md",
       "docs/api/daq/bus_mock.md",
       "docs/api/diagnostics/normalisation.md",

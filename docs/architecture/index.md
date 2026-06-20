@@ -105,3 +105,11 @@ SCPN-MIF-CORE       canonical pulsed-FRC kinematic + RTL hot-path lab
 Anything that falls under a sibling's canonical scope MUST be upstreamed
 there, not duplicated here. See the internal scope-and-ownership document
 for the anti-duplication checklist.
+
+## Decision records
+
+The reasoning behind the major architectural choices — the ownership boundary,
+the multi-language dispatch, the upstream-pending and prescribed-input
+discipline, the public API facade, the delivered-versus-roadmap honesty rule,
+the formal-verification strategy, and the validation-integrity rules — is
+recorded as [architecture decision records](../adr/index.md).
