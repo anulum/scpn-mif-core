@@ -25,7 +25,7 @@ from cosim.mif008_trigger_fabric import (
     run_trigger_fabric_cosim,
     stimulus_to_lines,
 )
-from tools.trigger_fabric_reference import TriggerFabricInput
+from tools.trigger_fabric_reference import TriggerFabricConfig, TriggerFabricInput
 
 REPO = Path(__file__).resolve().parents[1]
 RTL_PATH = REPO / "hdl" / "src" / "triggers" / "mif_trigger_fabric.sv"
@@ -177,3 +177,100 @@ def test_parse_rtl_trace_skips_blank_lines() -> None:
     samples = parse_rtl_trace("\n1 1 0 1\n\n", expected_cycles=1)
 
     assert samples == (RtlSample(trigger=True, lock_now=True, fired=False, hold_remaining=1),)
+
+
+# --------------------------------------------------------------------------- #
+# Adversarial fault injection at the RTL boundary (bit-true vs Verilator).     #
+# The MIF-010 proofs establish these for all inputs by k-induction; these are  #
+# complementary simulation evidence and a regression guard.                    #
+# --------------------------------------------------------------------------- #
+def test_veto_dominance_under_randomised_injection(verilator_binary: Path) -> None:
+    rng = random.Random(424242)
+    stimulus = [
+        TriggerFabricInput(
+            arm=bool(rng.getrandbits(1)),
+            spike_count=rng.randint(0, 16),
+            confidence_q8_8=rng.randint(0, 256),
+            bank_ready=bool(rng.getrandbits(1)),
+            safety_veto=rng.random() < 0.4,
+        )
+        for _ in range(600)
+    ]
+
+    report = run_trigger_fabric_cosim(stimulus, verilator_binary)
+
+    assert report.bit_true, report.mismatches[:4]
+    for cycle, sample in zip(report.reference_cycles, report.rtl_samples, strict=True):
+        if cycle.safety_veto:
+            assert not sample.trigger
+            assert not cycle.lock_now
+
+
+def test_one_shot_per_continuous_arm_under_injection(verilator_binary: Path) -> None:
+    rng = random.Random(99)
+    stimulus = [
+        TriggerFabricInput(
+            arm=rng.random() < 0.8,
+            spike_count=12,
+            confidence_q8_8=200,
+            bank_ready=True,
+            safety_veto=False,
+        )
+        for _ in range(400)
+    ]
+
+    report = run_trigger_fabric_cosim(stimulus, verilator_binary)
+
+    assert report.bit_true
+    triggers_in_segment = 0
+    prev_arm = False
+    for cycle in report.reference_cycles:
+        if cycle.arm and not prev_arm:
+            triggers_in_segment = 0
+        if cycle.arm and cycle.trigger:
+            triggers_in_segment += 1
+            assert triggers_in_segment <= 1
+        prev_arm = cycle.arm
+
+
+def test_hold_remaining_never_underflows_under_injection(verilator_binary: Path) -> None:
+    rng = random.Random(7)
+    stimulus = [
+        TriggerFabricInput(
+            arm=bool(rng.getrandbits(1)),
+            spike_count=rng.randint(0, 16),
+            confidence_q8_8=rng.randint(0, 256),
+            bank_ready=bool(rng.getrandbits(1)),
+            safety_veto=bool(rng.getrandbits(1)),
+        )
+        for _ in range(500)
+    ]
+
+    report = run_trigger_fabric_cosim(stimulus, verilator_binary)
+
+    assert report.bit_true
+    reload_value = TriggerFabricConfig().reload_value
+    for sample in report.rtl_samples:
+        assert 0 <= sample.hold_remaining <= reload_value
+
+
+def test_glitch_on_arm_and_veto_edges_is_bit_true_and_safe(verilator_binary: Path) -> None:
+    # Race veto (every 3rd cycle) and arm drops (every 5th) against the 3-cycle
+    # debounce, exactly where a glitch could spuriously fire.
+    stimulus = [
+        TriggerFabricInput(
+            arm=(idx % 5 != 4),
+            spike_count=8,
+            confidence_q8_8=128,
+            bank_ready=True,
+            safety_veto=(idx % 3 == 0),
+        )
+        for idx in range(60)
+    ]
+
+    report = run_trigger_fabric_cosim(stimulus, verilator_binary)
+
+    assert report.bit_true, report.mismatches[:4]
+    for cycle, sample in zip(report.reference_cycles, report.rtl_samples, strict=True):
+        if cycle.safety_veto:
+            assert not sample.trigger
