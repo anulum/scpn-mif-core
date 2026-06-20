@@ -48,6 +48,9 @@ dependencies = [
 ]
 requires-python = ">=3.12,<3.13"
 
+[project.scripts]
+scpn-mif = "scpn_mif_core.cli:main"
+
 [project.urls]
 Homepage = "https://github.com/anulum/scpn-mif-core"
 Documentation = "https://anulum.github.io/scpn-mif-core/"

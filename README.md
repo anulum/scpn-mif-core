@@ -100,6 +100,21 @@ cd go && go test ./...
 pixi install         # Mojo via Modular's pixi channel
 ```
 
+## Command line
+
+Installing the package provides the `scpn-mif` command:
+
+```bash
+scpn-mif version                      # installed package version
+scpn-mif ecosystem [--json]           # sibling-repository compatibility report
+scpn-mif run scenario.json [--json]   # run an FRC merge-trigger decision
+```
+
+The `run` scenario file mirrors `MergeTriggerScenario`: each nested object maps
+to the matching spec (`moving_frame`, `merge_window`, `bank`, `compression_pulse`,
+and the optional `recovery` + `expansion`). The same decision is available in
+Python via `from scpn_mif_core import evaluate_merge_trigger`.
+
 ## Architecture in one figure
 
 ```
@@ -328,7 +343,7 @@ The broader public surface still stabilises at `0.1.0`.
 | Synthesisable HDL RTL modules | 1 |
 | Capability documentation pages | 24 |
 | Optional extras | 4 |
-| Python test files | 59 |
+| Python test files | 60 |
 | Public documentation pages | 24 |
 | GitHub Actions workflows | 14 |
 
