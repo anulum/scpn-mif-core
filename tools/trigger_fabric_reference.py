@@ -8,8 +8,8 @@
 # SCPN-MIF-CORE — MIF-008 trigger-fabric golden reference.
 #
 # OWNED-BY: scpn-mif-core
-# CONSUMED-BY: sc-neurocore
-# SYNC-STATE: local
+# SYNC-STATE: canonical
+# SPIKE-SOURCE: sc-neurocore (AER merge-window lock spikes)
 # CONTRACT-TEST: tests/unit/fpga/test_trigger_fabric_reference.py
 """Cycle-accurate golden reference for the MIF-008 compression trigger fabric.
 

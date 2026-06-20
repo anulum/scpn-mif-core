@@ -7,8 +7,8 @@
 // SCPN-MIF-CORE — MIF-008 chamber-side compression trigger fabric.
 //
 // OWNED-BY: scpn-mif-core
-// CONSUMED-BY: sc-neurocore
-// SYNC-STATE: local
+// SYNC-STATE: canonical
+// SPIKE-SOURCE: sc-neurocore (AER merge-window lock spikes)
 // CONTRACT-TEST: tests/unit/fpga/test_mif_trigger_fabric_hdl.py
 // FORMAL: hdl/formal/mif_trigger_fabric_formal.sv
 //
