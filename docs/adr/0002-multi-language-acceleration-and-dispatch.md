@@ -50,6 +50,13 @@ test.
   accelerated path trustworthy.
 - The dispatch indirection adds a small per-call cost, negligible against the
   kernel work it routes.
+- Delivered versus planned backends: as of this record, the Rust, Julia, and Go
+  backends are the ones actually present per kernel (see `bench/dispatch.toml`),
+  with Python as the floor. **No kernel currently ships a Mojo path** — Mojo is
+  kept in the preference ordering as the SIMD-breadth option and the toolchain is
+  provisioned via `pixi`, but it is a *planned* backend tracked in the canonical
+  TODO, not a delivered one. The ordering names where a Mojo kernel would slot in;
+  it does not claim Mojo is present.
 
 ## Alternatives considered
 

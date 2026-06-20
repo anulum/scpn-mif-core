@@ -12,12 +12,16 @@
 // CONTRACT-TEST: tests/unit/fpga/test_mif_trigger_fabric_hdl.py
 // FORMAL: hdl/formal/mif_trigger_fabric_formal.sv
 //
-// The trigger fabric is the combinational hot path that converts merge-window
-// lock evidence into a single compression-trigger pulse, under an absolute
-// kinematic-safety veto. It mirrors the precedence of the software pipeline in
-// src/scpn_mif_core/merge_trigger.py (safety dominates, then lock, then bank
-// feasibility), but evaluates already-latched per-cycle evidence in pure
-// combinational logic so the sensor-to-actuator decision stays on the fast path.
+// The trigger fabric is a clocked, debounced single-shot trigger. It converts
+// merge-window lock evidence into a single compression-trigger pulse under an
+// absolute kinematic-safety veto, mirroring the precedence of the software
+// pipeline in src/scpn_mif_core/merge_trigger.py (safety dominates, then lock,
+// then bank feasibility). The `lock_now` evaluation and the final `fire_pulse`
+// output are combinational, but the fire decision is NOT single-cycle: it
+// requires LOCK_HOLD_CYCLES consecutive locked cycles (a registered debounce)
+// and a registered one-shot, so the path is sequential, not a pure combinational
+// hot path. A genuinely registerless fast-veto variant is tracked separately
+// (see the strategy roadmap and the planned MIF combinational fast-veto module).
 //
 // Evidence channels
 // -----------------
@@ -73,9 +77,10 @@ module mif_trigger_fabric #(
         && (spike_count >= SPIKE_THRESHOLD[SPIKE_COUNT_WIDTH-1:0])
         && (confidence_q8_8 >= CONFIDENCE_THRESHOLD_Q8_8[CONFIDENCE_WIDTH-1:0]);
 
-    // The trigger is the combinational hot-path output: it asserts on the cycle
-    // the sustained-lock countdown reaches its final step, and only if the
-    // one-shot latch has not already fired during this arming.
+    // The trigger is a combinational function of the registered debounce/one-shot
+    // state: it asserts on the cycle the sustained-lock countdown reaches its
+    // final step, and only if the one-shot latch has not already fired during
+    // this arming. The fire output is combinational; the decision is multi-cycle.
     assign fire_pulse = lock_now && (hold_counter == HOLD_COUNTER_WIDTH'(1)) && !fired_q;
     assign trigger = fire_pulse;
     assign fired = fired_q;

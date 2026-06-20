@@ -37,9 +37,12 @@ pulsed magneto-inertial fusion plasmas on field-reversed configurations.
 The engineering objective is sub-50-nanosecond combinatorial sensor-to-actuator
 triggering on AMD Xilinx UltraScale+ FPGAs; the present release ships the
 software kinematic, lifecycle, diagnostic, and AER surfaces that this trigger
-path consumes. The combinatorial trigger fabric (MIF-008) is present in
-synthesisable SystemVerilog with its core safety and liveness properties
-machine-checked on the open-source flow (MIF-010). The timing-aware formal
+path consumes. The trigger fabric (MIF-008) — a clocked, debounced single-shot
+trigger whose `lock_now`/fire output is combinational while the fire decision
+spans `LOCK_HOLD_CYCLES` consecutive locked cycles — is present in synthesisable
+SystemVerilog with its core safety and liveness properties machine-checked on the
+open-source flow (MIF-010). A genuinely registerless combinational fast-veto
+variant is on the near-term roadmap. The timing-aware formal
 proofs and the UltraScale+ timing-closure report that would establish the
 sub-50-nanosecond budget on silicon remain roadmap items (see [Status](#status)),
 not yet delivered capabilities.
@@ -57,8 +60,8 @@ not yet delivered capabilities.
 > Lean proofs cover the current safety/bookkeeping contracts for MIF-004,
 > MIF-005, MIF-009, MIF-011, and MIF-012. MIF-007 has Python golden-reference,
 > synthesisable SystemVerilog, Yosys, Verilator, and local regression evidence.
-> MIF-008 adds the combinatorial trigger fabric in synthesisable SystemVerilog
-> with a Verilator self-check; MIF-010 proves its veto-dominance, single-shot,
+> MIF-008 adds the clocked, debounced single-shot trigger fabric in synthesisable
+> SystemVerilog with a Verilator self-check; MIF-010 proves its veto-dominance, single-shot,
 > and debounce no-underflow safety properties by k-induction and witnesses
 > trigger reachability and one-shot clearing by bounded cover, via SymbiYosys
 > (Yosys + z3). MIF-015 now has local cosimulation harnesses for the MIF-007
@@ -127,7 +130,7 @@ Python via `from scpn_mif_core import evaluate_merge_trigger`.
 
 ```
 sensor → [AER]  ┐
-                ├── SNN (Q8.8) → combinatorial trigger fabric → coil switch
+                ├── SNN (Q8.8) → debounced trigger fabric → coil switch
 slow control ───┘   ↑
                     └── PulsedScenarioScheduler (CONTROL Petri-net + NMPC)
                           ↑
@@ -138,12 +141,16 @@ slow control ───┘   ↑
 ```
 
 Target latency budget end to end: **≤ 50 nanoseconds** sensor edge → switch edge.
-The budget is a design constraint on the combinatorial trigger fabric, not a
-measured result: meeting it on silicon needs a timing-aware property set with a
-timed-automata back-end and an UltraScale+ timing-closure report, which remain
-roadmap items (see [Status](#status)). The delivered hardware surface today is the
-MIF-007 B-dot ADC → Q8.8 spike-rate quantiser (`hdl/src/sensors/`) and the
-MIF-008 combinatorial trigger fabric (`hdl/src/triggers/`), each with a Verilator
+The budget is a design constraint on the trigger fabric's combinational fire
+path, not a measured result; the delivered MIF-008 fabric is a clocked debounced
+trigger, and meeting the end-to-end budget on silicon needs a timing-aware
+property set with a timed-automata back-end and an UltraScale+ timing-closure
+report, which remain roadmap items (see [Status](#status)). It is also a
+decomposed budget, not a single number: the combinational decision tier can be
+sub-50 ns, while the B-dot ADC conversion and AER serialisation tiers add their
+own latency and are bounded separately. The delivered hardware surface today is
+the MIF-007 B-dot ADC → Q8.8 spike-rate quantiser (`hdl/src/sensors/`) and the
+MIF-008 debounced trigger fabric (`hdl/src/triggers/`), each with a Verilator
 cosimulation harness; the MIF-008 functional safety and liveness properties are
 machine-checked by the MIF-010 SymbiYosys suites in `hdl/formal/`.
 

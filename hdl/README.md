@@ -63,9 +63,13 @@ make synth-zu9eg     # roadmap: Vivado batch on ZU9EG
 MIF-007 has a portable Yosys parse/synthesis smoke, Python golden-reference
 tests, and Verilator cosimulation through `hdl/sim/adc_to_spike_quantiser_tb.cpp`.
 
-MIF-008 adds the combinational compression trigger fabric: it converts the
-merge-window lock evidence (spike count + Q8.8 confidence) into a single
-debounced trigger pulse under an absolute kinematic-safety veto. The MIF-010
+MIF-008 adds the clocked, debounced single-shot compression trigger fabric: it
+converts the merge-window lock evidence (spike count + Q8.8 confidence) into a
+single trigger pulse under an absolute kinematic-safety veto. The `lock_now` and
+final fire output are combinational, but the fire decision requires
+`LOCK_HOLD_CYCLES` consecutive locked cycles (a registered debounce) plus a
+registered one-shot, so the fabric is sequential, not a pure combinational path.
+The MIF-010
 property suites machine-check veto dominance, the trigger-gating condition, the
 single-shot bound (no double trigger), and the debounce no-underflow invariant
 by k-induction, and witness trigger reachability and one-shot clearing by bounded
