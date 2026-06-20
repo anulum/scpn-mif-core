@@ -12,11 +12,16 @@
 </p>
 
 [![License: AGPL-3.0-or-later](https://img.shields.io/badge/License-AGPL_3.0--or--later-blue.svg)](LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/scpn-mif-core)](https://pypi.org/project/scpn-mif-core/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/scpn-mif-core)](https://pypi.org/project/scpn-mif-core/)
+[![All-time Downloads](https://static.pepy.tech/badge/scpn-mif-core)](https://pepy.tech/project/scpn-mif-core)
 [![CI](https://github.com/anulum/scpn-mif-core/actions/workflows/ci.yml/badge.svg)](https://github.com/anulum/scpn-mif-core/actions/workflows/ci.yml)
-[![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/anulum/scpn-mif-core/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/anulum/scpn-mif-core/branch/main/graph/badge.svg)](https://codecov.io/gh/anulum/scpn-mif-core)
 [![CodeQL](https://github.com/anulum/scpn-mif-core/actions/workflows/codeql.yml/badge.svg)](https://github.com/anulum/scpn-mif-core/actions/workflows/codeql.yml)
 [![Docs](https://github.com/anulum/scpn-mif-core/actions/workflows/docs.yml/badge.svg)](https://github.com/anulum/scpn-mif-core/actions/workflows/docs.yml)
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/anulum/scpn-mif-core/actions/workflows/pre-commit.yml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![mypy](https://img.shields.io/badge/type--checked-mypy-blue.svg)](https://mypy-lang.org/)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/anulum/scpn-mif-core/badge)](https://securityscorecards.dev/viewer/?uri=github.com/anulum/scpn-mif-core)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13315/badge)](https://www.bestpractices.dev/projects/13315)
 [![Python: 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](pyproject.toml)
