@@ -23,6 +23,11 @@ jobs:
     name: cargo-fuzz ${{ matrix.target }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Force nightly for every cargo command in this job: the repo rust-toolchain.toml
+    # pins stable, which both cargo-fuzz's own deps (need rustc >= 1.91) and the
+    # sanitiser build reject. RUSTUP_TOOLCHAIN overrides rust-toolchain.toml.
+    env:
+      RUSTUP_TOOLCHAIN: nightly
     strategy:
       fail-fast: false
       matrix:
