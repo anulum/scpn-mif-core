@@ -72,8 +72,8 @@ def _safe_report() -> MergeTriggerReport:
 
 def test_extract_mif_inputs_round_trips_consumed_signals() -> None:
     bdot = mapping_for("b_dot_probe_signal")
-    equil = mapping_for("frc_equilibrium_state")
-    payload = {bdot.ids_path: [0.0, 0.31], equil.ids_path: {"ip": 1.2e5}}
+    equilibrium = mapping_for("frc_equilibrium_state")
+    payload = {bdot.ids_path: [0.0, 0.31], equilibrium.ids_path: {"ip": 1.2e5}}
     inputs = extract_mif_inputs(payload)
     assert inputs == {"b_dot_probe_signal": [0.0, 0.31], "frc_equilibrium_state": {"ip": 1.2e5}}
 
