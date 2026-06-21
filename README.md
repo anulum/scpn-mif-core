@@ -376,10 +376,10 @@ and the hardware trigger chain are still gated (see the items above).
 | Go parity sources | 2 |
 | Lean 4 proof modules | 8 |
 | Synthesisable HDL RTL modules | 4 |
-| Capability documentation pages | 37 |
+| Capability documentation pages | 40 |
 | Optional extras | 4 |
 | Python test files | 76 |
-| Public documentation pages | 37 |
+| Public documentation pages | 40 |
 | GitHub Actions workflows | 15 |
 
 Evidence boundary: this snapshot is a static inventory. Performance, coverage, hardware, and scientific-fidelity claims require their own committed evidence artifacts.

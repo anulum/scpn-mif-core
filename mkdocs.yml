@@ -128,6 +128,7 @@ nav:
           - Belova FRC-merge reproduction: validation/belova_merge_reproduction.md
   - API:
       - api/index.md
+      - Merge-trigger orchestrator: api/merge_trigger.md
       - Kinematic:
           - Doppler-Kuramoto: api/kinematic/doppler_kuramoto.md
           - Moving-frame UPDE: api/kinematic/moving_frame_upde.md
@@ -154,6 +155,9 @@ nav:
           - Plasmoid-merger Petri net: api/formal/plasmoid_merger_petri_net.md
       - FPGA:
           - ADC-to-spike quantiser: api/fpga/adc_to_spike_quantiser.md
+      - Interop:
+          - Trigger I/O (White-Rabbit + EPICS): api/interop/trigger_io.md
+          - ITER IMAS mapping: api/interop/imas_mapping.md
   - Papers: papers/index.md
 
 copyright: >
