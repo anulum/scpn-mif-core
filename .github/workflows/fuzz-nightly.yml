@@ -39,7 +39,9 @@ jobs:
           cargo install cargo-fuzz --locked
       - name: Fuzz ${{ matrix.target }}
         working-directory: scpn-mif-rs
-        run: cargo fuzz run ${{ matrix.target }} -- -max_total_time=300 -print_final_stats=1
+        # +nightly is required: the repo's rust-toolchain.toml pins stable and would
+        # otherwise override `rustup default nightly`, and cargo-fuzz needs nightly.
+        run: cargo +nightly fuzz run ${{ matrix.target }} -- -max_total_time=300 -print_final_stats=1
       - name: Upload reproducing input on failure
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
