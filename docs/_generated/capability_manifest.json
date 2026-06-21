@@ -16,6 +16,7 @@
       "docs/api/daq/bus_mock.md",
       "docs/api/diagnostics/normalisation.md",
       "docs/api/diagnostics/stress_inject.md",
+      "docs/api/ecosystem.md",
       "docs/api/formal/capacitor_bank.md",
       "docs/api/formal/faraday_recovery.md",
       "docs/api/formal/kinematic_safety.md",
@@ -445,7 +446,7 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 40,
+    "capability_documentation_pages": 41,
     "github_workflows": 15,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
@@ -453,7 +454,7 @@
     "lean_proof_modules": 8,
     "optional_extras": 4,
     "public_api_exports": 161,
-    "public_documentation_pages": 40,
+    "public_documentation_pages": 41,
     "python_capability_classes": 76,
     "python_capability_source_modules": 19,
     "rust_workspace_crates": 10,
@@ -475,6 +476,7 @@
       "docs/api/daq/bus_mock.md",
       "docs/api/diagnostics/normalisation.md",
       "docs/api/diagnostics/stress_inject.md",
+      "docs/api/ecosystem.md",
       "docs/api/formal/capacitor_bank.md",
       "docs/api/formal/faraday_recovery.md",
       "docs/api/formal/kinematic_safety.md",
