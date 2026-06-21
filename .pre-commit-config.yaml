@@ -15,6 +15,9 @@ repos:
       - id: end-of-file-fixer
       - id: check-added-large-files
         args: [--maxkb=500]
+        # The committed public-domain reference patent (USPTO scan, ~2.5 MB) is the
+        # only sanctioned large binary; the 500 KB guard still applies everywhere else.
+        exclude: '^docs/external_sources/US12567738B1\.pdf$'
       - id: check-merge-conflict
       - id: detect-private-key
 

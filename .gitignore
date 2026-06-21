@@ -133,3 +133,6 @@ data/
 !campaigns/results/*.png
 *.h5
 *.hdf5
+
+# External reference PDFs — local-only library (copyright: do not publish to the public repo)
+docs/external_sources/pdfs/
