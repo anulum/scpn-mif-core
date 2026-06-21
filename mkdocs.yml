@@ -18,6 +18,12 @@ edit_uri: edit/main/docs/
 docs_dir: docs
 site_dir: site
 
+# Tracked artefacts, not rendered site pages: our submissions (JOSS paper, with
+# its own bibliography/citeproc) and the external-source register.
+exclude_docs: |
+  submissions/
+  external_sources/
+
 theme:
   name: material
   palette:

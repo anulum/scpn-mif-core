@@ -8,7 +8,7 @@
 
 project_label = "SCPN MIF Core"
 schema_version = "capability-manifest.v1"
-exclude_doc_parts = ["internal", "_build", "_generated"]
+exclude_doc_parts = ["internal", "_build", "_generated", "submissions", "external_sources"]
 
 [paths]
 json_output = "docs/_generated/capability_manifest.json"
