@@ -2,8 +2,40 @@
   "SPDX-License-Identifier": "AGPL-3.0-or-later",
   "schema_version": "1.0.0",
   "verifier": "tools/run_formal.py --suite all",
-  "task_count": 4,
+  "task_count": 5,
   "tasks": [
+    {
+      "suite": "safety",
+      "name": "mif_aer_cdc_synchroniser_safety",
+      "sby": "hdl/formal/safety/mif_aer_cdc_synchroniser_safety.sby",
+      "mode": "prove",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/mif_aer_cdc_synchroniser_formal.sv",
+          "sha256": "17e36af148f04c11787c4b4513d5694882acdda2d3d0fbad4d4eaf61f40d4c32"
+        },
+        {
+          "path": "hdl/formal/safety/mif_aer_cdc_synchroniser_safety.sby",
+          "sha256": "52d52d23ade97e9a912e99e5697c16de382467ed1c1a44b3e7fcec6c4f6609e6"
+        },
+        {
+          "path": "hdl/formal/timing/timing_assertions.svh",
+          "sha256": "d0a0a1f941364e523d58af4b5a4d272634d7f317264a5f2a30f9d53967c8246b"
+        },
+        {
+          "path": "hdl/formal/timing/timing_wrapper_lib.sv",
+          "sha256": "8434b442e7866a39fb9179a7dd093d78fd798e18efe59547afd4bf28e09381b2"
+        },
+        {
+          "path": "hdl/src/aer/mif_aer_cdc_synchroniser.sv",
+          "sha256": "bb8f70a177b4d8eac25a1412c86f97501bc932c80c688d341709b8159b9bb961"
+        }
+      ]
+    },
     {
       "suite": "safety",
       "name": "mif_fast_veto_gate_safety",

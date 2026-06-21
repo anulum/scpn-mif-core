@@ -1,0 +1,120 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Commercial license available
+// © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+// © Code 2020–2026 Miroslav Šotek. All rights reserved.
+// ORCID: 0009-0009-3560-0851
+// Contact: www.anulum.li | protoscience@anulum.li
+// SCPN-MIF-CORE — VENDORED NEU-C.2 timing framework (sc-neurocore owns it, ADR 0001).
+//
+// OWNED-BY: sc-neurocore
+// SYNC-STATE: mirror
+// UPSTREAM-PIN: sc-neurocore-engine@3.15.34
+// CONTRACT-TEST: cosim/test_aer_cdc_synchroniser.py
+// LAST-SYNCED: 2026-06-21T0212
+// UPSTREAM: sc-neurocore hdl/formal/timing/timing_assertions.svh @ commit 7a57adfab. Verbatim copy so
+//   MIF's formal flow runs without a sibling checkout. Do not edit here; re-vendor
+//   on UPSTREAM bumps (changes belong upstream in sc-neurocore).
+//
+`ifndef SC_TIMING_ASSERTIONS_SVH
+`define SC_TIMING_ASSERTIONS_SVH
+
+`define SC_ASSERT_LATENCY_LE(NAME, CLK, RST_N, START_EVENT, END_EVENT, BOUND_CYCLES) \
+    wire NAME``_violation; \
+    wire NAME``_active; \
+    wire [31:0] NAME``_age; \
+    sc_latency_monitor #( \
+        .MAX_CYCLES(BOUND_CYCLES), \
+        .COUNTER_WIDTH(32) \
+    ) NAME``_latency_monitor ( \
+        .clk(CLK), \
+        .rst_n(RST_N), \
+        .start_event(START_EVENT), \
+        .end_event(END_EVENT), \
+        .violation(NAME``_violation), \
+        .active(NAME``_active), \
+        .age(NAME``_age) \
+    ); \
+    always @(posedge CLK) begin \
+        if (RST_N) begin \
+            assert (!NAME``_violation); \
+            cover (NAME``_active || (|NAME``_age)); \
+        end \
+    end
+
+`define SC_ASSERT_DEADLINE_LE(NAME, CLK, RST_N, START_EVENT, END_EVENT, BOUND_CYCLES) \
+    wire NAME``_violation; \
+    wire NAME``_active; \
+    wire [31:0] NAME``_age; \
+    sc_deadline_monitor #( \
+        .DEADLINE_CYCLES(BOUND_CYCLES), \
+        .COUNTER_WIDTH(32) \
+    ) NAME``_deadline_monitor ( \
+        .clk(CLK), \
+        .rst_n(RST_N), \
+        .deadline_start(START_EVENT), \
+        .completion_event(END_EVENT), \
+        .violation(NAME``_violation), \
+        .active(NAME``_active), \
+        .age(NAME``_age) \
+    ); \
+    always @(posedge CLK) begin \
+        if (RST_N) begin \
+            assert (!NAME``_violation); \
+            cover (NAME``_active || (|NAME``_age)); \
+        end \
+    end
+
+`define SC_ASSERT_BOUNDED_LIVENESS(NAME, CLK, RST_N, REQUEST_EVENT, WITNESS_EVENT, BOUND_CYCLES) \
+    wire NAME``_violation; \
+    wire NAME``_active; \
+    wire [31:0] NAME``_age; \
+    sc_bounded_liveness_monitor #( \
+        .WINDOW_CYCLES(BOUND_CYCLES), \
+        .COUNTER_WIDTH(32) \
+    ) NAME``_liveness_monitor ( \
+        .clk(CLK), \
+        .rst_n(RST_N), \
+        .request_event(REQUEST_EVENT), \
+        .witness_event(WITNESS_EVENT), \
+        .violation(NAME``_violation), \
+        .active(NAME``_active), \
+        .age(NAME``_age) \
+    ); \
+    always @(posedge CLK) begin \
+        if (RST_N) begin \
+            assert (!NAME``_violation); \
+            cover (NAME``_active || (|NAME``_age)); \
+        end \
+    end
+
+// Two-flop CDC synchroniser property template. A consumer binds it over the
+// destination-domain synchroniser flops it owns (META_Q = first flop, SYNC_OUT =
+// last flop); ASYNC_IN is the source-domain bit. SYNC_DEPTH_N is the synchroniser
+// flop depth (2 for a two-flop synchroniser). Asserts SYNC_OUT is ASYNC_IN delayed
+// by exactly SYNC_DEPTH_N flops with no combinational/glitch path past the last
+// flop, with a liveness cover that the crossing fires.
+`define SC_ASSERT_CDC_TWO_FLOP(NAME, DST_CLK, RST_N, ASYNC_IN, META_Q, SYNC_OUT, SYNC_DEPTH_N) \
+    wire NAME``_violation; \
+    wire NAME``_crossing_seen; \
+    wire [7:0] NAME``_warmup_age; \
+    sc_cdc_two_flop_monitor #( \
+        .SYNC_DEPTH(SYNC_DEPTH_N), \
+        .COUNTER_WIDTH(8) \
+    ) NAME``_cdc_monitor ( \
+        .dst_clk(DST_CLK), \
+        .rst_n(RST_N), \
+        .async_in(ASYNC_IN), \
+        .meta_q(META_Q), \
+        .sync_out(SYNC_OUT), \
+        .violation(NAME``_violation), \
+        .crossing_seen(NAME``_crossing_seen), \
+        .warmup_age(NAME``_warmup_age) \
+    ); \
+    always @(posedge DST_CLK) begin \
+        if (RST_N) begin \
+            assert (!NAME``_violation); \
+            cover (NAME``_crossing_seen); \
+        end \
+    end
+
+`endif

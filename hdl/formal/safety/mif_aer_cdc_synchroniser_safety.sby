@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SCPN-MIF-CORE — MIF-010 AER-ingress CDC synchroniser proof (k-induction).
+# Binds sc-neurocore's vendored NEU-C.2 two-flop CDC template over MIF's
+# synchroniser flops: sync_out is async_in delayed by exactly two flops with no
+# glitch path past the second flop, and the crossing is reachable (cover).
+
+[options]
+mode prove
+depth 8
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -formal -sv -I. timing_wrapper_lib.sv mif_aer_cdc_synchroniser.sv mif_aer_cdc_synchroniser_formal.sv
+prep -top mif_aer_cdc_synchroniser_formal
+
+[files]
+../timing/timing_wrapper_lib.sv
+../timing/timing_assertions.svh
+../../src/aer/mif_aer_cdc_synchroniser.sv
+../mif_aer_cdc_synchroniser_formal.sv

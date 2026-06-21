@@ -20,18 +20,21 @@ the layout below marks each entry as present or planned.
 ```
 hdl/
 ├── src/
+│   ├── aer/                  MIF AER-ingress two-flop CDC synchroniser     [present]
 │   ├── sensors/              MIF-007 ADC → Q8.8 AER spike quantiser        [present]
 │   └── triggers/             MIF-008 trigger fabric + fast-veto lane       [present]
 ├── sim/
 │   ├── adc_to_spike_quantiser_tb.cpp                                       [present]
 │   ├── mif_trigger_fabric_tb.cpp                                           [present]
-│   └── mif_fast_veto_gate_tb.cpp                                           [present]
+│   ├── mif_fast_veto_gate_tb.cpp                                           [present]
+│   └── mif_aer_cdc_synchroniser_tb.cpp                                     [present]
 ├── formal/                   MIF-010 SymbiYosys property suites
 │   ├── mif_trigger_fabric_formal.sv  trigger-fabric property harness       [present]
 │   ├── mif_fast_veto_gate_formal.sv  fast-veto-lane property harness       [present]
-│   ├── safety/               k-induction safety proofs (both lanes)        [present]
-│   ├── liveness/             bounded-cover liveness witnesses (both lanes) [present]
-│   └── timing/               timing-aware properties (depends on NEU-C.2)  [roadmap]
+│   ├── mif_aer_cdc_synchroniser_formal.sv  AER CDC property harness        [present]
+│   ├── timing/               vendored NEU-C.2 timing/CDC framework (sc-neurocore) [present]
+│   ├── safety/               k-induction safety + CDC proofs               [present]
+│   ├── liveness/             bounded-cover liveness witnesses              [present]
 ├── targets/                                                                [roadmap]
 │   ├── ultrascale_plus/      UltraScale+ XDC, Tcl, IP catalog (depends on NEU-C.1)
 │   └── pynq_z2/              Zynq-7 PYNQ-Z2 (legacy, sc-neurocore inherits)
@@ -102,6 +105,18 @@ the same cycle the inputs are applied, so the kinematic-safety veto suppresses a
 fire without waiting on the debounce. The lane and the debounced fabric are the
 combinational and the safety-qualified halves of the MIF-008 decision; their roles
 are delimited in `docs/adr/0008-combinational-fast-veto-lane.md`.
+
+The AER-ingress two-flop CDC synchroniser (`hdl/src/aer/mif_aer_cdc_synchroniser.sv`)
+brings a single AER-domain control bit into the MIF trigger-fabric clock domain.
+MIF owns this ingress primitive (ownership confirmed with sc-neurocore on the
+NEU-C.2 interface); sc-neurocore owns the AER stream up to the boundary and the
+reusable CDC property template. The proof binds sc-neurocore's
+`SC_ASSERT_CDC_TWO_FLOP` template (vendored verbatim under `hdl/formal/timing/` as
+a `mirror` of `sc-neurocore-engine`, so MIF's formal flow runs without a sibling
+checkout) and shows by k-induction that `sync_out` is `async_in` delayed by exactly
+two flops with no glitch path past the second flop, with a reachability cover. The
+cycle-accurate bounded-latency property on the MIF-008 fabric is the other timing
+tier; the nanosecond figure stays a post-route silicon fact.
 
 MIF-015 provides local Python cosimulation harnesses. `cosim/mif007_adc_to_spike.py`
 compares the ADC → Q8.8 → AER path against the cycle-level RTL reference,
