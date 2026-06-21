@@ -380,7 +380,7 @@ and the hardware trigger chain are still gated (see the items above).
 | Optional extras | 4 |
 | Python test files | 75 |
 | Public documentation pages | 37 |
-| GitHub Actions workflows | 14 |
+| GitHub Actions workflows | 15 |
 
 Evidence boundary: this snapshot is a static inventory. Performance, coverage, hardware, and scientific-fidelity claims require their own committed evidence artifacts.
 <!-- capability-snapshot:end -->
