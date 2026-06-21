@@ -21,8 +21,9 @@ carries the common ``ids_properties`` substructure and a ``time`` base, which th
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
+from typing import Any
 
 # Common substructures every IMAS IDS carries (ITER IMAS Data Dictionary).
 IMAS_COMMON_SUBSTRUCTURES: tuple[str, ...] = ("ids_properties", "time")
@@ -103,10 +104,35 @@ def ids_names(mappings: Iterable[ImasInputMapping] | None = None) -> tuple[str, 
     return tuple(sorted({mapping.ids_name for mapping in source}))
 
 
+def extract_mif_inputs(imas_payload: Mapping[str, Any], *, require: bool = True) -> dict[str, Any]:
+    """Read MIF's consumed inputs out of an IMAS-path-keyed payload.
+
+    ``imas_payload`` maps IMAS IDS paths (as in :data:`MIF_IMAS_INPUT_MAP`) to
+    values, as a consumer reading from the ITER IMAS data model would supply them.
+    Returns ``{mif_signal: value}`` for every mapping whose ``direction`` is
+    ``consumed``. With ``require`` (the default), a missing consumed path raises
+    ``KeyError``; otherwise it is skipped. This is the active consumer of the
+    mapping contract — the inverse pairs with ``mapping_for(signal).ids_path`` for a
+    round-trip.
+    """
+    inputs: dict[str, Any] = {}
+    for mapping in MIF_IMAS_INPUT_MAP:
+        if mapping.direction != "consumed":
+            continue
+        if mapping.ids_path in imas_payload:
+            inputs[mapping.mif_signal] = imas_payload[mapping.ids_path]
+        elif require:
+            raise KeyError(
+                f"IMAS payload is missing the path {mapping.ids_path!r} for MIF input {mapping.mif_signal!r}"
+            )
+    return inputs
+
+
 __all__ = [
     "IMAS_COMMON_SUBSTRUCTURES",
     "MIF_IMAS_INPUT_MAP",
     "ImasInputMapping",
+    "extract_mif_inputs",
     "ids_names",
     "mapping_for",
 ]

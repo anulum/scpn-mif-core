@@ -236,6 +236,9 @@ from scpn_mif_core.interop import (
     epics_channels as epics_channels,
 )
 from scpn_mif_core.interop import (
+    extract_mif_inputs as extract_mif_inputs,
+)
+from scpn_mif_core.interop import (
     ids_names as ids_names,
 )
 from scpn_mif_core.interop import (
@@ -644,6 +647,7 @@ __all__ = [
     "evaluate_merge_window_trace",
     "evaluate_moving_frame_upde",
     "evaluate_phase_lock_stability_campaigns",
+    "extract_mif_inputs",
     "faraday_back_emf",
     "fit_diagnostic_calibrations",
     "flux_rate",

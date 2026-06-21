@@ -15,10 +15,12 @@ Runnable scripts that exercise the public API end to end. Each script exposes a
 |---|---|
 | [`frc_merge_trigger.py`](frc_merge_trigger.py) | The merge-trigger decision on a locked, safe approach (fires) and a diverging approach (preempted as unsafe). |
 | [`pulsed_shot_lifecycle.py`](pulsed_shot_lifecycle.py) | The eight-state pulsed-shot lifecycle FSM traversing one complete shot under a telemetry script. |
+| [`interop_bridge.py`](interop_bridge.py) | The standards-interop seams as a real consumer: an ITER IMAS-path payload feeding MIF inputs, and a real merge-trigger decision wrapped in the White-Rabbit-timestamped trigger-I/O contract with sensor-to-trigger latency and EPICS channels. |
 
 Run any example from the repository root:
 
 ```bash
 python examples/frc_merge_trigger.py
 python examples/pulsed_shot_lifecycle.py
+python examples/interop_bridge.py
 ```

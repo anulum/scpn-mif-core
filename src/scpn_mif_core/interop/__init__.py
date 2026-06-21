@@ -24,6 +24,7 @@ from scpn_mif_core.interop.imas_mapping import (
     IMAS_COMMON_SUBSTRUCTURES,
     MIF_IMAS_INPUT_MAP,
     ImasInputMapping,
+    extract_mif_inputs,
     ids_names,
     mapping_for,
 )
@@ -48,6 +49,7 @@ __all__ = [
     "egress_latency_ps",
     "epics_channel",
     "epics_channels",
+    "extract_mif_inputs",
     "ids_names",
     "mapping_for",
 ]

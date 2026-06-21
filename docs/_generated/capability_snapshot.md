@@ -6,7 +6,7 @@
 | Surface | Current inventory |
 |---|---:|
 | Package version | 0.1.0 |
-| Public API exports | 160 |
+| Public API exports | 161 |
 | Python capability source modules | 19 |
 | Python capability classes | 76 |
 | Rust workspace crates | 10 |
@@ -16,7 +16,7 @@
 | Synthesisable HDL RTL modules | 4 |
 | Capability documentation pages | 37 |
 | Optional extras | 4 |
-| Python test files | 75 |
+| Python test files | 76 |
 | Public documentation pages | 37 |
 | GitHub Actions workflows | 15 |
 

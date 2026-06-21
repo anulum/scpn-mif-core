@@ -449,12 +449,12 @@
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,
     "optional_extras": 4,
-    "public_api_exports": 160,
+    "public_api_exports": 161,
     "public_documentation_pages": 37,
     "python_capability_classes": 76,
     "python_capability_source_modules": 19,
     "rust_workspace_crates": 10,
-    "test_files": 75
+    "test_files": 76
   },
   "documentation": {
     "public_pages": [
@@ -655,6 +655,7 @@
     "evaluate_merge_window_trace",
     "evaluate_moving_frame_upde",
     "evaluate_phase_lock_stability_campaigns",
+    "extract_mif_inputs",
     "faraday_back_emf",
     "fit_diagnostic_calibrations",
     "flux_rate",
@@ -755,6 +756,7 @@
       "tests/unit/fpga/test_trigger_fabric_reference.py",
       "tests/unit/fpga/test_trigger_latency_budget.py",
       "tests/unit/interop/__init__.py",
+      "tests/unit/interop/test_bridge.py",
       "tests/unit/interop/test_imas_mapping.py",
       "tests/unit/interop/test_trigger_io.py",
       "tests/unit/kinematic/__init__.py",
