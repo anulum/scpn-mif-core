@@ -452,7 +452,7 @@
     "hdl_rtl_modules": 4,
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,
-    "optional_extras": 4,
+    "optional_extras": 5,
     "public_api_exports": 161,
     "public_documentation_pages": 41,
     "python_capability_classes": 76,
@@ -692,6 +692,7 @@
   ],
   "packaging": {
     "optional_extras": [
+      "demo",
       "dev",
       "docs",
       "ecosystem",

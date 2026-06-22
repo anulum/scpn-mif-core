@@ -1,0 +1,15 @@
+{
+  "name": "SCPN-MIF-CORE",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+  "postCreateCommand": "pip install -e '.[demo,dev]'",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "rust-lang.rust-analyzer"
+      ]
+    }
+  },
+  "postAttachCommand": "echo 'Run the one-command demo:  make demo'"
+}

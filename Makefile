@@ -8,7 +8,7 @@
         lint fmt mypy bandit sast preflight preflight-fast \
         docs docs-build bench bench-rust bridge build \
         formal synth-zu3eg synth-zu9eg cosim contract verify-floors \
-        install-hooks clean
+        install-hooks demo clean
 
 help:
 	@echo "SCPN-MIF-CORE — common targets"
@@ -16,6 +16,8 @@ help:
 	@echo "  install         install package + ecosystem pins"
 	@echo "  install-dev     install package + dev tooling"
 	@echo "  install-hooks   install pre-commit + pre-push hooks"
+	@echo ""
+	@echo "  demo            one-command end-to-end demo (examples + campaigns + artifacts)"
 	@echo ""
 	@echo "  test            run Python tests"
 	@echo "  test-rust       run Rust workspace tests"
@@ -61,6 +63,24 @@ install-hooks:
 	git config core.hooksPath .githooks
 	pre-commit install --hook-type pre-commit
 	pre-commit install --hook-type pre-push
+
+# ── Demo ───────────────────────────────────────────────────────────────
+# One command, no input files, runs in well under five minutes on the pure-Python
+# floor (the Rust backend, if built, only makes it faster). Figures need the
+# `demo` extra: `pip install -e ".[demo]"`.
+demo:
+	@echo "── SCPN-MIF-CORE demo ──────────────────────────────────────────────"
+	@echo "[1/4] pulsed-shot lifecycle (eight-state FSM, one full shot)"
+	python examples/pulsed_shot_lifecycle.py
+	@echo "[2/4] FRC merge-trigger decision (locked fire vs diverging preemption)"
+	python examples/frc_merge_trigger.py
+	@echo "[3/4] merge-preemption campaign (seeded Monte-Carlo -> fire/abort boundary + figure)"
+	python campaigns/merge_preemption_campaign.py
+	@echo "[4/4] Faraday compression-recovery campaign (recovered energy + figure)"
+	python campaigns/faraday_compression_recovery.py
+	@echo "────────────────────────────────────────────────────────────────────"
+	@echo "Artifacts written to campaigns/results/:"
+	@echo "  merge_preemption.{json,png}, faraday_compression_recovery.{json,png}"
 
 # ── Tests ──────────────────────────────────────────────────────────────
 test:

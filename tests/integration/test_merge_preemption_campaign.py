@@ -23,6 +23,8 @@ import sys
 from pathlib import Path
 from types import ModuleType
 
+import pytest
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CAMPAIGN_PATH = REPO_ROOT / "campaigns" / "merge_preemption_campaign.py"
 RESULT_PATH = REPO_ROOT / "campaigns" / "results" / "merge_preemption.json"
@@ -80,3 +82,13 @@ def test_committed_result_artifact_is_coherent() -> None:
     assert boundary is not None
     # The boundary sits below the full safety tolerance (separation = 2 * half-separation).
     assert 0.0 < boundary < payload["safety_tolerance_m"]
+
+
+def test_render_figure_writes_a_png(tmp_path: Path) -> None:
+    # The `make demo` path renders the campaign figure; matplotlib is the `demo`
+    # extra, so skip cleanly where it is absent and exercise the path where present.
+    pytest.importorskip("matplotlib")
+    result = CAMPAIGN.run_campaign(seed=_FAST_SEED, trials_per_point=_FAST_TRIALS, half_separations_m=_FAST_SEPARATIONS)
+    path = CAMPAIGN.render_figure(result, path=tmp_path / "merge_preemption.png")
+    assert path.exists()
+    assert path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"

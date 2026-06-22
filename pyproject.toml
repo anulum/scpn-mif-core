@@ -92,6 +92,12 @@ formal = [
     "pysmt>=0.9",
     "pyverilog>=1.3",
 ]
+# `demo` carries the figure dependency the campaigns use to render their PNGs
+# (campaigns/*.render_figure). `make demo` and the Docker/devcontainer install it;
+# the package itself never imports matplotlib, so the core install stays lean.
+demo = [
+    "matplotlib>=3.8",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

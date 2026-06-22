@@ -13,6 +13,31 @@ line, and walks the pulsed-shot lifecycle. It covers the software surfaces that
 ship today; the sub-50 ns trigger fabric, its formal proofs, and the FPGA
 timing-closure report are roadmap items (see [Architecture](../architecture/index.md)).
 
+## One-command demo
+
+The fastest way to see the whole thing run end to end — the pulsed-shot lifecycle,
+the locked-fire vs preempted merge-trigger decisions, and both seeded campaigns with
+their JSON + figure artifacts — is the `demo` target. It needs no input files and
+finishes in well under five minutes on the pure-Python floor:
+
+```bash
+git clone https://github.com/anulum/scpn-mif-core.git
+cd scpn-mif-core
+pip install -e ".[demo]"   # core + matplotlib for the campaign figures
+make demo
+```
+
+Artifacts land in `campaigns/results/` (`merge_preemption.{json,png}`,
+`faraday_compression_recovery.{json,png}`). Or run it container-only, with no local
+Python at all:
+
+```bash
+docker build -t scpn-mif-core . && docker run --rm scpn-mif-core
+```
+
+A GitHub Codespace (`.devcontainer/`) installs the same environment on open; then
+just run `make demo`.
+
 ## Install
 
 ```bash
