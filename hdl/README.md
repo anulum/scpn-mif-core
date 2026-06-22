@@ -37,7 +37,7 @@ hdl/
 │   ├── safety/               k-induction safety + CDC + back-pressure proofs [present]
 │   ├── liveness/             bounded-cover liveness witnesses              [present]
 ├── targets/                                                                [roadmap]
-│   ├── ultrascale_plus/      UltraScale+ XDC, Tcl, IP catalog (depends on NEU-C.1)
+│   ├── ultrascale_plus/      UltraScale+ XDC, Tcl, IP catalogue (depends on NEU-C.1)
 │   └── pynq_z2/              Zynq-7 PYNQ-Z2 (legacy, sc-neurocore inherits)
 └── reports/                  archived synthesis + timing + utilisation     [roadmap]
 ```

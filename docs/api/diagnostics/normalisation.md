@@ -54,7 +54,7 @@ fastest available measured backend:
 ```
 
 The Python reference remains the canonical manifest surface. Rust mirrors the
-affine kernel through PyO3, and Julia mirrors the reference behavior for
+affine kernel through PyO3, and Julia mirrors the reference behaviour for
 calibration/scaling audit scripts.
 
 ## Validation
@@ -67,7 +67,7 @@ The committed tests verify:
 - invalid range, non-finite endpoint, non-finite affine-span,
   subnormal-scale, missing-channel, and zero-span fit guards;
 - Python/Rust parity across 16 seeded random vectors;
-- Julia reference behavior in `julia/SCPNMIFCore/test/runtests.jl`.
+- Julia reference behaviour in `julia/SCPNMIFCore/test/runtests.jl`.
 
 End-to-end ControlObservation cosimulation remains downstream of MIF-015. This
 surface supplies the bounded feature vector and manifest required by that later

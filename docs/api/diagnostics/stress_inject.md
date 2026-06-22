@@ -59,7 +59,7 @@ fastest available measured backend:
 ```
 
 The Python path owns orchestration and regression reporting. Rust mirrors the
-fault-injection kernel through PyO3. Julia mirrors the behavior for audit and
+fault-injection kernel through PyO3. Julia mirrors the behaviour for audit and
 Monte Carlo calibration scripts.
 
 ## Benchmarks

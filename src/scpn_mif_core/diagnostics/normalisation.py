@@ -22,7 +22,7 @@ Each channel is mapped from its calibrated physical interval
 
     x_\mathrm{norm} = 2 \frac{x - x_\min}{x_\max - x_\min} - 1.
 
-Out-of-range behavior is explicit per channel: ``clip`` saturates
+Out-of-range behaviour is explicit per channel: ``clip`` saturates
 deterministically at the endpoint and records a clip mask, while ``reject``
 raises. The resulting feature vectors are read-only ``float64`` NumPy arrays
 so downstream AER front-ends cannot observe overflow beyond ``[-1, 1]``.
