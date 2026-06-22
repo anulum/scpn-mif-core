@@ -201,6 +201,7 @@ addopts = [
     "-p",
     "no:nengo",
     "--cov=scpn_mif_core",
+    "--cov=tools",
     "--cov-report=term-missing",
     "--cov-report=xml",
     "--cov-fail-under=100",
@@ -230,7 +231,7 @@ exclude_dirs = ["tests", "bench", "examples", "campaigns", "lean", "go", "scpn-m
 skips = ["B101"]  # assert is fine
 
 [tool.coverage.run]
-source = ["src/scpn_mif_core"]
+source = ["src/scpn_mif_core", "tools"]
 branch = true
 omit = [
     "*/tests/*",
@@ -238,6 +239,15 @@ omit = [
     "*/bench/*",
     "*/examples/*",
     "*/campaigns/*",
+    # Operational / environment entry-point scripts: their bodies are subprocess,
+    # filesystem, and git orchestration (a CI/preflight harness, a workspace-mount
+    # check, a secret scanner, a sync-tag check). Their logic is the orchestration
+    # itself, so unit coverage would be mock theatre; CI exercises them by running
+    # them, not by assertion. Consciously excluded from the coverage gate.
+    "*/tools/preflight.py",
+    "*/tools/check_samsung_workspace.py",
+    "*/tools/check_secrets.py",
+    "*/tools/check_sync_tags.py",
 ]
 
 [tool.coverage.report]

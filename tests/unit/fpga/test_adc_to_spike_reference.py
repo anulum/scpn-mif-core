@@ -113,3 +113,66 @@ def test_million_sample_campaign_reports_no_dropped_samples_without_retaining_ev
     assert report.dropped_samples == 0
     assert report.spike_count == (32_767 * 1_000_000) // config.rate_threshold_q8_8
     assert report.final_accumulator_q8_8 == (32_767 * 1_000_000) % config.rate_threshold_q8_8
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [
+        ({"adc_width": 1}, "adc_width must be at least 2"),
+        ({"q_int": 0}, "q_int must be at least 1"),
+        ({"q_frac": -1}, "q_frac must be non-negative"),
+        ({"sample_rate_hz": 0}, "sample_rate_hz must be at least 1"),
+        ({"rate_threshold_q8_8": 0}, "rate_threshold_q8_8 must be at least 1"),
+        ({"spike_counter_width": 0}, "spike_counter_width must be between 1 and 32"),
+        ({"spike_counter_width": 33}, "spike_counter_width must be between 1 and 32"),
+    ],
+)
+def test_config_rejects_invalid_fields(kwargs: dict[str, int], message: str) -> None:
+    reference = _load_reference()
+    with pytest.raises(ValueError, match=message):
+        reference.AdcToSpikeConfig(**kwargs)
+
+
+def test_config_rejects_out_of_range_aer_address() -> None:
+    reference = _load_reference()
+    with pytest.raises(ValueError):
+        reference.AdcToSpikeConfig(aer_base_address=0x1_0000)
+
+
+def test_rtl_reference_rejects_empty_ready_pattern() -> None:
+    reference = _load_reference()
+    with pytest.raises(ValueError, match="ready_pattern must not be empty"):
+        reference.run_adc_to_spike_rtl_reference([0], ready_pattern=[])
+
+
+def test_rtl_reference_rejects_negative_drain_cycles() -> None:
+    reference = _load_reference()
+    with pytest.raises(ValueError, match="drain_cycles must be non-negative"):
+        reference.run_adc_to_spike_rtl_reference([0], drain_cycles=-1)
+
+
+def test_rtl_reference_rejects_boolean_drain_cycles() -> None:
+    reference = _load_reference()
+    with pytest.raises(TypeError, match="drain_cycles must be an integer"):
+        reference.run_adc_to_spike_rtl_reference([0], drain_cycles=True)
+
+
+def test_rtl_reference_drops_negative_spikes_when_pending_counter_saturates() -> None:
+    reference = _load_reference()
+    config = reference.AdcToSpikeConfig(spike_counter_width=1)
+    # Sustained maximal-magnitude negative samples spike every cycle; with the
+    # AER sink never ready the negative pending counter saturates at 1 and the
+    # next negative spike is dropped.
+    report = reference.run_adc_to_spike_rtl_reference(
+        [-32_768, -32_768, -32_768],
+        config,
+        ready_pattern=[False],
+    )
+    assert report.dropped_spikes >= 1
+
+
+def test_rtl_reference_without_retained_cycles_still_reports() -> None:
+    reference = _load_reference()
+    report = reference.run_adc_to_spike_rtl_reference([-32_768, 32_767], retain_cycles=False)
+    assert report.cycles == ()
+    assert report.emitted_spikes >= 0

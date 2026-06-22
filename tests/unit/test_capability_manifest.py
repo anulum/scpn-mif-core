@@ -525,3 +525,12 @@ def _build_fixture(root: Path) -> Path:
         ),
     )
     return repo
+
+
+def test_literal_string_list_returns_empty_for_non_list() -> None:
+    import ast
+
+    from tools.capability_manifest import _literal_string_list
+
+    node = ast.parse("42", mode="eval").body
+    assert _literal_string_list(node) == []

@@ -108,3 +108,36 @@ def test_main_returns_zero_for_real_safety_suite() -> None:
 def test_formal_root_points_at_repo_tree() -> None:
     assert (FORMAL_ROOT / "safety").is_dir()
     assert (FORMAL_ROOT / "liveness").is_dir()
+
+
+def test_missing_prerequisite_detects_absent_yosys(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(run_formal.shutil, "which", lambda name: None if name == "yosys" else "/usr/bin/sby")
+    message = run_formal.missing_prerequisite()
+    assert message is not None
+    assert "Yosys" in message
+
+
+def test_main_reports_failures(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    task = run_formal.FormalTask(suite="safety", name="demo", sby_path=Path("demo.sby"))
+    monkeypatch.setattr(run_formal, "missing_prerequisite", lambda: None)
+    monkeypatch.setattr(run_formal, "discover_tasks", lambda _suite: [task])
+    monkeypatch.setattr(
+        run_formal,
+        "run_task",
+        lambda _task: run_formal.FormalResult(task=task, status=run_formal.FormalStatus.FAIL, returncode=1),
+    )
+    assert run_formal.main(["--suite", "safety"]) == 1
+    assert "0/1 tasks passed" in capsys.readouterr().out
+
+
+def test_main_reports_all_passing(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    task = run_formal.FormalTask(suite="safety", name="demo", sby_path=Path("demo.sby"))
+    monkeypatch.setattr(run_formal, "missing_prerequisite", lambda: None)
+    monkeypatch.setattr(run_formal, "discover_tasks", lambda _suite: [task])
+    monkeypatch.setattr(
+        run_formal,
+        "run_task",
+        lambda _task: run_formal.FormalResult(task=task, status=run_formal.FormalStatus.PASS, returncode=0),
+    )
+    assert run_formal.main(["--suite", "safety"]) == 0
+    assert "1/1 tasks passed" in capsys.readouterr().out

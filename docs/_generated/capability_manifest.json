@@ -458,7 +458,7 @@
     "python_capability_classes": 76,
     "python_capability_source_modules": 19,
     "rust_workspace_crates": 10,
-    "test_files": 76
+    "test_files": 77
   },
   "documentation": {
     "public_pages": [
@@ -795,6 +795,7 @@
       "tests/unit/test_cli.py",
       "tests/unit/test_dispatch.py",
       "tests/unit/test_ecosystem_dynamic_matrix.py",
+      "tests/unit/test_generate_compatibility_matrix.py",
       "tests/unit/test_lean_capacitor_bank.py",
       "tests/unit/test_lean_faraday_recovery.py",
       "tests/unit/test_lean_kinematic_safety.py",
