@@ -19,7 +19,13 @@ cosim/
 ├── mif007_adc_to_spike.py     MIF-015 local harness for the MIF-007 path
 ├── test_mif007_adc_to_spike.py
 ├── mif008_trigger_fabric.py   MIF-015 harness for the MIF-008 trigger fabric
-└── test_mif008_trigger_fabric.py
+├── test_mif008_trigger_fabric.py
+├── fast_veto_gate.py          MIF-015 harness for the combinational fast-veto gate
+├── test_fast_veto_gate.py
+├── aer_cdc_synchroniser.py    MIF-015 harness for the AER CDC synchroniser
+├── test_aer_cdc_synchroniser.py
+├── stress_to_fabric.py        MIF-017 -> MIF-007 -> MIF-008 fault propagation
+└── test_stress_to_fabric.py
 ```
 
 ## Running
@@ -64,3 +70,24 @@ bit-true:
 This is genuine Python-versus-Verilator bit-true evidence for the MIF-008 trigger
 fabric. Functional correctness is additionally proved by the MIF-010 SymbiYosys
 suites under `hdl/formal/`; post-route timing closure remains Vivado-gated.
+
+## MIF-017 stress propagation to the fabric
+
+`cosim.stress_to_fabric` drives the safety invariants from the *physical* signal
+chain rather than from fuzzed digital inputs. A B-dot ADC stream is degraded by
+the real MIF-017 `DegradedSensorStream` (channel noise, Bernoulli dropout,
+timestamp jitter), re-digitised, quantised into per-window spike counts by the
+real MIF-007 reference, and assembled into trigger-fabric stimulus:
+
+- `degrade_adc_stream` returns the degraded ADC codes, with `None` where a frame's
+  channel was dropped (a modelled missing acquisition);
+- `windowed_spike_counts` quantises each window, omitting dropped samples so lost
+  acquisitions lower the spike evidence as they would on hardware;
+- `build_stress_fabric_stimulus` assembles per-cycle `TriggerFabricInput`s, the
+  spike evidence sized to stay above the lock threshold after degradation so the
+  veto-dominance tests are non-vacuous.
+
+The tests then assert, through the Verilator RTL, that no trigger fires under
+veto, at most one fires per continuous arm, and the hold counter never underflows
+even when realistic sensor faults perturb the spike evidence — a strictly stronger
+claim than fuzzing the digital fabric inputs in isolation.
