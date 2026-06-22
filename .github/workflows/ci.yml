@@ -42,7 +42,7 @@ jobs:
       - name: ruff format
         run: ruff format --check src/ tests/ bench/ tools/
       - name: mypy
-        run: mypy src/scpn_mif_core/ tools/
+        run: mypy src/scpn_mif_core/ tools/ cosim/ examples/
       - name: bandit
         run: bandit -r src/scpn_mif_core/ -c pyproject.toml -q
       - name: pytest (full tree under the 100% coverage gate)

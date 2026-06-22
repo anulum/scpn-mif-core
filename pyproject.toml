@@ -159,7 +159,13 @@ check_untyped_defs = true
 namespace_packages = true
 mypy_path = ["src"]
 packages = ["scpn_mif_core"]
-exclude = ["lean", "go", "scpn-mif-rs", "hdl", "build", "dist"]
+# Strict gate runs over src + tools + cosim + examples (all strict-clean). `bench`
+# and `campaigns` stay outside it by design: they are auxiliary benchmark/campaign
+# scripts whose hot paths consume the untyped compiled Rust extension via
+# `pytest.importorskip`, so full static typing there would be `Any`-laundering with
+# no checking benefit. They still run under ruff + the Benchmark-nightly workflow.
+# Re-evaluate if a typed Rust stub (.pyi) for scpn_mif_core_rs is published.
+exclude = ["lean", "go", "scpn-mif-rs", "hdl", "build", "dist", "bench", "campaigns"]
 
 [[tool.mypy.overrides]]
 module = ["jax.*", "scipy.*", "pyverilog.*", "pysmt.*", "scpn_mif_core_rs", "scpn_mif_core_rs.*"]

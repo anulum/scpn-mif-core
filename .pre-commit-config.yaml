@@ -51,6 +51,6 @@ repos:
 
       - id: mypy-strict
         name: mypy strict type gate
-        entry: mypy src/scpn_mif_core/ tools/
+        entry: mypy src/scpn_mif_core/ tools/ cosim/ examples/
         language: system
         pass_filenames: false
