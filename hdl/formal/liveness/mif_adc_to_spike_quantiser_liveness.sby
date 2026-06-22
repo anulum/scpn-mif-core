@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SCPN-MIF-CORE — MIF-010 ADC→spike quantiser back-pressure liveness witnesses.
+# Bounded-cover proof that the AER output is presentable, holds under back-pressure,
+# and drains once the sink returns — the lane does not deadlock.
+
+[options]
+mode cover
+depth 20
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv -formal adc_to_spike_quantiser.sv
+read_verilog -sv -formal mif_adc_to_spike_quantiser_formal.sv
+prep -top mif_adc_to_spike_quantiser_formal
+
+[files]
+../../src/sensors/adc_to_spike_quantiser.sv
+../mif_adc_to_spike_quantiser_formal.sv

@@ -2,8 +2,32 @@
   "SPDX-License-Identifier": "AGPL-3.0-or-later",
   "schema_version": "1.0.0",
   "verifier": "tools/run_formal.py --suite all",
-  "task_count": 5,
+  "task_count": 7,
   "tasks": [
+    {
+      "suite": "safety",
+      "name": "mif_adc_to_spike_quantiser_safety",
+      "sby": "hdl/formal/safety/mif_adc_to_spike_quantiser_safety.sby",
+      "mode": "prove",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/mif_adc_to_spike_quantiser_formal.sv",
+          "sha256": "0c25b34710e8f62b8e1cf608356155821ae061ce2afab2729dd07a2f25f4d962"
+        },
+        {
+          "path": "hdl/formal/safety/mif_adc_to_spike_quantiser_safety.sby",
+          "sha256": "a795db1e40a2eef3e04adfe2936250f83553438f77ac89f69ed221f03b710c7d"
+        },
+        {
+          "path": "hdl/src/sensors/adc_to_spike_quantiser.sv",
+          "sha256": "46683cd4be84e1f5306f490f2cc3ce6b677492b46b34998e7f19c178513d66fa"
+        }
+      ]
+    },
     {
       "suite": "safety",
       "name": "mif_aer_cdc_synchroniser_safety",
@@ -81,6 +105,30 @@
         {
           "path": "hdl/src/triggers/mif_trigger_fabric.sv",
           "sha256": "03c09f3a60b84af3eb993143943bef332af3d34cb9763a685318acae50d9811d"
+        }
+      ]
+    },
+    {
+      "suite": "liveness",
+      "name": "mif_adc_to_spike_quantiser_liveness",
+      "sby": "hdl/formal/liveness/mif_adc_to_spike_quantiser_liveness.sby",
+      "mode": "cover",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/liveness/mif_adc_to_spike_quantiser_liveness.sby",
+          "sha256": "5ca5fa906bee512f384d825388c7bc0ae6958b3b8b0450ef92f4fa3b2e9164cd"
+        },
+        {
+          "path": "hdl/formal/mif_adc_to_spike_quantiser_formal.sv",
+          "sha256": "0c25b34710e8f62b8e1cf608356155821ae061ce2afab2729dd07a2f25f4d962"
+        },
+        {
+          "path": "hdl/src/sensors/adc_to_spike_quantiser.sv",
+          "sha256": "46683cd4be84e1f5306f490f2cc3ce6b677492b46b34998e7f19c178513d66fa"
         }
       ]
     },

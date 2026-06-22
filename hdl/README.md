@@ -32,8 +32,9 @@ hdl/
 │   ├── mif_trigger_fabric_formal.sv  trigger-fabric property harness       [present]
 │   ├── mif_fast_veto_gate_formal.sv  fast-veto-lane property harness       [present]
 │   ├── mif_aer_cdc_synchroniser_formal.sv  AER CDC property harness        [present]
+│   ├── mif_adc_to_spike_quantiser_formal.sv  AER back-pressure harness     [present]
 │   ├── timing/               vendored NEU-C.2 timing/CDC framework (sc-neurocore) [present]
-│   ├── safety/               k-induction safety + CDC proofs               [present]
+│   ├── safety/               k-induction safety + CDC + back-pressure proofs [present]
 │   ├── liveness/             bounded-cover liveness witnesses              [present]
 ├── targets/                                                                [roadmap]
 │   ├── ultrascale_plus/      UltraScale+ XDC, Tcl, IP catalog (depends on NEU-C.1)
