@@ -707,6 +707,23 @@ def test_waveform_rms_fraction_rejects_unknown_waveform() -> None:
         _waveform_rms_squared_fraction("triangle")
 
 
+def test_waveform_rms_squared_fraction_matches_closed_form() -> None:
+    # RMS²/i_peak² over the pulse: rect = 1, half-sine = mean(sin²) = 1/2,
+    # exp_decay (tau = duration/5) = mean(exp(-2t/tau)) = (1 - exp(-10))/10 ≈ 0.1.
+    from scpn_mif_core.lifecycle.capacitor_bank import _waveform_rms_squared_fraction
+
+    assert _waveform_rms_squared_fraction("rect") == 1.0
+    assert _waveform_rms_squared_fraction("half_sine") == pytest.approx(0.5)
+    assert _waveform_rms_squared_fraction("exp_decay") == pytest.approx((1.0 - math.exp(-10.0)) / 10.0)
+    # Independent cross-check: trapezoidal-integrate the definition mean(exp(-2t/tau))
+    # without assuming the closed form, so a wrong closed form would be caught.
+    duration, tau, n = 1.0, 1.0 / 5.0, 200_000
+    step = duration / n
+    samples = [math.exp(-2.0 * (k * step) / tau) for k in range(n + 1)]
+    numerical = (step * (sum(samples) - 0.5 * (samples[0] + samples[-1]))) / duration
+    assert _waveform_rms_squared_fraction("exp_decay") == pytest.approx(numerical, rel=1e-4)
+
+
 def test_dispatched_capacitor_bank_falls_back_to_python(monkeypatch: pytest.MonkeyPatch) -> None:
     import sys
 

@@ -628,6 +628,8 @@ def _waveform_rms_squared_fraction(waveform: Literal["rect", "half_sine", "exp_d
     if waveform == "half_sine":
         return 0.5
     if waveform == "exp_decay":
-        # tau = duration / 5, mean of exp(-2t/tau) over (0, duration) is tau/(2·duration) * (1 - exp(-10))
-        return 0.5 * (1.0 - math.exp(-10.0)) * 5.0 / 10.0  # ~ 0.25
+        # i(t) = i_peak·exp(-t/tau) with tau = duration/5, so RMS²/i_peak² is
+        # mean(exp(-2t/tau)) over (0, duration) = tau/(2·duration)·(1 - exp(-10))
+        # = (1 - exp(-10))/10 ≈ 0.1.
+        return (1.0 - math.exp(-10.0)) / 10.0
     raise ValueError(f"unknown waveform: {waveform!r}")
