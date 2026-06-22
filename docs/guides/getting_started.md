@@ -44,8 +44,20 @@ just run `make demo`.
 pip install scpn-mif-core
 ```
 
-For a working checkout with the Rust acceleration extension and the developer
-tooling:
+The bare install runs the pure-Python reference everywhere. To pull the prebuilt
+native extension so the dispatcher selects the Rust backend — the fastest measured
+chain — add the `accelerated` extra:
+
+```bash
+pip install "scpn-mif-core[accelerated]"
+```
+
+The Rust path is selected automatically when the extension is importable; the
+package falls back to the Python reference when it is not, so behaviour is
+identical either way and only the speed differs.
+
+For a working checkout with the Rust acceleration extension built from source and
+the developer tooling:
 
 ```bash
 git clone https://github.com/anulum/scpn-mif-core.git

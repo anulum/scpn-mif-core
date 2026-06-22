@@ -447,12 +447,12 @@
   },
   "counts": {
     "capability_documentation_pages": 41,
-    "github_workflows": 15,
+    "github_workflows": 16,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,
-    "optional_extras": 5,
+    "optional_extras": 6,
     "public_api_exports": 161,
     "public_documentation_pages": 41,
     "python_capability_classes": 76,
@@ -692,6 +692,7 @@
   ],
   "packaging": {
     "optional_extras": [
+      "accelerated",
       "demo",
       "dev",
       "docs",
@@ -725,7 +726,8 @@
       ".github/workflows/security-audit.yml",
       ".github/workflows/stale.yml",
       ".github/workflows/synthesis.yml",
-      ".github/workflows/upstream_nightly.yml"
+      ".github/workflows/upstream_nightly.yml",
+      ".github/workflows/wheels.yml"
     ],
     "test_files": [
       "tests/__init__.py",

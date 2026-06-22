@@ -1,0 +1,110 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Wheels
+
+# Build the native PyO3 acceleration extension (scpn-mif-core-rs) as prebuilt
+# abi3 wheels so `pip install scpn-mif-core[accelerated]` delivers the Rust
+# dispatch backend out of the box instead of the pure-Python floor. The pure
+# Python package itself is published by release.yml; this workflow owns the
+# compiled sibling distribution.
+#
+# Publishing is double-gated: it only runs on a v* tag when the repository
+# variable WHEELS_PUBLISH_ENABLED is set to "true" (the explicit owner go),
+# or on a manual workflow_dispatch with publish=true.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish built wheels + sdist to PyPI"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: wheels-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-wheels:
+    name: Wheel ${{ matrix.os }} ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64
+          - os: ubuntu-latest
+            target: aarch64
+          - os: macos-latest
+            target: aarch64
+          - os: macos-13
+            target: x86_64
+          - os: windows-latest
+            target: x64
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+      # abi3-py312 bindings (workspace Cargo.toml) yield one cp312-abi3 wheel
+      # per platform that serves Python >= 3.12, so a single interpreter build
+      # covers the whole supported range.
+      - name: Build abi3 wheel
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b  # v1.51.0
+        with:
+          manylinux: auto
+          target: ${{ matrix.target }}
+          working-directory: scpn-mif-rs/crates/mif-ffi
+          command: build
+          args: --release --strip --out ../../../dist --interpreter 3.12
+      - name: Upload wheel
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: wheel-${{ matrix.os }}-${{ matrix.target }}
+          path: dist/*.whl
+
+  build-sdist:
+    name: Build sdist
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+      - name: Build sdist
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b  # v1.51.0
+        with:
+          working-directory: scpn-mif-rs/crates/mif-ffi
+          command: sdist
+          args: --out ../../../dist
+      - name: Upload sdist
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  publish-pypi:
+    name: Publish scpn-mif-core-rs to PyPI
+    needs: [build-wheels, build-sdist]
+    runs-on: ubuntu-latest
+    if: >
+      (startsWith(github.ref, 'refs/tags/v') && vars.WHEELS_PUBLISH_ENABLED == 'true') ||
+      (github.event_name == 'workflow_dispatch' && inputs.publish == true)
+    permissions:
+      id-token: write
+    environment:
+      name: pypi
+      url: https://pypi.org/p/scpn-mif-core-rs
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8
+        with:
+          path: dist/
+          merge-multiple: true
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b  # release/v1
+        with:
+          attestations: true

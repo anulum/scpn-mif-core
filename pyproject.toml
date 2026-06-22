@@ -98,6 +98,14 @@ formal = [
 demo = [
     "matplotlib>=3.8",
 ]
+# `accelerated` pulls the native PyO3 extension (scpn-mif-core-rs) so the
+# dispatcher selects the Rust backend — the fastest measured chain — instead of
+# the pure-Python floor the bare install ships. The wheels are published by
+# wheels.yml; until a release lands on PyPI this extra resolves only from a
+# local build of scpn-mif-rs/crates/mif-ffi.
+accelerated = [
+    "scpn-mif-core-rs>=0.1.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
