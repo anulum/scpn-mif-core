@@ -1,7 +1,9 @@
 <!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
 # Papers and references
 
-The state-of-the-art references that drive every SCPN-MIF-CORE module.
+The literature that grounds the SCPN-MIF-CORE modules. For the citation provenance
+of the works MIF actively uses — source URLs, verification status, and licence — see
+the internal external-source register under `docs/external_sources/`.
 
 ## FRC physics
 

@@ -61,3 +61,7 @@ their DOI/publisher. (See TODO QB4: consolidate `docs/papers/` into this registe
 - Add a row here before citing any new external source in a paper, the README, or
   the docs, and verify it at its canonical source first (Verified-At-Source rule).
 - Keep this register in sync with `docs/submissions/joss/paper.bib`.
+- Role split (complementary, not duplicated): this register is the *internal*
+  provenance ledger (URLs, verification status, licence, PDF policy) for the works
+  MIF actively uses; the *public* rendered bibliography of the broader literature
+  that grounds the modules is `docs/papers/index.md`.
