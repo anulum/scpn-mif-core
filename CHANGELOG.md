@@ -10,6 +10,26 @@
 
 ## Unreleased
 
+### Added
+
+- `accelerated` optional extra and prebuilt abi3 wheels (Linux x86_64/aarch64,
+  macOS x86_64/arm64, Windows) for the native acceleration extension, so
+  `pip install "scpn-mif-core[accelerated]"` selects the Rust dispatch backend with
+  the pure-Python reference as a transparent fallback.
+- MIF-015 stress-propagation cosimulation driving a B-dot ADC stream degraded by
+  MIF-017 through the MIF-007 quantiser into the MIF-008 trigger fabric, asserting
+  no fire under veto, one shot per continuous arm, and no hold-counter underflow
+  through the Verilator RTL under realistic sensor faults.
+
+### Repository hygiene
+
+- Restructured the README along the four Diátaxis modes (tutorial, how-to,
+  reference, explanation) with a documentation map.
+- Extended the 100% coverage gate to the cosimulation harnesses and the
+  development utilities under `tools/`.
+- Corrected American spellings to British English in the diagnostic API pages, the
+  normalisation docstring, and the HDL targets tree.
+
 ## [0.1.0] - 2026-06-20
 
 ### Added
