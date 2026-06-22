@@ -50,6 +50,11 @@ test.
   accelerated path trustworthy.
 - The dispatch indirection adds a small per-call cost, negligible against the
   kernel work it routes.
+- The benchmark-derived ordering is itself a deliberate asset, not incidental
+  sprawl: it records, *with measured evidence*, which backend wins each kernel, so
+  the production fastest-path choice is reproducible and defensible rather than
+  asserted. Keeping the backends *with their benchmarks* is the property that lets
+  the data — not an assumption about any one language — decide what runs.
 - Delivered versus planned backends: as of this record, the Rust, Julia, and Go
   backends are the ones actually present per kernel (see `bench/dispatch.toml`),
   with Python as the floor. **No kernel currently ships a Mojo path** — Mojo is
@@ -66,3 +71,13 @@ test.
 - **Hard-coded "Rust if present, else Python".** Rejected: it bakes in an
   assumption that Rust is always fastest, which is not guaranteed across kernels
   and platforms. The measured table lets the data decide.
+- **Collapse every backend to one language (e.g. Rust) to cut the polyglot
+  maintenance.** Rejected: the measured per-kernel ordering is precisely the point.
+  A backend that wins on one kernel rarely wins on all of them (tight integer loops,
+  dense linear algebra, and concurrent I/O have different winners), so keeping the
+  backends *with their benchmarks* is what lets production dispatch the fastest
+  *measured* path per kernel — and keeps the Python reference as the correctness
+  oracle and the no-toolchain floor. Collapsing to one language would discard that
+  evidence and the per-kernel optimum. The maintenance is bounded by the dispatch
+  table plus the parity tests, both of which already exist; that bounded cost is what
+  buys the evidence-based dispatch, so it is accepted, not eliminated.
