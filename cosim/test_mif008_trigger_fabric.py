@@ -274,3 +274,14 @@ def test_glitch_on_arm_and_veto_edges_is_bit_true_and_safe(verilator_binary: Pat
     for cycle, sample in zip(report.reference_cycles, report.rtl_samples, strict=True):
         if cycle.safety_veto:
             assert not sample.trigger
+
+
+def test_assert_bit_true_passes_on_matching_trace(verilator_binary: Path) -> None:
+    report = run_trigger_fabric_cosim(_sustained_lock(5), verilator_binary)
+    assert_bit_true(report)  # a matching trace must not raise
+
+
+def test_assert_bit_true_flags_cycle_count_mismatch(verilator_binary: Path) -> None:
+    report = run_trigger_fabric_cosim(_sustained_lock(5), verilator_binary)
+    with pytest.raises(AssertionError, match="cycle-count mismatch"):
+        assert_bit_true(report, rtl_samples=report.rtl_samples[:-1])

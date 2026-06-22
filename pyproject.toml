@@ -234,6 +234,7 @@ source = ["src/scpn_mif_core"]
 branch = true
 omit = [
     "*/tests/*",
+    "*/test_*.py",
     "*/bench/*",
     "*/examples/*",
     "*/campaigns/*",

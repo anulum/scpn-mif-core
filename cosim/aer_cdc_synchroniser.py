@@ -19,7 +19,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from tools.aer_cdc_synchroniser_reference import run_aer_cdc_synchroniser_reference
+from tools.aer_cdc_synchroniser_reference import CdcCycle, run_aer_cdc_synchroniser_reference
 
 
 @dataclass(frozen=True)
@@ -44,18 +44,30 @@ def run_aer_cdc_cosim(stimulus: Sequence[bool], verilator_binary: str | Path) ->
     """Run the reference and Verilator RTL over ``stimulus`` and compare them."""
     frozen = tuple(stimulus)
     rtl = run_rtl_trace(verilator_binary, frozen)
+    return build_cosim_report(frozen, rtl)
+
+
+def build_cosim_report(stimulus: Sequence[bool], rtl_samples: Sequence[RtlSample]) -> CdcCosimReport:
+    """Compare a reference run against an externally supplied RTL trace."""
+    frozen = tuple(stimulus)
     reference = run_aer_cdc_synchroniser_reference(frozen)
-    mismatches: list[str] = []
+    frozen_rtl = tuple(rtl_samples)
+    mismatches = _trace_mismatches(reference, frozen_rtl)
+    return CdcCosimReport(stimulus=frozen, rtl_samples=frozen_rtl, bit_true=not mismatches, mismatches=mismatches)
+
+
+def _trace_mismatches(reference: Sequence[CdcCycle], rtl: Sequence[RtlSample]) -> tuple[str, ...]:
+    """Return the bit-true divergences between the reference and RTL traces."""
     if len(reference) != len(rtl):
-        mismatches.append(f"cycle-count mismatch: reference={len(reference)}, rtl={len(rtl)}")
-    else:
-        for cycle, sample in zip(reference, rtl, strict=True):
-            if (cycle.meta_q, cycle.sync_out) != (sample.meta_q, sample.sync_out):
-                mismatches.append(
-                    f"cycle {cycle.cycle_index}: reference (meta,sync)="
-                    f"{(cycle.meta_q, cycle.sync_out)!r}, rtl={(sample.meta_q, sample.sync_out)!r}"
-                )
-    return CdcCosimReport(stimulus=frozen, rtl_samples=rtl, bit_true=not mismatches, mismatches=tuple(mismatches))
+        return (f"cycle-count mismatch: reference={len(reference)}, rtl={len(rtl)}",)
+    mismatches: list[str] = []
+    for cycle, sample in zip(reference, rtl, strict=True):
+        if (cycle.meta_q, cycle.sync_out) != (sample.meta_q, sample.sync_out):
+            mismatches.append(
+                f"cycle {cycle.cycle_index}: reference (meta,sync)="
+                f"{(cycle.meta_q, cycle.sync_out)!r}, rtl={(sample.meta_q, sample.sync_out)!r}"
+            )
+    return tuple(mismatches)
 
 
 def run_rtl_trace(verilator_binary: str | Path, stimulus: Sequence[bool]) -> tuple[RtlSample, ...]:
@@ -68,8 +80,13 @@ def run_rtl_trace(verilator_binary: str | Path, stimulus: Sequence[bool]) -> tup
         text=True,
         input=payload,
     )
+    return parse_cdc_trace(completed.stdout)
+
+
+def parse_cdc_trace(stdout: str) -> tuple[RtlSample, ...]:
+    """Parse the ``meta_q sync_out`` lines emitted by the RTL ``trace`` mode."""
     samples: list[RtlSample] = []
-    for line in completed.stdout.splitlines():
+    for line in stdout.splitlines():
         fields = line.split()
         if not fields:
             continue
@@ -80,4 +97,11 @@ def run_rtl_trace(verilator_binary: str | Path, stimulus: Sequence[bool]) -> tup
     return tuple(samples)
 
 
-__all__ = ["CdcCosimReport", "RtlSample", "run_aer_cdc_cosim", "run_rtl_trace"]
+__all__ = [
+    "CdcCosimReport",
+    "RtlSample",
+    "build_cosim_report",
+    "parse_cdc_trace",
+    "run_aer_cdc_cosim",
+    "run_rtl_trace",
+]

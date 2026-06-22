@@ -16,7 +16,14 @@ from pathlib import Path
 
 import pytest
 
-from cosim.aer_cdc_synchroniser import RtlSample, run_aer_cdc_cosim, run_rtl_trace
+from cosim.aer_cdc_synchroniser import (
+    RtlSample,
+    build_cosim_report,
+    parse_cdc_trace,
+    run_aer_cdc_cosim,
+    run_rtl_trace,
+)
+from tools.aer_cdc_synchroniser_reference import run_aer_cdc_synchroniser_reference
 
 REPO = Path(__file__).resolve().parents[1]
 RTL_PATH = REPO / "hdl" / "src" / "aer" / "mif_aer_cdc_synchroniser.sv"
@@ -85,3 +92,46 @@ def test_run_rtl_trace_round_trips(verilator_binary: Path) -> None:
         RtlSample(meta_q=True, sync_out=False),
         RtlSample(meta_q=True, sync_out=True),
     )
+
+
+def _matching_rtl(stimulus: list[bool]) -> tuple[RtlSample, ...]:
+    """Build the RTL trace the reference itself predicts for ``stimulus``."""
+    reference = run_aer_cdc_synchroniser_reference(stimulus)
+    return tuple(RtlSample(meta_q=cycle.meta_q, sync_out=cycle.sync_out) for cycle in reference)
+
+
+def test_build_cosim_report_is_bit_true_on_matching_trace() -> None:
+    stimulus = [False, True, True, False, True]
+    report = build_cosim_report(stimulus, _matching_rtl(stimulus))
+    assert report.bit_true
+    assert report.mismatches == ()
+
+
+def test_build_cosim_report_flags_cycle_count_mismatch() -> None:
+    stimulus = [True, True, True]
+    report = build_cosim_report(stimulus, _matching_rtl(stimulus)[:-1])
+    assert not report.bit_true
+    assert "cycle-count mismatch" in report.mismatches[0]
+
+
+def test_build_cosim_report_flags_per_cycle_mismatch() -> None:
+    stimulus = [True, True, True]
+    corrupted = list(_matching_rtl(stimulus))
+    corrupted[1] = RtlSample(meta_q=not corrupted[1].meta_q, sync_out=corrupted[1].sync_out)
+    report = build_cosim_report(stimulus, corrupted)
+    assert not report.bit_true
+    assert any("cycle 1" in message for message in report.mismatches)
+
+
+def test_parse_cdc_trace_skips_blank_lines() -> None:
+    samples = parse_cdc_trace("0 0\n\n1 0\n   \n1 1\n")
+    assert samples == (
+        RtlSample(meta_q=False, sync_out=False),
+        RtlSample(meta_q=True, sync_out=False),
+        RtlSample(meta_q=True, sync_out=True),
+    )
+
+
+def test_parse_cdc_trace_rejects_malformed_line() -> None:
+    with pytest.raises(ValueError, match="malformed RTL trace line"):
+        parse_cdc_trace("0 0\n1 0 1\n")

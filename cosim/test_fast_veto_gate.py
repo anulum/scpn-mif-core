@@ -204,3 +204,17 @@ def test_parse_rtl_trace_skips_blank_lines() -> None:
     samples = parse_rtl_trace("\n1 1 1\n\n", expected_cycles=1)
 
     assert samples == (RtlSample(veto_active=True, fast_permit=True, fast_fire=True),)
+
+
+def test_assert_bit_true_passes_on_matching_trace(verilator_binary: Path) -> None:
+    report = run_fast_veto_gate_cosim([_full_evidence(qualified_fire=True)], verilator_binary)
+    assert_bit_true(report)  # a matching trace must not raise
+
+
+def test_assert_bit_true_flags_cycle_count_mismatch(verilator_binary: Path) -> None:
+    report = run_fast_veto_gate_cosim(
+        [_full_evidence(qualified_fire=True), _full_evidence(qualified_fire=False)],
+        verilator_binary,
+    )
+    with pytest.raises(AssertionError, match="cycle-count mismatch"):
+        assert_bit_true(report, rtl_samples=report.rtl_samples[:-1])
