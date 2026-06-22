@@ -17,6 +17,7 @@
       "docs/api/diagnostics/normalisation.md",
       "docs/api/diagnostics/stress_inject.md",
       "docs/api/ecosystem.md",
+      "docs/api/evidence.md",
       "docs/api/formal/capacitor_bank.md",
       "docs/api/formal/faraday_recovery.md",
       "docs/api/formal/kinematic_safety.md",
@@ -446,7 +447,7 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 41,
+    "capability_documentation_pages": 42,
     "github_workflows": 16,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
@@ -454,11 +455,11 @@
     "lean_proof_modules": 8,
     "optional_extras": 6,
     "public_api_exports": 161,
-    "public_documentation_pages": 41,
+    "public_documentation_pages": 42,
     "python_capability_classes": 76,
     "python_capability_source_modules": 19,
     "rust_workspace_crates": 10,
-    "test_files": 77
+    "test_files": 78
   },
   "documentation": {
     "public_pages": [
@@ -477,6 +478,7 @@
       "docs/api/diagnostics/normalisation.md",
       "docs/api/diagnostics/stress_inject.md",
       "docs/api/ecosystem.md",
+      "docs/api/evidence.md",
       "docs/api/formal/capacitor_bank.md",
       "docs/api/formal/faraday_recovery.md",
       "docs/api/formal/kinematic_safety.md",
@@ -795,6 +797,7 @@
       "tests/unit/test_cli.py",
       "tests/unit/test_dispatch.py",
       "tests/unit/test_ecosystem_dynamic_matrix.py",
+      "tests/unit/test_evidence.py",
       "tests/unit/test_generate_compatibility_matrix.py",
       "tests/unit/test_lean_capacitor_bank.py",
       "tests/unit/test_lean_faraday_recovery.py",

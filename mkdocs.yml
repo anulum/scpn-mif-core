@@ -130,6 +130,7 @@ nav:
       - api/index.md
       - Merge-trigger orchestrator: api/merge_trigger.md
       - Ecosystem compatibility: api/ecosystem.md
+      - STUDIO evidence emitter: api/evidence.md
       - Kinematic:
           - Doppler-Kuramoto: api/kinematic/doppler_kuramoto.md
           - Moving-frame UPDE: api/kinematic/moving_frame_upde.md

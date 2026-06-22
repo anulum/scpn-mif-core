@@ -14,10 +14,10 @@
 | Go parity sources | 2 |
 | Lean 4 proof modules | 8 |
 | Synthesisable HDL RTL modules | 4 |
-| Capability documentation pages | 41 |
+| Capability documentation pages | 42 |
 | Optional extras | 6 |
-| Python test files | 77 |
-| Public documentation pages | 41 |
+| Python test files | 78 |
+| Public documentation pages | 42 |
 | GitHub Actions workflows | 16 |
 
 Evidence boundary: this snapshot is a static inventory. Performance, coverage, hardware, and scientific-fidelity claims require their own committed evidence artifacts.
