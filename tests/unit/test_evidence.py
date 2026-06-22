@@ -9,7 +9,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import numpy as np
+import pytest
 
 from scpn_mif_core import (
     CapacitorBankSpec,
@@ -26,6 +29,7 @@ from scpn_mif_core.evidence import (
     content_digest,
     formal_proof_evidence,
     merge_trigger_evidence,
+    validate_studio_bundle,
 )
 from scpn_mif_core.merge_trigger import MergeTriggerScenario
 
@@ -203,3 +207,107 @@ def test_formal_proof_evidence_subject_falls_back_to_sby() -> None:
     )
     cert = bundle["formal_certificate"][0]
     assert cert["subject_digest"] == "sha256:" + "c" * 64  # no hdl/src dep → subject is the sby itself
+
+
+# --- validate_studio_bundle ---------------------------------------------------
+
+
+def _valid_measured() -> dict[str, object]:
+    report = evaluate_merge_trigger(_scenario([-5.0e-4, 5.0e-4], [0.0, 0.0]))
+    return merge_trigger_evidence(report, started="t0", ended="t1", host="rig", studio_version="0.1.0")
+
+
+def _valid_formal() -> dict[str, object]:
+    return formal_proof_evidence(
+        _PROVE_TASK, started="t0", ended="t1", host="ci", studio_version="0.1.0", checker_version="0.45"
+    )
+
+
+def test_validate_accepts_emitter_bundles() -> None:
+    validate_studio_bundle(_valid_measured())  # must not raise
+    validate_studio_bundle(_valid_formal())  # must not raise
+
+
+_MeasuredMutator = Callable[[dict], object]
+
+
+@pytest.mark.parametrize(
+    ("mutate", "match"),
+    [
+        (lambda b: b.update(schema="not-studio"), "schema must be"),
+        (lambda b: b.update(ro_crate_profile="x"), "ro_crate_profile must be"),
+        (lambda b: b.update(prov="x"), "prov must be a PROV-O"),
+        (lambda b: b["prov"]["entity"].update(digest="md5:x"), "content digest"),
+        (lambda b: b["prov"]["activity"].pop("verb"), "verb, studio"),
+        (lambda b: b["prov"]["agent"].pop("studio_version"), "studio_version is required"),
+        (lambda b: b.update(scpn_evidence_level="9"), "scpn_evidence_level must be"),
+        (lambda b: b.update(evidence_kind="guess"), "evidence_kind must be"),
+        (lambda b: b.update(claim_boundary="x"), "claim_boundary must be an object"),
+        (lambda b: b["claim_boundary"].update(status="bogus"), "status must be"),
+        (lambda b: b["claim_boundary"].update(admission="maybe"), "admission must be"),
+        (lambda b: b["numeric_provenance"].update(exactness="fuzzy"), "exactness must be"),
+        (lambda b: b.update(attestation={"type": "in-toto"}), "attestation must declare"),
+    ],
+)
+def test_validate_rejects_nonconformant_measured(mutate: _MeasuredMutator, match: str) -> None:
+    bundle = _valid_measured()
+    mutate(bundle)
+    with pytest.raises(ValueError, match=match):
+        validate_studio_bundle(bundle)
+
+
+@pytest.mark.parametrize(
+    ("mutate", "match"),
+    [
+        (lambda b: b.pop("formal_certificate"), "non-empty formal_certificate"),
+        (lambda b: b.update(formal_certificate=[]), "non-empty formal_certificate"),
+        (lambda b: b.update(formal_certificate="x"), "non-empty formal_certificate"),
+        (lambda b: b.update(formal_certificate=["x"]), "must be an object"),
+        (lambda b: b["formal_certificate"][0].update(checker="acl2"), "checker must be one of"),
+        (lambda b: b["formal_certificate"][0].pop("theorem_id"), "theorem_id is required"),
+    ],
+)
+def test_validate_rejects_nonconformant_formal(mutate: _MeasuredMutator, match: str) -> None:
+    bundle = _valid_formal()
+    mutate(bundle)
+    with pytest.raises(ValueError, match=match):
+        validate_studio_bundle(bundle)
+
+
+# --- formal_proof_evidence fail-closed inputs ---------------------------------
+
+
+def test_formal_proof_evidence_rejects_bad_mode() -> None:
+    with pytest.raises(ValueError, match="mode must be one of"):
+        formal_proof_evidence(
+            {**_PROVE_TASK, "mode": "smt"},
+            started="t0",
+            ended="t1",
+            host="ci",
+            studio_version="0.1.0",
+            checker_version="0.45",
+        )
+
+
+def test_formal_proof_evidence_rejects_empty_depends_on() -> None:
+    with pytest.raises(ValueError, match="depends_on must be non-empty"):
+        formal_proof_evidence(
+            {**_PROVE_TASK, "depends_on": []},
+            started="t0",
+            ended="t1",
+            host="ci",
+            studio_version="0.1.0",
+            checker_version="0.45",
+        )
+
+
+def test_formal_proof_evidence_rejects_sby_absent_from_depends_on() -> None:
+    with pytest.raises(ValueError, match="must appear in depends_on"):
+        formal_proof_evidence(
+            {**_PROVE_TASK, "sby": "hdl/formal/other.sby"},
+            started="t0",
+            ended="t1",
+            host="ci",
+            studio_version="0.1.0",
+            checker_version="0.45",
+        )

@@ -42,14 +42,39 @@ RO_CRATE_PROFILE = "scpn-studio/0.1"
 
 JsonDict = dict[str, Any]
 
+# Locked v1 schema-B enumerations (SCPN_STUDIO_V1_CONTRACT.md §4).
+EVIDENCE_KINDS = frozenset({"measured", "curated", "formally-proven"})
+EVIDENCE_LEVELS = frozenset({"0", "1", "2", "3"})
+CLAIM_STATUSES = frozenset(
+    {
+        "reference-validated",
+        "bounded-model",
+        "bounded-support",
+        "validation-gap",
+        "external-dependency-blocked",
+        "roadmap",
+        "toolchain-gated",
+    }
+)
+EXACTNESS_MODES = frozenset({"bit-exact", "tolerance-aware"})
+PROOF_CHECKERS = frozenset({"lean", "prism", "tla+", "symbiyosys", "z3"})
+PROOF_MODES = frozenset({"prove", "cover"})
+
 __all__ = [
+    "CLAIM_STATUSES",
     "CONTRACT_ERA",
+    "EVIDENCE_KINDS",
+    "EVIDENCE_LEVELS",
+    "EXACTNESS_MODES",
+    "PROOF_CHECKERS",
+    "PROOF_MODES",
     "RO_CRATE_PROFILE",
     "STUDIO",
     "build_evidence_bundle",
     "content_digest",
     "formal_proof_evidence",
     "merge_trigger_evidence",
+    "validate_studio_bundle",
 ]
 
 
@@ -223,9 +248,16 @@ def formal_proof_evidence(
     as MIF's formal-manifest drift gate already does.
     """
     mode = str(task["mode"])
+    if mode not in PROOF_MODES:
+        raise ValueError(f"formal task mode must be one of {sorted(PROOF_MODES)}, got {mode!r}")
     method = "k-induction" if mode == "prove" else "bounded-cover"
-    digests = {str(dep["path"]): str(dep["sha256"]) for dep in task["depends_on"]}
+    depends_on = task["depends_on"]
+    if not depends_on:
+        raise ValueError("formal task depends_on must be non-empty to derive the proof and subject digests")
+    digests = {str(dep["path"]): str(dep["sha256"]) for dep in depends_on}
     sby_path = str(task["sby"])
+    if sby_path not in digests:
+        raise ValueError(f"formal task sby {sby_path!r} must appear in depends_on to derive the proof digest")
     proof_digest = "sha256:" + digests[sby_path]
     subject_path = next((path for path in digests if path.startswith("hdl/src/")), sby_path)
     subject_digest = "sha256:" + digests[subject_path]
@@ -267,3 +299,80 @@ def formal_proof_evidence(
         formal_certificate=certificate,
         hmac_key=hmac_key,
     )
+
+
+def validate_studio_bundle(bundle: Mapping[str, Any]) -> None:
+    """Fail closed unless ``bundle`` conforms to the locked v1 schema-B contract.
+
+    This is MIF's consumer-driven contract check (v1 contract §7): it verifies the
+    required PROV-O envelope, the enumerated axes (evidence kind/level, claim-boundary
+    status, exactness), and the conditional rule that a ``formally-proven`` bundle
+    carries a well-formed ``formal_certificate``. It raises a single ``ValueError``
+    listing every violation, so a malformed bundle can never be silently admitted.
+    """
+    issues: list[str] = []
+
+    schema = str(bundle.get("schema", ""))
+    if not (schema.startswith("studio.") and schema.endswith(".v1")):
+        issues.append("schema must be a 'studio.*.v1' identifier")
+    if bundle.get("ro_crate_profile") != RO_CRATE_PROFILE:
+        issues.append(f"ro_crate_profile must be {RO_CRATE_PROFILE!r}")
+
+    prov = bundle.get("prov")
+    if not isinstance(prov, Mapping):
+        issues.append("prov must be a PROV-O object")
+    else:
+        entity = prov.get("entity")
+        if not isinstance(entity, Mapping) or not str(entity.get("digest", "")).startswith("sha256:"):
+            issues.append("prov.entity.digest must be a 'sha256:' content digest")
+        activity = prov.get("activity")
+        if not isinstance(activity, Mapping) or not all(
+            activity.get(field) for field in ("verb", "studio", "started", "ended")
+        ):
+            issues.append("prov.activity must declare verb, studio, started, ended")
+        agent = prov.get("agent")
+        if not isinstance(agent, Mapping) or not agent.get("studio_version"):
+            issues.append("prov.agent.studio_version is required")
+
+    if str(bundle.get("scpn_evidence_level")) not in EVIDENCE_LEVELS:
+        issues.append(f"scpn_evidence_level must be one of {sorted(EVIDENCE_LEVELS)}")
+    evidence_kind = bundle.get("evidence_kind")
+    if evidence_kind not in EVIDENCE_KINDS:
+        issues.append(f"evidence_kind must be one of {sorted(EVIDENCE_KINDS)}")
+
+    claim_boundary = bundle.get("claim_boundary")
+    if not isinstance(claim_boundary, Mapping):
+        issues.append("claim_boundary must be an object")
+    else:
+        if claim_boundary.get("status") not in CLAIM_STATUSES:
+            issues.append(f"claim_boundary.status must be one of {sorted(CLAIM_STATUSES)}")
+        if "admission" in claim_boundary and claim_boundary["admission"] not in {"admitted", "rejected"}:
+            issues.append("claim_boundary.admission must be 'admitted' or 'rejected'")
+
+    numeric = bundle.get("numeric_provenance")
+    if isinstance(numeric, Mapping) and numeric.get("exactness") not in EXACTNESS_MODES:
+        issues.append(f"numeric_provenance.exactness must be one of {sorted(EXACTNESS_MODES)}")
+
+    attestation = bundle.get("attestation")
+    if not isinstance(attestation, Mapping) or not all(
+        attestation.get(field) for field in ("type", "predicate", "hash_chain")
+    ):
+        issues.append("attestation must declare type, predicate, hash_chain")
+
+    if evidence_kind == "formally-proven":
+        certificate = bundle.get("formal_certificate")
+        if not isinstance(certificate, list) or not certificate:
+            issues.append("formally-proven evidence must carry a non-empty formal_certificate")
+        else:
+            for index, cert in enumerate(certificate):
+                if not isinstance(cert, Mapping):
+                    issues.append(f"formal_certificate[{index}] must be an object")
+                    continue
+                if cert.get("checker") not in PROOF_CHECKERS:
+                    issues.append(f"formal_certificate[{index}].checker must be one of {sorted(PROOF_CHECKERS)}")
+                for field in ("theorem_id", "proof_digest", "subject_digest"):
+                    if not cert.get(field):
+                        issues.append(f"formal_certificate[{index}].{field} is required")
+
+    if issues:
+        raise ValueError("non-conformant studio.*.v1 bundle: " + "; ".join(issues))
