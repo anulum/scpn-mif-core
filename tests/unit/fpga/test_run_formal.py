@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -141,3 +142,39 @@ def test_main_reports_all_passing(monkeypatch: pytest.MonkeyPatch, capsys: pytes
     )
     assert run_formal.main(["--suite", "safety"]) == 0
     assert "1/1 tasks passed" in capsys.readouterr().out
+
+
+def test_run_task_builds_sby_command_and_maps_returncode(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    sby = tmp_path / "demo.sby"
+    sby.write_text("[tasks]\n", encoding="utf-8")
+    task = run_formal.FormalTask(suite="safety", name="demo", sby_path=sby)
+    recorded_cmd: list[str] = []
+    recorded_cwd: list[object] = []
+
+    def fake_run(cmd: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        recorded_cmd.extend(cmd)
+        recorded_cwd.append(kwargs.get("cwd"))
+        return subprocess.CompletedProcess(cmd, 2, stdout="", stderr="")
+
+    monkeypatch.setattr(run_formal.subprocess, "run", fake_run)
+    result = run_formal.run_task(task, build_root=tmp_path / "build")
+
+    assert recorded_cmd[0] == "sby"
+    assert "demo.sby" in recorded_cmd
+    assert recorded_cwd == [sby.parent]
+    assert result.returncode == 2
+    assert result.status is run_formal.FormalStatus.FAIL
+
+
+def test_run_suite_runs_every_discovered_task(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    task = run_formal.FormalTask(suite="safety", name="demo", sby_path=tmp_path / "demo.sby")
+    monkeypatch.setattr(run_formal, "discover_tasks", lambda _suite, formal_root=None: [task])
+    monkeypatch.setattr(
+        run_formal,
+        "run_task",
+        lambda received, build_root=None: run_formal.FormalResult(
+            task=received, status=run_formal.FormalStatus.PASS, returncode=0
+        ),
+    )
+    results = run_formal.run_suite("safety", build_root=tmp_path / "build")
+    assert [r.status for r in results] == [run_formal.FormalStatus.PASS]
