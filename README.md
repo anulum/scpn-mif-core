@@ -80,17 +80,84 @@ not yet delivered capabilities.
 > hardware/tooling lanes. See
 > [`docs/api/`](docs/api/index.md) for the implemented surfaces.
 
-## Reading path
+## Documentation
 
-| Audience | Start here |
-|---|---|
-| Researcher evaluating fit | [Architecture overview](docs/architecture/index.md) |
-| Engineer checking sibling readiness | [Dynamic compatibility matrix](docs/generated/compatibility_matrix.md) |
-| Contributor | [CONTRIBUTING](CONTRIBUTING.md) |
-| Security researcher | [SECURITY](SECURITY.md) |
-| Citation | [CITATION.cff](CITATION.cff) |
+This README and the [documentation site](https://anulum.github.io/scpn-mif-core/)
+are organised along the four [Diátaxis](https://diataxis.fr/) modes, so each entry
+point matches what you are trying to do:
 
-## Quick start
+| Mode | Purpose | Start here |
+|---|---|---|
+| **Tutorial** | Learn by running the project end to end | [Your first merge-trigger decision](#tutorial--your-first-merge-trigger-decision) · [getting started guide](docs/guides/getting_started.md) |
+| **How-to** | Accomplish a specific task | [How-to guides](#how-to-guides) · [`docs/guides/`](docs/guides/) |
+| **Reference** | Look up precise facts | [Functional specification](#reference--functional-specification) · [API reference](docs/api/index.md) · [capability inventory](#capability-inventory) |
+| **Explanation** | Understand the design and trade-offs | [Architecture](#explanation--architecture) · [ADRs](docs/adr/) · [the dispatch design](docs/adr/0002-multi-language-acceleration-and-dispatch.md) |
+
+By audience: a **researcher** evaluating fit starts with the
+[architecture overview](docs/architecture/index.md); an **engineer** checking
+sibling readiness reads the
+[dynamic compatibility matrix](docs/generated/compatibility_matrix.md); a
+**contributor** reads [CONTRIBUTING](CONTRIBUTING.md); a **security researcher**
+reads [SECURITY](SECURITY.md); to cite the work, use [CITATION.cff](CITATION.cff).
+
+## Tutorial — your first merge-trigger decision
+
+Install the package and run a real decision immediately — the built-in
+two-plasmoid scenario needs no input file:
+
+```bash
+pip install scpn-mif-core
+scpn-mif demo
+```
+
+It prints a `fire`/`abort`/`hold` outcome with the lock time, safety result, and
+compression-pulse feasibility. To turn the built-in scenario into a file you can
+edit and re-run:
+
+```bash
+scpn-mif demo --emit-scenario > scenario.json
+scpn-mif run scenario.json
+```
+
+The same decision is available in Python:
+
+```python
+from scpn_mif_core import evaluate_merge_trigger
+```
+
+From a development checkout, `make demo` runs the full end-to-end pipeline — the
+pulsed-shot lifecycle and both campaigns — and writes their JSON and figure
+artifacts in about forty seconds (the figures need the `demo` extra,
+`pip install "scpn-mif-core[demo]"`). For the full guided walk-through see the
+[getting started guide](docs/guides/getting_started.md).
+
+## How-to guides
+
+### Install the Rust-accelerated path
+
+The bare install runs the pure-Python reference; the `accelerated` extra pulls the
+prebuilt native extension so the dispatcher selects the Rust backend, with the
+Python reference as a transparent fallback:
+
+```bash
+pip install "scpn-mif-core[accelerated]"
+```
+
+### Run from the command line
+
+Installing the package provides the `scpn-mif` command:
+
+```bash
+scpn-mif version                      # installed package version
+scpn-mif ecosystem [--json]           # sibling-repository compatibility report
+scpn-mif run scenario.json [--json]   # run an FRC merge-trigger decision
+```
+
+The `run` scenario file mirrors `MergeTriggerScenario`: each nested object maps
+to the matching spec (`moving_frame`, `merge_window`, `bank`, `compression_pulse`,
+and the optional `recovery` + `expansion`).
+
+### Set up a development checkout
 
 ```bash
 git clone https://github.com/anulum/scpn-mif-core.git
@@ -118,22 +185,13 @@ cd go && go test ./...
 pixi install         # Mojo via Modular's pixi channel
 ```
 
-## Command line
-
-Installing the package provides the `scpn-mif` command:
+### Regenerate the sibling compatibility report
 
 ```bash
-scpn-mif version                      # installed package version
-scpn-mif ecosystem [--json]           # sibling-repository compatibility report
-scpn-mif run scenario.json [--json]   # run an FRC merge-trigger decision
+python tools/generate_compatibility_matrix.py
 ```
 
-The `run` scenario file mirrors `MergeTriggerScenario`: each nested object maps
-to the matching spec (`moving_frame`, `merge_window`, `bank`, `compression_pulse`,
-and the optional `recovery` + `expansion`). The same decision is available in
-Python via `from scpn_mif_core import evaluate_merge_trigger`.
-
-## Architecture in one figure
+## Explanation — architecture
 
 ```
 sensor → [AER]  ┐
@@ -170,14 +228,15 @@ MIF-008 debounced trigger fabric with its registerless fast-veto lane
 functional safety and liveness properties for both lanes are machine-checked by
 the MIF-010 SymbiYosys suites in `hdl/formal/`.
 
-## Sibling repositories
+### Ownership boundary and sibling repositories
 
-MIF consumes sibling repositories through a generated compatibility report,
-not through hand-maintained equality pins. Regenerate it with:
-
-```bash
-python tools/generate_compatibility_matrix.py
-```
+MIF consumes sibling repositories through a generated compatibility report
+([regenerate it](#regenerate-the-sibling-compatibility-report)), not through
+hand-maintained equality pins. MIF owns the FRC kinematic merge, the pulsed-shot
+FSM, the capacitor bank, Faraday recovery, kinematic safety, the AER sensor
+bridge, the trigger fabric with its fast-veto, and the MIF-010 formal proofs; it
+deliberately does not duplicate the sibling-owned physics, control, SNN-to-HDL,
+or quantum kernels listed below.
 
 | Sibling | Role | Dynamic status source |
 |---|---|---|
@@ -211,7 +270,7 @@ bidirectional sync protocol, are:
 Live readiness and version status for every lane are derived from sibling source
 by the generated matrix, never from static equality pins.
 
-## Technical specification
+## Reference — functional specification
 
 > The remainder of this document is the original functional specification
 > that anchors the development plan. It is preserved verbatim. The
