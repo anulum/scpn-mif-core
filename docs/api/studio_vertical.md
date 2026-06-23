@@ -1,0 +1,63 @@
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Commercial license available -->
+<!-- © Concepts 1996–2026 Miroslav Šotek. All rights reserved. -->
+<!-- © Code 2020–2026 Miroslav Šotek. All rights reserved. -->
+<!-- ORCID: 0009-0009-3560-0851 -->
+<!-- Contact: www.anulum.li | protoscience@anulum.li -->
+<!-- SCPN-MIF-CORE — STUDIO vertical (scpn_mif_core.studio) overview. -->
+
+# STUDIO Vertical
+
+`scpn_mif_core.studio` is the optional SCPN STUDIO vertical: it makes MIF a federated
+studio on the shared `scpn-studio-platform` SDK, so the SCPN Studio Hub can enumerate
+MIF's verbs and load its evidence at runtime. It is an **opt-in extra**, installed
+with `pip install scpn-mif-core[studio]`, and is kept out of the lean core — the core
+and its hand-rolled forward-compat evidence layer
+([evidence emitter](evidence.md), [capability manifest](studio_manifest.md)) carry no
+SDK dependency.
+
+Because the SDK is an optional dependency, the per-symbol reference lives in the module
+docstrings (read them in source, or on the repository), not in the SDK-free
+documentation build. This page is the navigable overview of the vertical's surface.
+
+## Surface
+
+`scpn_mif_core.studio` consumes the SDK and exposes four parts:
+
+- **`verbs`** — the studio identity (`STUDIO_ID = "scpn-mif-core"`) and the four MIF
+  verbs (`evaluate`, `prove`, `cosimulate`, `benchmark`), each declared with its safety
+  tier, side-effect class, timing, and the evidence schema it produces.
+- **`evidence`** — mappers from MIF results onto SDK `EvidenceBundle` records:
+  - a merge-trigger decision → a claim-boundary admission (a reduced-order decision
+    renders **bounded-model**, never reference-validated — see the honesty rule below);
+  - an MIF-010 formal proof → a `FormalCertificate` whose `subject_digest` binds it to
+    the exact RTL, so the Hub voids the proof on drift;
+  - a cosimulation → a bit-exact `ParityCheck`;
+  - a benchmark → its recompute provenance.
+- **`manifest`** — `build_manifest()`, which authors the SDK `CapabilityManifest`
+  (verbs, evidence schemas, the `>=0.2,<0.3` platform-SDK range, the UI panel module).
+- **`__init__`** — fail-closed re-exports; importing the vertical without the SDK
+  installed raises a clear error rather than degrading silently.
+
+## Honesty rule
+
+The vertical mirrors the platform claim-boundary contract exactly: a claim renders as
+validated only when it is **reference-validated AND admitted**. A reduced-order
+merge-trigger decision is admitted (it may fire) but stays **bounded-model**, so the
+Hub never presents a reduced-order decision as facility-grade validated. The TypeScript
+panel (`studio-web/`) enforces the same rule on the rendering side.
+
+## Contract
+
+The v1 schema-B evidence contract and the feature-boundary rules are recorded in the
+architecture decisions — see [ADR 0010](../adr/0010-merge-window-predictor-feature-boundary.md)
+for the merge-window feature boundary and [ADR 0001](../adr/0001-repository-scope-and-ownership-boundaries.md)
+for the ownership boundary the evidence stays within.
+
+## Federation
+
+The browser side is `studio-web/`, a Vite + Module Federation 2.x remote (federation
+name `scpn_mif_core`, exposing `./MifStudioPanel`). The SCPN Studio Hub loads it at
+runtime and renders MIF's verbs and honesty-graded claims; the panel mirrors the
+Python honesty rule and falls back, fail-closed, to a bundled honesty-graded sample
+when the live feed is unreachable.

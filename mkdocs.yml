@@ -132,11 +132,13 @@ nav:
       - Ecosystem compatibility: api/ecosystem.md
       - STUDIO evidence emitter: api/evidence.md
       - STUDIO capability manifest: api/studio_manifest.md
+      - STUDIO vertical (optional): api/studio_vertical.md
       - Kinematic:
           - Doppler-Kuramoto: api/kinematic/doppler_kuramoto.md
           - Moving-frame UPDE: api/kinematic/moving_frame_upde.md
           - Merge-window monitor: api/kinematic/merge_window.md
           - Merge-window feature boundary: api/kinematic/merge_window_features.md
+          - Safety certificate: api/kinematic/safety_certificate.md
       - Lifecycle:
           - Pulsed-shot FSM: api/lifecycle/pulsed_shot_fsm.md
           - Capacitor bank: api/lifecycle/capacitor_bank.md
