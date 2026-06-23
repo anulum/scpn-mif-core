@@ -24,7 +24,7 @@ jobs:
     name: CycloneDX Python SBOM
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6
         with:
           python-version: "3.12"
@@ -37,7 +37,7 @@ jobs:
         run: |
           mkdir -p artifacts
           cyclonedx-py environment -o artifacts/sbom-python.cdx.json --spec-version 1.5 --output-format JSON
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: sbom-python
           path: artifacts/sbom-python.cdx.json
@@ -49,14 +49,14 @@ jobs:
         working-directory: scpn-mif-rs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
       - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8  # stable
       - run: |
           mkdir -p ../artifacts/sbom-rust
           cargo install cargo-cyclonedx --locked
           cargo cyclonedx --format json --spec-version 1.5
           find . -name '*.cdx.json' -exec cp {} ../artifacts/sbom-rust/ \;
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: sbom-rust
           path: artifacts/sbom-rust/
