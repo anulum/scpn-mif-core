@@ -247,6 +247,9 @@ from scpn_mif_core.interop import (
 from scpn_mif_core.kinematic import (
     KINEMATIC_SAFETY_TOLERANCE_M as KINEMATIC_SAFETY_TOLERANCE_M,
 )
+from scpn_mif_core.kinematic import (
+    MERGE_WINDOW_FEATURE_KEYS as MERGE_WINDOW_FEATURE_KEYS,
+)
 
 # Kinematic FRC merging — Doppler-Kuramoto, moving-frame UPDE, merge-window, safety
 from scpn_mif_core.kinematic import (
@@ -266,6 +269,12 @@ from scpn_mif_core.kinematic import (
 )
 from scpn_mif_core.kinematic import (
     KinematicSafetySpec as KinematicSafetySpec,
+)
+from scpn_mif_core.kinematic import (
+    MergeWindowFeatureBoundaryError as MergeWindowFeatureBoundaryError,
+)
+from scpn_mif_core.kinematic import (
+    MergeWindowFeatureVector as MergeWindowFeatureVector,
 )
 from scpn_mif_core.kinematic import (
     MergeWindowMonitor as MergeWindowMonitor,
@@ -322,6 +331,12 @@ from scpn_mif_core.kinematic import (
     evaluate_moving_frame_upde as evaluate_moving_frame_upde,
 )
 from scpn_mif_core.kinematic import (
+    is_within_merge_window_boundary as is_within_merge_window_boundary,
+)
+from scpn_mif_core.kinematic import (
+    merge_window_feature_vector as merge_window_feature_vector,
+)
+from scpn_mif_core.kinematic import (
     moving_frame_derivatives as moving_frame_derivatives,
 )
 from scpn_mif_core.kinematic import (
@@ -329,6 +344,9 @@ from scpn_mif_core.kinematic import (
 )
 from scpn_mif_core.kinematic import (
     phase_lock_error as phase_lock_error,
+)
+from scpn_mif_core.kinematic import (
+    validate_merge_window_features as validate_merge_window_features,
 )
 
 # Pulsed-shot lifecycle — capacitor bank, shot FSM, plasmoid-merger Petri net
@@ -518,6 +536,7 @@ __all__ = [
     "FUSION_FRC_SURFACES",
     "IMAS_COMMON_SUBSTRUCTURES",
     "KINEMATIC_SAFETY_TOLERANCE_M",
+    "MERGE_WINDOW_FEATURE_KEYS",
     "MIF_IMAS_INPUT_MAP",
     "SIBLINGS",
     "AERControlObservation",
@@ -558,6 +577,8 @@ __all__ = [
     "MergeTriggerOutcome",
     "MergeTriggerReport",
     "MergeTriggerScenario",
+    "MergeWindowFeatureBoundaryError",
+    "MergeWindowFeatureVector",
     "MergeWindowMonitor",
     "MergeWindowSample",
     "MergeWindowSpec",
@@ -657,12 +678,14 @@ __all__ = [
     "ids_names",
     "inspect_fusion_frc_contract",
     "interop",
+    "is_within_merge_window_boundary",
     "kinematic",
     "lifecycle",
     "load_fusion_core",
     "magnetic_flux",
     "mapping_for",
     "merge_trigger",
+    "merge_window_feature_vector",
     "moving_frame_derivatives",
     "order_parameter",
     "phase_lock_error",
@@ -670,6 +693,7 @@ __all__ = [
     "recovered_power",
     "render_compatibility_matrix",
     "tae_descriptor_profile",
+    "validate_merge_window_features",
     "validate_stress_config",
     "verify_merger_boundedness",
     "verify_merger_liveness",

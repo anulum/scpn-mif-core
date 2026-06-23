@@ -11,6 +11,7 @@
       "docs/adr/0007-validation-and-benchmark-integrity.md",
       "docs/adr/0008-combinational-fast-veto-lane.md",
       "docs/adr/0009-standards-interop-seams.md",
+      "docs/adr/0010-merge-window-predictor-feature-boundary.md",
       "docs/adr/index.md",
       "docs/api/aer/spike_buffer.md",
       "docs/api/daq/bus_mock.md",
@@ -29,6 +30,7 @@
       "docs/api/interop/trigger_io.md",
       "docs/api/kinematic/doppler_kuramoto.md",
       "docs/api/kinematic/merge_window.md",
+      "docs/api/kinematic/merge_window_features.md",
       "docs/api/kinematic/moving_frame_upde.md",
       "docs/api/lifecycle/capacitor_bank.md",
       "docs/api/lifecycle/plasmoid_merger_petri_net.md",
@@ -193,6 +195,14 @@
       {
         "name": "KinematicSafetySpec",
         "path": "src/scpn_mif_core/kinematic/safety_certificate.py"
+      },
+      {
+        "name": "MergeWindowFeatureBoundaryError",
+        "path": "src/scpn_mif_core/kinematic/merge_window_features.py"
+      },
+      {
+        "name": "MergeWindowFeatureVector",
+        "path": "src/scpn_mif_core/kinematic/merge_window_features.py"
       },
       {
         "name": "MergeWindowMonitor",
@@ -394,6 +404,7 @@
       "src/scpn_mif_core/kinematic/_rust_adapter.py",
       "src/scpn_mif_core/kinematic/doppler_kuramoto.py",
       "src/scpn_mif_core/kinematic/merge_window.py",
+      "src/scpn_mif_core/kinematic/merge_window_features.py",
       "src/scpn_mif_core/kinematic/moving_frame_upde.py",
       "src/scpn_mif_core/kinematic/safety_certificate.py",
       "src/scpn_mif_core/lifecycle/_rust_adapter.py",
@@ -448,19 +459,19 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 43,
+    "capability_documentation_pages": 45,
     "github_workflows": 16,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,
     "optional_extras": 7,
-    "public_api_exports": 161,
-    "public_documentation_pages": 43,
-    "python_capability_classes": 76,
-    "python_capability_source_modules": 19,
+    "public_api_exports": 167,
+    "public_documentation_pages": 45,
+    "python_capability_classes": 78,
+    "python_capability_source_modules": 20,
     "rust_workspace_crates": 10,
-    "test_files": 81
+    "test_files": 82
   },
   "documentation": {
     "public_pages": [
@@ -473,6 +484,7 @@
       "docs/adr/0007-validation-and-benchmark-integrity.md",
       "docs/adr/0008-combinational-fast-veto-lane.md",
       "docs/adr/0009-standards-interop-seams.md",
+      "docs/adr/0010-merge-window-predictor-feature-boundary.md",
       "docs/adr/index.md",
       "docs/api/aer/spike_buffer.md",
       "docs/api/daq/bus_mock.md",
@@ -491,6 +503,7 @@
       "docs/api/interop/trigger_io.md",
       "docs/api/kinematic/doppler_kuramoto.md",
       "docs/api/kinematic/merge_window.md",
+      "docs/api/kinematic/merge_window_features.md",
       "docs/api/kinematic/moving_frame_upde.md",
       "docs/api/lifecycle/capacitor_bank.md",
       "docs/api/lifecycle/plasmoid_merger_petri_net.md",
@@ -573,10 +586,13 @@
     "KINEMATIC_SAFETY_TOLERANCE_M",
     "KinematicSafetyCertificate",
     "KinematicSafetySpec",
+    "MERGE_WINDOW_FEATURE_KEYS",
     "MIF_IMAS_INPUT_MAP",
     "MergeTriggerOutcome",
     "MergeTriggerReport",
     "MergeTriggerScenario",
+    "MergeWindowFeatureBoundaryError",
+    "MergeWindowFeatureVector",
     "MergeWindowMonitor",
     "MergeWindowSample",
     "MergeWindowSpec",
@@ -677,12 +693,14 @@
     "ids_names",
     "inspect_fusion_frc_contract",
     "interop",
+    "is_within_merge_window_boundary",
     "kinematic",
     "lifecycle",
     "load_fusion_core",
     "magnetic_flux",
     "mapping_for",
     "merge_trigger",
+    "merge_window_feature_vector",
     "moving_frame_derivatives",
     "order_parameter",
     "phase_lock_error",
@@ -690,6 +708,7 @@
     "recovered_power",
     "render_compatibility_matrix",
     "tae_descriptor_profile",
+    "validate_merge_window_features",
     "validate_stress_config",
     "verify_merger_boundedness",
     "verify_merger_liveness"
@@ -779,6 +798,7 @@
       "tests/unit/kinematic/test_doppler_kuramoto.py",
       "tests/unit/kinematic/test_doppler_kuramoto_rust_parity.py",
       "tests/unit/kinematic/test_merge_window.py",
+      "tests/unit/kinematic/test_merge_window_features.py",
       "tests/unit/kinematic/test_merge_window_rust_parity.py",
       "tests/unit/kinematic/test_moving_frame_upde.py",
       "tests/unit/kinematic/test_moving_frame_upde_rust_parity.py",

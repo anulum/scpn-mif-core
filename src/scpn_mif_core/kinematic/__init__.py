@@ -38,6 +38,14 @@ from scpn_mif_core.kinematic.merge_window import (
     MergeWindowTrace,
     evaluate_merge_window_trace,
 )
+from scpn_mif_core.kinematic.merge_window_features import (
+    MERGE_WINDOW_FEATURE_KEYS,
+    MergeWindowFeatureBoundaryError,
+    MergeWindowFeatureVector,
+    is_within_merge_window_boundary,
+    merge_window_feature_vector,
+    validate_merge_window_features,
+)
 from scpn_mif_core.kinematic.moving_frame_upde import (
     MovingFrameUPDE,
     MovingFrameUPDEReport,
@@ -112,12 +120,15 @@ def dispatched_sampled_kinematic_safety_certificate(
 
 __all__ = [
     "KINEMATIC_SAFETY_TOLERANCE_M",
+    "MERGE_WINDOW_FEATURE_KEYS",
     "DopplerKuramoto",
     "DopplerKuramotoReport",
     "DopplerKuramotoSpec",
     "DopplerKuramotoState",
     "KinematicSafetyCertificate",
     "KinematicSafetySpec",
+    "MergeWindowFeatureBoundaryError",
+    "MergeWindowFeatureVector",
     "MergeWindowMonitor",
     "MergeWindowSample",
     "MergeWindowSpec",
@@ -136,7 +147,10 @@ __all__ = [
     "evaluate_doppler_kuramoto",
     "evaluate_merge_window_trace",
     "evaluate_moving_frame_upde",
+    "is_within_merge_window_boundary",
+    "merge_window_feature_vector",
     "moving_frame_derivatives",
     "order_parameter",
     "phase_lock_error",
+    "validate_merge_window_features",
 ]
