@@ -8,18 +8,20 @@
 
 import type { ReactElement } from 'react';
 
-import type { ClaimSummary, MifVerb } from './domain.js';
+import type { Backend, ClaimSummary, MifVerb } from './domain.js';
 import {
   claimRendersAsValidated,
+  MIF_BACKENDS,
   MIF_CLAIMS,
   MIF_VERBS,
   requiresLiveHardwareGate,
 } from './domain.js';
 
-/** The verbs and claims the panel renders — supplied from the live feed, or sampled. */
+/** The verbs, claims, and backends the panel renders — from the live feed, or sampled. */
 export interface MifStudioPanelProps {
   readonly verbs?: readonly MifVerb[];
   readonly claims?: readonly ClaimSummary[];
+  readonly backends?: readonly Backend[];
 }
 
 /**
@@ -27,17 +29,21 @@ export interface MifStudioPanelProps {
  *
  * It surfaces MIF's verbs (each with its safety tier, side-effect class, and timing;
  * a live-hardware verb would be marked Hub-gated, though MIF's studio verbs are all
- * software) and a claims section that renders each claim's boundary verbatim, marking
- * only a reference-validated, admitted claim as validated. The same honesty grading
- * the Python vertical emits is shown here as UI — a reduced-order merge-trigger
- * decision shows as bounded-model, never validated.
+ * software), the compute backends with their availability tier (only a runtime-active
+ * backend is the in-process hot path), and a claims section that renders each claim's
+ * boundary verbatim — marking only a reference-validated, admitted claim as validated,
+ * and surfacing the evidence detail MIF attaches (a measured claim's parity exactness,
+ * a formally-proven claim's certificate). The same honesty grading the Python vertical
+ * emits is shown here as UI: a reduced-order merge-trigger decision shows as
+ * bounded-model, never validated.
  *
- * The verbs and claims come from the live studio feed (see ``feed.ts``); the bundled
- * domain sample is the default so the remote also renders standalone.
+ * The data comes from the live studio feed (see ``feed.ts``); the bundled domain sample
+ * is the default so the remote also renders standalone.
  */
 export default function MifStudioPanel({
   verbs = MIF_VERBS,
   claims = MIF_CLAIMS,
+  backends = MIF_BACKENDS,
 }: MifStudioPanelProps = {}): ReactElement {
   return (
     <section className="mif-studio">
@@ -75,6 +81,17 @@ export default function MifStudioPanel({
         </tbody>
       </table>
 
+      <div className="mif-studio__backends">
+        <h3>Backends</h3>
+        <ul>
+          {backends.map((backend) => (
+            <li key={backend.name} data-status={backend.status}>
+              {backend.name} — {backend.status}
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <div className="mif-studio__claims">
         <h3>Claims</h3>
         <ul>
@@ -83,6 +100,20 @@ export default function MifStudioPanel({
             return (
               <li key={claim.schema} data-validated={validated ? 'yes' : 'no'}>
                 {claim.schema} — {claim.kind} — {validated ? 'validated' : claim.status}
+                {claim.exactness !== undefined && (
+                  <span className="mif-studio__exactness" data-exactness={claim.exactness}>
+                    {` · ${claim.exactness}`}
+                  </span>
+                )}
+                {claim.certificate !== undefined && (
+                  <span
+                    className="mif-studio__certificate"
+                    data-checker={claim.certificate.checker}
+                  >
+                    {` · proof: ${claim.certificate.checker}/${claim.certificate.theorem}`}
+                    {claim.certificate.nonVacuous ? '' : ' (vacuous)'}
+                  </span>
+                )}
               </li>
             );
           })}

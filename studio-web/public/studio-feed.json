@@ -1,4 +1,11 @@
 {
+  "backends": [
+    { "name": "rust", "status": "runtime-active" },
+    { "name": "python", "status": "runtime-active" },
+    { "name": "mojo", "status": "build-available" },
+    { "name": "julia", "status": "build-available" },
+    { "name": "go", "status": "build-available" }
+  ],
   "claims": [
     {
       "admission": "admitted",
@@ -8,12 +15,18 @@
     },
     {
       "admission": "admitted",
+      "certificate": {
+        "checker": "symbiyosys",
+        "non_vacuous": true,
+        "theorem": "mif_trigger_fabric_safety"
+      },
       "kind": "formally-proven",
       "schema": "studio.formal-proof.v1",
       "status": "reference-validated"
     },
     {
       "admission": "admitted",
+      "exactness": "bit-exact",
       "kind": "measured",
       "schema": "studio.cosim.v1",
       "status": "reference-validated"

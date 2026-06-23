@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest';
 import type { MifVerb } from '../src/domain.js';
 import {
   claimRendersAsValidated,
+  MIF_BACKENDS,
   MIF_CLAIMS,
   MIF_VERBS,
   requiresLiveHardwareGate,
@@ -89,5 +90,37 @@ describe('MIF_CLAIMS', () => {
     expect(
       mergeTrigger && claimRendersAsValidated(mergeTrigger.status, mergeTrigger.admission),
     ).toBe(false);
+  });
+
+  it('attaches a symbiyosys certificate to the formally-proven claim', () => {
+    const proof = MIF_CLAIMS.find((c) => c.schema === 'studio.formal-proof.v1');
+    expect(proof?.certificate).toEqual({
+      checker: 'symbiyosys',
+      theorem: 'mif_trigger_fabric_safety',
+      nonVacuous: true,
+    });
+    expect(proof?.exactness).toBeUndefined();
+  });
+
+  it('marks the cosimulation bit-exact and leaves it un-certificated', () => {
+    const cosim = MIF_CLAIMS.find((c) => c.schema === 'studio.cosim.v1');
+    expect(cosim?.exactness).toBe('bit-exact');
+    expect(cosim?.certificate).toBeUndefined();
+  });
+});
+
+describe('MIF_BACKENDS', () => {
+  it('marks the in-process backends runtime-active and the CLI surfaces build-available', () => {
+    const byName = new Map(MIF_BACKENDS.map((b) => [b.name, b.status]));
+    expect(byName.get('rust')).toBe('runtime-active');
+    expect(byName.get('python')).toBe('runtime-active');
+    expect(byName.get('mojo')).toBe('build-available');
+    expect(byName.get('julia')).toBe('build-available');
+    expect(byName.get('go')).toBe('build-available');
+    expect(MIF_BACKENDS).toHaveLength(5);
+  });
+
+  it('never advertises a declared-only backend (everything is at least build-available)', () => {
+    expect(MIF_BACKENDS.every((b) => b.status !== 'declared')).toBe(true);
   });
 });

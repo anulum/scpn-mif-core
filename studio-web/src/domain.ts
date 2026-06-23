@@ -42,6 +42,31 @@ export type EvidenceKind = 'measured' | 'curated' | 'formally-proven';
 /** The runtime admission decision for a claim. */
 export type AdmissionDecision = 'admitted' | 'rejected';
 
+/** A compute backend MIF can dispatch a kernel to. */
+export type BackendName = 'rust' | 'python' | 'mojo' | 'julia' | 'go';
+
+/**
+ * Backend availability tier (the v-next §4.5 axis, applied at MIF level): the Hub
+ * should over-trust only a `runtime-active` backend, never one that merely builds.
+ */
+export type BackendStatus = 'runtime-active' | 'build-available' | 'declared';
+
+/** A MIF compute backend with its availability status. */
+export interface Backend {
+  readonly name: BackendName;
+  readonly status: BackendStatus;
+}
+
+/** Numeric agreement of a measured result against its reference. */
+export type Exactness = 'bit-exact' | 'tolerance-aware';
+
+/** A machine-checked formal certificate attached to a formally-proven claim. */
+export interface FormalCertificate {
+  readonly checker: string;
+  readonly theorem: string;
+  readonly nonVacuous: boolean;
+}
+
 /** A MIF verb with the attribute contract the Hub federates against. */
 export interface MifVerb {
   readonly name: string;
@@ -52,12 +77,18 @@ export interface MifVerb {
   readonly domainDistinctive: boolean;
 }
 
-/** A claim summary the panel renders, with its boundary and modality. */
+/**
+ * A claim summary the panel renders, with its boundary and modality, plus the
+ * optional evidence detail MIF's mappers attach: a measured claim may carry the
+ * parity `exactness`; a formally-proven claim may carry its `certificate`.
+ */
 export interface ClaimSummary {
   readonly schema: string;
   readonly status: ClaimStatus;
   readonly admission: AdmissionDecision;
   readonly kind: EvidenceKind;
+  readonly exactness?: Exactness;
+  readonly certificate?: FormalCertificate;
 }
 
 /** Whether the Hub must hard-gate this verb per tenant before running it. */
@@ -115,6 +146,20 @@ export const MIF_VERBS: readonly MifVerb[] = [
 ];
 
 /**
+ * MIF's compute backends with their availability tier (v-next §4.5). Rust and the
+ * Python floor run in-process (runtime-active); the Mojo, Julia, and Go surfaces are
+ * compiled/JIT CLI subprocesses — measured/parity surfaces, build-available but not
+ * the in-process hot path. Mirrors `bench/dispatch.toml`.
+ */
+export const MIF_BACKENDS: readonly Backend[] = [
+  { name: 'rust', status: 'runtime-active' },
+  { name: 'python', status: 'runtime-active' },
+  { name: 'mojo', status: 'build-available' },
+  { name: 'julia', status: 'build-available' },
+  { name: 'go', status: 'build-available' },
+];
+
+/**
  * A representative slice of MIF's emitted claims, one per evidence axis: a fired but
  * reduced-order merge-trigger decision (bounded-model, not rendered as validated), a
  * formally-proven MIF-010 proof that holds, a bit-true cosimulation, and a modelled
@@ -132,12 +177,18 @@ export const MIF_CLAIMS: readonly ClaimSummary[] = [
     status: 'reference-validated',
     admission: 'admitted',
     kind: 'formally-proven',
+    certificate: {
+      checker: 'symbiyosys',
+      theorem: 'mif_trigger_fabric_safety',
+      nonVacuous: true,
+    },
   },
   {
     schema: 'studio.cosim.v1',
     status: 'reference-validated',
     admission: 'admitted',
     kind: 'measured',
+    exactness: 'bit-exact',
   },
   {
     schema: 'studio.benchmark.v1',

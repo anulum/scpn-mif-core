@@ -18,15 +18,20 @@
 
 import type {
   AdmissionDecision,
+  Backend,
+  BackendName,
+  BackendStatus,
   ClaimStatus,
   ClaimSummary,
   EvidenceKind,
+  Exactness,
+  FormalCertificate,
   MifVerb,
   SafetyTier,
   SideEffect,
   TimingClass,
 } from './domain.js';
-import { MIF_CLAIMS, MIF_VERBS } from './domain.js';
+import { MIF_BACKENDS, MIF_CLAIMS, MIF_VERBS } from './domain.js';
 
 /** A verb as it appears on the wire (snake_case, from the Python feed). */
 interface RawVerb {
@@ -38,12 +43,27 @@ interface RawVerb {
   readonly domain_distinctive: boolean;
 }
 
+/** A formal certificate as it appears on the wire. */
+interface RawCertificate {
+  readonly checker: string;
+  readonly theorem: string;
+  readonly non_vacuous: boolean;
+}
+
 /** A claim as it appears on the wire (snake_case, from the Python feed). */
 interface RawClaim {
   readonly schema: string;
   readonly status: ClaimStatus;
   readonly admission: AdmissionDecision;
   readonly kind: EvidenceKind;
+  readonly exactness?: Exactness;
+  readonly certificate?: RawCertificate;
+}
+
+/** A backend record as it appears on the wire. */
+interface RawBackend {
+  readonly name: BackendName;
+  readonly status: BackendStatus;
 }
 
 /** The studio feed document as it appears on the wire. */
@@ -54,6 +74,7 @@ interface RawFeed {
   readonly content_digest: string;
   readonly verbs: readonly RawVerb[];
   readonly claims: readonly RawClaim[];
+  readonly backends?: readonly RawBackend[];
 }
 
 /** The narrowed feed the panel consumes. */
@@ -62,6 +83,7 @@ export interface StudioFeed {
   readonly contentDigest: string;
   readonly verbs: readonly MifVerb[];
   readonly claims: readonly ClaimSummary[];
+  readonly backends: readonly Backend[];
 }
 
 /** The bundled fallback feed — the domain sample, used when the live feed is absent. */
@@ -70,6 +92,7 @@ export const FALLBACK_FEED: StudioFeed = {
   contentDigest: 'fallback',
   verbs: MIF_VERBS,
   claims: MIF_CLAIMS,
+  backends: MIF_BACKENDS,
 };
 
 /** Default location the standalone remote fetches the live feed from. */
@@ -87,16 +110,29 @@ function toVerb(raw: RawVerb): MifVerb {
   return raw.deadline_us === undefined ? base : { ...base, deadlineUs: raw.deadline_us };
 }
 
+function toCertificate(raw: RawCertificate): FormalCertificate {
+  return { checker: raw.checker, theorem: raw.theorem, nonVacuous: raw.non_vacuous };
+}
+
 function toClaim(raw: RawClaim): ClaimSummary {
-  return {
+  const base = {
     schema: raw.schema,
     status: raw.status,
     admission: raw.admission,
     kind: raw.kind,
   };
+  // exactOptionalPropertyTypes: only carry optional evidence detail when present.
+  const withExactness = raw.exactness === undefined ? base : { ...base, exactness: raw.exactness };
+  return raw.certificate === undefined
+    ? withExactness
+    : { ...withExactness, certificate: toCertificate(raw.certificate) };
 }
 
-/** Structural type guard for the wire feed (validates the two collections). */
+function toBackend(raw: RawBackend): Backend {
+  return { name: raw.name, status: raw.status };
+}
+
+/** Structural type guard for the wire feed (validates the two required collections). */
 export function isRawFeed(value: unknown): value is RawFeed {
   if (typeof value !== 'object' || value === null) {
     return false;
@@ -115,6 +151,9 @@ export function narrowFeed(raw: RawFeed): StudioFeed {
     contentDigest: raw.content_digest,
     verbs: raw.verbs.map(toVerb),
     claims: raw.claims.map(toClaim),
+    // backends are optional on the wire; a feed without them falls back to the sample
+    // so an older producer still renders.
+    backends: raw.backends === undefined ? MIF_BACKENDS : raw.backends.map(toBackend),
   };
 }
 

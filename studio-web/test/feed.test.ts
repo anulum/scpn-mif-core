@@ -8,6 +8,7 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { MIF_BACKENDS } from '../src/domain.js';
 import {
   DEFAULT_FEED_URL,
   FALLBACK_FEED,
@@ -40,13 +41,37 @@ const VALID_FEED = {
       domain_distinctive: true,
     },
   ],
+  // Three claims exercise every toClaim branch: certificate-only, exactness-only, and
+  // neither (a bare boundary claim).
   claims: [
     {
       schema: 'studio.formal-proof.v1',
       status: 'reference-validated',
       admission: 'admitted',
       kind: 'formally-proven',
+      certificate: {
+        checker: 'symbiyosys',
+        theorem: 'mif_trigger_fabric_safety',
+        non_vacuous: true,
+      },
     },
+    {
+      schema: 'studio.cosim.v1',
+      status: 'reference-validated',
+      admission: 'admitted',
+      kind: 'measured',
+      exactness: 'bit-exact',
+    },
+    {
+      schema: 'studio.merge-trigger.v1',
+      status: 'bounded-model',
+      admission: 'admitted',
+      kind: 'measured',
+    },
+  ],
+  backends: [
+    { name: 'rust', status: 'runtime-active' },
+    { name: 'mojo', status: 'build-available' },
   ],
 } as const;
 
@@ -64,7 +89,7 @@ describe('narrowFeed', () => {
     expect(feed.studioVersion).toBe('0.1.0');
     expect(feed.contentDigest).toBe('sha256:abc');
     expect(feed.verbs).toHaveLength(2);
-    expect(feed.claims).toHaveLength(1);
+    expect(feed.claims).toHaveLength(3);
   });
 
   it('carries deadlineUs only for a deadline-bearing verb', () => {
@@ -76,14 +101,50 @@ describe('narrowFeed', () => {
     expect(evaluate).not.toHaveProperty('deadlineUs');
   });
 
-  it('preserves the claim boundary fields verbatim', () => {
+  it('preserves the claim boundary fields and narrows the certificate', () => {
     const [claim] = narrowFeed(VALID_FEED).claims;
     expect(claim).toEqual({
       schema: 'studio.formal-proof.v1',
       status: 'reference-validated',
       admission: 'admitted',
       kind: 'formally-proven',
+      certificate: {
+        checker: 'symbiyosys',
+        theorem: 'mif_trigger_fabric_safety',
+        nonVacuous: true,
+      },
     });
+  });
+
+  it('carries exactness only when the claim declares it', () => {
+    const claims = narrowFeed(VALID_FEED).claims;
+    const cosim = claims.find((c) => c.schema === 'studio.cosim.v1');
+    const bare = claims.find((c) => c.schema === 'studio.merge-trigger.v1');
+    expect(cosim?.exactness).toBe('bit-exact');
+    expect(cosim).not.toHaveProperty('certificate');
+    expect(bare?.exactness).toBeUndefined();
+    expect(bare).not.toHaveProperty('exactness');
+    expect(bare).not.toHaveProperty('certificate');
+  });
+
+  it('narrows the wire backends', () => {
+    const feed = narrowFeed(VALID_FEED);
+    expect(feed.backends).toEqual([
+      { name: 'rust', status: 'runtime-active' },
+      { name: 'mojo', status: 'build-available' },
+    ]);
+  });
+
+  it('falls back to the sample backends when the wire omits them', () => {
+    const feed = narrowFeed({
+      feed_schema: 'studio.mif-feed.v1',
+      studio: 'scpn-mif-core',
+      studio_version: '0.1.0',
+      content_digest: 'sha256:abc',
+      verbs: [],
+      claims: [],
+    });
+    expect(feed.backends).toBe(MIF_BACKENDS);
   });
 });
 

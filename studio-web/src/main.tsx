@@ -21,6 +21,6 @@ if (container === null) {
 const feed = await loadStudioFeed();
 createRoot(container).render(
   <StrictMode>
-    <MifStudioPanel verbs={feed.verbs} claims={feed.claims} />
+    <MifStudioPanel verbs={feed.verbs} claims={feed.claims} backends={feed.backends} />
   </StrictMode>,
 );
