@@ -1,3 +1,9 @@
+# Force the patched undici across the transitive tree (the vite/Module-Federation
+# tooling pulls it): <7.28.0 carries high-severity TLS-bypass, WebSocket-DoS, and
+# cross-origin advisories. pnpm 11 reads overrides here, not in package.json.
+overrides:
+  undici: '>=7.28.0'
+
 minimumReleaseAgeExclude:
   - '@module-federation/vite@1.16.10'
   - '@typescript-eslint/eslint-plugin@8.62.0'
