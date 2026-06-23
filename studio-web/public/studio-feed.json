@@ -1,0 +1,62 @@
+{
+  "claims": [
+    {
+      "admission": "admitted",
+      "kind": "measured",
+      "schema": "studio.merge-trigger.v1",
+      "status": "bounded-model"
+    },
+    {
+      "admission": "admitted",
+      "kind": "formally-proven",
+      "schema": "studio.formal-proof.v1",
+      "status": "reference-validated"
+    },
+    {
+      "admission": "admitted",
+      "kind": "measured",
+      "schema": "studio.cosim.v1",
+      "status": "reference-validated"
+    },
+    {
+      "admission": "admitted",
+      "kind": "measured",
+      "schema": "studio.benchmark.v1",
+      "status": "bounded-model"
+    }
+  ],
+  "content_digest": "fallback",
+  "feed_schema": "studio.mif-feed.v1",
+  "studio": "scpn-mif-core",
+  "studio_version": "0.1.0",
+  "verbs": [
+    {
+      "domain_distinctive": true,
+      "name": "evaluate",
+      "safety_tier": "research",
+      "side_effect": "simulated",
+      "timing_class": "batch"
+    },
+    {
+      "domain_distinctive": true,
+      "name": "prove",
+      "safety_tier": "research",
+      "side_effect": "read-only",
+      "timing_class": "batch"
+    },
+    {
+      "domain_distinctive": true,
+      "name": "cosimulate",
+      "safety_tier": "research",
+      "side_effect": "simulated",
+      "timing_class": "batch"
+    },
+    {
+      "domain_distinctive": false,
+      "name": "benchmark",
+      "safety_tier": "research",
+      "side_effect": "read-only",
+      "timing_class": "batch"
+    }
+  ]
+}
