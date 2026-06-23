@@ -6,16 +6,15 @@
 # Contact: www.anulum.li | protoscience@anulum.li
 """Feature-boundary guard for the roadmap grey-box merge-window predictor (M2).
 
-The predictor itself is roadmap, gated on a verified data surrogate (see
-[ADR 0010](../../../docs/adr/0010-merge-window-predictor-feature-boundary.md)). This
-module is the *delivered precondition* both adversarial critics demanded before any
-predictor is built: an enumerated lock-window feature contract and a validator that
-**fails closed** when anything outside that boundary is offered.
+The predictor itself is roadmap, gated on a verified data surrogate (see ADR 0010,
+``docs/adr/0010-merge-window-predictor-feature-boundary.md``). This module is the
+*delivered precondition* both adversarial critics demanded before any predictor is
+built: an enumerated lock-window feature contract and a validator that **fails
+closed** when anything outside that boundary is offered.
 
 The boundary is the whole point. A timing predictor that could read FRC equilibrium
 fields, flux, temperature, density, or any other FUSION physics internal would creep
-straight across the ownership boundary ([ADR 0001](../../../docs/adr/0001-repository-scope-and-ownership-boundaries.md))
-and could not be reviewed. The admissible inputs are exactly the lock-window
+straight across the ownership boundary (ADR 0001) and could not be reviewed. The admissible inputs are exactly the lock-window
 observables MIF already owns — the merge-window alignment/separation errors and the
 Doppler-Kuramoto phase-coherence state — and nothing else. Offering an out-of-boundary
 key raises, so an over-reaching predictor cannot even be constructed.
