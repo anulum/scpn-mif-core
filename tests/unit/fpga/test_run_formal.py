@@ -35,9 +35,10 @@ def test_discover_tasks_finds_both_suites() -> None:
 
     suites = {task.suite for task in tasks}
     names = {task.name for task in tasks}
-    assert {"safety", "liveness"} <= suites
+    assert {"safety", "liveness", "timing"} <= suites
     assert "mif_trigger_fabric_safety" in names
     assert "mif_trigger_fabric_liveness" in names
+    assert "mif_trigger_fabric_timing" in names
     assert all(task.sby_path.is_file() for task in tasks)
 
 
@@ -49,7 +50,7 @@ def test_discover_tasks_single_suite() -> None:
 
 def test_discover_unknown_suite_raises() -> None:
     with pytest.raises(ValueError, match="unknown formal suite"):
-        discover_tasks("timing")
+        discover_tasks("nonexistent_suite")
 
 
 def test_discover_skips_absent_suite_dir(tmp_path: Path) -> None:
