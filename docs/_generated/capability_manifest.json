@@ -32,6 +32,7 @@
       "docs/api/kinematic/merge_window.md",
       "docs/api/kinematic/merge_window_features.md",
       "docs/api/kinematic/moving_frame_upde.md",
+      "docs/api/kinematic/safety_certificate.md",
       "docs/api/lifecycle/capacitor_bank.md",
       "docs/api/lifecycle/plasmoid_merger_petri_net.md",
       "docs/api/lifecycle/pulsed_shot_fsm.md",
@@ -39,6 +40,7 @@
       "docs/api/physics/faraday_recovery.md",
       "docs/api/physics/fusion_frc_contract.md",
       "docs/api/studio_manifest.md",
+      "docs/api/studio_vertical.md",
       "docs/architecture/index.md",
       "docs/assets/README.md",
       "docs/generated/compatibility_matrix.md",
@@ -459,7 +461,7 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 45,
+    "capability_documentation_pages": 47,
     "github_workflows": 16,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
@@ -467,11 +469,11 @@
     "lean_proof_modules": 8,
     "optional_extras": 7,
     "public_api_exports": 167,
-    "public_documentation_pages": 45,
+    "public_documentation_pages": 47,
     "python_capability_classes": 78,
     "python_capability_source_modules": 20,
     "rust_workspace_crates": 10,
-    "test_files": 82
+    "test_files": 83
   },
   "documentation": {
     "public_pages": [
@@ -505,6 +507,7 @@
       "docs/api/kinematic/merge_window.md",
       "docs/api/kinematic/merge_window_features.md",
       "docs/api/kinematic/moving_frame_upde.md",
+      "docs/api/kinematic/safety_certificate.md",
       "docs/api/lifecycle/capacitor_bank.md",
       "docs/api/lifecycle/plasmoid_merger_petri_net.md",
       "docs/api/lifecycle/pulsed_shot_fsm.md",
@@ -512,6 +515,7 @@
       "docs/api/physics/faraday_recovery.md",
       "docs/api/physics/fusion_frc_contract.md",
       "docs/api/studio_manifest.md",
+      "docs/api/studio_vertical.md",
       "docs/architecture/index.md",
       "docs/assets/README.md",
       "docs/generated/compatibility_matrix.md",
@@ -796,6 +800,7 @@
       "tests/unit/interop/test_trigger_io.py",
       "tests/unit/kinematic/__init__.py",
       "tests/unit/kinematic/test_doppler_kuramoto.py",
+      "tests/unit/kinematic/test_doppler_kuramoto_mojo_parity.py",
       "tests/unit/kinematic/test_doppler_kuramoto_rust_parity.py",
       "tests/unit/kinematic/test_merge_window.py",
       "tests/unit/kinematic/test_merge_window_features.py",

@@ -55,13 +55,17 @@ test.
   the production fastest-path choice is reproducible and defensible rather than
   asserted. Keeping the backends *with their benchmarks* is the property that lets
   the data — not an assumption about any one language — decide what runs.
-- Delivered versus planned backends: as of this record, the Rust, Julia, and Go
-  backends are the ones actually present per kernel (see `bench/dispatch.toml`),
-  with Python as the floor. **No kernel currently ships a Mojo path** — Mojo is
-  kept in the preference ordering as the SIMD-breadth option and the toolchain is
-  provisioned via `pixi`, but it is a *planned* backend tracked in the canonical
-  TODO, not a delivered one. The ordering names where a Mojo kernel would slot in;
-  it does not claim Mojo is present.
+- Delivered versus planned backends: the Rust, Julia, and Go backends are present
+  per kernel (see `bench/dispatch.toml`), with Python as the floor. **The MIF-001
+  Doppler-Kuramoto derivative now also ships a Mojo path** (`mojo/doppler_kuramoto.mojo`,
+  compiled with `mojo build -Xlinker -lm`): a subprocess CLI surface with
+  tolerance-aware parity (~1 ULP — the transcendental `sin` and the decimal
+  round-trip each cost up to one ULP; bit-exact on transcendental-free inputs),
+  parity-tested in `tests/unit/kinematic/test_doppler_kuramoto_mojo_parity.py` and
+  benchmarked in the `doppler_kuramoto.derivative_3` group. Its per-call process
+  spawn keeps it behind the in-process backends in the ordering but ahead of the
+  Julia CLI; like Julia it is a measured/parity surface, not the runtime hot path.
+  Other kernels keep Mojo as a *planned* slot tracked in the canonical TODO.
 
 ## Alternatives considered
 

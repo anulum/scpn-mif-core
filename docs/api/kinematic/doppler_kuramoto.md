@@ -49,15 +49,21 @@ committed 1 ppm acceptance bound at `dt = 1 us`.
 
 Use `scpn_mif_core.kinematic.dispatched_doppler_kuramoto(...)` when a
 caller wants the fastest available measured backend. The dispatch table
-currently prefers Rust, with Python and Julia retained as parity and
+prefers Rust, with Python, Mojo, and Julia retained as parity and
 reference surfaces:
 
 ```toml
-"kinematic.doppler_kuramoto" = ["rust", "python", "julia"]
+"kinematic.doppler_kuramoto" = ["rust", "python", "mojo", "julia"]
 ```
 
 The pure Python `DopplerKuramoto` class remains importable directly for
-deterministic debugging and tests.
+deterministic debugging and tests. The derivative kernel also ships a Mojo
+surface (`mojo/doppler_kuramoto.mojo`, compiled with `mojo build -Xlinker
+-lm`) — a subprocess CLI with tolerance-aware parity (~1 ULP; bit-exact on
+transcendental-free inputs), parity-tested and benchmarked in the
+`doppler_kuramoto.derivative_3` group. Its per-call process spawn places it
+behind the in-process backends but ahead of the Julia CLI; like Julia it is
+a measured/parity surface, not the runtime hot path.
 
 ## Acceptance
 

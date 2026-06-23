@@ -228,3 +228,64 @@ def test_bench_julia_cli_affine_trace_1000(benchmark) -> None:
 
     benchmark.group = "doppler_kuramoto.affine_trace_1000"
     benchmark.pedantic(call, rounds=3, iterations=1)
+
+
+# --- Mojo compiled-CLI derivative surface (parity-tested in tests/unit/kinematic) ---
+
+MOJO_BIN = shutil.which("mojo") or "/home/anulum/.pixi/bin/mojo"
+MOJO_SOURCE = REPO_ROOT / "mojo" / "doppler_kuramoto.mojo"
+
+
+def _mojo_available() -> bool:
+    return (shutil.which(MOJO_BIN) is not None or Path(MOJO_BIN).is_file()) and MOJO_SOURCE.is_file()
+
+
+def _write_mojo_problem(path: Path, spec: DopplerKuramotoSpec) -> None:
+    import numpy as np
+
+    n = spec.n_oscillators
+    coupling = np.asarray(spec.coupling_rad_s, dtype=np.float64).reshape(n, n)
+    omega = np.asarray(spec.omega_at(0.0), dtype=np.float64)
+    rows = [
+        str(n),
+        f"{spec.phase_lag_rad!r} {spec.doppler_strength_rad_s!r} "
+        f"{spec.velocity_epsilon_m_s!r} {spec.distance_scale_m!r}",
+        " ".join(repr(float(x)) for x in omega),
+        " ".join(repr(float(x)) for x in PHASES),
+        " ".join(repr(float(x)) for x in POSITIONS),
+        " ".join(repr(float(x)) for x in VELOCITIES),
+        " ".join(repr(float(x)) for x in coupling.reshape(-1)),
+    ]
+    path.write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+
+def test_bench_python_derivative_3(benchmark, py_spec: DopplerKuramotoSpec) -> None:
+    benchmark.group = "doppler_kuramoto.derivative_3"
+    benchmark.pedantic(
+        lambda: py_doppler_derivatives(py_spec, PHASES, POSITIONS, VELOCITIES),
+        rounds=50,
+        iterations=100,
+    )
+
+
+def test_bench_mojo_cli_derivative_3(benchmark, py_spec: DopplerKuramotoSpec, tmp_path: Path) -> None:
+    if not _mojo_available():
+        pytest.skip("Mojo toolchain not available")
+    binary = tmp_path / "doppler_kuramoto"
+    build = subprocess.run(
+        [MOJO_BIN, "build", str(MOJO_SOURCE), "-o", str(binary), "-Xlinker", "-lm"],
+        capture_output=True,
+        text=True,
+        timeout=300,
+        check=False,
+    )
+    if build.returncode != 0 or not binary.is_file():
+        pytest.skip(f"Mojo build unavailable: {build.stderr[-200:]}")
+    problem = tmp_path / "problem.txt"
+    _write_mojo_problem(problem, py_spec)
+
+    def call() -> None:
+        subprocess.run([str(binary), str(problem)], check=True, capture_output=True, text=True)
+
+    benchmark.group = "doppler_kuramoto.derivative_3"
+    benchmark.pedantic(call, rounds=3, iterations=1)

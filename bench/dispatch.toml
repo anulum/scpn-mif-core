@@ -21,8 +21,11 @@ benchmark_host = "i5-11600K (mining rig)"
 # point at the Python reference until each kernel is benchmarked.
 # MIF-001 Doppler-Kuramoto: Rust is fastest for the 3-oscillator
 # derivative, 120-step RK4 trace, and affine omega(t) trace on the local
-# i5-11600K rig (see bench/results/doppler_kuramoto.json).
-"kinematic.doppler_kuramoto" = ["rust", "python", "julia"]
+# i5-11600K rig (see bench/results/doppler_kuramoto.json). The compiled Mojo
+# derivative is a subprocess CLI surface (tolerance-aware parity, ~1 ULP): its
+# per-call process spawn places it behind the in-process backends but ahead of
+# the Julia CLI; it is a measured/parity surface, not the runtime hot path.
+"kinematic.doppler_kuramoto" = ["rust", "python", "mojo", "julia"]
 "kinematic.sampled_safety_certificate" = ["rust", "python", "julia"]    # MIF-011
 # MIF-002 moving-frame UPDE: Rust is fastest for the 2-body combined
 # derivative, 120-step RK45 trace, and affine omega(t) moving-frame trace
