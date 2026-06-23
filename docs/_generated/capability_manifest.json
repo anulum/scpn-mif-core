@@ -42,6 +42,7 @@
       "docs/api/studio_manifest.md",
       "docs/api/studio_vertical.md",
       "docs/architecture/index.md",
+      "docs/architecture/system_map.md",
       "docs/assets/README.md",
       "docs/generated/compatibility_matrix.md",
       "docs/guides/getting_started.md",
@@ -461,7 +462,7 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 47,
+    "capability_documentation_pages": 48,
     "github_workflows": 16,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
@@ -469,7 +470,7 @@
     "lean_proof_modules": 8,
     "optional_extras": 7,
     "public_api_exports": 167,
-    "public_documentation_pages": 47,
+    "public_documentation_pages": 48,
     "python_capability_classes": 78,
     "python_capability_source_modules": 20,
     "rust_workspace_crates": 10,
@@ -517,6 +518,7 @@
       "docs/api/studio_manifest.md",
       "docs/api/studio_vertical.md",
       "docs/architecture/index.md",
+      "docs/architecture/system_map.md",
       "docs/assets/README.md",
       "docs/generated/compatibility_matrix.md",
       "docs/guides/getting_started.md",
