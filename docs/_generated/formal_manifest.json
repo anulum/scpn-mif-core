@@ -2,7 +2,7 @@
   "SPDX-License-Identifier": "AGPL-3.0-or-later",
   "schema_version": "1.0.0",
   "verifier": "tools/run_formal.py --suite all",
-  "task_count": 7,
+  "task_count": 8,
   "tasks": [
     {
       "suite": "safety",
@@ -173,6 +173,38 @@
         {
           "path": "hdl/formal/mif_trigger_fabric_formal.sv",
           "sha256": "8731c15cc121397f24a8a191454667342ffdaf250bd51334ff03bc1df59adb90"
+        },
+        {
+          "path": "hdl/src/triggers/mif_trigger_fabric.sv",
+          "sha256": "03c09f3a60b84af3eb993143943bef332af3d34cb9763a685318acae50d9811d"
+        }
+      ]
+    },
+    {
+      "suite": "timing",
+      "name": "mif_trigger_fabric_timing",
+      "sby": "hdl/formal/timing/mif_trigger_fabric_timing.sby",
+      "mode": "prove",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/timing/mif_trigger_fabric_timing.sby",
+          "sha256": "9368849a0eab505415f93553346b89eebf0351f0af462e03232d822f833ba125"
+        },
+        {
+          "path": "hdl/formal/timing/mif_trigger_fabric_timing.sv",
+          "sha256": "3208cad33c2250e6b939326ea89883a94aa9dcc82d479593217a75fb721158b1"
+        },
+        {
+          "path": "hdl/formal/timing/timing_assertions.svh",
+          "sha256": "d0a0a1f941364e523d58af4b5a4d272634d7f317264a5f2a30f9d53967c8246b"
+        },
+        {
+          "path": "hdl/formal/timing/timing_wrapper_lib.sv",
+          "sha256": "8434b442e7866a39fb9179a7dd093d78fd798e18efe59547afd4bf28e09381b2"
         },
         {
           "path": "hdl/src/triggers/mif_trigger_fabric.sv",

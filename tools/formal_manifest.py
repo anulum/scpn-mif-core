@@ -38,7 +38,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FORMAL_ROOT = REPO_ROOT / "hdl" / "formal"
 MANIFEST_PATH = REPO_ROOT / "docs" / "_generated" / "formal_manifest.json"
-SUITES = ("safety", "liveness")
+SUITES = ("safety", "liveness", "timing")
 SCHEMA_VERSION = "1.0.0"
 
 

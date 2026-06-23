@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SCPN-MIF-CORE — MIF-010 timing tier: bounded lock-to-resolution latency for the
+# MIF-008 trigger fabric via the vendored NEU-C.2 sc_latency_monitor. Proves the
+# CYCLE bound only; the <= 50 ns wall-clock figure is a post-route STA fact (MIF-013).
+
+[options]
+mode prove
+depth 20
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv -formal mif_trigger_fabric.sv
+read_verilog -sv -formal timing_wrapper_lib.sv
+read_verilog -sv -formal mif_trigger_fabric_timing.sv
+prep -top mif_trigger_fabric_timing
+
+[files]
+../../src/triggers/mif_trigger_fabric.sv
+timing_wrapper_lib.sv
+mif_trigger_fabric_timing.sv
+timing_assertions.svh

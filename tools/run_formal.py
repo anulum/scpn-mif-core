@@ -30,7 +30,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FORMAL_ROOT = REPO_ROOT / "hdl" / "formal"
 BUILD_ROOT = FORMAL_ROOT / "build"
-SUITES = ("safety", "liveness")
+SUITES = ("safety", "liveness", "timing")
 
 
 class FormalStatus(StrEnum):

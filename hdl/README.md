@@ -11,9 +11,20 @@
 SystemVerilog (IEEE 1800-2017) sources for SCPN-MIF-CORE. The current tree holds
 the MIF-007 sensor quantiser, the MIF-008 trigger fabric and its registerless
 fast-veto lane, their Verilator testbenches, and the MIF-010 SymbiYosys property
-suites. The Vivado batch flow,
+suites (safety, liveness, and timing). The Vivado batch flow,
 the UltraScale+ targets, and the synthesis/timing reports remain roadmap items;
 the layout below marks each entry as present or planned.
+
+**What the open flow proves, and what it does not.** The `timing` suite proves, by
+k-induction, that the trigger fabric resolves a qualified lock — fires, the lock
+breaks, or the one-shot had already fired — within `LOCK_HOLD_CYCLES + 1` *clock
+cycles* (via the vendored NEU-C.2 `sc_latency_monitor`); the safety suite separately
+proves the same cycle bound, veto dominance, the single-shot bound, and the debounce
+no-underflow invariant. These are **cycle-accurate** results. The headline **≤ 50 ns
+wall-clock** figure is a *post-route static-timing-analysis fact on a target part*
+(MIF-013, hardware-gated) — translating the proven cycle bound into nanoseconds needs
+the clock period and routed delays from a real synthesis run, which the open flow
+cannot supply. The open flow bounds cycles; silicon bounds nanoseconds.
 
 ## Layout
 
@@ -33,7 +44,7 @@ hdl/
 │   ├── mif_fast_veto_gate_formal.sv  fast-veto-lane property harness       [present]
 │   ├── mif_aer_cdc_synchroniser_formal.sv  AER CDC property harness        [present]
 │   ├── mif_adc_to_spike_quantiser_formal.sv  AER back-pressure harness     [present]
-│   ├── timing/               vendored NEU-C.2 timing/CDC framework (sc-neurocore) [present]
+│   ├── timing/               vendored NEU-C.2 framework + bounded-cycle-latency proof [present]
 │   ├── safety/               k-induction safety + CDC + back-pressure proofs [present]
 │   ├── liveness/             bounded-cover liveness witnesses              [present]
 ├── targets/                                                                [roadmap]
