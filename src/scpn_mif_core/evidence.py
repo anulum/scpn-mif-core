@@ -70,8 +70,10 @@ __all__ = [
     "PROOF_MODES",
     "RO_CRATE_PROFILE",
     "STUDIO",
+    "benchmark_evidence",
     "build_evidence_bundle",
     "content_digest",
+    "cosim_evidence",
     "formal_proof_evidence",
     "merge_trigger_evidence",
     "validate_studio_bundle",
@@ -297,6 +299,113 @@ def formal_proof_evidence(
         scpn_evidence_level="2",
         claim_boundary=claim_boundary,
         formal_certificate=certificate,
+        hmac_key=hmac_key,
+    )
+
+
+def cosim_evidence(
+    *,
+    harness: str,
+    bit_true: bool,
+    mismatch_count: int,
+    started: str,
+    ended: str,
+    host: str,
+    studio_version: str,
+    regenerated_by: str = "make cosim",
+    operator: str = "opaque-id:local",
+    hmac_key: bytes | None = None,
+) -> JsonDict:
+    """Emit a bit-true cosimulation result as a ``studio.cosim.v1`` bundle.
+
+    A cosimulation checks the Python golden reference against the Verilator RTL for
+    exact (``bit-exact``) equality, so the parity tolerance is zero. A bit-true run
+    is reference-validated and admitted; any mismatch is a validation gap and
+    rejected, with the mismatch count recorded as the parity error.
+    """
+    result = {"harness": harness, "bit_true": bit_true, "mismatch_count": mismatch_count}
+    claim_boundary = {
+        "status": "reference-validated" if bit_true else "validation-gap",
+        "admission": "admitted" if bit_true else "rejected",
+        "certificate": None,
+    }
+    numeric_provenance = {
+        "exactness": "bit-exact",
+        "active_backend": "verilator-rtl",
+        "reference_backend": "python-golden",
+        "parity": [
+            {
+                "reference": "python-golden",
+                "tolerance": 0,
+                "max_error": 0 if bit_true else mismatch_count,
+                "passed": bit_true,
+            }
+        ],
+        "drift_gate": "exactness-aware",
+    }
+    return build_evidence_bundle(
+        schema="studio.cosim.v1",
+        verb="cosimulate",
+        result=result,
+        started=started,
+        ended=ended,
+        regenerated_by=regenerated_by,
+        host=host,
+        studio_version=studio_version,
+        operator=operator,
+        evidence_kind="measured",
+        scpn_evidence_level="2",
+        claim_boundary=claim_boundary,
+        numeric_provenance=numeric_provenance,
+        hmac_key=hmac_key,
+    )
+
+
+def benchmark_evidence(
+    *,
+    name: str,
+    metrics: Mapping[str, Any],
+    active_backend: str,
+    regenerated_by: str,
+    host: str,
+    started: str,
+    ended: str,
+    studio_version: str,
+    exactness: str = "tolerance-aware",
+    status: str = "reference-validated",
+    operator: str = "opaque-id:local",
+    hmac_key: bytes | None = None,
+) -> JsonDict:
+    """Emit a benchmark artifact as a ``studio.benchmark.v1`` bundle.
+
+    The recompute provenance is the point: ``regenerated_by`` (the command) and
+    ``host`` make the number reproducible, not merely attested. ``status`` lets the
+    caller declare the honest claim boundary — e.g. ``bounded-support`` for a budget
+    whose tiers are modelled rather than measured — defaulting to a fully measured,
+    recomputable ``reference-validated`` number.
+    """
+    result = {"name": name, "metrics": dict(metrics)}
+    claim_boundary = {"status": status, "admission": "admitted", "certificate": None}
+    numeric_provenance = {
+        "exactness": exactness,
+        "active_backend": active_backend,
+        "reference_backend": "python",
+        "drift_gate": "exactness-aware",
+    }
+    return build_evidence_bundle(
+        schema="studio.benchmark.v1",
+        verb="benchmark",
+        result=result,
+        started=started,
+        ended=ended,
+        regenerated_by=regenerated_by,
+        host=host,
+        studio_version=studio_version,
+        operator=operator,
+        evidence_kind="measured",
+        scpn_evidence_level="2",
+        claim_boundary=claim_boundary,
+        numeric_provenance=numeric_provenance,
         hmac_key=hmac_key,
     )
 

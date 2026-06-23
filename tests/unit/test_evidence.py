@@ -25,8 +25,10 @@ from scpn_mif_core import (
 from scpn_mif_core._dispatch import is_rust_available
 from scpn_mif_core.evidence import (
     RO_CRATE_PROFILE,
+    benchmark_evidence,
     build_evidence_bundle,
     content_digest,
+    cosim_evidence,
     formal_proof_evidence,
     merge_trigger_evidence,
     validate_studio_bundle,
@@ -311,3 +313,84 @@ def test_formal_proof_evidence_rejects_sby_absent_from_depends_on() -> None:
             studio_version="0.1.0",
             checker_version="0.45",
         )
+
+
+# --- cosim_evidence -----------------------------------------------------------
+
+
+def test_cosim_evidence_bit_true_is_admitted_and_bit_exact() -> None:
+    bundle = cosim_evidence(
+        harness="mif008_trigger_fabric",
+        bit_true=True,
+        mismatch_count=0,
+        started="t0",
+        ended="t1",
+        host="ci",
+        studio_version="0.1.0",
+    )
+    assert bundle["schema"] == "studio.cosim.v1"
+    assert bundle["prov"]["activity"]["verb"] == "cosimulate"
+    assert bundle["numeric_provenance"]["exactness"] == "bit-exact"
+    assert bundle["numeric_provenance"]["parity"][0]["tolerance"] == 0
+    assert bundle["numeric_provenance"]["parity"][0]["passed"] is True
+    assert bundle["claim_boundary"]["status"] == "reference-validated"
+    assert bundle["claim_boundary"]["admission"] == "admitted"
+    validate_studio_bundle(bundle)
+
+
+def test_cosim_evidence_mismatch_is_validation_gap() -> None:
+    bundle = cosim_evidence(
+        harness="mif008_trigger_fabric",
+        bit_true=False,
+        mismatch_count=3,
+        started="t0",
+        ended="t1",
+        host="ci",
+        studio_version="0.1.0",
+    )
+    assert bundle["claim_boundary"]["status"] == "validation-gap"
+    assert bundle["claim_boundary"]["admission"] == "rejected"
+    assert bundle["numeric_provenance"]["parity"][0]["max_error"] == 3
+    assert bundle["numeric_provenance"]["parity"][0]["passed"] is False
+    validate_studio_bundle(bundle)
+
+
+# --- benchmark_evidence -------------------------------------------------------
+
+
+def test_benchmark_evidence_carries_recompute_provenance() -> None:
+    bundle = benchmark_evidence(
+        name="trigger_latency_budget",
+        metrics={"hot_path_ns": 56},
+        active_backend="rust",
+        regenerated_by="python -m tools.trigger_latency_budget",
+        host="i5-11600K",
+        started="t0",
+        ended="t1",
+        studio_version="0.1.0",
+    )
+    assert bundle["schema"] == "studio.benchmark.v1"
+    assert bundle["prov"]["activity"]["verb"] == "benchmark"
+    assert bundle["prov"]["activity"]["regenerated_by"] == "python -m tools.trigger_latency_budget"
+    assert bundle["prov"]["activity"]["host"] == "i5-11600K"
+    assert bundle["numeric_provenance"]["active_backend"] == "rust"
+    assert bundle["result"]["metrics"]["hot_path_ns"] == 56
+    validate_studio_bundle(bundle)
+
+
+def test_benchmark_evidence_honest_bounded_status_is_respected() -> None:
+    bundle = benchmark_evidence(
+        name="trigger_latency_budget",
+        metrics={"hot_path_ns": 56, "modelled_tiers_ns": 48},
+        active_backend="rust",
+        regenerated_by="python -m tools.trigger_latency_budget",
+        host="i5-11600K",
+        started="t0",
+        ended="t1",
+        studio_version="0.1.0",
+        status="bounded-support",
+        exactness="bit-exact",
+    )
+    assert bundle["claim_boundary"]["status"] == "bounded-support"
+    assert bundle["numeric_provenance"]["exactness"] == "bit-exact"
+    validate_studio_bundle(bundle)

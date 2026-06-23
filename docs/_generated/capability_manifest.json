@@ -36,6 +36,7 @@
       "docs/api/merge_trigger.md",
       "docs/api/physics/faraday_recovery.md",
       "docs/api/physics/fusion_frc_contract.md",
+      "docs/api/studio_manifest.md",
       "docs/architecture/index.md",
       "docs/assets/README.md",
       "docs/generated/compatibility_matrix.md",
@@ -447,7 +448,7 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 42,
+    "capability_documentation_pages": 43,
     "github_workflows": 16,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
@@ -455,11 +456,11 @@
     "lean_proof_modules": 8,
     "optional_extras": 6,
     "public_api_exports": 161,
-    "public_documentation_pages": 42,
+    "public_documentation_pages": 43,
     "python_capability_classes": 76,
     "python_capability_source_modules": 19,
     "rust_workspace_crates": 10,
-    "test_files": 78
+    "test_files": 79
   },
   "documentation": {
     "public_pages": [
@@ -497,6 +498,7 @@
       "docs/api/merge_trigger.md",
       "docs/api/physics/faraday_recovery.md",
       "docs/api/physics/fusion_frc_contract.md",
+      "docs/api/studio_manifest.md",
       "docs/architecture/index.md",
       "docs/assets/README.md",
       "docs/generated/compatibility_matrix.md",
@@ -807,6 +809,7 @@
       "tests/unit/test_makefile_roadmap_targets.py",
       "tests/unit/test_merge_trigger.py",
       "tests/unit/test_public_api_facade.py",
+      "tests/unit/test_studio_manifest.py",
       "tests/unit/test_update_dispatch.py",
       "tests/unit/test_verify_version_floors.py",
       "tests/unit/test_version.py"
