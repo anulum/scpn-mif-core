@@ -144,6 +144,17 @@ yet built; **HW-gated** = blocked on Vivado licence / FPGA SKU / a sibling seam.
 | MIF-003+ | Merge-window feature boundary | candidate feature mapping | fail-closed validation / boundary-safe `MergeWindowFeatureVector` | enumerated lock-window feature contract for the roadmap M2 predictor ([ADR 0010](../adr/0010-merge-window-predictor-feature-boundary.md)) | Python | SW (guard); predictor roadmap |
 | MIF-011 | Kinematic safety certificate | sampled axial separation / 2-D positions, safety spec (ε, contraction, disturbance) | trace certificate (passed, first-violation index, margins) | sampled envelope from the Lean MIF-011 theorem (contraction + bounded disturbance) | Rust · Python · Julia + **Lean proof** | SW + PROOF |
 
+**Validation status (read before citing).** The **merge-window monitor and the
+merge/no-merge classification are anchored to a published FRC-merge study** (Belova,
+arXiv:2501.03425): the real `MergeWindowMonitor` tracks the ballistic closure and the
+reconnection acceleration is explicitly delegated to SCPN-FUSION-CORE
+(`tests/physics_parity/test_belova_merge_parity.py`). The **Doppler-Kuramoto phase
+coupling (MIF-001) and the UPDE integrator dynamics (MIF-002) are control-lane models**,
+checked for numerical self-consistency across backends (RK4 ↔ RK45) but **not** fitted
+to measured FRC phase data. MIF-011's envelope is mechanically proven in Lean. Cite the
+merge kinematics as literature-anchored; cite the phase coupling as a model, not
+validated physics.
+
 ### Lane L — Pulsed-shot lifecycle (`scpn_mif_core.lifecycle`)
 
 | ID | Component | Inputs | Outputs | Processing model | Backends | Status |

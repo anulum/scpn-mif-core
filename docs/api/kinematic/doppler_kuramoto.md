@@ -6,6 +6,18 @@ Kuramoto carrier for counter-propagating FRC plasmoid merging. The
 Python reference, Rust kernel, PyO3 bridge, and Julia counterpart all use
 the same RK4 phase integration and linear axial-position update.
 
+!!! note "Validation status — read before citing"
+    This is a **control-lane kinematic model, not an experiment-validated coupling.**
+    The Doppler-corrected coupling term is a defensible kinematic correction; it is
+    checked for *numerical* self-consistency across backends (RK4 ↔ RK45, bit-exact /
+    ~1 ULP parity) but is **not** fitted or confirmed against measured FRC-merge phase
+    data. What *is* anchored to a published FRC-merge study (Belova, arXiv:2501.03425)
+    is the downstream **merge-window monitor** and the merge/no-merge classification —
+    see `tools/belova_merge_parity.py` and `tests/physics_parity/test_belova_merge_parity.py`,
+    where the real `MergeWindowMonitor` tracks the ballistic closure and the
+    reconnection acceleration is explicitly delegated to SCPN-FUSION-CORE. Do not cite
+    the phase-coupling dynamics as validated physics.
+
 ## Carrier
 
 For oscillator `i`, phase `theta_i`, chamber-axis position `z_i`, and
