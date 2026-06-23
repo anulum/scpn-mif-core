@@ -30,12 +30,11 @@ jobs:
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6
         with:
           python-version: "3.12"
-      - name: Install audit tooling
+      - name: Install the project (the dependency set to audit)
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
-          python -m pip install --no-deps pip-audit
-      - name: Capture requirements and run pip-audit
+      - name: Capture the project requirements
         run: |
           mkdir -p artifacts
           python -m pip freeze --all > artifacts/pip-freeze.txt
@@ -54,6 +53,13 @@ jobs:
           dst.write_text('\n'.join(lines) + '\n', encoding='utf-8')
           print(f'Wrote {len(lines)} requirements for pip-audit')
           PY
+      - name: Install pip-audit and audit the requirements
+        run: |
+          # pip-audit audits a requirements file, so its own runtime dependencies
+          # must be present (the previous --no-deps form left it unable to import
+          # requests and crashed). They do not pollute the audited set because the
+          # requirements were captured in the step above, before this install.
+          python -m pip install pip-audit
           pip-audit -r artifacts/pip-audit-requirements.txt --desc --format json --output artifacts/pip-audit.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7
         if: always()
