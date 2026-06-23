@@ -37,6 +37,12 @@ jobs:
         env:
           RUSTUP_TOOLCHAIN: "1.85.0"
         run: pip install ./scpn-mif-rs/crates/mif-ffi
+      - name: Install studio platform SDK
+        # The studio vertical (scpn_mif_core.studio) consumes the published
+        # scpn-studio-platform SDK; install it on this gate job so mypy and the 100%
+        # coverage gate see it and tests/unit/studio/ executes (it importorskips
+        # where the SDK is absent) and the studio modules are covered.
+        run: pip install 'scpn-studio-platform>=0.2,<0.3'
       - name: ruff check
         run: ruff check src/ tests/ bench/ tools/
       - name: ruff format

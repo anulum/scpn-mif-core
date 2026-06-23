@@ -15,8 +15,8 @@
 | Lean 4 proof modules | 8 |
 | Synthesisable HDL RTL modules | 4 |
 | Capability documentation pages | 43 |
-| Optional extras | 6 |
-| Python test files | 79 |
+| Optional extras | 7 |
+| Python test files | 81 |
 | Public documentation pages | 43 |
 | GitHub Actions workflows | 16 |
 

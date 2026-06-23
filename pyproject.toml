@@ -106,6 +106,13 @@ demo = [
 accelerated = [
     "scpn-mif-core-rs>=0.1.0",
 ]
+# `studio` pulls the domain-neutral SCPN STUDIO platform SDK that the
+# `scpn_mif_core.studio` vertical consumes (it never forks it). The core install
+# stays lean and dependency-free; the studio surface is opt-in. Local dev can use
+# PYTHONPATH=../SCPN-STUDIO-PLATFORM/src instead of installing.
+studio = [
+    "scpn-studio-platform>=0.2,<0.3",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
