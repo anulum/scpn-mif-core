@@ -56,16 +56,20 @@ test.
   asserted. Keeping the backends *with their benchmarks* is the property that lets
   the data — not an assumption about any one language — decide what runs.
 - Delivered versus planned backends: the Rust, Julia, and Go backends are present
-  per kernel (see `bench/dispatch.toml`), with Python as the floor. **The MIF-001
-  Doppler-Kuramoto derivative now also ships a Mojo path** (`mojo/doppler_kuramoto.mojo`,
-  compiled with `mojo build -Xlinker -lm`): a subprocess CLI surface with
-  tolerance-aware parity (~1 ULP — the transcendental `sin` and the decimal
-  round-trip each cost up to one ULP; bit-exact on transcendental-free inputs),
-  parity-tested in `tests/unit/kinematic/test_doppler_kuramoto_mojo_parity.py` and
-  benchmarked in the `doppler_kuramoto.derivative_3` group. Its per-call process
-  spawn keeps it behind the in-process backends in the ordering but ahead of the
-  Julia CLI; like Julia it is a measured/parity surface, not the runtime hot path.
-  Other kernels keep Mojo as a *planned* slot tracked in the canonical TODO.
+  per kernel (see `bench/dispatch.toml`), with Python as the floor. **Three kernels now
+  ship a Mojo path** under `mojo/` (each compiled with `mojo build -Xlinker -lm`), as
+  compiled subprocess CLI surfaces — the same integration model as Julia:
+    - `mojo/doppler_kuramoto.mojo` (MIF-001 derivative) — tolerance-aware ~1 ULP (the
+      transcendental `sin` plus the decimal round-trip), bit-exact transcendental-free;
+    - `mojo/faraday_recovery.mojo` (recovery waveform) — bit-exact flux, tolerance-aware
+      ~1 ULP on the product-rule flux-rate/EMF/power (Mojo fuses the multiply-add) and
+      on the pairwise-summed energy;
+    - `mojo/aer_decode_rate.mojo` (`aer.decode_rate`) — bit-exact (sequential
+      integer→float accumulation, no transcendental, no fused multiply-add).
+  Each is parity-tested (`tests/unit/**/*_mojo_parity.py`) and benchmarked. Their
+  per-call process spawn keeps them behind the in-process backends in the ordering but
+  ahead of the Julia CLI; like Julia they are measured/parity surfaces, not the runtime
+  hot path. Remaining kernels keep Mojo as a *planned* slot tracked in the canonical TODO.
 
 ## Alternatives considered
 

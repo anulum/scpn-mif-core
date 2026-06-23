@@ -139,3 +139,45 @@ def test_bench_julia_cli_waveform_batch_4096(benchmark) -> None:
 
     benchmark.group = "faraday_recovery.waveform_batch_4096"
     benchmark(call)
+
+
+# --- Mojo compiled-CLI recovery-waveform surface (parity-tested in tests/unit/physics) ---
+
+MOJO_BIN = shutil.which("mojo") or "/home/anulum/.pixi/bin/mojo"
+MOJO_SOURCE = REPO_ROOT / "mojo" / "faraday_recovery.mojo"
+
+
+def _mojo_available() -> bool:
+    return (shutil.which(MOJO_BIN) is not None or Path(MOJO_BIN).is_file()) and MOJO_SOURCE.is_file()
+
+
+def test_bench_mojo_cli_waveform_batch_4096(benchmark, py_spec: PyFaradayRecoverySpec, tmp_path: Path) -> None:
+    if not _mojo_available():
+        pytest.skip("Mojo toolchain not available")
+    binary = tmp_path / "faraday_recovery"
+    build = subprocess.run(
+        [MOJO_BIN, "build", str(MOJO_SOURCE), "-o", str(binary), "-Xlinker", "-lm"],
+        capture_output=True,
+        text=True,
+        timeout=300,
+        check=False,
+    )
+    if build.returncode != 0 or not binary.is_file():
+        pytest.skip(f"Mojo build unavailable: {build.stderr[-200:]}")
+    problem = tmp_path / "problem.txt"
+    rows = [
+        f"{py_spec.turns!r} {py_spec.coupling_efficiency!r} {py_spec.load_resistance_ohm!r}",
+        str(N_SAMPLES),
+        " ".join(repr(x) for x in TIME_LIST),
+        " ".join(repr(x) for x in RADIUS_LIST),
+        " ".join(repr(x) for x in RADIAL_VELOCITY_LIST),
+        " ".join(repr(x) for x in MAGNETIC_FIELD_LIST),
+        " ".join(repr(x) for x in MAGNETIC_FIELD_RATE_LIST),
+    ]
+    problem.write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+    def call() -> None:
+        subprocess.run([str(binary), str(problem)], check=True, capture_output=True, text=True)
+
+    benchmark.group = "faraday_recovery.waveform_batch_4096"
+    benchmark.pedantic(call, rounds=3, iterations=1)

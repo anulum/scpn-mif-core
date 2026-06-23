@@ -473,7 +473,7 @@
     "python_capability_classes": 78,
     "python_capability_source_modules": 20,
     "rust_workspace_crates": 10,
-    "test_files": 83
+    "test_files": 85
   },
   "documentation": {
     "public_pages": [
@@ -776,6 +776,7 @@
       "tests/physics_parity/test_faraday_compression_parity.py",
       "tests/unit/__init__.py",
       "tests/unit/aer/__init__.py",
+      "tests/unit/aer/test_decode_rate_mojo_parity.py",
       "tests/unit/aer/test_spike_buffer.py",
       "tests/unit/aer/test_spike_buffer_rust_parity.py",
       "tests/unit/daq/test_bus_mock.py",
@@ -819,6 +820,7 @@
       "tests/unit/lifecycle/test_rust_adapter.py",
       "tests/unit/physics/__init__.py",
       "tests/unit/physics/test_faraday_recovery.py",
+      "tests/unit/physics/test_faraday_recovery_mojo_parity.py",
       "tests/unit/physics/test_faraday_recovery_rust_parity.py",
       "tests/unit/physics/test_fusion_frc_contract.py",
       "tests/unit/studio/__init__.py",

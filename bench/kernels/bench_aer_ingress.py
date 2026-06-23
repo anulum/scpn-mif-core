@@ -149,3 +149,44 @@ def test_bench_julia_cli_decode_rate(benchmark) -> None:
 
     benchmark.group = "aer_decode_rate.decode_256"
     benchmark(call)
+
+
+# --- Mojo compiled-CLI rate-decode surface (parity-tested in tests/unit/aer) ---
+
+MOJO_BIN = shutil.which("mojo") or "/home/anulum/.pixi/bin/mojo"
+MOJO_SOURCE = REPO_ROOT / "mojo" / "aer_decode_rate.mojo"
+
+
+def _mojo_available() -> bool:
+    return (shutil.which(MOJO_BIN) is not None or Path(MOJO_BIN).is_file()) and MOJO_SOURCE.is_file()
+
+
+def test_bench_mojo_cli_decode_rate(benchmark, py_rate_spec: AERDecodeSpec, tmp_path: Path) -> None:
+    if not _mojo_available():
+        pytest.skip("Mojo toolchain not available")
+    binary = tmp_path / "aer_decode_rate"
+    build = subprocess.run(
+        [MOJO_BIN, "build", str(MOJO_SOURCE), "-o", str(binary), "-Xlinker", "-lm"],
+        capture_output=True,
+        text=True,
+        timeout=300,
+        check=False,
+    )
+    if build.returncode != 0 or not binary.is_file():
+        pytest.skip(f"Mojo build unavailable: {build.stderr[-200:]}")
+    # All EVENTS fall inside [start_ns, start_ns + window_ns); decode the whole window.
+    windowed = [
+        (addr, pol)
+        for addr, t_ns, pol in EVENTS
+        if py_rate_spec.start_ns <= t_ns < py_rate_spec.start_ns + py_rate_spec.window_ns
+    ]
+    problem = tmp_path / "problem.txt"
+    rows = [f"{py_rate_spec.n_channels} {py_rate_spec.window_ns}", str(len(windowed))]
+    rows += [f"{addr} {pol}" for addr, pol in windowed]
+    problem.write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+    def call() -> None:
+        subprocess.run([str(binary), str(problem)], check=True, capture_output=True, text=True)
+
+    benchmark.group = "aer_decode_rate.decode_256"
+    benchmark.pedantic(call, rounds=3, iterations=1)

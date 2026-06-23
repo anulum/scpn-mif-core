@@ -44,11 +44,17 @@ available measured ring-buffer backend:
 
 ```toml
 "aer.spike_buffer" = ["rust", "python"]
-"aer.decode_rate" = ["rust", "python"]
+"aer.decode_rate" = ["rust", "python", "mojo", "julia"]
 ```
 
 The pure Python `SpikeBuffer` remains available for deterministic debugging and
-tests.
+tests. The rate decode also ships a Mojo surface (`mojo/aer_decode_rate.mojo`,
+compiled with `mojo build -Xlinker -lm`): a subprocess CLI with **bit-exact**
+parity — the decode is sequential integer-to-float accumulation with no
+transcendental and no fused multiply-add. Its per-call process spawn places it
+behind the in-process backends but ahead of the Julia CLI; like Julia it is a
+measured/parity surface, not the runtime hot path. Parity-tested in
+`tests/unit/aer/test_decode_rate_mojo_parity.py`.
 
 ## Acceptance
 

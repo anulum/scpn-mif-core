@@ -39,9 +39,13 @@ benchmark_host = "i5-11600K (mining rig)"
 # CLI startup and remains a research-reference backend, not the runtime path.
 "lifecycle.capacitor_bank" = ["rust", "python", "julia"]
 "aer.spike_buffer" = ["rust", "python", "julia"]
-"aer.decode_rate" = ["rust", "python", "julia"]
+# The Mojo rate-decode is a compiled subprocess CLI surface (bit-exact parity): it sits
+# behind the in-process backends but ahead of the Julia CLI; a measured/parity surface.
+"aer.decode_rate" = ["rust", "python", "mojo", "julia"]
 "physics.faraday_back_emf" = ["rust", "python"]
-"physics.faraday_recovery_waveform" = ["python", "rust", "julia"]
+# The Mojo recovery-waveform is a compiled subprocess CLI surface (tolerance-aware ~1 ULP
+# on the product-rule sum, bit-exact flux): behind in-process backends, ahead of Julia.
+"physics.faraday_recovery_waveform" = ["python", "rust", "mojo", "julia"]
 # I/O hardening trio (MIF-016, MIF-017, MIF-018) — registered for the
 # multi-language dispatch from P1 prototype onward.
 "diagnostics.normalisation" = ["rust", "python", "julia"]    # MIF-016

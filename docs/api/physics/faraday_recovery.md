@@ -137,6 +137,15 @@ Python lists across the FFI boundary. The Rust core remains the production
 kernel; Python is the fastest measured facade for NumPy-resident waveform
 batches until a zero-copy array bridge lands.
 
+The recovery waveform also ships a Mojo surface (`mojo/faraday_recovery.mojo`,
+compiled with `mojo build -Xlinker -lm`): a subprocess CLI whose flux array is
+bit-exact and whose flux-rate/EMF/power and integrated energy are tolerance-aware
+(~1 ULP — Mojo fuses the product-rule multiply-add and numpy sums the energy
+pairwise). Its per-call process spawn places it behind the in-process backends
+but ahead of the Julia CLI, so the dispatch list is `["python", "rust", "mojo",
+"julia"]`; like Julia it is a measured/parity surface, parity-tested in
+`tests/unit/physics/test_faraday_recovery_mojo_parity.py`, not the runtime hot path.
+
 Benchmark summaries are committed at:
 
 - `bench/results/faraday_back_emf.json`
