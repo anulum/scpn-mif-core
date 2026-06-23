@@ -189,7 +189,19 @@ packages = ["scpn_mif_core"]
 exclude = ["lean", "go", "scpn-mif-rs", "hdl", "build", "dist", "bench", "campaigns"]
 
 [[tool.mypy.overrides]]
-module = ["jax.*", "scipy.*", "pyverilog.*", "pysmt.*", "scpn_mif_core_rs", "scpn_mif_core_rs.*"]
+module = [
+    "jax.*",
+    "scipy.*",
+    "pyverilog.*",
+    "pysmt.*",
+    "scpn_mif_core_rs",
+    "scpn_mif_core_rs.*",
+    # The studio vertical's optional SDK: when scpn-studio-platform is not installed
+    # (pre-commit hook, local dev without the extra) mypy treats it as Any instead of
+    # erroring; the CI gate job installs it for full type checking.
+    "scpn_studio_platform",
+    "scpn_studio_platform.*",
+]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

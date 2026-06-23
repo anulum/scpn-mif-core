@@ -128,7 +128,7 @@ def formal_proof_evidence(
 ) -> EvidenceBundle:
     """Map an MIF-010 formal-proof task onto a ``studio.formal-proof.v1`` bundle.
 
-    Fails closed on a malformed task so a bad entry can never mis-bind the
+    Fails closed on a malformed task so a bad entry can never bind the wrong
     ``subject_digest`` the Hub voids the proof against.
     """
     mode = str(task["mode"])
