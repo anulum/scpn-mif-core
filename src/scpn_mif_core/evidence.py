@@ -200,7 +200,11 @@ def merge_trigger_evidence(
         "bank_feasible": report.bank_feasible,
     }
     claim_boundary = {
-        "status": "reference-validated",
+        # The merge-trigger pipeline is a reduced-order kinematic + safety + bank
+        # model (the merge-window classification is Belova-validated, but the overall
+        # fire decision is not facility-grade reference-validated), so the honest
+        # boundary is bounded-model — the admission still reflects fire vs abort/hold.
+        "status": "bounded-model",
         "admission": "admitted" if fired else "rejected",
         "certificate": None,
     }
@@ -380,7 +384,7 @@ def benchmark_evidence(
 
     The recompute provenance is the point: ``regenerated_by`` (the command) and
     ``host`` make the number reproducible, not merely attested. ``status`` lets the
-    caller declare the honest claim boundary — e.g. ``bounded-support`` for a budget
+    caller declare the honest claim boundary — e.g. ``bounded-model`` for a budget
     whose tiers are modelled rather than measured — defaulting to a fully measured,
     recomputable ``reference-validated`` number.
     """

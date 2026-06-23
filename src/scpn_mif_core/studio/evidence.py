@@ -104,7 +104,11 @@ def merge_trigger_evidence(
         evidence_level=EvidenceLevel.SCIENTIFICALLY_CURATED,
         evidence_kind=EvidenceKind.MEASURED,
         claim_boundary=ClaimBoundary(
-            status=ClaimStatus.REFERENCE_VALIDATED,
+            # Reduced-order kinematic decision (fidelity=REDUCED_ORDER): the
+            # merge-window is Belova-validated but the overall fire decision is not
+            # facility-grade reference-validated, so bounded-model is the honest
+            # boundary — admission still carries fire vs abort/hold.
+            status=ClaimStatus.BOUNDED_MODEL,
             admission=AdmissionDecision.ADMITTED if fired else AdmissionDecision.REJECTED,
         ),
         numeric_provenance=NumericProvenance(active_backend=active_backend, reference_backend="python"),
@@ -225,7 +229,8 @@ def benchmark_evidence(
 
     The recompute provenance — ``regenerated_by`` (the command) and ``host`` — is
     the point. ``status`` lets the caller declare the honest claim boundary, e.g.
-    ``BOUNDED_SUPPORT`` for a budget whose tiers are modelled rather than measured.
+    ``BOUNDED_MODEL`` for a budget whose tiers are modelled rather than measured
+    (``BOUNDED_SUPPORT`` is for fail-closed-by-design domains).
     """
     result = {"name": name, "metrics": dict(metrics)}
     return EvidenceBundle(

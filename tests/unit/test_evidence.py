@@ -162,6 +162,8 @@ def test_merge_trigger_evidence_fire_is_admitted() -> None:
     assert bundle["evidence_kind"] == "measured"
     assert report.outcome.value == "fire"
     assert bundle["claim_boundary"]["admission"] == "admitted"
+    # A reduced-order decision is bounded-model, not facility-grade reference-validated.
+    assert bundle["claim_boundary"]["status"] == "bounded-model"
     assert bundle["numeric_provenance"]["exactness"] == "tolerance-aware"
     assert bundle["numeric_provenance"]["active_backend"] == ("rust" if is_rust_available() else "python")
 
@@ -388,9 +390,9 @@ def test_benchmark_evidence_honest_bounded_status_is_respected() -> None:
         started="t0",
         ended="t1",
         studio_version="0.1.0",
-        status="bounded-support",
+        status="bounded-model",
         exactness="bit-exact",
     )
-    assert bundle["claim_boundary"]["status"] == "bounded-support"
+    assert bundle["claim_boundary"]["status"] == "bounded-model"
     assert bundle["numeric_provenance"]["exactness"] == "bit-exact"
     validate_studio_bundle(bundle)

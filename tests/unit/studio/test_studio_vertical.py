@@ -118,6 +118,7 @@ def test_merge_trigger_evidence_fire_admitted() -> None:
     assert bundle["schema"] == "studio.merge-trigger.v1"
     assert bundle["prov"]["activity"]["verb"] == "evaluate"
     assert bundle["claim_boundary"]["admission"] == "admitted"
+    assert bundle["claim_boundary"]["status"] == "bounded-model"  # reduced-order, not facility-validated
     assert bundle["numeric_provenance"]["active_backend"] == "python"
 
 
@@ -212,8 +213,8 @@ def test_benchmark_evidence_recompute_and_status() -> None:
         started="t0",
         ended="t1",
         studio_version="0.1.0",
-        status=ClaimStatus.BOUNDED_SUPPORT,
+        status=ClaimStatus.BOUNDED_MODEL,
     ).to_dict()
     assert bundle["schema"] == "studio.benchmark.v1"
     assert bundle["prov"]["activity"]["regenerated_by"] == "python -m tools.trigger_latency_budget"
-    assert bundle["claim_boundary"]["status"] == "bounded-support"
+    assert bundle["claim_boundary"]["status"] == "bounded-model"
