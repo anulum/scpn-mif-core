@@ -110,6 +110,7 @@ nav:
       - Getting started: guides/getting_started.md
   - Architecture:
       - architecture/index.md
+      - System architecture map: architecture/system_map.md
       - Dynamic compatibility matrix: generated/compatibility_matrix.md
       - Decision records:
           - adr/index.md
