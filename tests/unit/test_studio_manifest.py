@@ -30,7 +30,7 @@ def test_manifest_structure() -> None:
     assert manifest["transport_profile"] == "local-first"
     assert manifest["studio"] == "scpn-mif-core"
     assert manifest["studio_version"] == __version__
-    assert manifest["platform_sdk"] == ">=0.1,<0.2"
+    assert manifest["platform_sdk"] == ">=0.8,<0.9"
     assert manifest["content_digest"].startswith("sha256:")
     assert manifest["enumeration"] == "language-agnostic"
 

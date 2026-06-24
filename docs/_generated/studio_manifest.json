@@ -1,0 +1,84 @@
+{
+  "content_digest": "sha256:f8a0cd2d02b984358ffb0f33b1efcd40cc40e13baee9aa068bcf5e82607c7e4a",
+  "contract_era": "v1",
+  "enumeration": "language-agnostic",
+  "evidence_types": [
+    "studio.benchmark.v1",
+    "studio.cosim.v1",
+    "studio.formal-proof.v1",
+    "studio.merge-trigger.v1"
+  ],
+  "platform_sdk": ">=0.8,<0.9",
+  "protocol_version": "1",
+  "studio": "scpn-mif-core",
+  "studio_version": "0.1.0",
+  "transport_profile": "local-first",
+  "ui_module": {
+    "exposes": [
+      "./MifStudioPanel"
+    ],
+    "federation": "module-federation-2",
+    "remote_entry": "scpn_mif_core_studio/remoteEntry.js"
+  },
+  "verbs": [
+    {
+      "backends": [
+        "rust",
+        "python"
+      ],
+      "fidelity": "reduced-order",
+      "produces": [
+        "studio.merge-trigger.v1"
+      ],
+      "safety_tier": "research",
+      "side_effect": "simulated",
+      "timing": {
+        "class": "batch"
+      },
+      "verb": "evaluate"
+    },
+    {
+      "backends": [
+        "symbiyosys"
+      ],
+      "produces": [
+        "studio.formal-proof.v1"
+      ],
+      "safety_tier": "research",
+      "side_effect": "read-only",
+      "timing": {
+        "class": "batch"
+      },
+      "verb": "prove"
+    },
+    {
+      "backends": [
+        "python"
+      ],
+      "produces": [
+        "studio.cosim.v1"
+      ],
+      "safety_tier": "research",
+      "side_effect": "simulated",
+      "timing": {
+        "class": "batch"
+      },
+      "verb": "cosimulate"
+    },
+    {
+      "backends": [
+        "rust",
+        "python"
+      ],
+      "produces": [
+        "studio.benchmark.v1"
+      ],
+      "safety_tier": "research",
+      "side_effect": "read-only",
+      "timing": {
+        "class": "batch"
+      },
+      "verb": "benchmark"
+    }
+  ]
+}

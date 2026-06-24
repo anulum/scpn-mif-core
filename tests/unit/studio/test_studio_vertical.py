@@ -121,6 +121,36 @@ def test_manifest_passes_the_platform_conformance_gate() -> None:
     assert list(verdict.warnings) == []
 
 
+def test_committed_manifest_artifact_matches_the_builder() -> None:
+    # Drift gate: docs/_generated/studio_manifest.json is the federation artifact the Hub
+    # gates against; it must equal build_manifest().to_dict() (regenerate it when this fails).
+    import json
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[3]
+    artifact = repo_root / "docs" / "_generated" / "studio_manifest.json"
+    committed = json.loads(artifact.read_text(encoding="utf-8"))
+    assert committed == build_manifest().to_dict()
+
+
+def test_platform_sdk_range_tracks_the_studio_extra_pin() -> None:
+    # Drift guard: the manifest's advertised platform_sdk must equal the [studio] install
+    # pin in pyproject.toml (the single source of truth), so the two cannot diverge as the
+    # SDK is bumped — both the SDK-typed and the SDK-independent manifest authorings.
+    import tomllib
+    from pathlib import Path
+
+    from scpn_mif_core import studio_manifest
+    from scpn_mif_core.studio import manifest as studio_manifest_sdk
+
+    repo_root = Path(__file__).resolve().parents[3]
+    data = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
+    studio_dep = data["project"]["optional-dependencies"]["studio"][0]
+    pin = studio_dep.split("scpn-studio-platform", 1)[1]
+    assert pin == studio_manifest_sdk.PLATFORM_SDK_RANGE
+    assert pin == studio_manifest.PLATFORM_SDK_RANGE
+
+
 # --- evidence mappers ---------------------------------------------------------
 
 
