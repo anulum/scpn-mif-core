@@ -111,7 +111,7 @@ accelerated = [
 # stays lean and dependency-free; the studio surface is opt-in. Local dev can use
 # PYTHONPATH=../SCPN-STUDIO-PLATFORM/src instead of installing.
 studio = [
-    "scpn-studio-platform>=0.2,<0.3",
+    "scpn-studio-platform>=0.7,<0.8",
 ]
 
 [tool.setuptools.packages.find]

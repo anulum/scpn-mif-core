@@ -174,7 +174,7 @@ def test_formal_proof_evidence_subject_falls_back_to_sby() -> None:
         ({"sby": "hdl/formal/other.sby"}, "must appear in depends_on"),
     ],
 )
-def test_formal_proof_evidence_fail_closed(task_patch: dict, match: str) -> None:
+def test_formal_proof_evidence_fail_closed(task_patch: dict[str, object], match: str) -> None:
     with pytest.raises(ValueError, match=match):
         formal_proof_evidence(
             {**_PROVE_TASK, **task_patch},
@@ -218,3 +218,71 @@ def test_benchmark_evidence_recompute_and_status() -> None:
     assert bundle["schema"] == "studio.benchmark.v1"
     assert bundle["prov"]["activity"]["regenerated_by"] == "python -m tools.trigger_latency_budget"
     assert bundle["claim_boundary"]["status"] == "bounded-model"
+
+
+def test_every_mapper_defaults_to_traceable_unchecked_freshness() -> None:
+    # The honest conservative default: a mapper binds a result it is given and does
+    # not re-check the source on render, so every bundle declares traceable-unchecked.
+    report = evaluate_merge_trigger(_scenario([-5.0e-4, 5.0e-4], [0.0, 0.0]))
+    merge = merge_trigger_evidence(
+        report, started="t0", ended="t1", host="rig", studio_version="0.1.0", active_backend="python"
+    ).to_dict()
+    cosim = cosim_evidence(
+        harness="mif008", bit_true=True, mismatch_count=0, started="t0", ended="t1", host="ci", studio_version="0.1.0"
+    ).to_dict()
+    proof = formal_proof_evidence(
+        _PROVE_TASK, started="t0", ended="t1", host="ci", studio_version="0.1.0", checker_version="0.45"
+    ).to_dict()
+    bench = benchmark_evidence(
+        name="b",
+        metrics={"x": 1},
+        active_backend="rust",
+        regenerated_by="cmd",
+        host="ci",
+        started="t0",
+        ended="t1",
+        studio_version="0.1.0",
+    ).to_dict()
+    assert merge["freshness"] == "traceable-unchecked"
+    assert cosim["freshness"] == "traceable-unchecked"
+    assert proof["freshness"] == "traceable-unchecked"
+    assert bench["freshness"] == "traceable-unchecked"
+
+
+def test_a_caller_may_declare_verified_at_source_when_it_re_ran_the_source() -> None:
+    from scpn_studio_platform.evidence import Freshness
+
+    bundle = cosim_evidence(
+        harness="mif008",
+        bit_true=True,
+        mismatch_count=0,
+        started="t0",
+        ended="t1",
+        host="ci",
+        studio_version="0.1.0",
+        freshness=Freshness.VERIFIED_AT_SOURCE,
+    ).to_dict()
+    assert bundle["freshness"] == "verified-at-source"
+
+
+def test_default_freshness_floors_a_reference_validated_cosim_to_boundary() -> None:
+    # End-to-end: a bit-true cosim is reference-validated + admitted, but the default
+    # traceable-unchecked freshness floors its rendered verdict to boundary; only a
+    # re-run (verified-at-source) renders it validated.
+    from scpn_studio_platform.evidence import AdmissionDecision, ClaimStatus, EvidenceKind, Freshness
+    from scpn_studio_platform.evidence.conformance import present
+
+    floored = present(
+        EvidenceKind.MEASURED,
+        ClaimStatus.REFERENCE_VALIDATED,
+        AdmissionDecision.ADMITTED,
+        Freshness.TRACEABLE_UNCHECKED,
+    )
+    fresh = present(
+        EvidenceKind.MEASURED,
+        ClaimStatus.REFERENCE_VALIDATED,
+        AdmissionDecision.ADMITTED,
+        Freshness.VERIFIED_AT_SOURCE,
+    )
+    assert floored == "boundary"
+    assert fresh == "validated"

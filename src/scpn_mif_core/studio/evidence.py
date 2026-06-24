@@ -22,6 +22,12 @@ and exercise the contract's honesty axes:
 - ``benchmark`` — a recomputable measurement; the recompute provenance
   (``regenerated_by`` + ``host``) is the point.
 
+Every mapper also carries the orthogonal ``freshness`` axis (how recently the
+evidence was re-checked at source). It defaults to the honest conservative
+``traceable-unchecked`` — a mapper binds a result it is given, it does not re-check
+the source on render, so an otherwise-validated claim floors to its boundary unless a
+caller that has just re-run the source this session passes ``verified-at-source``.
+
 The bundle ``attestation`` is left ``None`` for the platform signer. Builders never
 reimplement the contract checks — the SDK validates in ``__post_init__``.
 """
@@ -40,6 +46,7 @@ from scpn_studio_platform.evidence import (
     EvidenceLevel,
     Exactness,
     FormalCertificate,
+    Freshness,
     NumericProvenance,
     ParityCheck,
     ProvActivity,
@@ -81,8 +88,15 @@ def merge_trigger_evidence(
     active_backend: str,
     regenerated_by: str = "scpn-mif run scenario.json",
     operator: str = "opaque-id:local",
+    freshness: Freshness = Freshness.TRACEABLE_UNCHECKED,
 ) -> EvidenceBundle:
-    """Map a merge-trigger decision onto a ``studio.merge-trigger.v1`` bundle."""
+    """Map a merge-trigger decision onto a ``studio.merge-trigger.v1`` bundle.
+
+    ``freshness`` defaults to the honest conservative ``traceable-unchecked`` (the
+    decision is reproducible from the recorded scenario but is not re-checked against
+    an external source on render, so it floors to its boundary). A caller that has
+    just recomputed the decision this session may pass ``verified-at-source``.
+    """
     fired = report.outcome.value == "fire"
     result = {
         "outcome": report.outcome.value,
@@ -111,6 +125,7 @@ def merge_trigger_evidence(
             status=ClaimStatus.BOUNDED_MODEL,
             admission=AdmissionDecision.ADMITTED if fired else AdmissionDecision.REJECTED,
         ),
+        freshness=freshness,
         numeric_provenance=NumericProvenance(active_backend=active_backend, reference_backend="python"),
     )
 
@@ -125,11 +140,18 @@ def formal_proof_evidence(
     checker_version: str,
     regenerated_by: str = "python tools/run_formal.py --suite all",
     operator: str = "opaque-id:local",
+    freshness: Freshness = Freshness.TRACEABLE_UNCHECKED,
 ) -> EvidenceBundle:
     """Map an MIF-010 formal-proof task onto a ``studio.formal-proof.v1`` bundle.
 
     Fails closed on a malformed task so a bad entry can never bind the wrong
     ``subject_digest`` the Hub voids the proof against.
+
+    ``freshness`` defaults to ``traceable-unchecked``: this mapper binds the proof's
+    recorded digests but does not re-run the checker, so the ``reference-validated``
+    status floors to boundary until a caller that has just re-run the proof this
+    session passes ``verified-at-source`` (and the ``subject_digest`` still voids it
+    on drift regardless).
     """
     mode = str(task["mode"])
     if mode not in {"prove", "cover"}:
@@ -166,6 +188,7 @@ def formal_proof_evidence(
         evidence_level=EvidenceLevel.SCIENTIFICALLY_CURATED,
         evidence_kind=EvidenceKind.FORMALLY_PROVEN,
         claim_boundary=ClaimBoundary(status=ClaimStatus.REFERENCE_VALIDATED, admission=AdmissionDecision.ADMITTED),
+        freshness=freshness,
         formal_certificates=(certificate,),
     )
 
@@ -181,8 +204,14 @@ def cosim_evidence(
     studio_version: str,
     regenerated_by: str = "make cosim",
     operator: str = "opaque-id:local",
+    freshness: Freshness = Freshness.TRACEABLE_UNCHECKED,
 ) -> EvidenceBundle:
-    """Map a bit-true cosimulation result onto a ``studio.cosim.v1`` bundle."""
+    """Map a bit-true cosimulation result onto a ``studio.cosim.v1`` bundle.
+
+    ``freshness`` defaults to ``traceable-unchecked``: the bit-true verdict is taken
+    as an input here, not re-run, so a ``reference-validated`` pass floors to boundary
+    until a caller that has just executed the cosimulation passes ``verified-at-source``.
+    """
     result = {"harness": harness, "bit_true": bit_true, "mismatch_count": mismatch_count}
     # A bit-exact comparison is exact-equality: max_error is always 0.0 (the SDK
     # enforces this); ``passed`` carries the verdict and the mismatch count lives in
@@ -206,6 +235,7 @@ def cosim_evidence(
             status=ClaimStatus.REFERENCE_VALIDATED if bit_true else ClaimStatus.VALIDATION_GAP,
             admission=AdmissionDecision.ADMITTED if bit_true else AdmissionDecision.REJECTED,
         ),
+        freshness=freshness,
         numeric_provenance=NumericProvenance(
             active_backend="verilator-rtl", reference_backend="python-golden", parity=(parity,)
         ),
@@ -224,13 +254,17 @@ def benchmark_evidence(
     studio_version: str,
     status: ClaimStatus = ClaimStatus.REFERENCE_VALIDATED,
     operator: str = "opaque-id:local",
+    freshness: Freshness = Freshness.TRACEABLE_UNCHECKED,
 ) -> EvidenceBundle:
     """Map a benchmark artifact onto a ``studio.benchmark.v1`` bundle.
 
     The recompute provenance — ``regenerated_by`` (the command) and ``host`` — is
     the point. ``status`` lets the caller declare the honest claim boundary, e.g.
     ``BOUNDED_MODEL`` for a budget whose tiers are modelled rather than measured
-    (``BOUNDED_SUPPORT`` is for fail-closed-by-design domains).
+    (``BOUNDED_SUPPORT`` is for fail-closed-by-design domains). ``freshness`` defaults
+    to ``traceable-unchecked`` (the metrics are recomputable but taken as input here,
+    not re-measured on render); a caller that just re-ran the benchmark may pass
+    ``verified-at-source``.
     """
     result = {"name": name, "metrics": dict(metrics)}
     return EvidenceBundle(
@@ -243,5 +277,6 @@ def benchmark_evidence(
         evidence_level=EvidenceLevel.SCIENTIFICALLY_CURATED,
         evidence_kind=EvidenceKind.MEASURED,
         claim_boundary=ClaimBoundary(status=status, admission=AdmissionDecision.ADMITTED),
+        freshness=freshness,
         numeric_provenance=NumericProvenance(active_backend=active_backend, reference_backend="python"),
     )
