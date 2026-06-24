@@ -27,9 +27,7 @@ pytest.importorskip("scpn_fusion", reason="scpn-fusion sibling not importable")
 
 from scpn_mif_core.merge_trigger import MergeTriggerOutcome
 
-_CAMPAIGN = (
-    Path(__file__).resolve().parents[2] / "campaigns" / "fusion_coupled_merge_trigger.py"
-)
+_CAMPAIGN = Path(__file__).resolve().parents[2] / "campaigns" / "fusion_coupled_merge_trigger.py"
 
 
 def _load_campaign() -> ModuleType:
