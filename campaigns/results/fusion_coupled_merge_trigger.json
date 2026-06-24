@@ -1,0 +1,16 @@
+{
+  "bank_feasible": true,
+  "field_rate_channel": "central finite difference of FUSION B_ext(t) (non-exact)",
+  "final_radius_m": 0.14615927678778956,
+  "initial_radius_m": 0.2,
+  "lock_achieved": true,
+  "outcome": "fire",
+  "peak_back_emf_V": 220926198.33107245,
+  "peak_field_T": 16.084954386379742,
+  "peak_recovered_power_W": 7809341617443259.0,
+  "reason": "locked and safe at t = 0.002 s with a feasible compression pulse",
+  "recovered_energy_J": 17694712551.692574,
+  "safety_passed": true,
+  "source": "fusion-coupled (scpn-fusion pulsed_compression, FUS-C.6)",
+  "stroke_samples": 257
+}

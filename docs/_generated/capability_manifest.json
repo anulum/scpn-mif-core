@@ -474,7 +474,7 @@
     "python_capability_classes": 78,
     "python_capability_source_modules": 20,
     "rust_workspace_crates": 10,
-    "test_files": 85
+    "test_files": 86
   },
   "documentation": {
     "public_pages": [
@@ -772,6 +772,7 @@
       "tests/contract/test_quantum_qaoa_mpc_contract.py",
       "tests/integration/__init__.py",
       "tests/integration/test_examples.py",
+      "tests/integration/test_fusion_coupled_merge_trigger.py",
       "tests/integration/test_merge_preemption_campaign.py",
       "tests/physics_parity/__init__.py",
       "tests/physics_parity/test_belova_merge_parity.py",

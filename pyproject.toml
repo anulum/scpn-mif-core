@@ -201,6 +201,11 @@ module = [
     # erroring; the CI gate job installs it for full type checking.
     "scpn_studio_platform",
     "scpn_studio_platform.*",
+    # The M3 demonstration's optional sibling: when scpn-fusion is not importable
+    # (CI, local dev without the FUSION source on the path) mypy treats it as Any
+    # instead of erroring; the live coupling is exercised only where it is present.
+    "scpn_fusion",
+    "scpn_fusion.*",
 ]
 ignore_missing_imports = true
 
