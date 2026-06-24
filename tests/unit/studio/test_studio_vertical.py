@@ -107,6 +107,20 @@ def test_manifest_content_digest_is_deterministic() -> None:
     assert build_manifest().content_digest == build_manifest().content_digest
 
 
+def test_manifest_passes_the_platform_conformance_gate() -> None:
+    # lock-2, manifest half (SDK 0.8.0): MIF's CapabilityManifest is gate-reviewed
+    # against the platform contract on every run — admitted, on the v1 era, with no
+    # rejections or warnings (the gate verifies the digest form, not a recompute; the
+    # content match against the source surface stays the deterministic-digest test above).
+    from scpn_studio_platform.manifest import validate_studio_manifest
+
+    verdict = validate_studio_manifest(build_manifest().to_dict())
+    assert verdict.admitted is True
+    assert verdict.contract_era == "v1"
+    assert list(verdict.rejections) == []
+    assert list(verdict.warnings) == []
+
+
 # --- evidence mappers ---------------------------------------------------------
 
 
