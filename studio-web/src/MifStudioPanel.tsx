@@ -31,11 +31,13 @@ export interface MifStudioPanelProps {
  * a live-hardware verb would be marked Hub-gated, though MIF's studio verbs are all
  * software), the compute backends with their availability tier (only a runtime-active
  * backend is the in-process hot path), and a claims section that renders each claim's
- * boundary verbatim — marking only a reference-validated, admitted claim as validated,
- * and surfacing the evidence detail MIF attaches (a measured claim's parity exactness,
- * a formally-proven claim's certificate). The same honesty grading the Python vertical
- * emits is shown here as UI: a reduced-order merge-trigger decision shows as
- * bounded-model, never validated.
+ * boundary verbatim — marking a claim validated only when it is reference-validated,
+ * admitted, AND its freshness permits it, and surfacing the evidence detail MIF
+ * attaches (a measured claim's parity exactness, a formally-proven claim's certificate,
+ * and each claim's freshness). The same honesty grading the Python vertical emits is
+ * shown here as UI: a reduced-order merge-trigger decision shows as bounded-model, and
+ * a reference-validated claim that is only traceable-unchecked is floored to its
+ * boundary, never validated.
  *
  * The data comes from the live studio feed (see ``feed.ts``); the bundled domain sample
  * is the default so the remote also renders standalone.
@@ -96,7 +98,18 @@ export default function MifStudioPanel({
         <h3>Claims</h3>
         <ul>
           {claims.map((claim) => {
-            const validated = claimRendersAsValidated(claim.status, claim.admission);
+            const validated = claimRendersAsValidated(
+              claim.status,
+              claim.admission,
+              claim.freshness,
+            );
+            // A claim that would render validated on status+admission but is withheld
+            // by a non-fresh freshness is "floored" — surfaced so the gate is visible.
+            const floored =
+              claim.status === 'reference-validated' &&
+              claim.admission === 'admitted' &&
+              claim.freshness !== undefined &&
+              claim.freshness !== 'verified-at-source';
             return (
               <li key={claim.schema} data-validated={validated ? 'yes' : 'no'}>
                 {claim.schema} — {claim.kind} — {validated ? 'validated' : claim.status}
@@ -112,6 +125,12 @@ export default function MifStudioPanel({
                   >
                     {` · proof: ${claim.certificate.checker}/${claim.certificate.theorem}`}
                     {claim.certificate.nonVacuous ? '' : ' (vacuous)'}
+                  </span>
+                )}
+                {claim.freshness !== undefined && (
+                  <span className="mif-studio__freshness" data-freshness={claim.freshness}>
+                    {` · ${claim.freshness}`}
+                    {floored ? ' (floored)' : ''}
                   </span>
                 )}
               </li>

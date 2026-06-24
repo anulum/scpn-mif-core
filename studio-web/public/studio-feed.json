@@ -9,6 +9,7 @@
   "claims": [
     {
       "admission": "admitted",
+      "freshness": "verified-at-source",
       "kind": "measured",
       "schema": "studio.merge-trigger.v1",
       "status": "bounded-model"
@@ -20,6 +21,7 @@
         "non_vacuous": true,
         "theorem": "mif_trigger_fabric_safety"
       },
+      "freshness": "traceable-unchecked",
       "kind": "formally-proven",
       "schema": "studio.formal-proof.v1",
       "status": "reference-validated"
@@ -27,12 +29,14 @@
     {
       "admission": "admitted",
       "exactness": "bit-exact",
+      "freshness": "verified-at-source",
       "kind": "measured",
       "schema": "studio.cosim.v1",
       "status": "reference-validated"
     },
     {
       "admission": "admitted",
+      "freshness": "traceable-unchecked",
       "kind": "measured",
       "schema": "studio.benchmark.v1",
       "status": "bounded-model"

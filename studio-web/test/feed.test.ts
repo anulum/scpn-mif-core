@@ -41,8 +41,9 @@ const VALID_FEED = {
       domain_distinctive: true,
     },
   ],
-  // Three claims exercise every toClaim branch: certificate-only, exactness-only, and
-  // neither (a bare boundary claim).
+  // Three claims exercise every toClaim branch: certificate-only, exactness +
+  // freshness, and neither (a bare boundary claim, also exercising the no-freshness
+  // path).
   claims: [
     {
       schema: 'studio.formal-proof.v1',
@@ -61,6 +62,7 @@ const VALID_FEED = {
       admission: 'admitted',
       kind: 'measured',
       exactness: 'bit-exact',
+      freshness: 'verified-at-source',
     },
     {
       schema: 'studio.merge-trigger.v1',
@@ -125,6 +127,15 @@ describe('narrowFeed', () => {
     expect(bare?.exactness).toBeUndefined();
     expect(bare).not.toHaveProperty('exactness');
     expect(bare).not.toHaveProperty('certificate');
+  });
+
+  it('carries freshness only when the claim declares it', () => {
+    const claims = narrowFeed(VALID_FEED).claims;
+    const cosim = claims.find((c) => c.schema === 'studio.cosim.v1');
+    const bare = claims.find((c) => c.schema === 'studio.merge-trigger.v1');
+    expect(cosim?.freshness).toBe('verified-at-source');
+    expect(bare?.freshness).toBeUndefined();
+    expect(bare).not.toHaveProperty('freshness');
   });
 
   it('narrows the wire backends', () => {

@@ -60,6 +60,14 @@ export interface Backend {
 /** Numeric agreement of a measured result against its reference. */
 export type Exactness = 'bit-exact' | 'tolerance-aware';
 
+/**
+ * The orthogonal freshness axis — how recently a claim's evidence was re-checked at
+ * source. It gates validation: only `verified-at-source` (or undeclared, since the
+ * axis is additive) clears it; `traceable-unchecked` / `untraceable` floor an
+ * otherwise-validated claim to its boundary. Freshness never promotes a claim.
+ */
+export type Freshness = 'verified-at-source' | 'traceable-unchecked' | 'untraceable';
+
 /** A machine-checked formal certificate attached to a formally-proven claim. */
 export interface FormalCertificate {
   readonly checker: string;
@@ -80,7 +88,8 @@ export interface MifVerb {
 /**
  * A claim summary the panel renders, with its boundary and modality, plus the
  * optional evidence detail MIF's mappers attach: a measured claim may carry the
- * parity `exactness`; a formally-proven claim may carry its `certificate`.
+ * parity `exactness`; a formally-proven claim may carry its `certificate`; and any
+ * claim may carry its `freshness` (how recently its evidence was re-checked).
  */
 export interface ClaimSummary {
   readonly schema: string;
@@ -89,6 +98,7 @@ export interface ClaimSummary {
   readonly kind: EvidenceKind;
   readonly exactness?: Exactness;
   readonly certificate?: FormalCertificate;
+  readonly freshness?: Freshness;
 }
 
 /** Whether the Hub must hard-gate this verb per tenant before running it. */
@@ -99,18 +109,24 @@ export function requiresLiveHardwareGate(verb: MifVerb): boolean {
 /**
  * Whether a claim may be presented as validated.
  *
- * Mirrors the platform `ClaimBoundary.is_admissible` exactly: the status must be
- * `reference-validated` AND the runtime admission must be `admitted`. Checking the
+ * Mirrors the platform `present()` gate: the status must be `reference-validated` AND
+ * the runtime admission must be `admitted` AND freshness must permit validation
+ * (`verified-at-source`, or undeclared since the axis is additive). Checking the
  * status alone would wrongly render a `reference-validated` but `rejected` claim as
- * validated, so both axes are required — keeping the TS rendering in lock-step with
- * the Python contract. A reduced-order merge-trigger decision (bounded-model) never
- * renders as validated.
+ * validated; ignoring freshness would render a referenced-but-not-re-checked claim as
+ * validated — both would over-claim relative to the Hub. A reduced-order
+ * merge-trigger decision (bounded-model) never renders as validated, and freshness
+ * can only withhold validation, never promote a claim.
  */
 export function claimRendersAsValidated(
   status: ClaimStatus,
   admission: AdmissionDecision,
+  freshness?: Freshness,
 ): boolean {
-  return status === 'reference-validated' && admission === 'admitted';
+  if (status !== 'reference-validated' || admission !== 'admitted') {
+    return false;
+  }
+  return freshness === undefined || freshness === 'verified-at-source';
 }
 
 /** Every verb the MIF studio advertises, in manifest order. */
@@ -160,10 +176,13 @@ export const MIF_BACKENDS: readonly Backend[] = [
 ];
 
 /**
- * A representative slice of MIF's emitted claims, one per evidence axis: a fired but
- * reduced-order merge-trigger decision (bounded-model, not rendered as validated), a
- * formally-proven MIF-010 proof that holds, a bit-true cosimulation, and a modelled
- * latency benchmark. Mirrors the Python evidence mappers.
+ * A representative slice of MIF's emitted claims spanning the freshness interactions:
+ * a fired but reduced-order merge-trigger decision (bounded-model — stays at its
+ * boundary even when freshly computed, since freshness never promotes); a
+ * formally-proven MIF-010 proof that holds but is only referenced here
+ * (`traceable-unchecked` floors it to boundary until re-run — the contract's honest
+ * default); a freshly re-run bit-true cosimulation (`verified-at-source` renders
+ * validated); and a modelled latency benchmark. Mirrors the Python evidence mappers.
  */
 export const MIF_CLAIMS: readonly ClaimSummary[] = [
   {
@@ -171,6 +190,7 @@ export const MIF_CLAIMS: readonly ClaimSummary[] = [
     status: 'bounded-model',
     admission: 'admitted',
     kind: 'measured',
+    freshness: 'verified-at-source',
   },
   {
     schema: 'studio.formal-proof.v1',
@@ -182,6 +202,7 @@ export const MIF_CLAIMS: readonly ClaimSummary[] = [
       theorem: 'mif_trigger_fabric_safety',
       nonVacuous: true,
     },
+    freshness: 'traceable-unchecked',
   },
   {
     schema: 'studio.cosim.v1',
@@ -189,11 +210,13 @@ export const MIF_CLAIMS: readonly ClaimSummary[] = [
     admission: 'admitted',
     kind: 'measured',
     exactness: 'bit-exact',
+    freshness: 'verified-at-source',
   },
   {
     schema: 'studio.benchmark.v1',
     status: 'bounded-model',
     admission: 'admitted',
     kind: 'measured',
+    freshness: 'traceable-unchecked',
   },
 ];

@@ -26,6 +26,7 @@ import type {
   EvidenceKind,
   Exactness,
   FormalCertificate,
+  Freshness,
   MifVerb,
   SafetyTier,
   SideEffect,
@@ -58,6 +59,7 @@ interface RawClaim {
   readonly kind: EvidenceKind;
   readonly exactness?: Exactness;
   readonly certificate?: RawCertificate;
+  readonly freshness?: Freshness;
 }
 
 /** A backend record as it appears on the wire. */
@@ -123,9 +125,13 @@ function toClaim(raw: RawClaim): ClaimSummary {
   };
   // exactOptionalPropertyTypes: only carry optional evidence detail when present.
   const withExactness = raw.exactness === undefined ? base : { ...base, exactness: raw.exactness };
-  return raw.certificate === undefined
-    ? withExactness
-    : { ...withExactness, certificate: toCertificate(raw.certificate) };
+  const withCertificate =
+    raw.certificate === undefined
+      ? withExactness
+      : { ...withExactness, certificate: toCertificate(raw.certificate) };
+  return raw.freshness === undefined
+    ? withCertificate
+    : { ...withCertificate, freshness: raw.freshness };
 }
 
 function toBackend(raw: RawBackend): Backend {

@@ -39,11 +39,38 @@ describe('MifStudioPanel', () => {
     expect(benchmarkRow).toHaveAttribute('data-distinctive', 'core');
   });
 
-  it('renders a held formal proof as validated', () => {
+  it('floors a referenced (traceable-unchecked) formal proof to its boundary', () => {
     render(<MifStudioPanel />);
     const proof = screen.getByText(/studio\.formal-proof\.v1/);
-    expect(proof.closest('li')).toHaveAttribute('data-validated', 'yes');
-    expect(proof).toHaveTextContent('validated');
+    // reference-validated + admitted, but the traceable-unchecked freshness floors it.
+    expect(proof.closest('li')).toHaveAttribute('data-validated', 'no');
+    const freshness = proof.closest('li')?.querySelector('.mif-studio__freshness');
+    expect(freshness).toHaveAttribute('data-freshness', 'traceable-unchecked');
+    expect(proof.closest('li')).toHaveTextContent('(floored)');
+  });
+
+  it('renders a freshly re-run (verified-at-source) claim as validated', () => {
+    render(<MifStudioPanel />);
+    const cosim = screen.getByText(/studio\.cosim\.v1/);
+    expect(cosim.closest('li')).toHaveAttribute('data-validated', 'yes');
+    const freshness = cosim.closest('li')?.querySelector('.mif-studio__freshness');
+    expect(freshness).toHaveAttribute('data-freshness', 'verified-at-source');
+    expect(cosim.closest('li')).not.toHaveTextContent('(floored)');
+  });
+
+  it('renders an undeclared-freshness claim as validated (the axis is additive)', () => {
+    const claims: readonly ClaimSummary[] = [
+      {
+        schema: 'studio.cosim.v1',
+        status: 'reference-validated',
+        admission: 'admitted',
+        kind: 'measured',
+      },
+    ];
+    render(<MifStudioPanel claims={claims} />);
+    const claim = screen.getByText(/studio\.cosim\.v1/);
+    expect(claim.closest('li')).toHaveAttribute('data-validated', 'yes');
+    expect(claim.closest('li')?.querySelector('.mif-studio__freshness')).toBeNull();
   });
 
   it('renders the reduced-order merge-trigger verbatim, not validated', () => {

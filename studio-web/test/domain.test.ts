@@ -57,6 +57,26 @@ describe('claimRendersAsValidated', () => {
       expect(claimRendersAsValidated(status, 'admitted')).toBe(false);
     }
   });
+
+  it('admits a reference-validated, admitted claim that is verified-at-source or undeclared', () => {
+    // Undeclared freshness is additive (unconstrained); verified-at-source clears the gate.
+    expect(claimRendersAsValidated('reference-validated', 'admitted', undefined)).toBe(true);
+    expect(claimRendersAsValidated('reference-validated', 'admitted', 'verified-at-source')).toBe(
+      true,
+    );
+  });
+
+  it('floors an otherwise-validated claim whose freshness is not verified-at-source', () => {
+    expect(claimRendersAsValidated('reference-validated', 'admitted', 'traceable-unchecked')).toBe(
+      false,
+    );
+    expect(claimRendersAsValidated('reference-validated', 'admitted', 'untraceable')).toBe(false);
+  });
+
+  it('never lets freshness promote a non-validated boundary', () => {
+    // verified-at-source on a bounded-model claim still does not render it validated.
+    expect(claimRendersAsValidated('bounded-model', 'admitted', 'verified-at-source')).toBe(false);
+  });
 });
 
 describe('MIF_VERBS', () => {
@@ -76,19 +96,31 @@ describe('MIF_VERBS', () => {
 });
 
 describe('MIF_CLAIMS', () => {
-  it('spans the evidence axes with two admissible and two bounded claims', () => {
-    expect(MIF_CLAIMS.filter((c) => claimRendersAsValidated(c.status, c.admission))).toHaveLength(
-      2,
+  it('spans the freshness interactions: one validated, three held at their boundary', () => {
+    // With freshness applied, only the freshly re-run (verified-at-source) cosim renders
+    // validated; the referenced formal proof floors, and the two bounded claims stay bounded.
+    const validated = MIF_CLAIMS.filter((c) =>
+      claimRendersAsValidated(c.status, c.admission, c.freshness),
     );
-    expect(MIF_CLAIMS.filter((c) => !claimRendersAsValidated(c.status, c.admission))).toHaveLength(
-      2,
-    );
+    expect(validated).toHaveLength(1);
+    expect(validated[0]?.schema).toBe('studio.cosim.v1');
     expect(MIF_CLAIMS.some((c) => c.kind === 'formally-proven')).toBe(true);
-    // The reduced-order merge-trigger is admitted but stays bounded-model.
+    // The formal proof is reference-validated + admitted but traceable-unchecked → floored.
+    const proof = MIF_CLAIMS.find((c) => c.schema === 'studio.formal-proof.v1');
+    expect(proof?.freshness).toBe('traceable-unchecked');
+    expect(proof && claimRendersAsValidated(proof.status, proof.admission, proof.freshness)).toBe(
+      false,
+    );
+    // The reduced-order merge-trigger is admitted + verified-at-source but stays bounded-model.
     const mergeTrigger = MIF_CLAIMS.find((c) => c.schema === 'studio.merge-trigger.v1');
     expect(mergeTrigger?.admission).toBe('admitted');
     expect(
-      mergeTrigger && claimRendersAsValidated(mergeTrigger.status, mergeTrigger.admission),
+      mergeTrigger &&
+        claimRendersAsValidated(
+          mergeTrigger.status,
+          mergeTrigger.admission,
+          mergeTrigger.freshness,
+        ),
     ).toBe(false);
   });
 
