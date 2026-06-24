@@ -41,8 +41,10 @@ jobs:
         # The studio vertical (scpn_mif_core.studio) consumes the published
         # scpn-studio-platform SDK; install it on this gate job so mypy and the 100%
         # coverage gate see it and tests/unit/studio/ executes (it importorskips
-        # where the SDK is absent) and the studio modules are covered.
-        run: pip install 'scpn-studio-platform>=0.2,<0.3'
+        # where the SDK is absent) and the studio modules are covered. Install the
+        # [studio] extra so the version tracks the single pin in pyproject.toml and
+        # never drifts from it as the SDK is bumped.
+        run: pip install -e ".[studio]"
       - name: ruff check
         run: ruff check src/ tests/ bench/ tools/
       - name: ruff format
