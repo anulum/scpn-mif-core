@@ -38,6 +38,8 @@ jobs:
             exit 1
           fi
       - run: python -m build
+      - name: Verify wheel package contents
+        run: python tools/check_wheel_contents.py dist
       - name: Attest build provenance (sigstore)
         uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32  # v4.1.0
         with:
