@@ -44,6 +44,7 @@ class MergeWindowSpec:
     reference_point_m: float = 0.0
 
     def __post_init__(self) -> None:
+        """Validate merge-window tolerances and required consecutive samples."""
         phase_tolerance = _require_finite("phase_tolerance_rad", self.phase_tolerance_rad)
         spatial_tolerance = _require_finite("spatial_tolerance_m", self.spatial_tolerance_m)
         reference = _require_finite("reference_point_m", self.reference_point_m)

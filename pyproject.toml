@@ -144,7 +144,6 @@ select = [
 ignore = [
     "E501",     # line length handled by formatter
     "S101",     # assert is fine in tests
-    "D105",     # magic methods validate invariants; public contracts are documented on classes and methods
     "D301",     # existing math docstrings use escaped LaTeX; content quality is enforced by D1xx/D2xx/D4xx
     "RUF003",   # EN DASH in copyright year ranges is the ANULUM branding standard
     "N803",     # SI-unit-suffixed argument names (initial_voltage_V) are intentional scientific convention

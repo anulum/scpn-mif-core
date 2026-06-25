@@ -67,6 +67,7 @@ class PulsedShotSpec:
     min_burn_duration_s: float = 0.0
 
     def __post_init__(self) -> None:
+        """Validate pulsed-shot FSM threshold parameters."""
         for field in (
             "min_precharge_energy_J",
             "ramp_current_A",
@@ -109,6 +110,7 @@ class PlasmaState:
     radial_velocity_m_s: float
 
     def __post_init__(self) -> None:
+        """Validate plasma-state telemetry used by shot scheduling."""
         for field in (
             "coil_current_A",
             "temperature_eV",
@@ -137,6 +139,7 @@ class BankTelemetry:
     energy_J: float
 
     def __post_init__(self) -> None:
+        """Validate bank telemetry and freeze the derived charge fraction."""
         voltage = _finite("voltage_V", self.voltage_V)
         voltage_max = _finite("voltage_max_V", self.voltage_max_V)
         energy = _finite("energy_J", self.energy_J)

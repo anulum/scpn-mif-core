@@ -95,6 +95,7 @@ class CapacitorBankSpec:
     safety_envelope: dict[str, float] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        """Validate capacitor-bank circuit constants and safety envelope values."""
         capacitance = _require_finite("capacitance_F", self.capacitance_F)
         inductance = _require_finite("inductance_H", self.inductance_H)
         resistance = _require_finite("series_resistance_ohm", self.series_resistance_ohm)
@@ -168,6 +169,7 @@ class PulseSpec:
     waveform: Literal["rect", "half_sine", "exp_decay"] = "half_sine"
 
     def __post_init__(self) -> None:
+        """Validate compression-pulse current, duration, and waveform label."""
         peak_current = _require_finite("peak_current_A", self.peak_current_A)
         duration = _require_finite("duration_s", self.duration_s)
         object.__setattr__(self, "peak_current_A", peak_current)

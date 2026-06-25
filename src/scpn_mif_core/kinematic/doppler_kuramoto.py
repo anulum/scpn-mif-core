@@ -87,6 +87,7 @@ class DopplerKuramotoSpec:
     omega_rate_rad_s2: ArrayLike | None = None
 
     def __post_init__(self) -> None:
+        """Validate oscillator arrays and freeze the Doppler-Kuramoto specification."""
         omega = _as_1d_float_array("omega_rad_s", self.omega_rad_s)
         coupling = _as_square_float_matrix("coupling_rad_s", self.coupling_rad_s)
         if coupling.shape != (omega.size, omega.size):

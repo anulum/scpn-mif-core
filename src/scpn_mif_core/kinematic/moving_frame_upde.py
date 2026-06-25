@@ -63,6 +63,7 @@ class MovingFrameUPDESpec:
     _phase_spec: DopplerKuramotoSpec = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
+        """Build and freeze the Doppler phase spec used by the moving-frame solver."""
         phase_spec = DopplerKuramotoSpec(
             omega_rad_s=self.omega_rad_s,
             coupling_rad_s=self.coupling_rad_s,

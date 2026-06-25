@@ -50,6 +50,7 @@ class DescriptorProfile:
     aer_addresses: tuple[int, ...]
 
     def __post_init__(self) -> None:
+        """Validate the descriptor profile identifier, channel count, and addresses."""
         if self.profile_id not in _PROFILE_CODES:
             raise ValueError("profile_id must be one of: helion_v1, tae_v1")
         if self.sample_period_ns <= 0:
@@ -80,6 +81,7 @@ class RawDaqFrame:
     values: tuple[float, ...]
 
     def __post_init__(self) -> None:
+        """Validate the raw DAQ frame metadata and finite payload values."""
         if self.mode not in _MODE_CODES:
             raise ValueError("mode must be one of: udp_multicast, pcie_dma_ring")
         if self.sequence < 0:
@@ -115,6 +117,7 @@ class ReplayConfig:
     min_replay_throughput_fps: float = 10_000.0
 
     def __post_init__(self) -> None:
+        """Validate replay mode, ring capacity, and throughput threshold."""
         if self.mode not in _MODE_CODES:
             raise ValueError("mode must be one of: udp_multicast, pcie_dma_ring")
         if self.ring_capacity <= 0:
@@ -157,6 +160,7 @@ class DataBusMock:
         return self._bound_endpoint
 
     def __len__(self) -> int:
+        """Return the number of frames currently held in the replay ring."""
         return len(self._frames)
 
     def bind(self, bind_addr: str) -> None:

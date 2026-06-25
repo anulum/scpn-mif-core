@@ -51,6 +51,7 @@ class DiagnosticFrame:
     samples: Mapping[str, float]
 
     def __post_init__(self) -> None:
+        """Validate timestamp and freeze finite diagnostic sample values."""
         if self.t_ns < 0:
             raise ValueError("t_ns must be non-negative")
         clean_samples = {str(name): _finite(str(name), value) for name, value in self.samples.items()}
@@ -64,6 +65,7 @@ class NoiseSpec:
     sigma_by_channel: Mapping[str, float]
 
     def __post_init__(self) -> None:
+        """Validate non-negative Gaussian-noise bounds by channel."""
         clean: dict[str, float] = {}
         for channel, sigma in self.sigma_by_channel.items():
             value = _finite(str(channel), sigma)
@@ -80,6 +82,7 @@ class DropoutSpec:
     probability_by_channel: Mapping[str, float]
 
     def __post_init__(self) -> None:
+        """Validate dropout probabilities by channel."""
         clean: dict[str, float] = {}
         for channel, probability in self.probability_by_channel.items():
             value = _finite(str(channel), probability)
@@ -105,6 +108,7 @@ class JitterSpec:
     signed: bool = True
 
     def __post_init__(self) -> None:
+        """Validate jitter bounds and application probability."""
         if self.min_ns < 0:
             raise ValueError("jitter min_ns must be non-negative")
         if self.max_ns < self.min_ns:
@@ -125,6 +129,7 @@ class StressInjectionConfig:
     jitter: JitterSpec = JitterSpec()
 
     def __post_init__(self) -> None:
+        """Validate deterministic stress-injection seed."""
         if self.seed < 0:
             raise ValueError("seed must be non-negative")
 
@@ -140,6 +145,7 @@ class StressEnvelope:
     phase_lock_tolerance_rad: float = 1.0e-2
 
     def __post_init__(self) -> None:
+        """Validate stress envelope limits used by campaign summaries."""
         clean: dict[str, float] = {}
         for channel, sigma in self.max_noise_sigma_by_channel.items():
             value = _finite(str(channel), sigma)

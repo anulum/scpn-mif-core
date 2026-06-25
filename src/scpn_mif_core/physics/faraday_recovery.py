@@ -73,6 +73,7 @@ class FaradayRecoverySpec:
     coupling_efficiency: float = 1.0
 
     def __post_init__(self) -> None:
+        """Validate coil turns, load resistance, and coupling efficiency."""
         turns = _require_finite("turns", self.turns)
         load = _require_finite("load_resistance_ohm", self.load_resistance_ohm)
         efficiency = _require_finite("coupling_efficiency", self.coupling_efficiency)

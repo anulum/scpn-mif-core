@@ -71,6 +71,7 @@ class PlasmoidMergerSpec:
     abort_density_asymmetry_max: float = 0.35
 
     def __post_init__(self) -> None:
+        """Validate Petri-net thresholds and abort limits."""
         for field in (
             "contact_separation_m",
             "min_closing_speed_m_s",
@@ -120,6 +121,7 @@ class MergerObservation:
     tilt_growth_rate_s: float
 
     def __post_init__(self) -> None:
+        """Validate observed plasmoid-merger state scalars."""
         for field in ("separation_m", "relative_velocity_m_s", "phase_lock_error_rad"):
             value = _finite(field, getattr(self, field))
             if value < 0.0:

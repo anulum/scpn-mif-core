@@ -53,6 +53,7 @@ class WhiteRabbitTimestamp:
     picoseconds: int = 0
 
     def __post_init__(self) -> None:
+        """Validate the timestamp fields without changing their precision."""
         for name in ("tai_seconds", "nanoseconds", "picoseconds"):
             if isinstance(getattr(self, name), bool) or not isinstance(getattr(self, name), int):
                 raise TypeError(f"{name} must be an integer")

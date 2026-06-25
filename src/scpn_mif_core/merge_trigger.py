@@ -148,6 +148,7 @@ class MergeTriggerScenario:
     expansion: ExpansionTrajectory | None = None
 
     def __post_init__(self) -> None:
+        """Validate cross-surface scenario shapes before trigger evaluation."""
         n = self.moving_frame.n_oscillators
         for name, value in (
             ("initial_phases_rad", self.initial_phases_rad),

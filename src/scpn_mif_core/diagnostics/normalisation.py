@@ -67,6 +67,7 @@ class DiagnosticChannelCalibration:
     aer_address: int | None = None
 
     def __post_init__(self) -> None:
+        """Validate channel labels, physical range, clip policy, and AER address."""
         _require_non_empty("name", self.name)
         _require_non_empty("unit", self.unit)
         _require_non_empty("provenance", self.provenance)
@@ -132,6 +133,7 @@ class NormalisedDiagnosticSample:
     sample_period_ns: int | None = None
 
     def __post_init__(self) -> None:
+        """Freeze the normalised features and validate masks and channel metadata."""
         features = _readonly_float_array(self.features)
         if features.ndim != 1:
             raise ValueError("features must be one-dimensional")

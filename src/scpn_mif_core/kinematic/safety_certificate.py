@@ -37,6 +37,7 @@ class KinematicSafetySpec:
     numerical_tolerance_m: float = 1.0e-12
 
     def __post_init__(self) -> None:
+        """Validate sampled safety-envelope parameters against the Lean budget."""
         tolerance = _require_finite("tolerance_m", self.tolerance_m)
         contraction = _require_finite("contraction", self.contraction)
         disturbance = _require_finite("disturbance_ratio", self.disturbance_ratio)

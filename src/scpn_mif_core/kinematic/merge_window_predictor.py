@@ -71,6 +71,7 @@ class MergeWindowPredictorWeights:
     provenance: str
 
     def __post_init__(self) -> None:
+        """Validate numeric weights and verified-surrogate calibration provenance."""
         fields = {
             "intercept": self.intercept,
             "phase_lock_error_weight": self.phase_lock_error_weight,

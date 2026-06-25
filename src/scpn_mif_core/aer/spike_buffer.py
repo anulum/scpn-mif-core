@@ -39,6 +39,7 @@ class AERSpikeEvent:
     polarity: int = 1
 
     def __post_init__(self) -> None:
+        """Validate and freeze the spike event address, timestamp, and polarity."""
         object.__setattr__(self, "address", _non_negative_int("address", self.address))
         object.__setattr__(self, "t_ns", _u64_int("t_ns", self.t_ns))
         polarity = _integer("polarity", self.polarity)
@@ -57,6 +58,7 @@ class AERDecodeSpec:
     start_ns: int | None = None
 
     def __post_init__(self) -> None:
+        """Validate the decode channel count, time window, and optional start."""
         object.__setattr__(self, "n_channels", _positive_int("n_channels", self.n_channels))
         object.__setattr__(self, "window_ns", _positive_u64_int("window_ns", self.window_ns))
         if self.strategy not in _STRATEGIES:
@@ -76,6 +78,7 @@ class AERDecodedObservation:
     spike_count: int
 
     def __post_init__(self) -> None:
+        """Freeze decoded features and validate observation counters."""
         features = _readonly(np.asarray(self.features, dtype=np.float64))
         if features.ndim != 1:
             raise ValueError("features must be a one-dimensional array")
@@ -99,6 +102,7 @@ class SpikeBuffer:
         self._last_t_ns: int | None = None
 
     def __len__(self) -> int:
+        """Return the number of buffered spike events."""
         return len(self._events)
 
     @property
