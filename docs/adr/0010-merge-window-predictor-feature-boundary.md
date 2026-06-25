@@ -10,8 +10,11 @@
 
 ## Status
 
-Accepted. The predictor (roadmap item M2) is **not built**; this ADR and the
-feature-boundary guard it mandates are the delivered precondition for building it.
+Accepted and implemented. The feature-boundary guard landed first; the predictor now
+ships as an advisory Python policy surface that consumes only the closed
+`MergeWindowFeatureVector`, requires runtime `verified-surrogate:` weights, emits
+conformal probability intervals, and remains subordinate to the existing safety/veto
+path.
 
 ## Context
 
@@ -65,12 +68,13 @@ deliver its enforcement now.
 
 ## Consequences
 
-- The precondition the critics required is now a hard, tested gate, not a promise:
+- The precondition the critics required is a hard, tested gate:
   `merge_window_features` ships with the boundary enumerated and fail-closed
   validation, wired into the curated facade ([ADR 0004](0004-curated-public-api-facade.md))
   and the capability manifest.
-- The predictor remains explicitly roadmap (M2), gated on item 3 above. Building it
-  before the surrogate seam exists would violate this ADR.
+- `merge_window_predictor` implements the M2 advisory only after the FUSION seam was
+  unblocked. It still rejects analytic-only weights by requiring verified-surrogate
+  provenance at runtime.
 - The guard is a contract check, not a numeric kernel, so it carries no
   multi-language acceleration path ([ADR 0002](0002-multi-language-acceleration-and-dispatch.md))
   — consistent with the dataclass spec validators.

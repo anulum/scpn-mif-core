@@ -8,15 +8,17 @@
 
 # Merge-Window Predictor Feature Boundary
 
-The roadmap grey-box merge-window predictor (M2) is **not built** — it is gated on a
-verified data surrogate. This module is its *delivered precondition*: the enumerated
-lock-window feature contract and the fail-closed guard that both adversarial critics
-of the SotA-trajectory study required before any predictor exists. See
+## Boundary status
+
+The grey-box merge-window predictor (M2) is now built on top of this boundary guard.
+This module remains its first line of defence: the enumerated lock-window feature
+contract and the fail-closed validator that both adversarial critics of the
+SotA-trajectory study required before the predictor could exist. See
 [ADR 0010](../../adr/0010-merge-window-predictor-feature-boundary.md) for the full
 decision and [ADR 0001](../../adr/0001-repository-scope-and-ownership-boundaries.md)
 for the ownership boundary it protects.
 
-## The boundary
+## Closed feature set
 
 A timing predictor predicts better the more plasma state it reads — and the more
 plasma state it reads, the further it creeps across the ownership boundary into
@@ -41,7 +43,9 @@ so a feature vector is lock-window by construction and never touches sibling phy
 
 This is a contract guard, not a numeric kernel — it enumerates and checks keys once
 per prediction, so it has no multi-language acceleration path, the same as the
-dataclass spec validators.
+dataclass spec validators. The predictor itself lives in
+[Merge-window predictor](merge_window_predictor.md) and revalidates this boundary before
+every advisory score.
 
 ## Python API
 
@@ -52,6 +56,5 @@ dataclass spec validators.
 ## Status
 
 The guard is delivered and gated into the curated facade and the capability manifest.
-The predictor it guards stays roadmap (M2) until the verified surrogate data seam
-exists; building it before then — or on analytic trajectories alone — would violate
-ADR 0010.
+The predictor consumes it directly and still rejects analytic-only weights by requiring
+runtime `verified-surrogate:` provenance.

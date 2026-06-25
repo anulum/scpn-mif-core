@@ -6,18 +6,18 @@
 | Surface | Current inventory |
 |---|---:|
 | Package version | 0.1.0 |
-| Public API exports | 167 |
-| Python capability source modules | 20 |
-| Python capability classes | 78 |
+| Public API exports | 171 |
+| Python capability source modules | 21 |
+| Python capability classes | 80 |
 | Rust workspace crates | 10 |
 | Julia reference modules | 9 |
 | Go parity sources | 2 |
 | Lean 4 proof modules | 8 |
 | Synthesisable HDL RTL modules | 4 |
-| Capability documentation pages | 48 |
+| Capability documentation pages | 49 |
 | Optional extras | 7 |
-| Python test files | 87 |
-| Public documentation pages | 48 |
+| Python test files | 88 |
+| Public documentation pages | 49 |
 | GitHub Actions workflows | 16 |
 
 Evidence boundary: this snapshot is a static inventory. Performance, coverage, hardware, and scientific-fidelity claims require their own committed evidence artifacts.

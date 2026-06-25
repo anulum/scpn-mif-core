@@ -280,6 +280,12 @@ from scpn_mif_core.kinematic import (
     MergeWindowMonitor as MergeWindowMonitor,
 )
 from scpn_mif_core.kinematic import (
+    MergeWindowPrediction as MergeWindowPrediction,
+)
+from scpn_mif_core.kinematic import (
+    MergeWindowPredictorWeights as MergeWindowPredictorWeights,
+)
+from scpn_mif_core.kinematic import (
     MergeWindowSample as MergeWindowSample,
 )
 from scpn_mif_core.kinematic import (
@@ -334,6 +340,9 @@ from scpn_mif_core.kinematic import (
     is_within_merge_window_boundary as is_within_merge_window_boundary,
 )
 from scpn_mif_core.kinematic import (
+    load_merge_window_predictor_weights as load_merge_window_predictor_weights,
+)
+from scpn_mif_core.kinematic import (
     merge_window_feature_vector as merge_window_feature_vector,
 )
 from scpn_mif_core.kinematic import (
@@ -344,6 +353,9 @@ from scpn_mif_core.kinematic import (
 )
 from scpn_mif_core.kinematic import (
     phase_lock_error as phase_lock_error,
+)
+from scpn_mif_core.kinematic import (
+    predict_merge_window as predict_merge_window,
 )
 from scpn_mif_core.kinematic import (
     validate_merge_window_features as validate_merge_window_features,
@@ -580,6 +592,8 @@ __all__ = [
     "MergeWindowFeatureBoundaryError",
     "MergeWindowFeatureVector",
     "MergeWindowMonitor",
+    "MergeWindowPrediction",
+    "MergeWindowPredictorWeights",
     "MergeWindowSample",
     "MergeWindowSpec",
     "MergeWindowTrace",
@@ -682,6 +696,7 @@ __all__ = [
     "kinematic",
     "lifecycle",
     "load_fusion_core",
+    "load_merge_window_predictor_weights",
     "magnetic_flux",
     "mapping_for",
     "merge_trigger",
@@ -690,6 +705,7 @@ __all__ = [
     "order_parameter",
     "phase_lock_error",
     "physics",
+    "predict_merge_window",
     "recovered_power",
     "render_compatibility_matrix",
     "tae_descriptor_profile",

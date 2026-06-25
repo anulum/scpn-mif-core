@@ -31,6 +31,7 @@
       "docs/api/kinematic/doppler_kuramoto.md",
       "docs/api/kinematic/merge_window.md",
       "docs/api/kinematic/merge_window_features.md",
+      "docs/api/kinematic/merge_window_predictor.md",
       "docs/api/kinematic/moving_frame_upde.md",
       "docs/api/kinematic/safety_certificate.md",
       "docs/api/lifecycle/capacitor_bank.md",
@@ -210,6 +211,14 @@
       {
         "name": "MergeWindowMonitor",
         "path": "src/scpn_mif_core/kinematic/merge_window.py"
+      },
+      {
+        "name": "MergeWindowPrediction",
+        "path": "src/scpn_mif_core/kinematic/merge_window_predictor.py"
+      },
+      {
+        "name": "MergeWindowPredictorWeights",
+        "path": "src/scpn_mif_core/kinematic/merge_window_predictor.py"
       },
       {
         "name": "MergeWindowSample",
@@ -408,6 +417,7 @@
       "src/scpn_mif_core/kinematic/doppler_kuramoto.py",
       "src/scpn_mif_core/kinematic/merge_window.py",
       "src/scpn_mif_core/kinematic/merge_window_features.py",
+      "src/scpn_mif_core/kinematic/merge_window_predictor.py",
       "src/scpn_mif_core/kinematic/moving_frame_upde.py",
       "src/scpn_mif_core/kinematic/safety_certificate.py",
       "src/scpn_mif_core/lifecycle/_rust_adapter.py",
@@ -462,19 +472,19 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 48,
+    "capability_documentation_pages": 49,
     "github_workflows": 16,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,
     "optional_extras": 7,
-    "public_api_exports": 167,
-    "public_documentation_pages": 48,
-    "python_capability_classes": 78,
-    "python_capability_source_modules": 20,
+    "public_api_exports": 171,
+    "public_documentation_pages": 49,
+    "python_capability_classes": 80,
+    "python_capability_source_modules": 21,
     "rust_workspace_crates": 10,
-    "test_files": 87
+    "test_files": 88
   },
   "documentation": {
     "public_pages": [
@@ -507,6 +517,7 @@
       "docs/api/kinematic/doppler_kuramoto.md",
       "docs/api/kinematic/merge_window.md",
       "docs/api/kinematic/merge_window_features.md",
+      "docs/api/kinematic/merge_window_predictor.md",
       "docs/api/kinematic/moving_frame_upde.md",
       "docs/api/kinematic/safety_certificate.md",
       "docs/api/lifecycle/capacitor_bank.md",
@@ -600,6 +611,8 @@
     "MergeWindowFeatureBoundaryError",
     "MergeWindowFeatureVector",
     "MergeWindowMonitor",
+    "MergeWindowPrediction",
+    "MergeWindowPredictorWeights",
     "MergeWindowSample",
     "MergeWindowSpec",
     "MergeWindowTrace",
@@ -703,6 +716,7 @@
     "kinematic",
     "lifecycle",
     "load_fusion_core",
+    "load_merge_window_predictor_weights",
     "magnetic_flux",
     "mapping_for",
     "merge_trigger",
@@ -711,6 +725,7 @@
     "order_parameter",
     "phase_lock_error",
     "physics",
+    "predict_merge_window",
     "recovered_power",
     "render_compatibility_matrix",
     "tae_descriptor_profile",
@@ -808,6 +823,7 @@
       "tests/unit/kinematic/test_doppler_kuramoto_rust_parity.py",
       "tests/unit/kinematic/test_merge_window.py",
       "tests/unit/kinematic/test_merge_window_features.py",
+      "tests/unit/kinematic/test_merge_window_predictor.py",
       "tests/unit/kinematic/test_merge_window_rust_parity.py",
       "tests/unit/kinematic/test_moving_frame_upde.py",
       "tests/unit/kinematic/test_moving_frame_upde_rust_parity.py",

@@ -46,6 +46,12 @@ from scpn_mif_core.kinematic.merge_window_features import (
     merge_window_feature_vector,
     validate_merge_window_features,
 )
+from scpn_mif_core.kinematic.merge_window_predictor import (
+    MergeWindowPrediction,
+    MergeWindowPredictorWeights,
+    load_merge_window_predictor_weights,
+    predict_merge_window,
+)
 from scpn_mif_core.kinematic.moving_frame_upde import (
     MovingFrameUPDE,
     MovingFrameUPDEReport,
@@ -130,6 +136,8 @@ __all__ = [
     "MergeWindowFeatureBoundaryError",
     "MergeWindowFeatureVector",
     "MergeWindowMonitor",
+    "MergeWindowPrediction",
+    "MergeWindowPredictorWeights",
     "MergeWindowSample",
     "MergeWindowSpec",
     "MergeWindowTrace",
@@ -148,9 +156,11 @@ __all__ = [
     "evaluate_merge_window_trace",
     "evaluate_moving_frame_upde",
     "is_within_merge_window_boundary",
+    "load_merge_window_predictor_weights",
     "merge_window_feature_vector",
     "moving_frame_derivatives",
     "order_parameter",
     "phase_lock_error",
+    "predict_merge_window",
     "validate_merge_window_features",
 ]

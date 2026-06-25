@@ -123,6 +123,7 @@ nav:
           - 0007 Validation and benchmark integrity: adr/0007-validation-and-benchmark-integrity.md
           - 0008 Combinational fast-veto lane: adr/0008-combinational-fast-veto-lane.md
           - 0009 Standards-interop seams: adr/0009-standards-interop-seams.md
+          - 0010 Merge-window predictor boundary: adr/0010-merge-window-predictor-feature-boundary.md
       - Standards:
           - Functional-safety readiness mapping: standards/safety_readiness_mapping.md
       - Validation:
@@ -139,6 +140,7 @@ nav:
           - Moving-frame UPDE: api/kinematic/moving_frame_upde.md
           - Merge-window monitor: api/kinematic/merge_window.md
           - Merge-window feature boundary: api/kinematic/merge_window_features.md
+          - Merge-window predictor: api/kinematic/merge_window_predictor.md
           - Safety certificate: api/kinematic/safety_certificate.md
       - Lifecycle:
           - Pulsed-shot FSM: api/lifecycle/pulsed_shot_fsm.md
