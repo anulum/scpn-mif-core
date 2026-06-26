@@ -32,7 +32,7 @@ from .verbs import MIF_VERBS, STUDIO_ID, evidence_schemas
 STUDIO_VERSION = __version__
 """The MIF studio version this manifest stamps (the package version)."""
 
-PLATFORM_SDK_RANGE = ">=0.8,<0.9"
+PLATFORM_SDK_RANGE = ">=0.10,<0.11"
 """The platform SDK SemVer range the studio builds on (matches the ``[studio]`` pin)."""
 
 PROTOCOL_VERSION = "1"

@@ -486,7 +486,7 @@
     "python_capability_classes": 80,
     "python_capability_source_modules": 21,
     "rust_workspace_crates": 10,
-    "test_files": 93
+    "test_files": 94
   },
   "documentation": {
     "public_pages": [
@@ -866,6 +866,7 @@
       "tests/unit/test_makefile_roadmap_targets.py",
       "tests/unit/test_merge_trigger.py",
       "tests/unit/test_public_api_facade.py",
+      "tests/unit/test_public_interactive_surfaces.py",
       "tests/unit/test_security_documentation.py",
       "tests/unit/test_studio_manifest.py",
       "tests/unit/test_update_dispatch.py",

@@ -31,6 +31,9 @@
 [![Go: 1.23](https://img.shields.io/badge/go-1.23-00ADD8.svg)](go.mod)
 [![Status: pre-alpha](https://img.shields.io/badge/status-pre--alpha-red.svg)](#status)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20768029.svg)](https://doi.org/10.5281/zenodo.20768029)
+[![Sponsor](https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/anulum)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/anulum/scpn-mif-core/blob/main/notebooks/merge_trigger_quickstart.ipynb)
+[![Launch Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/anulum/scpn-mif-core/main?labpath=notebooks%2Fmerge_trigger_quickstart.ipynb)
 
 Deterministic phase synchronisation and hardware synthesis for high-beta
 pulsed magneto-inertial fusion plasmas on field-reversed configurations.
@@ -98,7 +101,9 @@ By audience: a **researcher** evaluating fit starts with the
 sibling readiness reads the
 [dynamic compatibility matrix](docs/generated/compatibility_matrix.md); a
 **contributor** reads [CONTRIBUTING](CONTRIBUTING.md); a **security researcher**
-reads [SECURITY](SECURITY.md); to cite the work, use [CITATION.cff](CITATION.cff).
+reads [SECURITY](SECURITY.md); an interactive reader can open the
+[merge-trigger notebook](notebooks/merge_trigger_quickstart.ipynb) in Colab or
+Binder; to cite the work, use [CITATION.cff](CITATION.cff).
 
 ## Tutorial — your first merge-trigger decision
 
@@ -130,6 +135,9 @@ pulsed-shot lifecycle and both campaigns — and writes their JSON and figure
 artifacts in about forty seconds (the figures need the `demo` extra,
 `pip install "scpn-mif-core[demo]"`). For the full guided walk-through see the
 [getting started guide](docs/guides/getting_started.md).
+For an interactive version of the same first decision, open
+[`notebooks/merge_trigger_quickstart.ipynb`](notebooks/merge_trigger_quickstart.ipynb)
+locally, in Colab, or through Binder.
 
 ## How-to guides
 
@@ -437,7 +445,7 @@ and the hardware trigger chain are still gated (see the items above).
 | Synthesisable HDL RTL modules | 4 |
 | Capability documentation pages | 51 |
 | Optional extras | 7 |
-| Python test files | 93 |
+| Python test files | 94 |
 | Public documentation pages | 51 |
 | GitHub Actions workflows | 16 |
 

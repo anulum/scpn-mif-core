@@ -8,7 +8,7 @@
     "studio.formal-proof.v1",
     "studio.merge-trigger.v1"
   ],
-  "platform_sdk": ">=0.8,<0.9",
+  "platform_sdk": ">=0.10,<0.11",
   "protocol_version": "1",
   "studio": "scpn-mif-core",
   "studio_version": "0.1.0",

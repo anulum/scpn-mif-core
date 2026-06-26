@@ -34,7 +34,7 @@ JsonDict = dict[str, Any]
 CONTRACT_ERA = "v1"
 PROTOCOL_VERSION = "1"
 TRANSPORT_PROFILE = "local-first"
-PLATFORM_SDK_RANGE = ">=0.8,<0.9"
+PLATFORM_SDK_RANGE = ">=0.10,<0.11"
 
 # Locked v1 schema-A verb-attribute enumerations (§2.3).
 SAFETY_TIERS = frozenset({"research", "certified", "production"})
