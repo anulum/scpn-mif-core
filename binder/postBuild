@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Binder runs this from the checked-out repository after dependency resolution.
+python -m pip install --no-deps -e ".[demo]"

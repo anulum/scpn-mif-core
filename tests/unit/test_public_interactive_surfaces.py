@@ -45,9 +45,11 @@ def test_readme_exposes_configured_sponsor_and_notebook_badges() -> None:
 
 def test_binder_environment_installs_current_checkout_demo_extra() -> None:
     requirements = _read("binder/requirements.txt")
+    post_build = _read("binder/postBuild")
 
-    assert "-e .[demo]" in requirements
+    assert "-e ." not in requirements
     assert "jupyterlab" in requirements
+    assert 'python -m pip install --no-deps -e ".[demo]"' in post_build
 
 
 def test_merge_trigger_notebook_runs_real_public_api_without_outputs() -> None:

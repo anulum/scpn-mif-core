@@ -1,4 +1,2 @@
-# Binder installs the checked-out repository, not the last PyPI wheel.
--e .[demo]
 jupyterlab>=4.0
 ipykernel>=6.0

@@ -11,8 +11,7 @@ from __future__ import annotations
 
 import copy
 from collections.abc import Callable
-
-import pytest
+from typing import Any
 
 from scpn_mif_core._version import __version__
 from scpn_mif_core.studio_manifest import (
@@ -20,7 +19,16 @@ from scpn_mif_core.studio_manifest import (
     validate_capability_manifest,
 )
 
-_Mutator = Callable[[dict], object]
+_Manifest = dict[str, Any]
+_Mutator = Callable[[_Manifest], object]
+
+
+def _validation_error_for(manifest: _Manifest) -> str:
+    try:
+        validate_capability_manifest(manifest)
+    except ValueError as exc:
+        return str(exc)
+    raise AssertionError("manifest mutation did not fail")
 
 
 def test_manifest_structure() -> None:
@@ -30,7 +38,7 @@ def test_manifest_structure() -> None:
     assert manifest["transport_profile"] == "local-first"
     assert manifest["studio"] == "scpn-mif-core"
     assert manifest["studio_version"] == __version__
-    assert manifest["platform_sdk"] == ">=0.8,<0.9"
+    assert manifest["platform_sdk"] == ">=0.10,<0.11"
     assert manifest["content_digest"].startswith("sha256:")
     assert manifest["enumeration"] == "language-agnostic"
 
@@ -62,9 +70,8 @@ def test_valid_manifest_passes_validation() -> None:
     validate_capability_manifest(mif_capability_manifest())  # must not raise
 
 
-@pytest.mark.parametrize(
-    ("mutate", "match"),
-    [
+def test_validate_rejects_nonconformant_manifest() -> None:
+    cases: tuple[tuple[_Mutator, str], ...] = (
         (lambda m: m.pop("studio_version"), "studio_version is required"),
         (lambda m: m.update(contract_era="v2"), "contract_era must be"),
         (lambda m: m.update(enumeration="python-ast"), "enumeration must be"),
@@ -78,10 +85,9 @@ def test_valid_manifest_passes_validation() -> None:
         (lambda m: m["verbs"][0].update(produces=[]), "produces must be a non-empty list"),
         (lambda m: m["verbs"][0].update(backends="rust"), "backends must be a list"),
         (lambda m: m.update(evidence_types=["studio.bogus.v1"]), "evidence_types must equal"),
-    ],
-)
-def test_validate_rejects_nonconformant_manifest(mutate: _Mutator, match: str) -> None:
-    manifest = copy.deepcopy(mif_capability_manifest())
-    mutate(manifest)
-    with pytest.raises(ValueError, match=match):
-        validate_capability_manifest(manifest)
+    )
+
+    for mutate, match in cases:
+        manifest = copy.deepcopy(mif_capability_manifest())
+        mutate(manifest)
+        assert match in _validation_error_for(manifest)
