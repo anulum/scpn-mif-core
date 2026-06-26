@@ -27,6 +27,13 @@ the internal external-source register under `docs/external_sources/`.
 - Dudson, B. D., et al. (2015). *BOUT++: recent and current developments.*
   Journal of Plasma Physics 81, 365810104.
 
+## Pulsed-power and trigger prior art
+
+- Moffett, M. B., Chesny, D. L. (2026). *Solid-state switch arrays for digitized
+  plasma control and magneto-inertial fusion applications.* U.S. Patent
+  `US 12,567,738 B1`, assignee Equilibria Power. See the
+  [US12567738B1 source note](us12567738b1.md) for the MIF citation boundary.
+
 ## Kinematic synchronisation
 
 - O'Keeffe, K. P., Hong, H., Strogatz, S. H. (2017). *Oscillators that sync
