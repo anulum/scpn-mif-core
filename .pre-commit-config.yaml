@@ -43,6 +43,12 @@ repos:
         language: system
         pass_filenames: false
 
+      - id: check-readme-version-mentions
+        name: README package-version prose drift gate
+        entry: python tools/check_readme_version_mentions.py .
+        language: system
+        pass_filenames: false
+
       - id: check-secrets
         name: secret-pattern scan
         entry: python tools/check_secrets.py

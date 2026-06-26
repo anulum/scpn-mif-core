@@ -484,7 +484,7 @@
     "python_capability_classes": 80,
     "python_capability_source_modules": 21,
     "rust_workspace_crates": 10,
-    "test_files": 89
+    "test_files": 90
   },
   "documentation": {
     "public_pages": [
@@ -845,6 +845,7 @@
       "tests/unit/studio/__init__.py",
       "tests/unit/studio/test_studio_vertical.py",
       "tests/unit/test_capability_manifest.py",
+      "tests/unit/test_check_readme_version_mentions.py",
       "tests/unit/test_check_wheel_contents.py",
       "tests/unit/test_cli.py",
       "tests/unit/test_dispatch.py",
