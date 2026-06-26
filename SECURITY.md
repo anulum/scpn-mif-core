@@ -6,10 +6,10 @@
 
 | Version | Supported          |
 |---------|--------------------|
-| 0.0.x   | :white_check_mark: (current alpha) |
+| 0.1.x   | :white_check_mark: (current pre-alpha line) |
 
-Only the latest `0.0.x` alpha receives security fixes during the pre-PoC
-phase. Production stability tier is declared starting at `0.1.0`.
+Only the latest `0.1.x` pre-alpha line receives security fixes during the
+pre-PoC phase. A production stability tier is not declared yet.
 
 ## Reporting a Vulnerability
 
@@ -54,8 +54,10 @@ default configuration. Security concerns are primarily:
 - **RNG isolation:** All stochastic modules use scoped `numpy.random.Generator`
   instances; no use of the global module-level RNG.
 - **Pre-commit:** `ruff`, `ruff-format`, `typos`, merge-conflict detection,
-  `tools/check_sync_tags.py`, `tools/check_secrets.py`, and repository-scoped
-  secret scan (`gitleaks`) run in CI through both workflow and local hooks.
+  `tools/check_sync_tags.py`, and `tools/check_secrets.py` run through local
+  hooks; CI also runs `tools/check_secrets.py --tree .` as a repository-wide
+  secret-pattern scan. GitHub secret scanning and push protection are enabled
+  on the public repository.
 - **Pre-push:** `tools/preflight.py` runs the full local quality gate.
 - **Formal verification:** Sub-50-nanosecond triggering surface is gated by
   SymbiYosys, nuXmv, and Kind 2 proofs (see `hdl/formal/`).

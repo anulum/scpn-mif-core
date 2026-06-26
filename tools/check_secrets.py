@@ -8,10 +8,10 @@
 # SCPN-MIF-CORE — basic secret-pattern scanner.
 """Scan the staged diff (or a target tree) for credential-shaped strings.
 
-This is a defence-in-depth supplement to `gitleaks` per
-`agentic-shared/CLAUDE_RULES.md` §Credentials in Documentation. It is
-intentionally narrow: only patterns that the ecosystem has historically
-leaked are checked. False positives are preferable to false negatives.
+This is a defence-in-depth supplement to native GitHub secret scanning and push
+protection. It is intentionally narrow: only patterns that the ecosystem has
+historically leaked are checked. False positives are preferable to false
+negatives.
 
 Usage:
     python tools/check_secrets.py            # scan staged files
