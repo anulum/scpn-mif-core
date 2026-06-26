@@ -39,6 +39,12 @@ the internal external-source register under `docs/external_sources/`.
 - Tabuada, P., Wang, X. (2007). *Preliminary results on state-triggered
   scheduling of stabilising control tasks.* CDC 2006.
 
+## Latent dynamical-system discovery
+
+- Muratore, P., Mathis, M. W. (2026). *Extracting Governing Equations from
+  Latent Dynamics via Multi-View Contrastive Learning.* arXiv:2606.13260.
+  See the [DYSCO latent dynamics study](dysco.md) for the MIF scope boundary.
+
 ## Neuromorphic + SNN-to-RTL
 
 - Khalfaoui-Hassani, I., Pellegrini, T., Masquelier, T. (2023). *Dilated

@@ -48,6 +48,7 @@
       "docs/generated/compatibility_matrix.md",
       "docs/guides/getting_started.md",
       "docs/index.md",
+      "docs/papers/dysco.md",
       "docs/papers/index.md",
       "docs/standards/safety_readiness_mapping.md",
       "docs/validation/belova_merge_reproduction.md"
@@ -472,7 +473,7 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 49,
+    "capability_documentation_pages": 50,
     "github_workflows": 16,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
@@ -480,11 +481,11 @@
     "lean_proof_modules": 8,
     "optional_extras": 7,
     "public_api_exports": 171,
-    "public_documentation_pages": 49,
+    "public_documentation_pages": 50,
     "python_capability_classes": 80,
     "python_capability_source_modules": 21,
     "rust_workspace_crates": 10,
-    "test_files": 90
+    "test_files": 91
   },
   "documentation": {
     "public_pages": [
@@ -534,6 +535,7 @@
       "docs/generated/compatibility_matrix.md",
       "docs/guides/getting_started.md",
       "docs/index.md",
+      "docs/papers/dysco.md",
       "docs/papers/index.md",
       "docs/standards/safety_readiness_mapping.md",
       "docs/validation/belova_merge_reproduction.md"
@@ -849,6 +851,7 @@
       "tests/unit/test_check_wheel_contents.py",
       "tests/unit/test_cli.py",
       "tests/unit/test_dispatch.py",
+      "tests/unit/test_dysco_documentation.py",
       "tests/unit/test_ecosystem_dynamic_matrix.py",
       "tests/unit/test_emit_studio_manifest.py",
       "tests/unit/test_evidence.py",

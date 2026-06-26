@@ -28,6 +28,7 @@ below.
 |---|---|---|---|---|---|
 | Belova et al. (2025) | Hybrid simulations of FRC merging and compression. arXiv:2501.03425 | https://arxiv.org/abs/2501.03425 | N3 Belova merge/no-merge reproduction; the prescribed FRC physics MIF delegates upstream | 2026-06-20 (abstract + body §3.1–3.2 read; constants text-stated) | arXiv non-exclusive — local-only `pdfs/arXiv_2501.03425.pdf` (gitignored) |
 | Govorkova et al. (2026) | Ultra-low-latency ML inference on FPGA for physics triggering with hls4ml. arXiv:2602.15751 | https://arxiv.org/abs/2602.15751 | Competitive/SotA context (measured ns-scale FPGA trigger latency) | 2026-06-20 (audit critic verified 25 ns / PolarFire / 234 MHz at source) | arXiv non-exclusive — local-only `pdfs/arXiv_2602.15751.pdf` (gitignored) |
+| Muratore & Mathis (2026) | Extracting Governing Equations from Latent Dynamics via Multi-View Contrastive Learning. arXiv:2606.13260 | https://arxiv.org/abs/2606.13260 | DYSCO study for future diagnostics-identification boundaries; public note in `docs/papers/dysco.md` | 2026-06-26 (arXiv record + v1 PDF read; affine-gauge and limitation notes checked) | arXiv non-exclusive — local-only PDF, not committed |
 | Moffett & Chesny (2026) | Solid-state switch arrays for digitized plasma control and magneto-inertial fusion applications. US Patent 12,567,738 B1, assignee Equilibria Power | https://patents.google.com/patent/US12567738B1/en | Prior-art context for the chamber-side trigger lane | 2026-06-21 (assignee + title + inventors read at source) | US patent — public domain; **committed** `US12567738B1.pdf` (37 pp, USPTO scan) |
 | Yosys / SymbiYosys | YosysHQ Open SYnthesis Suite + formal flow | https://github.com/YosysHQ/yosys | The open-source synthesis + formal-verification toolchain MIF's MIF-010 proofs run on | tool, in use | ISC (open) — upstream repo |
 
@@ -47,6 +48,7 @@ Re-fetch on a fresh checkout with:
 mkdir -p docs/external_sources/pdfs
 curl -L -o docs/external_sources/pdfs/arXiv_2501.03425.pdf https://arxiv.org/pdf/2501.03425  # Belova et al. (FRC merging/compression)
 curl -L -o docs/external_sources/pdfs/arXiv_2602.15751.pdf https://arxiv.org/pdf/2602.15751  # Govorkova et al. (hls4ml)
+curl -L -o docs/external_sources/pdfs/arXiv_2606.13260.pdf https://arxiv.org/pdf/2606.13260  # Muratore & Mathis (DYSCO latent dynamics)
 curl -L -o docs/external_sources/pdfs/arXiv_1411.4028.pdf  https://arxiv.org/pdf/1411.4028   # Farhi et al. (QAOA, referenced in docs/papers)
 # Public-domain patent (committed, not in pdfs/):
 curl -L -o docs/external_sources/US12567738B1.pdf https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/12567738
