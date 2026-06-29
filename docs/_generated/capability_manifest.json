@@ -25,6 +25,7 @@
       "docs/api/formal/plasmoid_merger_petri_net.md",
       "docs/api/formal/pulsed_shot.md",
       "docs/api/fpga/adc_to_spike_quantiser.md",
+      "docs/api/fpga/timing_evidence_package.md",
       "docs/api/index.md",
       "docs/api/interop/imas_mapping.md",
       "docs/api/interop/trigger_io.md",
@@ -40,6 +41,7 @@
       "docs/api/merge_trigger.md",
       "docs/api/physics/faraday_recovery.md",
       "docs/api/physics/fusion_frc_contract.md",
+      "docs/api/physics/fusion_merge_window_replay.md",
       "docs/api/studio_manifest.md",
       "docs/api/studio_vertical.md",
       "docs/architecture/index.md",
@@ -179,6 +181,10 @@
         "path": "src/scpn_mif_core/physics/faraday_recovery.py"
       },
       {
+        "name": "FusionCompressionStroke",
+        "path": "src/scpn_mif_core/physics/fusion_merge_window_replay.py"
+      },
+      {
         "name": "FusionFRCContractReport",
         "path": "src/scpn_mif_core/physics/fusion_frc_contract.py"
       },
@@ -189,6 +195,10 @@
       {
         "name": "FusionFRCSurfaceReport",
         "path": "src/scpn_mif_core/physics/fusion_frc_contract.py"
+      },
+      {
+        "name": "FusionMergeWindowFixture",
+        "path": "src/scpn_mif_core/physics/fusion_merge_window_replay.py"
       },
       {
         "name": "JitterSpec",
@@ -428,7 +438,8 @@
       "src/scpn_mif_core/lifecycle/pulsed_shot_fsm.py",
       "src/scpn_mif_core/physics/_rust_adapter.py",
       "src/scpn_mif_core/physics/faraday_recovery.py",
-      "src/scpn_mif_core/physics/fusion_frc_contract.py"
+      "src/scpn_mif_core/physics/fusion_frc_contract.py",
+      "src/scpn_mif_core/physics/fusion_merge_window_replay.py"
     ],
     "rust_workspace_crates": [
       {
@@ -474,7 +485,7 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 51,
+    "capability_documentation_pages": 53,
     "github_workflows": 16,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
@@ -482,11 +493,11 @@
     "lean_proof_modules": 8,
     "optional_extras": 7,
     "public_api_exports": 171,
-    "public_documentation_pages": 51,
-    "python_capability_classes": 80,
-    "python_capability_source_modules": 21,
+    "public_documentation_pages": 53,
+    "python_capability_classes": 82,
+    "python_capability_source_modules": 22,
     "rust_workspace_crates": 10,
-    "test_files": 94
+    "test_files": 97
   },
   "documentation": {
     "public_pages": [
@@ -513,6 +524,7 @@
       "docs/api/formal/plasmoid_merger_petri_net.md",
       "docs/api/formal/pulsed_shot.md",
       "docs/api/fpga/adc_to_spike_quantiser.md",
+      "docs/api/fpga/timing_evidence_package.md",
       "docs/api/index.md",
       "docs/api/interop/imas_mapping.md",
       "docs/api/interop/trigger_io.md",
@@ -528,6 +540,7 @@
       "docs/api/merge_trigger.md",
       "docs/api/physics/faraday_recovery.md",
       "docs/api/physics/fusion_frc_contract.md",
+      "docs/api/physics/fusion_merge_window_replay.md",
       "docs/api/studio_manifest.md",
       "docs/api/studio_vertical.md",
       "docs/architecture/index.md",
@@ -815,6 +828,7 @@
       "tests/unit/fpga/test_formal_manifest.py",
       "tests/unit/fpga/test_mif_trigger_fabric_hdl.py",
       "tests/unit/fpga/test_run_formal.py",
+      "tests/unit/fpga/test_timing_evidence_package.py",
       "tests/unit/fpga/test_trigger_fabric_reference.py",
       "tests/unit/fpga/test_trigger_latency_budget.py",
       "tests/unit/interop/__init__.py",
@@ -846,6 +860,7 @@
       "tests/unit/physics/test_faraday_recovery_mojo_parity.py",
       "tests/unit/physics/test_faraday_recovery_rust_parity.py",
       "tests/unit/physics/test_fusion_frc_contract.py",
+      "tests/unit/physics/test_fusion_merge_window_replay.py",
       "tests/unit/studio/__init__.py",
       "tests/unit/studio/test_studio_vertical.py",
       "tests/unit/test_capability_manifest.py",
@@ -871,6 +886,7 @@
       "tests/unit/test_studio_manifest.py",
       "tests/unit/test_update_dispatch.py",
       "tests/unit/test_uspto_patent_documentation.py",
+      "tests/unit/test_validate_sota_evidence_ledger.py",
       "tests/unit/test_verify_version_floors.py",
       "tests/unit/test_version.py"
     ]
