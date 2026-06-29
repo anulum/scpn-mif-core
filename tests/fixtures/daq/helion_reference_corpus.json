@@ -1,0 +1,70 @@
+{
+  "schema": "scpn-mif-core/daq-reference-corpus/1.0.0",
+  "corpus_id": "helion_v1_synthetic_reference_20260629",
+  "capture_state": "synthetic_reference",
+  "profile_id": "helion_v1",
+  "mode": "udp_multicast",
+  "bind_endpoint": "239.10.0.1:5000",
+  "provenance": {
+    "source": "deterministic MIF-018 wire-contract reference fixture",
+    "captured_from_hardware": false,
+    "generated_by": "scpn_mif_core.daq.RawDaqFrame.to_bytes",
+    "generated_utc": "2026-06-29T12:30:00Z",
+    "claim_boundary": "This corpus validates replay and wire-contract handling only; it is not calibrated captured diagnostic evidence."
+  },
+  "calibration": {
+    "temperature_eV": {
+      "unit": "eV",
+      "scale": 1.0,
+      "offset": 0.0,
+      "source": "synthetic descriptor reference"
+    },
+    "density_m3": {
+      "unit": "m^-3",
+      "scale": 1.0,
+      "offset": 0.0,
+      "source": "synthetic descriptor reference"
+    },
+    "bdot_V": {
+      "unit": "V",
+      "scale": 1.0,
+      "offset": 0.0,
+      "source": "synthetic descriptor reference"
+    },
+    "bdot_dv_dt": {
+      "unit": "V/s",
+      "scale": 1.0,
+      "offset": 0.0,
+      "source": "synthetic descriptor reference"
+    }
+  },
+  "frames": [
+    {
+      "sequence": 7,
+      "t_ns": 1000,
+      "raw_hex": "4d49464441513100010001010700000000000000e803000000000000040000002000000003e1974b0000000000407f4092d54d06cff06044000000000000e0bf0000000084d79741",
+      "decoded": {
+        "temperature_eV": 500.0,
+        "density_m3": 2.5e21,
+        "bdot_V": -0.5,
+        "bdot_dv_dt": 100000000.0
+      }
+    },
+    {
+      "sequence": 8,
+      "t_ns": 1050,
+      "raw_hex": "4d494644415131000100010108000000000000001a04000000000000040000002000000036472d080000000000687f400cf80ecf80136144cdccccccccccdcbf00000000b1089941",
+      "decoded": {
+        "temperature_eV": 502.5,
+        "density_m3": 2.52e21,
+        "bdot_V": -0.45,
+        "bdot_dv_dt": 105000000.0
+      }
+    }
+  ],
+  "negative_frames": {
+    "corrupt_checksum_hex": "4d49464441513100010001010700000000000000e803000000000000040000002000000003e1974b0000000000407f4092d54d06cff06044000000000000e0bf0000000084d79740",
+    "timestamp_regression_hex": "4d4946444151310001000101090000000000000084030000000000000400000020000000649704ea0000000000707f4049896fb3d92461449a9999999999d9bf00000000ba459941",
+    "profile_mismatch_tae_hex": "4d49464441513100010001020a000000000000004c040000000000000400000020000000e44bf4080000000000c08240d8a0f985c8d04d4400000000000012407b14ae47e17a943f"
+  }
+}

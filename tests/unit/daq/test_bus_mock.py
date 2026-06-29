@@ -9,9 +9,11 @@
 
 from __future__ import annotations
 
+import json
 import struct
 from collections.abc import Callable
-from typing import cast
+from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
@@ -28,6 +30,13 @@ from scpn_mif_core.daq import (
     tae_descriptor_profile,
 )
 from scpn_mif_core.daq.bus_mock import DeliveryMode
+
+REPO = Path(__file__).resolve().parents[3]
+DAQ_FIXTURE = REPO / "tests" / "fixtures" / "daq" / "helion_reference_corpus.json"
+
+
+def _fixture() -> dict[str, Any]:
+    return cast(dict[str, Any], json.loads(DAQ_FIXTURE.read_text(encoding="utf-8")))
 
 
 def _fnv1a32_for_wire_contract(payload: bytes) -> int:
@@ -140,6 +149,70 @@ def test_byte_stable_helion_udp_fixture_round_trips() -> None:
         "4d49464441513100010001010700000000000000e8030000000000000400000020000000"
         "03e1974b0000000000407f4092d54d06cff06044000000000000e0bf0000000084d79741"
     )
+
+
+def test_reference_corpus_declares_non_captured_claim_boundary() -> None:
+    corpus = _fixture()
+
+    assert corpus["schema"] == "scpn-mif-core/daq-reference-corpus/1.0.0"
+    assert corpus["capture_state"] == "synthetic_reference"
+    assert corpus["provenance"]["captured_from_hardware"] is False
+    assert "not calibrated captured diagnostic evidence" in corpus["provenance"]["claim_boundary"]
+
+
+def test_reference_corpus_decodes_raw_frames_and_calibration_manifest() -> None:
+    corpus = _fixture()
+    profile = helion_descriptor_profile()
+
+    assert corpus["profile_id"] == profile.profile_id
+    assert set(corpus["calibration"]) == set(profile.channels)
+    for channel, unit in zip(profile.channels, profile.units, strict=True):
+        calibration = corpus["calibration"][channel]
+        assert calibration["unit"] == unit
+        assert calibration["scale"] == 1.0
+        assert calibration["offset"] == 0.0
+
+    for entry in corpus["frames"]:
+        frame = decode_daq_frame(bytes.fromhex(entry["raw_hex"]), profile)
+        sample = frame.to_diagnostic_frame()
+        assert frame.sequence == entry["sequence"]
+        assert frame.t_ns == entry["t_ns"]
+        assert dict(sample.samples) == entry["decoded"]
+
+
+def test_reference_corpus_replays_through_public_daq_api() -> None:
+    corpus = _fixture()
+    bus = DataBusMock(ReplayConfig(mode="udp_multicast", profile=helion_descriptor_profile()))
+    bus.bind(corpus["bind_endpoint"])
+
+    for entry in corpus["frames"]:
+        bus.inject_frame(bytes.fromhex(entry["raw_hex"]))
+
+    emitted = [bus.emit_diagnostic_sample(), bus.emit_diagnostic_sample()]
+    assert [sample.t_ns for sample in emitted if sample is not None] == [1000, 1050]
+    assert emitted[0] is not None
+    assert emitted[0].samples["bdot_V"] == -0.5
+    assert emitted[1] is not None
+    assert emitted[1].samples["bdot_dv_dt"] == 105000000.0
+    assert bus.emit_diagnostic_sample() is None
+
+
+def test_reference_corpus_negative_frames_fail_closed() -> None:
+    corpus = _fixture()
+    profile = helion_descriptor_profile()
+    negative = corpus["negative_frames"]
+
+    with pytest.raises(ValueError, match="checksum"):
+        decode_daq_frame(bytes.fromhex(negative["corrupt_checksum_hex"]), profile)
+    with pytest.raises(ValueError, match="descriptor profile"):
+        decode_daq_frame(bytes.fromhex(negative["profile_mismatch_tae_hex"]), profile)
+
+    bus = DataBusMock(ReplayConfig(mode="udp_multicast", profile=profile))
+    bus.inject_frame(bytes.fromhex(corpus["frames"][0]["raw_hex"]))
+    with pytest.raises(ValueError, match="sequence"):
+        bus.inject_frame(bytes.fromhex(corpus["frames"][0]["raw_hex"]))
+    with pytest.raises(ValueError, match="timestamps"):
+        bus.inject_frame(bytes.fromhex(negative["timestamp_regression_hex"]))
 
 
 def test_udp_multicast_mock_validates_endpoint_and_emits_diagnostic_sample() -> None:

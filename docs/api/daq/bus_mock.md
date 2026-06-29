@@ -53,9 +53,21 @@ The PCIe DMA ring mock is allocated to Python and Rust.
 
 ## Validation
 
+### Reference corpus
+
+The tracked DAQ corpus at
+`tests/fixtures/daq/helion_reference_corpus.json` is a deterministic MIF-018
+wire-contract fixture. It contains raw frame hex, decoded semantic samples, a
+calibration/provenance manifest, and negative frames for checksum, sequence,
+timestamp, and profile-mismatch rejection. The corpus is explicitly labelled
+`synthetic_reference`: it validates replay and frame handling, but it is **not**
+calibrated captured hardware evidence and must not be used as a HIL claim.
+
 The committed tests verify:
 
 - exact byte fixture and round-trip decode for the Helion UDP profile;
+- reference-corpus raw frame replay, decoded sample equality, calibration
+  manifest coverage, and explicit non-captured provenance;
 - Helion and TAE descriptor profiles;
 - UDP multicast endpoint validation;
 - PCIe ring overwrite and drop accounting;
