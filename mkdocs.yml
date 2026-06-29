@@ -166,6 +166,7 @@ nav:
           - Plasmoid-merger Petri net: api/formal/plasmoid_merger_petri_net.md
       - FPGA:
           - ADC-to-spike quantiser: api/fpga/adc_to_spike_quantiser.md
+          - Trigger timing evidence package: api/fpga/timing_evidence_package.md
       - Interop:
           - Trigger I/O (White-Rabbit + EPICS): api/interop/trigger_io.md
           - ITER IMAS mapping: api/interop/imas_mapping.md

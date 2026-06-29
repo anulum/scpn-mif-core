@@ -1,0 +1,80 @@
+{
+  "SPDX-License-Identifier": "AGPL-3.0-or-later",
+  "schema": "scpn-mif-core/timing-evidence-package/1.0.0",
+  "public_timing_claim_allowed": false,
+  "claim_boundary": "Open-tool formal timing evidence is present; named-device post-route timing and end-to-end HIL timing remain blocked.",
+  "sections": [
+    {
+      "id": "open_tool_formal",
+      "evidence_class": "formal_proof",
+      "status": "passed",
+      "summary": "Open-tool SymbiYosys proof manifest is present and includes a timing-suite proof.",
+      "references": [
+        "docs/_generated/formal_manifest.json",
+        "tools/run_formal.py"
+      ],
+      "metrics": {
+        "task_count": 8,
+        "timing_task_count": 1,
+        "verifier": "tools/run_formal.py --suite all"
+      }
+    },
+    {
+      "id": "post_route_timing",
+      "evidence_class": "hardware_timing_report",
+      "status": "blocked",
+      "summary": "No named-device post-route timing report is present.",
+      "references": [
+        "docs/adr/0006-formal-verification-strategy.md",
+        "docs/architecture/system_map.md"
+      ],
+      "blockers": [
+        "named FPGA, constraints, post-route slack, clock, and PVT assumptions are absent",
+        "the stated clock in the latency budget is not a post-route Fmax"
+      ],
+      "required_fields": [
+        "named_fpga",
+        "toolchain",
+        "constraints_file",
+        "clock_name",
+        "target_frequency_mhz",
+        "achieved_frequency_mhz",
+        "worst_negative_slack_ns",
+        "pvt_corner",
+        "report_sha256"
+      ]
+    },
+    {
+      "id": "end_to_end_timing",
+      "evidence_class": "hil_replay",
+      "status": "blocked",
+      "summary": "End-to-end sensor/link/fabric/driver timing still contains modelled assumption tiers.",
+      "references": [
+        "bench/results/trigger_latency_budget.json",
+        "tools/trigger_latency_budget.py"
+      ],
+      "blockers": [
+        "ADC conversion, sensor-link turnaround, and driver propagation are modelled assumptions",
+        "hardware measurement trace and calibration source are absent"
+      ],
+      "required_fields": [
+        "adc_part",
+        "adc_latency_ns",
+        "sensor_link_latency_ns",
+        "fabric_report_sha256",
+        "driver_part",
+        "driver_latency_ns",
+        "measurement_instrument",
+        "calibration_source",
+        "measurement_trace_sha256"
+      ],
+      "metrics": {
+        "hot_path_ns": 56.0,
+        "modelled_assumption_ns": 48.0,
+        "derived_ns": 8.0,
+        "meets_target_under_assumptions": false,
+        "clock_basis": "stated-assumption"
+      }
+    }
+  ]
+}

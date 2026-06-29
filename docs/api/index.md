@@ -97,3 +97,6 @@ Implemented pre-alpha API pages:
 - [ADC-to-spike quantiser](fpga/adc_to_spike_quantiser.md) — MIF-007,
   B-dot ADC to Q8.8 AER spike-rate bridge with Python and SystemVerilog
   surfaces, cycle-level valid/ready reference, and Verilator cosimulation.
+- [Trigger timing evidence package](fpga/timing_evidence_package.md) —
+  generated split between open-tool formal proof evidence, blocked post-route
+  timing evidence, and blocked end-to-end HIL timing evidence.
