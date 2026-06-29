@@ -27,9 +27,7 @@ from scpn_mif_core.physics.fusion_merge_window_replay import (
     magnetic_field_rate_from_samples,
 )
 
-_FIXTURE: Final[Path] = (
-    Path(__file__).resolve().parents[2] / "fixtures" / "physics" / "fusion_merge_window_replay.json"
-)
+_FIXTURE: Final[Path] = Path(__file__).resolve().parents[2] / "fixtures" / "physics" / "fusion_merge_window_replay.json"
 
 
 def test_pinned_fusion_stroke_replays_through_mif_merge_trigger() -> None:
