@@ -63,5 +63,7 @@ The MIF contract tests include:
 - malformed claim-status hooks ignored unless they return a string status;
 - a sibling contract test that imports `scpn_fusion.core` when the ecosystem
   extra is installed;
+- a pinned FUS-C.6 merge-window replay fixture that exercises MIF consumption
+  through `scpn_mif_core.physics.fusion_merge_window_replay`;
 - a dispatch hygiene test ensuring FUSION-owned FRC physics is not registered
   as a MIF runtime dispatch kernel.

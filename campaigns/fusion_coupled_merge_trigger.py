@@ -36,26 +36,22 @@ PyPI, CEO publish-gate). Run with::
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import numpy as np
-from numpy.typing import NDArray
 
-from scpn_mif_core import (
-    CapacitorBankSpec,
-    FaradayRecoverySpec,
-    KinematicSafetySpec,
-    MergeWindowSpec,
-    MovingFrameUPDESpec,
-    PulseSpec,
-    evaluate_merge_trigger,
-)
 from scpn_mif_core.merge_trigger import (
     ExpansionTrajectory,
     MergeTriggerReport,
     MergeTriggerScenario,
+)
+from scpn_mif_core.physics.fusion_merge_window_replay import (
+    FusionCompressionStroke,
+    evaluate_fusion_merge_window_stroke,
+    fusion_merge_window_payload,
+    fusion_merge_window_scenario,
+    magnetic_field_rate_from_samples,
 )
 
 # FUSION FUS-C.6 reference parameters, verbatim from scpn-fusion
@@ -70,26 +66,6 @@ _FUS_T_E_EV = 5_000.0
 _FUS_COIL_TURNS = 32
 _FUS_COIL_LENGTH_M = 0.40
 _FUS_COIL_CURRENT_A = 160_000.0
-
-_BANK = CapacitorBankSpec(
-    capacitance_F=1.0e-3,
-    inductance_H=1.0e-6,
-    series_resistance_ohm=1.0e-3,
-    voltage_max_V=2.0e4,
-    recharge_power_kW=10.0,
-)
-_PULSE = PulseSpec(peak_current_A=1.0e5, duration_s=1.0e-5, waveform="half_sine")
-_RECOVERY = FaradayRecoverySpec(turns=20.0, load_resistance_ohm=5.0, coupling_efficiency=0.8)
-
-
-@dataclass(frozen=True)
-class FusionCompressionStroke:
-    """The FUSION compression time series MIF consumes (radius/velocity/field)."""
-
-    time_s: NDArray[np.float64]
-    radius_m: NDArray[np.float64]
-    radial_velocity_m_s: NDArray[np.float64]
-    magnetic_field_T: NDArray[np.float64]
 
 
 def run_fusion_compression_stroke() -> FusionCompressionStroke:
@@ -143,11 +119,14 @@ def run_fusion_compression_stroke() -> FusionCompressionStroke:
     )
     initial = initial_pulsed_compression_state(config)
     trajectory = run_pulsed_compression(initial, config, _FUS_DT_S, _FUS_STEPS)
+    time_s = np.asarray([s.t_s for s in trajectory], dtype=np.float64)
+    magnetic_field_t = np.asarray([s.B_ext_T for s in trajectory], dtype=np.float64)
     return FusionCompressionStroke(
-        time_s=np.asarray([s.t_s for s in trajectory], dtype=np.float64),
+        time_s=time_s,
         radius_m=np.asarray([s.R_s_m for s in trajectory], dtype=np.float64),
         radial_velocity_m_s=np.asarray([s.dR_s_dt_m_s for s in trajectory], dtype=np.float64),
-        magnetic_field_T=np.asarray([s.B_ext_T for s in trajectory], dtype=np.float64),
+        magnetic_field_T=magnetic_field_t,
+        magnetic_field_rate_T_s=magnetic_field_rate_from_samples(time_s, magnetic_field_t),
     )
 
 
@@ -158,69 +137,37 @@ def expansion_from_stroke(stroke: FusionCompressionStroke) -> ExpansionTrajector
     `B_ext(t)` series — the one non-exact channel (FUSION exposes the field, not its
     rate). Time is strictly increasing, so `np.gradient` is well defined.
     """
-    field_rate = np.gradient(stroke.magnetic_field_T, stroke.time_s)
-    return ExpansionTrajectory(
-        time_s=stroke.time_s,
-        radius_m=stroke.radius_m,
-        radial_velocity_m_s=stroke.radial_velocity_m_s,
-        magnetic_field_T=stroke.magnetic_field_T,
-        magnetic_field_rate_T_s=field_rate,
-    )
+    return stroke.expansion_trajectory()
 
 
 def fusion_coupled_scenario(expansion: ExpansionTrajectory) -> MergeTriggerScenario:
     """Build a locked, safe two-plasmoid approach whose recovery rides the FUSION stroke."""
-    return MergeTriggerScenario(
-        moving_frame=MovingFrameUPDESpec(
-            omega_rad_s=np.asarray([1.0, 1.0]),
-            coupling_rad_s=np.asarray([[0.0, 50.0], [50.0, 0.0]]),
-            doppler_strength_rad_s=0.0,
-            distance_scale_m=1.0,
-        ),
-        initial_phases_rad=np.asarray([0.0, 0.004]),
-        initial_positions_m=np.asarray([-5.0e-4, 5.0e-4]),
-        velocities_m_s=np.asarray([0.0, 0.0]),
-        dt_s=1.0e-3,
-        steps=20,
-        merge_window=MergeWindowSpec(phase_tolerance_rad=0.01, spatial_tolerance_m=0.002, consecutive_samples=3),
-        safety=KinematicSafetySpec(),
-        bank=_BANK,
-        bank_initial_voltage_V=2.0e4,
-        compression_pulse=_PULSE,
-        recovery=_RECOVERY,
-        expansion=expansion,
+    return fusion_merge_window_scenario(
+        FusionCompressionStroke(
+            time_s=expansion.time_s,
+            radius_m=expansion.radius_m,
+            radial_velocity_m_s=expansion.radial_velocity_m_s,
+            magnetic_field_T=expansion.magnetic_field_T,
+            magnetic_field_rate_T_s=expansion.magnetic_field_rate_T_s,
+        )
     )
 
 
 def run_fusion_coupled_merge_trigger() -> tuple[MergeTriggerReport, FusionCompressionStroke]:
     """Run the full FUSION-coupled decision and return the report + the FUSION stroke."""
     stroke = run_fusion_compression_stroke()
-    expansion = expansion_from_stroke(stroke)
-    report = evaluate_merge_trigger(fusion_coupled_scenario(expansion))
+    report = evaluate_fusion_merge_window_stroke(stroke)
     return report, stroke
 
 
 def report_payload(report: MergeTriggerReport, stroke: FusionCompressionStroke) -> dict[str, Any]:
     """Return a JSON-safe summary of the FUSION-coupled decision and its recovery."""
-    recovery_report = report.recovery_report
-    return {
-        "source": "fusion-coupled (scpn-fusion pulsed_compression, FUS-C.6)",
-        "field_rate_channel": "central finite difference of FUSION B_ext(t) (non-exact)",
-        "outcome": report.outcome.value,
-        "reason": report.reason,
-        "lock_achieved": report.lock_achieved,
-        "safety_passed": report.safety_passed,
-        "bank_feasible": report.bank_feasible,
-        "stroke_samples": int(stroke.time_s.shape[0]),
-        "initial_radius_m": float(stroke.radius_m[0]),
-        "final_radius_m": float(stroke.radius_m[-1]),
-        "peak_field_T": float(np.max(stroke.magnetic_field_T)),
-        "recovered_energy_J": (None if report.recovered_energy_J is None else float(report.recovered_energy_J)),
-        "peak_recovered_power_W": (
-            None if report.peak_recovered_power_W is None else float(report.peak_recovered_power_W)
-        ),
-        "peak_back_emf_V": (None if recovery_report is None else float(recovery_report.peak_abs_back_emf_V)),
-    }
+    return fusion_merge_window_payload(
+        report,
+        stroke,
+        source="fusion-coupled (scpn-fusion pulsed_compression, FUS-C.6)",
+        field_rate_channel="central finite difference of FUSION B_ext(t) (non-exact)",
+    )
 
 
 def main() -> int:

@@ -149,6 +149,7 @@ nav:
           - Plasmoid-merger Petri net: api/lifecycle/plasmoid_merger_petri_net.md
       - Physics:
           - FUSION FRC contract adapter: api/physics/fusion_frc_contract.md
+          - FUSION merge-window replay: api/physics/fusion_merge_window_replay.md
           - Faraday recovery: api/physics/faraday_recovery.md
       - AER:
           - Spike-buffer decoder: api/aer/spike_buffer.md

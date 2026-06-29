@@ -87,6 +87,8 @@ Implemented pre-alpha API pages:
 - [FUSION FRC contract adapter](physics/fusion_frc_contract.md) — consumer
   contract for FUSION-owned FRC equilibrium, Hall/flux, compression, MRTI,
   tilt, and compression-coupled Faraday surfaces.
+- [FUSION merge-window replay](physics/fusion_merge_window_replay.md) —
+  pinned FUS-C.6 compression stroke replay through the MIF merge-trigger path.
 - [Faraday recovery proof](formal/faraday_recovery.md) — MIF-009, Lean 4
   energy-bookkeeping proof for the EMF and recovered-energy sign contracts.
 - [Kinematic safety](formal/kinematic_safety.md) — PHA-C.6/MIF-011, Lean 4
