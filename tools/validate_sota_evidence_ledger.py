@@ -28,6 +28,7 @@ type JsonMapping = Mapping[str, object]
 
 ALLOWED_EVIDENCE_STATUSES = frozenset({"blocked", "draft", "partial", "passed"})
 ALLOWED_STATES = frozenset({"blocked", "draft", "partial", "ready", "sota_gate_passed"})
+REMOTE_REFERENCE_PREFIXES = ("doi:", "http://", "https://")
 PUBLIC_EVIDENCE_TYPES = frozenset(
     {
         "external_validation",
@@ -130,6 +131,9 @@ def _evidence_statuses(
     claim: JsonMapping,
     claim_path: str,
     findings: list[LedgerFinding],
+    *,
+    repo: Path | None,
+    check_references: bool,
 ) -> tuple[tuple[str, str], ...]:
     """Read evidence entries as ``(type, status)`` pairs."""
 
@@ -150,9 +154,11 @@ def _evidence_statuses(
             continue
         evidence_type = _string_field(evidence, "type", item_path, findings)
         status = _string_field(evidence, "status", item_path, findings)
-        _string_field(evidence, "reference", item_path, findings)
+        reference = _string_field(evidence, "reference", item_path, findings)
         if status and status not in ALLOWED_EVIDENCE_STATUSES:
             findings.append(LedgerFinding(item_path, f"status {status!r} is not allowed"))
+        if check_references and reference and not _reference_exists(reference, repo):
+            findings.append(LedgerFinding(item_path, f"reference {reference!r} does not resolve"))
         if evidence_type and status:
             entries.append((evidence_type, status))
     return tuple(entries)
@@ -162,6 +168,9 @@ def _claim_findings(
     claim: JsonMapping,
     claim_path: str,
     seen_ids: set[str],
+    *,
+    repo: Path | None,
+    check_references: bool,
 ) -> tuple[LedgerFinding, ...]:
     """Validate one claim object from the ledger."""
 
@@ -175,7 +184,7 @@ def _claim_findings(
     _string_field(claim, "claim", claim_path, findings)
     current_state = _string_field(claim, "current_state", claim_path, findings)
     public_claim_allowed = _bool_field(claim, "public_claim_allowed", claim_path, findings)
-    evidence = _evidence_statuses(claim, claim_path, findings)
+    evidence = _evidence_statuses(claim, claim_path, findings, repo=repo, check_references=check_references)
     blockers = _string_list_field(claim, "blockers", claim_path, findings, allow_empty=True)
     _string_list_field(claim, "next_actions", claim_path, findings, allow_empty=False)
 
@@ -200,7 +209,21 @@ def _claim_findings(
     return tuple(findings)
 
 
-def validate_ledger_document(document: object) -> tuple[LedgerFinding, ...]:
+def _reference_exists(reference: str, repo: Path | None) -> bool:
+    """Return whether an evidence reference resolves locally or is remote."""
+
+    if reference.startswith(REMOTE_REFERENCE_PREFIXES):
+        return True
+    root = repo or Path.cwd()
+    return (root / reference).exists()
+
+
+def validate_ledger_document(
+    document: object,
+    *,
+    repo: Path | None = None,
+    check_references: bool = False,
+) -> tuple[LedgerFinding, ...]:
     """Validate a decoded SOTA evidence ledger document."""
 
     root = _mapping(document)
@@ -225,18 +248,23 @@ def validate_ledger_document(document: object) -> tuple[LedgerFinding, ...]:
         if claim is None:
             findings.append(LedgerFinding(claim_path, "claim entry must be an object"))
             continue
-        findings.extend(_claim_findings(claim, claim_path, seen_ids))
+        findings.extend(_claim_findings(claim, claim_path, seen_ids, repo=repo, check_references=check_references))
     return tuple(findings)
 
 
-def validate_ledger_path(path: Path) -> tuple[LedgerFinding, ...]:
+def validate_ledger_path(
+    path: Path,
+    *,
+    repo: Path | None = None,
+    check_references: bool = False,
+) -> tuple[LedgerFinding, ...]:
     """Load and validate a ledger JSON file."""
 
     try:
         document: object = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         return (LedgerFinding(path.as_posix(), f"invalid JSON: {exc.msg}"),)
-    return validate_ledger_document(document)
+    return validate_ledger_document(document, repo=repo, check_references=check_references)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -244,6 +272,17 @@ def _parser() -> argparse.ArgumentParser:
 
     parser = argparse.ArgumentParser(description="Validate a SOTA evidence ledger JSON file.")
     parser.add_argument("ledger", type=Path, help="path to the SOTA evidence ledger JSON file")
+    parser.add_argument(
+        "--check-references",
+        action="store_true",
+        help="also require local evidence references to resolve under the repository root",
+    )
+    parser.add_argument(
+        "--repo",
+        default=Path("."),
+        type=Path,
+        help="repository root used for --check-references",
+    )
     return parser
 
 
@@ -251,7 +290,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Run the SOTA evidence-ledger validator."""
 
     args = _parser().parse_args(argv)
-    findings = validate_ledger_path(args.ledger)
+    findings = validate_ledger_path(args.ledger, repo=args.repo.resolve(), check_references=args.check_references)
     if findings:
         print(f"SOTA evidence ledger invalid: {len(findings)} finding(s)", file=sys.stderr)
         for finding in findings:

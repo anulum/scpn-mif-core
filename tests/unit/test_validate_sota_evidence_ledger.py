@@ -66,6 +66,34 @@ def test_validate_ledger_document_accepts_blocked_internal_draft() -> None:
     assert validate_ledger_document(_ledger()) == ()
 
 
+def test_validate_ledger_document_accepts_resolved_local_reference(tmp_path: Path) -> None:
+    reference = tmp_path / "evidence.json"
+    reference.write_text("{}", encoding="utf-8")
+    claim = _claim(evidence=[{"type": "external_validation", "status": "partial", "reference": "evidence.json"}])
+
+    assert validate_ledger_document(_ledger(claim), repo=tmp_path, check_references=True) == ()
+
+
+def test_validate_ledger_document_accepts_remote_references_when_checking_paths(tmp_path: Path) -> None:
+    claim = _claim(
+        evidence=[{"type": "external_validation", "status": "partial", "reference": "https://example.test/a"}]
+    )
+
+    assert validate_ledger_document(_ledger(claim), repo=tmp_path, check_references=True) == ()
+
+
+def test_validate_ledger_document_reports_unresolved_local_reference(tmp_path: Path) -> None:
+    claim = _claim(evidence=[{"type": "external_validation", "status": "partial", "reference": "missing.json"}])
+
+    assert LedgerFinding(
+        "$.claims[0].evidence[0]", "reference 'missing.json' does not resolve"
+    ) in validate_ledger_document(
+        _ledger(claim),
+        repo=tmp_path,
+        check_references=True,
+    )
+
+
 def test_validate_ledger_document_accepts_public_claim_with_passed_evidence() -> None:
     claim = _claim(
         current_state="sota_gate_passed",
@@ -226,11 +254,36 @@ def test_validate_ledger_path_reports_invalid_json(tmp_path: Path) -> None:
     )
 
 
+def test_validate_ledger_path_checks_references(tmp_path: Path) -> None:
+    path = tmp_path / "ledger.json"
+    path.write_text(
+        json.dumps(_ledger(_claim(evidence=[{"type": "study", "status": "draft", "reference": "no.md"}]))),
+        encoding="utf-8",
+    )
+
+    assert validate_ledger_path(path, repo=tmp_path, check_references=True) == (
+        LedgerFinding("$.claims[0].evidence[0]", "reference 'no.md' does not resolve"),
+    )
+
+
 def test_main_returns_zero_for_valid_ledger(tmp_path: Path, capsys: CaptureFixture) -> None:
     path = tmp_path / "ledger.json"
     path.write_text(json.dumps(_ledger()), encoding="utf-8")
 
     assert main([str(path)]) == 0
+    assert capsys.readouterr().out == "SOTA evidence ledger: OK\n"
+
+
+def test_main_accepts_check_references_for_valid_ledger(tmp_path: Path, capsys: CaptureFixture) -> None:
+    evidence = tmp_path / "evidence.md"
+    evidence.write_text("evidence", encoding="utf-8")
+    path = tmp_path / "ledger.json"
+    path.write_text(
+        json.dumps(_ledger(_claim(evidence=[{"type": "study", "status": "draft", "reference": "evidence.md"}]))),
+        encoding="utf-8",
+    )
+
+    assert main(["--repo", str(tmp_path), "--check-references", str(path)]) == 0
     assert capsys.readouterr().out == "SOTA evidence ledger: OK\n"
 
 
