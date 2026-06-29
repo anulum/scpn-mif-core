@@ -95,6 +95,37 @@ print(f"back-EMF = {state.back_emf_V:.3f} V")
 
 ## Validation summary
 
+### Acceptance criterion
+
+The MIF-009 acceptance gate is the closed-form carrier table below. It validates
+the exact Faraday-law calculation that MIF owns:
+
+$$
+\Phi = B_\mathrm{ext}\pi R_s^2,\qquad
+\dot\Phi = \pi(R_s^2\dot B_\mathrm{ext} + 2R_s\dot R_sB_\mathrm{ext}),
+\qquad
+\mathcal{E} = -N_\mathrm{eff}\dot\Phi.
+$$
+
+The gate deliberately does **not** validate self-consistent plasma compression,
+mirror-field evolution, or exact FRC merge timing. Those are FUSION-owned
+physics and remain blocked until a pinned FUSION fixture exists.
+
+| Case | Non-zero term(s) | Acceptance |
+| :--- | :--- | :--- |
+| Static radius and field | none | zero flux-rate, zero EMF, zero recovered power |
+| Constant radius field ramp | `R_s² dB/dt` | public scalar API equals closed form at machine precision |
+| Constant field radius motion | `2 R_s dR_s/dt B` | public scalar API equals closed form at machine precision |
+| Mixed product rule | both terms | public scalar API equals product-rule closed form at machine precision |
+| Disconnected recovery | carrier non-zero, `eta = 0` | EMF remains finite and recovered power is exactly zero without squaring overflow |
+
+The waveform gate checks the same carrier over an explicit time grid, including
+independent central-difference and Simpson-quadrature checks in
+`tests/physics_parity/test_faraday_compression_parity.py`. Python/Rust parity is
+checked when the compiled extension is present, and Mojo waveform parity is
+checked when the Mojo toolchain is available. No runtime behaviour changed in
+this acceptance update, so no benchmark regeneration is required.
+
 | Check | Result |
 | :--- | :--- |
 | Magnetic flux equals `B*pi*R**2` | 1 unit test passes |
@@ -102,6 +133,7 @@ print(f"back-EMF = {state.back_emf_V:.3f} V")
 | Constant-radius field-ramp limit | closed-form match at machine epsilon |
 | Static radius and static field | zero EMF |
 | Product-rule decomposition | closed-form match at machine epsilon |
+| Named closed-form carrier acceptance table | 5 scalar cases pass at machine precision |
 | Pointwise state typing and power bookkeeping | 1 unit test passes |
 | Waveform energy integration | constant-power case exact to machine epsilon |
 | Spec and scalar rejection paths | turns, load, efficiency, radius, non-finite EMF, and overflowed derived observables |

@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Callable
+from typing import Any, cast
 
 import pytest
 from hypothesis import HealthCheck, given, settings
@@ -298,6 +299,37 @@ def test_step_matches_analytical_free_response(
     state = bank.state
     assert state.voltage_V == pytest.approx(v_anal, rel=1e-3, abs=1e-3)
     assert state.current_A == pytest.approx(i_anal, rel=1e-3, abs=1e-3)
+
+
+@pytest.mark.parametrize(
+    ("spec_factory", "dt", "n_steps"),
+    [
+        (underdamped_spec, 2e-6, 50),
+        (critically_damped_spec, 2e-6, 50),
+        (overdamped_spec, 2e-6, 50),
+    ],
+    ids=["underdamped", "critically_damped", "overdamped"],
+)
+def test_rlc_acceptance_table_stays_below_one_percent_error(
+    spec_factory: Callable[[], CapacitorBankSpec],
+    dt: float,
+    n_steps: int,
+) -> None:
+    """MIF-005 acceptance: Crank-Nicolson free response stays within 1% of closed form."""
+
+    spec = spec_factory()
+    v0 = 5000.0
+    bank = CapacitorBank(spec, initial_voltage_V=v0)
+    for _ in range(n_steps):
+        bank.step(dt)
+    t_final = dt * n_steps
+    v_ref, i_ref = free_response(spec, t_final, v0)
+    e_ref = 0.5 * spec.capacitance_F * v_ref * v_ref + 0.5 * spec.inductance_H * i_ref * i_ref
+    state = bank.state
+
+    assert abs(state.voltage_V - v_ref) / max(1.0, abs(v_ref)) < 0.01
+    assert abs(state.current_A - i_ref) / max(1.0, abs(i_ref)) < 0.01
+    assert abs(state.energy_J - e_ref) / max(1.0, abs(e_ref)) < 0.01
 
 
 def test_step_underdamped_oscillates_below_zero_within_half_period() -> None:
@@ -704,7 +736,7 @@ def test_waveform_rms_fraction_rejects_unknown_waveform() -> None:
     from scpn_mif_core.lifecycle.capacitor_bank import _waveform_rms_squared_fraction
 
     with pytest.raises(ValueError, match="unknown waveform"):
-        _waveform_rms_squared_fraction("triangle")
+        _waveform_rms_squared_fraction(cast(Any, "triangle"))
 
 
 def test_waveform_rms_squared_fraction_matches_closed_form() -> None:

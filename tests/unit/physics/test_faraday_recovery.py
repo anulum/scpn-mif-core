@@ -70,6 +70,49 @@ def test_flux_rate_matches_product_rule_decomposition() -> None:
     assert flux_rate(radius, velocity, field, field_rate) == pytest.approx(expected, rel=1e-15)
 
 
+@pytest.mark.parametrize(
+    ("name", "radius", "velocity", "field", "field_rate", "turns", "load", "coupling"),
+    [
+        ("static", 0.4, 0.0, 8.0, 0.0, 32.0, 4.0, 0.75),
+        ("field_ramp_only", 0.17, 0.0, 3.0, 25_000.0, 48.0, 6.0, 0.9),
+        ("radius_motion_only", 0.2, 800.0, 5.0, 0.0, 12.0, 3.0, 0.8),
+        ("mixed_product_rule", 0.31, -240.0, 7.2, -1200.0, 20.0, 5.0, 0.85),
+        ("disconnected_recovery", 0.31, -240.0, 7.2, -1200.0, 20.0, 5.0, 0.0),
+    ],
+)
+def test_closed_form_carrier_acceptance_table_matches_public_api(
+    name: str,
+    radius: float,
+    velocity: float,
+    field: float,
+    field_rate: float,
+    turns: float,
+    load: float,
+    coupling: float,
+) -> None:
+    """MIF-009 acceptance: public scalar API matches the closed-form carrier table."""
+
+    del name
+    spec = FaradayRecoverySpec(turns=turns, load_resistance_ohm=load, coupling_efficiency=coupling)
+    expected_flux = math.pi * radius * radius * field
+    expected_flux_rate = math.pi * (radius * radius * field_rate + 2.0 * radius * velocity * field)
+    expected_emf = -turns * expected_flux_rate
+    expected_power = 0.0 if coupling == 0.0 else coupling * expected_emf * expected_emf / load
+    state = evaluate_faraday_state(spec, radius, velocity, field, field_rate)
+
+    assert magnetic_flux(radius, field) == pytest.approx(expected_flux, rel=1e-15, abs=1e-15)
+    assert flux_rate(radius, velocity, field, field_rate) == pytest.approx(expected_flux_rate, rel=1e-15, abs=1e-15)
+    assert faraday_back_emf(radius, velocity, field, field_rate, turns) == pytest.approx(
+        expected_emf,
+        rel=1e-15,
+        abs=1e-15,
+    )
+    assert state.flux_Wb == pytest.approx(expected_flux, rel=1e-15, abs=1e-15)
+    assert state.flux_rate_Wb_s == pytest.approx(expected_flux_rate, rel=1e-15, abs=1e-15)
+    assert state.back_emf_V == pytest.approx(expected_emf, rel=1e-15, abs=1e-15)
+    assert state.recovered_power_W == pytest.approx(expected_power, rel=1e-15, abs=1e-15)
+
+
 def test_evaluate_faraday_state_returns_typed_state() -> None:
     spec = FaradayRecoverySpec(turns=16.0, load_resistance_ohm=2.0)
     state = evaluate_faraday_state(spec, 0.2, -50.0, 4.0, 1000.0)

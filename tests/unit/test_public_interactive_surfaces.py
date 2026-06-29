@@ -87,3 +87,10 @@ def test_studio_platform_pin_tracks_published_keeper_conformance() -> None:
     assert pyproject["project"]["optional-dependencies"]["studio"] == [f"scpn-studio-platform{PLATFORM_SDK_RANGE}"]
     assert studio_manifest.PLATFORM_SDK_RANGE == PLATFORM_SDK_RANGE
     assert committed["platform_sdk"] == PLATFORM_SDK_RANGE
+
+
+def test_mkdocs_excludes_internal_workstation_docs() -> None:
+    mkdocs = _read("mkdocs.yml")
+
+    assert "exclude_docs: |" in mkdocs
+    assert "  internal/" in mkdocs

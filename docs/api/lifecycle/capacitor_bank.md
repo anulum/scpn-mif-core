@@ -126,6 +126,28 @@ print(f"voltage = {bank.state.voltage_V:.3f} V, current = {bank.state.current_A:
 
 ## Validation summary
 
+### Acceptance criterion
+
+The MIF-005 numerical acceptance gate is the free-response RLC table below. The
+stateful Crank-Nicolson integrator must stay within **1% relative error** of the
+closed-form voltage, current, and total stored energy at the same final time.
+The comparison is evaluated through the public `CapacitorBank.step` and
+`free_response` APIs, not through private helper state.
+
+| Regime | C | L | R | V₀ | Step plan | Acceptance |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Underdamped | 100 µF | 100 µH | 0.5 Ω | 5 kV | 50 × 2 µs | `|ΔV|`, `|ΔI|`, `|ΔE|` < 1% |
+| Critically damped | 100 µF | 100 µH | 2.0 Ω | 5 kV | 50 × 2 µs | `|ΔV|`, `|ΔI|`, `|ΔE|` < 1% |
+| Overdamped | 100 µF | 100 µH | 10.0 Ω | 5 kV | 50 × 2 µs | `|ΔV|`, `|ΔI|`, `|ΔE|` < 1% |
+
+The stricter regression suite also keeps the 100-step, 1 µs cases at 1e-3
+relative agreement against the same closed forms. Python/Rust parity for the
+named acceptance table is checked in
+`tests/unit/lifecycle/test_capacitor_bank_rust_parity.py` when the compiled
+extension is present. Julia parity remains in the Julia package test surface for
+the same lifecycle formulas; no runtime behaviour changed in this acceptance
+update, so no benchmark regeneration is required.
+
 | Check | Result |
 | :---  | :--- |
 | Spec invariants (immutability and seven rejection paths, including non-finite parameters and non-finite maximum capacitor energy) | 8 unit tests pass |
@@ -133,6 +155,7 @@ print(f"voltage = {bank.state.voltage_V:.3f} V, current = {bank.state.current_A:
 | Analytical closed-form boundary conditions at `t = 0` | 3 unit tests pass |
 | Free-response dispatch matches the closed forms | 3 unit tests pass |
 | Crank-Nicolson agreement with the analytical free response within 1e-3 over 100 µs | 3 parametric tests pass |
+| Named RLC acceptance table: voltage, current, and energy within <1% over 100 µs | 3 parametric tests pass |
 | Underdamped half-cycle swing below zero | 1 unit test passes |
 | Overdamped monotone decay over 1 ms | 1 unit test passes |
 | Constructor and reset guards (4 negative paths) | 4 unit tests pass |
@@ -148,7 +171,7 @@ print(f"voltage = {bank.state.voltage_V:.3f} V, current = {bank.state.current_A:
 | Feasibility happy path, energy-rejection, Z₀-rejection, and named natural-peak formula | 6 unit tests pass |
 | Recharge status (target, zero-t, long-t saturation, linear energy, negative-t, zero-power) | 6 unit tests pass |
 | Hypothesis property — natural response stays in the initial-voltage envelope | 80 randomised examples pass |
-| Python ↔ Rust parity across the regime grid and 16 random seeds | 144 parity tests pass at 1e-12 |
+| Python ↔ Rust parity across the regime grid, the named acceptance table, and 16 random seeds | 147 parity tests pass at 1e-12 where the extension is present |
 | Julia reference — three regimes, free response, Crank-Nicolson stepping, total-energy components, external load, reset, finite-energy rejection paths | 22 tests pass |
 | Total | Python/Rust core suite plus Julia reference tests pass under their dedicated gates |
 

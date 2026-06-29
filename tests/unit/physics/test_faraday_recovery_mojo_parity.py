@@ -21,6 +21,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from numpy.typing import NDArray
 
 from scpn_mif_core.physics.faraday_recovery import (
     FaradayRecoverySpec,
@@ -55,7 +56,15 @@ def mojo_binary(tmp_path_factory: pytest.TempPathFactory) -> Path:
     return out
 
 
-def _write_problem(path: Path, spec: FaradayRecoverySpec, t, r, v, b, br) -> None:
+def _write_problem(
+    path: Path,
+    spec: FaradayRecoverySpec,
+    t: NDArray[np.float64],
+    r: NDArray[np.float64],
+    v: NDArray[np.float64],
+    b: NDArray[np.float64],
+    br: NDArray[np.float64],
+) -> None:
     rows = [
         f"{spec.turns!r} {spec.coupling_efficiency!r} {spec.load_resistance_ohm!r}",
         str(len(t)),

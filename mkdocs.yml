@@ -23,6 +23,7 @@ site_dir: site
 exclude_docs: |
   submissions/
   external_sources/
+  internal/
 
 theme:
   name: material

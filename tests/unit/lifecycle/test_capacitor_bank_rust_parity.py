@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import math
 import random
+from typing import Protocol, cast
 
 import pytest
 
@@ -62,7 +63,15 @@ PARITY_ABS_TOL = 1e-12
 SEEDS = list(range(16))
 
 
-def _random_spec(seed: int) -> tuple[PyCapacitorBankSpec, "rust.CapacitorBankSpec", float]:
+class RustCapacitorBankSpec(Protocol):
+    """Typed subset of the PyO3 capacitor-bank specification used in parity tests."""
+
+    regime: str
+    damping_factor: float
+    resonant_frequency: float
+
+
+def _random_spec(seed: int) -> tuple[PyCapacitorBankSpec, RustCapacitorBankSpec, float]:
     rng = random.Random(seed)
     cap = rng.uniform(10e-6, 1e-3)
     ind = rng.uniform(10e-6, 1e-3)
@@ -80,7 +89,7 @@ def _random_spec(seed: int) -> tuple[PyCapacitorBankSpec, "rust.CapacitorBankSpe
         voltage_max_V=v_max,
         recharge_power_kW=recharge,
     )
-    rust_spec = rust.CapacitorBankSpec(cap, ind, res, v_max, recharge)
+    rust_spec = cast(RustCapacitorBankSpec, rust.CapacitorBankSpec(cap, ind, res, v_max, recharge))
     return py_spec, rust_spec, v0
 
 
@@ -106,21 +115,21 @@ def test_resonant_frequency_parity(seed: int) -> None:
     assert _approx_equal(py_spec.resonant_frequency, rust_spec.resonant_frequency)
 
 
-def _regime_specs() -> dict[str, tuple[PyCapacitorBankSpec, "rust.CapacitorBankSpec"]]:
+def _regime_specs() -> dict[str, tuple[PyCapacitorBankSpec, RustCapacitorBankSpec]]:
     """Three regime-fixed specs so each analytical helper is called on its valid domain."""
     common_cap, common_ind, v_max, recharge = 100e-6, 100e-6, 10_000.0, 10.0
     return {
         "underdamped": (
             PyCapacitorBankSpec(common_cap, common_ind, 0.5, v_max, recharge),
-            rust.CapacitorBankSpec(common_cap, common_ind, 0.5, v_max, recharge),
+            cast(RustCapacitorBankSpec, rust.CapacitorBankSpec(common_cap, common_ind, 0.5, v_max, recharge)),
         ),
         "critically_damped": (
             PyCapacitorBankSpec(common_cap, common_ind, 2.0, v_max, recharge),
-            rust.CapacitorBankSpec(common_cap, common_ind, 2.0, v_max, recharge),
+            cast(RustCapacitorBankSpec, rust.CapacitorBankSpec(common_cap, common_ind, 2.0, v_max, recharge)),
         ),
         "overdamped": (
             PyCapacitorBankSpec(common_cap, common_ind, 10.0, v_max, recharge),
-            rust.CapacitorBankSpec(common_cap, common_ind, 10.0, v_max, recharge),
+            cast(RustCapacitorBankSpec, rust.CapacitorBankSpec(common_cap, common_ind, 10.0, v_max, recharge)),
         ),
     }
 
@@ -195,6 +204,22 @@ def test_step_natural_response_parity_over_200_steps(seed: int) -> None:
     assert _approx_equal(py_state.current_A, rust_bank.current_a)
     assert _approx_equal(py_state.di_dt_A_s, rust_bank.di_dt_a_s)
     assert _approx_equal(py_state.t, rust_bank.t)
+
+
+@pytest.mark.parametrize("name", ["underdamped", "critically_damped", "overdamped"])
+def test_rlc_acceptance_table_python_rust_parity(name: str) -> None:
+    """The named MIF-005 <1% acceptance cases use Python/Rust-identical dynamics."""
+
+    py_spec, rust_spec = _regime_specs()[name]
+    py_bank = PyCapacitorBank(py_spec, initial_voltage_V=5000.0)
+    rust_bank = rust.CapacitorBank(rust_spec, 5000.0)
+    for _ in range(50):
+        py_bank.step(2e-6)
+        rust_bank.step(2e-6, 0.0)
+    py_state = py_bank.state
+    assert _approx_equal(py_state.voltage_V, rust_bank.voltage_v)
+    assert _approx_equal(py_state.current_A, rust_bank.current_a)
+    assert _approx_equal(py_state.energy_J, rust_bank.energy_j)
 
 
 @pytest.mark.parametrize("seed", SEEDS)
