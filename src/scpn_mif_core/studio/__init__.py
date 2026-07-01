@@ -30,13 +30,21 @@ from .evidence import (
     formal_proof_evidence,
     merge_trigger_evidence,
 )
+from .federation import (
+    ARCHITECTURE_MAP_VERSION,
+    build_architecture_map_extension,
+    build_federation_document,
+)
 from .manifest import build_manifest, declared_surface
 from .verbs import MIF_VERBS, STUDIO_ID, evidence_schemas
 
 __all__ = [
+    "ARCHITECTURE_MAP_VERSION",
     "MIF_VERBS",
     "STUDIO_ID",
     "benchmark_evidence",
+    "build_architecture_map_extension",
+    "build_federation_document",
     "build_manifest",
     "cosim_evidence",
     "declared_surface",

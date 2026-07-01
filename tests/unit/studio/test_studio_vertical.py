@@ -123,14 +123,18 @@ def test_manifest_passes_the_platform_conformance_gate() -> None:
 
 def test_committed_manifest_artifact_matches_the_builder() -> None:
     # Drift gate: docs/_generated/studio_manifest.json is the federation artifact the Hub
-    # gates against; it must equal build_manifest().to_dict() (regenerate it when this fails).
+    # gates against; it must equal the ratified {schema_a, architecture_map} envelope
+    # (regenerate it with tools/emit_studio_manifest.py when this fails).
     import json
     from pathlib import Path
+
+    from scpn_mif_core.studio import build_federation_document
 
     repo_root = Path(__file__).resolve().parents[3]
     artifact = repo_root / "docs" / "_generated" / "studio_manifest.json"
     committed = json.loads(artifact.read_text(encoding="utf-8"))
-    assert committed == build_manifest().to_dict()
+    assert committed == build_federation_document()
+    assert committed["schema_a"] == build_manifest().to_dict()
 
 
 def test_platform_sdk_range_tracks_the_studio_extra_pin() -> None:

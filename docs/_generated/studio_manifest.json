@@ -1,84 +1,446 @@
 {
-  "content_digest": "sha256:f8a0cd2d02b984358ffb0f33b1efcd40cc40e13baee9aa068bcf5e82607c7e4a",
-  "contract_era": "v1",
-  "enumeration": "language-agnostic",
-  "evidence_types": [
-    "studio.benchmark.v1",
-    "studio.cosim.v1",
-    "studio.formal-proof.v1",
-    "studio.merge-trigger.v1"
-  ],
-  "platform_sdk": ">=0.10,<0.11",
-  "protocol_version": "1",
-  "studio": "scpn-mif-core",
-  "studio_version": "0.1.0",
-  "transport_profile": "local-first",
-  "ui_module": {
-    "exposes": [
-      "./MifStudioPanel"
+  "architecture_map": {
+    "backends": [
+      {
+        "dispatch_order": 1,
+        "language": "Rust",
+        "name": "rust",
+        "role": "hot kernels across 10 workspace crates via the mif-ffi PyO3 bridge",
+        "status": "runtime-active"
+      },
+      {
+        "dispatch_order": 2,
+        "language": "Python",
+        "name": "python",
+        "role": "guaranteed numerical floor and reference",
+        "status": "runtime-active"
+      },
+      {
+        "dispatch_order": 3,
+        "language": "Julia",
+        "name": "julia",
+        "role": "CLI parity/measurement surface (SCPNMIFCore)",
+        "status": "build-available"
+      },
+      {
+        "dispatch_order": 4,
+        "language": "Mojo",
+        "name": "mojo",
+        "role": "compiled CLI parity for the rate decode and Doppler derivative",
+        "status": "parity-cli"
+      },
+      {
+        "dispatch_order": 5,
+        "language": "Go",
+        "name": "go",
+        "role": "DAQ transport parity mock (go/daqmock)",
+        "status": "parity-cli"
+      },
+      {
+        "dispatch_order": null,
+        "language": "SystemVerilog",
+        "name": "systemverilog",
+        "role": "synthesisable trigger/sensor RTL with Verilator cosimulation",
+        "status": "rtl-cosim"
+      },
+      {
+        "dispatch_order": null,
+        "language": "SymbiYosys",
+        "name": "symbiyosys",
+        "role": "open-tool formal proof engine for the MIF-010 property set",
+        "status": "formal-open-tool"
+      }
     ],
-    "federation": "module-federation-2",
-    "remote_entry": "scpn_mif_core_studio/remoteEntry.js"
-  },
-  "verbs": [
-    {
-      "backends": [
+    "boundaries": {
+      "bounded": [
+        "merge-window classification reports the ballistic-closure upper bound; the reconnection speedup is FUSION-owned (FUS-C.6)",
+        "Faraday recovery runs over a prescribed expansion trajectory, not self-consistent plasma evolution",
+        "kinematic safety certificate is a sampled-envelope check of the Lean invariant"
+      ],
+      "closed": [
+        "Hall-MHD / FRC equilibrium / MRTI / self-consistent compression (SCPN-FUSION-CORE)",
+        "Petri-net runtime / NMPC / replay (SCPN-CONTROL)",
+        "SNN->Verilog / Q8.8 SNN encoder / AER router HDL (SC-NEUROCORE)",
+        "reusable Swarmalator / coherence-monitor primitives (SCPN-PHASE-ORCHESTRATOR)"
+      ],
+      "executed": [
+        "FRC kinematic merging and the merge-trigger decision",
+        "pulsed-shot lifecycle FSM",
+        "series-RLC capacitor bank",
+        "AER sensor bridge and diagnostics conditioning",
+        "byte-stable DAQ replay",
+        "Q8.8 Python<->Verilator cosimulation",
+        "open-tool formal safety/liveness and bounded cycle-latency timing"
+      ],
+      "hardware_gated": [
+        "sub-50 ns wall-clock timing closure (post-route STA, MIF-013)",
+        "ZU3EG/ZU9EG Vivado synthesis",
+        "the full 70-property formal set",
+        "live coil-fire actuation (owned by the Hub live-hardware gate)"
+      ]
+    },
+    "capabilities": [
+      {
+        "domain": "Kinematic",
+        "name": "merge-trigger-decision",
+        "status": "wired",
+        "tier": "core"
+      },
+      {
+        "domain": "Kinematic",
+        "name": "moving-frame-kinematics",
+        "status": "wired",
+        "tier": "core"
+      },
+      {
+        "domain": "Kinematic",
+        "name": "merge-window-monitor",
+        "status": "wired",
+        "tier": "core"
+      },
+      {
+        "domain": "Kinematic",
+        "name": "kinematic-safety-certificate",
+        "status": "wired",
+        "tier": "core"
+      },
+      {
+        "domain": "Lifecycle",
+        "name": "pulsed-shot-lifecycle",
+        "status": "wired",
+        "tier": "core"
+      },
+      {
+        "domain": "Lifecycle",
+        "name": "capacitor-bank",
+        "status": "wired",
+        "tier": "core"
+      },
+      {
+        "domain": "Lifecycle",
+        "name": "plasmoid-merger-petri-net",
+        "status": "wired",
+        "tier": "core"
+      },
+      {
+        "domain": "Sensor",
+        "name": "aer-sensor-bridge",
+        "status": "wired",
+        "tier": "core"
+      },
+      {
+        "domain": "Sensor",
+        "name": "diagnostics-conditioning",
+        "status": "wired",
+        "tier": "core"
+      },
+      {
+        "domain": "Sensor",
+        "name": "daq-replay",
+        "status": "wired",
+        "tier": "core"
+      },
+      {
+        "domain": "Physics",
+        "name": "faraday-recovery",
+        "status": "wired",
+        "tier": "core"
+      },
+      {
+        "domain": "FPGA",
+        "name": "adc-spike-quantiser",
+        "status": "rtl",
+        "tier": "core"
+      },
+      {
+        "domain": "FPGA",
+        "name": "trigger-fabric-fast-veto",
+        "status": "rtl",
+        "tier": "core"
+      },
+      {
+        "domain": "Formal",
+        "name": "timing-aware-formal-tier",
+        "status": "partial",
+        "tier": "core"
+      },
+      {
+        "domain": "Verification",
+        "name": "q88-cosimulation",
+        "status": "wired",
+        "tier": "core"
+      },
+      {
+        "domain": "Kinematic",
+        "name": "merge-window-predictor",
+        "status": "roadmap",
+        "tier": "extended"
+      },
+      {
+        "domain": "Interop",
+        "name": "standards-interop",
+        "status": "contract",
+        "tier": "extended"
+      }
+    ],
+    "cross_repo": [
+      {
+        "adapter": "physics.fusion_frc_contract; physics.fusion_merge_window_replay",
+        "sibling": "scpn-fusion-core",
+        "wire_format": "prescribed FRC equilibrium / compression-stroke inputs (FUS-C.6) -> merge-trigger recovery"
+      },
+      {
+        "adapter": "consumed (not duplicated)",
+        "sibling": "scpn-control",
+        "wire_format": "Petri-net runtime, NMPC, replay, neuro-symbolic controller owned by CONTROL"
+      },
+      {
+        "adapter": "aer sensor bridge interop",
+        "sibling": "sc-neurocore",
+        "wire_format": "SNN->Verilog, Q8.8 SNN encoder, AER router HDL owned by SC-NEUROCORE"
+      },
+      {
+        "adapter": "kinematic upstream-pending surfaces",
+        "sibling": "scpn-phase-orchestrator",
+        "wire_format": "reusable Swarmalator / coherence-monitor primitives owned by PHASE-ORCHESTRATOR"
+      },
+      {
+        "adapter": "deferred MIF-lane surfaces",
+        "sibling": "scpn-quantum-control",
+        "wire_format": "QRNG, PQC trigger signer, FRC QAOA cost, pulse-to-HLS owned by QUANTUM"
+      }
+    ],
+    "interfaces": [
+      {
+        "entry": "scpn-mif = scpn_mif_core.cli:main",
+        "kind": "cli"
+      },
+      {
+        "entry": "scpn_mif_core",
+        "kind": "library"
+      },
+      {
+        "entry": "docs/_generated/studio_manifest.json",
+        "kind": "studio_feed"
+      },
+      {
+        "entry": "scpn_mif_core_studio/remoteEntry.js",
+        "exposes": [
+          "./MifStudioPanel"
+        ],
+        "federation": "module-federation-2",
+        "kind": "ui_module"
+      }
+    ],
+    "pipeline_stages": [
+      {
+        "inputs": [
+          "MergeTriggerScenario (two-plasmoid kinematic state, specs, bank, PulseSpec)"
+        ],
+        "outputs": [
+          "validated typed scenario"
+        ],
+        "processing_model": "typed construction + fail-closed validation",
+        "stage": "scenario"
+      },
+      {
+        "inputs": [
+          "MergeTriggerScenario"
+        ],
+        "outputs": [
+          "moving-frame [theta, z] trajectory"
+        ],
+        "processing_model": "MIF-002 moving-frame UPDE integration",
+        "stage": "kinematics"
+      },
+      {
+        "inputs": [
+          "moving-frame trace",
+          "merge-window spec"
+        ],
+        "outputs": [
+          "phase+spatial lock verdict",
+          "merge-window trace"
+        ],
+        "processing_model": "MIF-003 merge-window monitor (availability window)",
+        "stage": "lock"
+      },
+      {
+        "inputs": [
+          "approach trajectory",
+          "safety spec"
+        ],
+        "outputs": [
+          "kinematic safety certificate"
+        ],
+        "processing_model": "MIF-011 sampled axial-separation envelope (Lean-anchored)",
+        "stage": "safety"
+      },
+      {
+        "inputs": [
+          "capacitor-bank spec",
+          "requested PulseSpec"
+        ],
+        "outputs": [
+          "bank feasibility verdict"
+        ],
+        "processing_model": "MIF-005 series-RLC bank with stored-energy accounting",
+        "stage": "feasibility"
+      },
+      {
+        "inputs": [
+          "prescribed ExpansionTrajectory (FUSION-owned)",
+          "carrier spec"
+        ],
+        "outputs": [
+          "Faraday recovery report (optional)"
+        ],
+        "processing_model": "MIF-009 closed-form Faraday back-EMF over prescribed expansion",
+        "stage": "recovery"
+      },
+      {
+        "inputs": [
+          "lock verdict",
+          "safety certificate",
+          "bank feasibility"
+        ],
+        "outputs": [
+          "MergeTriggerReport: FIRE / ABORT_UNSAFE / HOLD_NO_LOCK / ABORT_BANK_INFEASIBLE"
+        ],
+        "processing_model": "instability-preemption gate over the composed kernels",
+        "stage": "decision"
+      }
+    ],
+    "verb_substrates": {
+      "benchmark": [
         "rust",
         "python"
       ],
-      "fidelity": "reduced-order",
-      "produces": [
-        "studio.merge-trigger.v1"
+      "cosimulate": [
+        "python"
       ],
-      "safety_tier": "research",
-      "side_effect": "simulated",
-      "timing": {
-        "class": "batch"
-      },
-      "verb": "evaluate"
-    },
-    {
-      "backends": [
+      "evaluate": [
+        "rust",
+        "python"
+      ],
+      "prove": [
         "symbiyosys"
-      ],
-      "produces": [
-        "studio.formal-proof.v1"
-      ],
-      "safety_tier": "research",
-      "side_effect": "read-only",
-      "timing": {
-        "class": "batch"
-      },
-      "verb": "prove"
+      ]
     },
-    {
-      "backends": [
-        "python"
-      ],
-      "produces": [
-        "studio.cosim.v1"
-      ],
-      "safety_tier": "research",
-      "side_effect": "simulated",
-      "timing": {
-        "class": "batch"
+    "version": "architecture-map.v2",
+    "wire_formats": [
+      {
+        "name": "MergeTriggerScenario",
+        "schema_ref": "scpn_mif_core.merge_trigger (typed two-plasmoid scenario -> decision input)"
       },
-      "verb": "cosimulate"
+      {
+        "name": "MergeTriggerReport",
+        "schema_ref": "scpn_mif_core.merge_trigger (FIRE/ABORT/HOLD outcome + traces + certificates)"
+      },
+      {
+        "name": "aer-spike-q88",
+        "schema_ref": "scpn_mif_core.aer (address, t_ns, polarity spike events; Q8.8 amplitude)"
+      },
+      {
+        "name": "daq-frame",
+        "schema_ref": "scpn_mif_core.daq (byte-stable UDP-multicast and PCIe-DMA-ring replay frames)"
+      },
+      {
+        "name": "trigger-io",
+        "schema_ref": "scpn_mif_core.interop.trigger_io (White Rabbit timestamps, EPICS channels, ingress/egress latency)"
+      },
+      {
+        "name": "imas-mapping",
+        "schema_ref": "scpn_mif_core.interop.imas_mapping (MIF input signals -> IMAS IDS names)"
+      },
+      {
+        "name": "trigger-latency-budget",
+        "schema_ref": "bench/results/trigger_latency_budget.json (decomposed sensor-edge -> trigger-edge budget)"
+      }
+    ]
+  },
+  "schema_a": {
+    "content_digest": "sha256:f8a0cd2d02b984358ffb0f33b1efcd40cc40e13baee9aa068bcf5e82607c7e4a",
+    "contract_era": "v1",
+    "enumeration": "language-agnostic",
+    "evidence_types": [
+      "studio.benchmark.v1",
+      "studio.cosim.v1",
+      "studio.formal-proof.v1",
+      "studio.merge-trigger.v1"
+    ],
+    "platform_sdk": ">=0.10,<0.11",
+    "protocol_version": "1",
+    "studio": "scpn-mif-core",
+    "studio_version": "0.1.0",
+    "transport_profile": "local-first",
+    "ui_module": {
+      "exposes": [
+        "./MifStudioPanel"
+      ],
+      "federation": "module-federation-2",
+      "remote_entry": "scpn_mif_core_studio/remoteEntry.js"
     },
-    {
-      "backends": [
-        "rust",
-        "python"
-      ],
-      "produces": [
-        "studio.benchmark.v1"
-      ],
-      "safety_tier": "research",
-      "side_effect": "read-only",
-      "timing": {
-        "class": "batch"
+    "verbs": [
+      {
+        "backends": [
+          "rust",
+          "python"
+        ],
+        "fidelity": "reduced-order",
+        "produces": [
+          "studio.merge-trigger.v1"
+        ],
+        "safety_tier": "research",
+        "side_effect": "simulated",
+        "timing": {
+          "class": "batch"
+        },
+        "verb": "evaluate"
       },
-      "verb": "benchmark"
-    }
-  ]
+      {
+        "backends": [
+          "symbiyosys"
+        ],
+        "produces": [
+          "studio.formal-proof.v1"
+        ],
+        "safety_tier": "research",
+        "side_effect": "read-only",
+        "timing": {
+          "class": "batch"
+        },
+        "verb": "prove"
+      },
+      {
+        "backends": [
+          "python"
+        ],
+        "produces": [
+          "studio.cosim.v1"
+        ],
+        "safety_tier": "research",
+        "side_effect": "simulated",
+        "timing": {
+          "class": "batch"
+        },
+        "verb": "cosimulate"
+      },
+      {
+        "backends": [
+          "rust",
+          "python"
+        ],
+        "produces": [
+          "studio.benchmark.v1"
+        ],
+        "safety_tier": "research",
+        "side_effect": "read-only",
+        "timing": {
+          "class": "batch"
+        },
+        "verb": "benchmark"
+      }
+    ]
+  }
 }

@@ -15,14 +15,22 @@ import pytest
 
 pytest.importorskip("scpn_studio_platform")
 
-from scpn_mif_core.studio import build_manifest
+from scpn_mif_core.studio import build_federation_document, build_manifest
 from tools import emit_studio_manifest as emitter
 
 
 def test_manifest_json_is_the_canonical_serialisation() -> None:
     payload = json.loads(emitter.manifest_json())
-    assert payload == build_manifest().to_dict()
+    assert payload == build_federation_document()
     assert emitter.manifest_json().endswith("\n")
+
+
+def test_manifest_json_is_the_ratified_two_block_envelope() -> None:
+    payload = json.loads(emitter.manifest_json())
+    # The Hub's split_manifest_envelope requires a top-level schema_a key.
+    assert set(payload) == {"schema_a", "architecture_map"}
+    assert payload["schema_a"] == build_manifest().to_dict()
+    assert payload["architecture_map"]["version"] == "architecture-map.v2"
 
 
 def test_committed_artifact_is_current() -> None:
