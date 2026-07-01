@@ -54,7 +54,8 @@
       "docs/papers/index.md",
       "docs/papers/us12567738b1.md",
       "docs/standards/safety_readiness_mapping.md",
-      "docs/validation/belova_merge_reproduction.md"
+      "docs/validation/belova_merge_reproduction.md",
+      "docs/validation/benchmark_dashboard.md"
     ],
     "go_parity_sources": [
       "go/cmd/daqmock_probe/main.go",
@@ -485,7 +486,7 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 53,
+    "capability_documentation_pages": 54,
     "github_workflows": 16,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
@@ -493,11 +494,11 @@
     "lean_proof_modules": 8,
     "optional_extras": 7,
     "public_api_exports": 171,
-    "public_documentation_pages": 53,
+    "public_documentation_pages": 54,
     "python_capability_classes": 82,
     "python_capability_source_modules": 22,
     "rust_workspace_crates": 10,
-    "test_files": 97
+    "test_files": 100
   },
   "documentation": {
     "public_pages": [
@@ -553,7 +554,8 @@
       "docs/papers/index.md",
       "docs/papers/us12567738b1.md",
       "docs/standards/safety_readiness_mapping.md",
-      "docs/validation/belova_merge_reproduction.md"
+      "docs/validation/belova_merge_reproduction.md",
+      "docs/validation/benchmark_dashboard.md"
     ]
   },
   "evidence_boundary": "Counts are file-system and static-source inventory only; benchmark, coverage, hardware, and scientific-fidelity claims remain governed by their dedicated evidence artifacts.",
@@ -814,6 +816,8 @@
       "tests/unit/aer/test_decode_rate_mojo_parity.py",
       "tests/unit/aer/test_spike_buffer.py",
       "tests/unit/aer/test_spike_buffer_rust_parity.py",
+      "tests/unit/bench/__init__.py",
+      "tests/unit/bench/test_benchmark_dashboard.py",
       "tests/unit/daq/test_bus_mock.py",
       "tests/unit/daq/test_bus_mock_rust_parity.py",
       "tests/unit/diagnostics/test_normalisation.py",
@@ -862,6 +866,7 @@
       "tests/unit/physics/test_fusion_frc_contract.py",
       "tests/unit/physics/test_fusion_merge_window_replay.py",
       "tests/unit/studio/__init__.py",
+      "tests/unit/studio/test_federation.py",
       "tests/unit/studio/test_studio_vertical.py",
       "tests/unit/test_capability_manifest.py",
       "tests/unit/test_check_readme_version_mentions.py",

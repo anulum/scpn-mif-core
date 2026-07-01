@@ -86,7 +86,8 @@ def test_studio_platform_pin_tracks_published_keeper_conformance() -> None:
 
     assert pyproject["project"]["optional-dependencies"]["studio"] == [f"scpn-studio-platform{PLATFORM_SDK_RANGE}"]
     assert studio_manifest.PLATFORM_SDK_RANGE == PLATFORM_SDK_RANGE
-    assert committed["platform_sdk"] == PLATFORM_SDK_RANGE
+    assert set(committed) == {"schema_a", "architecture_map"}
+    assert committed["schema_a"]["platform_sdk"] == PLATFORM_SDK_RANGE
 
 
 def test_mkdocs_excludes_internal_workstation_docs() -> None:
