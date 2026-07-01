@@ -1,0 +1,1549 @@
+{
+  "SPDX-License-Identifier": "AGPL-3.0-or-later",
+  "schema": "scpn-mif-core/benchmark-dashboard/1.0.0",
+  "generated_from": "bench/results/*.json (reviewed, promoted per-kernel comparison results)",
+  "integrity": {
+    "adr": "docs/adr/0007-validation-and-benchmark-integrity.md",
+    "statement": "Every figure is copied from a committed, reviewed per-kernel result under bench/results/; no number is authored in prose. Local raw benchmark output stays under the gitignored bench/results/local/ scratch directory.",
+    "isolation_disclaimer": "All comparison runs are non-isolated (taskset affinity on a shared workstation, no kernel isolcpus reservation). Absolute timings are noisy; only the fastest-first ranking, which holds across orders of magnitude, is promoted. Julia and Go command-line paths and the SystemVerilog cosimulation fixture are process-startup or subprocess dominated and are not runtime performance claims."
+  },
+  "backend_roles": {
+    "rust": "runtime",
+    "python": "runtime_reference",
+    "julia": "parity_cli",
+    "go": "parity_cli",
+    "systemverilog": "cosimulation_fixture"
+  },
+  "runtime_comparable_backends": [
+    "python",
+    "rust"
+  ],
+  "kernel_count": 16,
+  "group_count": 27,
+  "backend_coverage": {
+    "go": 2,
+    "julia": 10,
+    "python": 16,
+    "rust": 15,
+    "systemverilog": 1
+  },
+  "environments": {
+    "distinct_hosts": [
+      "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+      "x86_64"
+    ],
+    "distinct_cpu_governors": [
+      "powersave"
+    ],
+    "python_versions": [
+      "3.12.3"
+    ],
+    "toolchains": {
+      "go": [
+        "go version go1.24.0 linux/amd64",
+        "go version go1.26.2 linux/amd64"
+      ],
+      "julia": [
+        "1.12.6",
+        "julia version 1.12.6"
+      ],
+      "rustc": [
+        "rustc 1.85.0 (4d91de4e4 2025-02-17)"
+      ],
+      "verilator": [
+        "Verilator 5.020 2024-01-01 rev (Debian 5.020-1)"
+      ],
+      "yosys": [
+        "Yosys 0.33 (git sha1 2584903a060)"
+      ]
+    }
+  },
+  "kernels": [
+    {
+      "kernel": "adc_to_spike_quantiser",
+      "source": "bench/results/adc_to_spike_quantiser.json",
+      "dispatch_key": null,
+      "datetime": "2026-06-05T00:38:17+00:00",
+      "backends": [
+        "python",
+        "systemverilog"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.3",
+        "command": "./.venv/bin/pytest bench/kernels/bench_adc_to_spike_quantiser.py --benchmark-only --benchmark-json=bench/results/adc_to_spike_quantiser_raw.json --no-cov",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "verilator": "Verilator 5.020 2024-01-01 rev (Debian 5.020-1)",
+          "yosys": "Yosys 0.33 (git sha1 2584903a060)"
+        },
+        "isolation_method": "none; loaded workstation run",
+        "cpu_governor": "powersave",
+        "host_load_before": "3.87 3.53 2.04 12/3254 2542003",
+        "host_load_after": "3.84 3.54 2.08 7/3267 2542911"
+      },
+      "notes": [
+        "MIF-007 measures the Python no-backpressure reference, Python cycle-level valid/ready reference, and a Verilated SystemVerilog fixture over the same 4 096-sample alternating-polarity stream.",
+        "The SystemVerilog measurement invokes the Verilated binary as a subprocess and is local regression/cosimulation evidence only, not an FPGA timing or dispatch claim."
+      ],
+      "groups": [
+        {
+          "group": "adc_to_spike_quantiser.cycle_4096",
+          "fastest_backend": "python",
+          "fastest_mean_ns": 6322882.472790334,
+          "backends": [
+            {
+              "backend": "systemverilog",
+              "role": "cosimulation_fixture",
+              "runtime_comparable": false,
+              "mean_ns": 2686441.596597433,
+              "median_ns": 2444219.0770059824,
+              "stddev_ns": 813964.1272252782,
+              "ops_per_s": 372.23962034632365,
+              "rounds": 5,
+              "relative_to_fastest": 0.424876
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 6322882.472790334,
+              "median_ns": 5980722.839012742,
+              "stddev_ns": 1544506.6125564014,
+              "ops_per_s": 158.1557152617282,
+              "rounds": 151,
+              "relative_to_fastest": 1.0
+            }
+          ]
+        },
+        {
+          "group": "adc_to_spike_quantiser.streaming_4096",
+          "fastest_backend": "python",
+          "fastest_mean_ns": 3490152.2163886065,
+          "backends": [
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 3490152.2163886065,
+              "median_ns": 3390894.9699252844,
+              "stddev_ns": 442039.9747217583,
+              "ops_per_s": 286.5204546965972,
+              "rounds": 153,
+              "relative_to_fastest": 1.0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "aer_decode_rate",
+      "source": "bench/results/aer_decode_rate.json",
+      "dispatch_key": "aer.decode_rate",
+      "datetime": "2026-06-19T19:11:41.178194+00:00",
+      "backends": [
+        "julia",
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.3",
+        "command": "taskset -c 8-11 pytest bench/kernels/bench_aer_ingress.py --benchmark-only --benchmark-json=aer_raw.json",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+          "julia": "julia version 1.12.6"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "taskset affinity to logical cores 8-11; no kernel isolcpus reservation",
+        "affinity_or_reserved_cores": "logical cores 8-11 of 12",
+        "cpu_governor": "powersave",
+        "host_load_before": "10.45 7.09 7.85 7/4217 2514828",
+        "host_load_after": "17.38 8.92 8.43 29/4227 2516516",
+        "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+      },
+      "notes": [
+        "MIF-006 rate decoding is measured for Python and Rust runtime surfaces plus a Julia polyglot-parity reference over the committed 256-event AER fixture; production stays on the Rust runtime path.",
+        "Event timestamps, explicit window starts, and decode-window lengths are bounded to the shared u64 nanosecond domain on the Python and Rust/PyO3 surfaces; u64 stop overflow fails closed. The Julia parity reference uses Int64 timestamps and reproduces the rate-decode mathematics (channel 0 = 8 / 4096).",
+        "Julia is measured through the package CLI harness; the recorded timing includes Julia process startup, so it ranks last and is a comparison reference, not a runtime path.",
+        "Non-isolated local comparison run under taskset affinity and heavy host load; do not treat as a production performance claim."
+      ],
+      "groups": [
+        {
+          "group": "aer_decode_rate.decode_256",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 5761.856946,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 5761.856946,
+              "median_ns": 3503.490007,
+              "stddev_ns": 76639.301909,
+              "ops_per_s": 173555.159291,
+              "rounds": 6768,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 285925.943401,
+              "median_ns": 141503.987834,
+              "stddev_ns": 707189.385624,
+              "ops_per_s": 3497.409113,
+              "rounds": 2971,
+              "relative_to_fastest": 49.623923
+            },
+            {
+              "backend": "julia",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 1127333830.809221,
+              "median_ns": 965627021.039836,
+              "stddev_ns": 566781696.743352,
+              "ops_per_s": 0.887049,
+              "rounds": 5,
+              "relative_to_fastest": 195654.602566
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "aer_spike_buffer",
+      "source": "bench/results/aer_spike_buffer.json",
+      "dispatch_key": "aer.spike_buffer",
+      "datetime": "2026-06-19T19:11:41.178194+00:00",
+      "backends": [
+        "julia",
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.3",
+        "command": "taskset -c 8-11 pytest bench/kernels/bench_aer_ingress.py --benchmark-only --benchmark-json=aer_raw.json",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+          "julia": "julia version 1.12.6"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "taskset affinity to logical cores 8-11; no kernel isolcpus reservation",
+        "affinity_or_reserved_cores": "logical cores 8-11 of 12",
+        "cpu_governor": "powersave",
+        "host_load_before": "10.45 7.09 7.85 7/4217 2514828",
+        "host_load_after": "17.38 8.92 8.43 29/4227 2516516",
+        "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+      },
+      "notes": [
+        "MIF-006 has Python and Rust spike-buffer runtime surfaces plus a Julia polyglot-parity reference; production stays on the Rust runtime path. Go is allocated only for optional network-side router scaffolding and is not an AER decode backend.",
+        "Event timestamps are bounded to the shared u64 nanosecond domain on the Python and Rust/PyO3 surfaces; the Julia parity reference uses Int64 timestamps and reproduces the decode mathematics.",
+        "Julia is measured through the package CLI harness; the recorded timing includes Julia process startup, so it ranks last and is a comparison reference, not a runtime path.",
+        "Non-isolated local comparison run under taskset affinity and heavy host load; do not treat as a production performance claim."
+      ],
+      "groups": [
+        {
+          "group": "aer_spike_buffer.push_256",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 52924.459757,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 52924.459757,
+              "median_ns": 34719.00709,
+              "stddev_ns": 254856.97089,
+              "ops_per_s": 18894.855131,
+              "rounds": 14956,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 1026112.095428,
+              "median_ns": 784273.986937,
+              "stddev_ns": 865418.792857,
+              "ops_per_s": 974.552395,
+              "rounds": 814,
+              "relative_to_fastest": 19.388239
+            },
+            {
+              "backend": "julia",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 774378834.606614,
+              "median_ns": 765967881.015968,
+              "stddev_ns": 274435522.326512,
+              "ops_per_s": 1.291358,
+              "rounds": 5,
+              "relative_to_fastest": 14631.775896
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "capacitor_bank",
+      "source": "bench/results/capacitor_bank.json",
+      "dispatch_key": "lifecycle.capacitor_bank",
+      "datetime": "2026-06-05T10:49:28.864198+00:00",
+      "backends": [
+        "julia",
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "x86_64",
+        "python_version": "3.12.3",
+        "command": "./.venv/bin/pytest bench/kernels/bench_capacitor_bank.py --benchmark-only --benchmark-json=bench/results/capacitor_bank_raw.json --no-cov",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+          "julia": "1.12.6"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "none; local workstation comparison run",
+        "affinity_or_reserved_cores": "none",
+        "cpu_governor": "powersave",
+        "host_load_before": "2.13 2.87 2.88 3/3221 3074904",
+        "host_load_after": "2.69 2.95 2.90 5/3227 3075704",
+        "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+      },
+      "notes": [
+        "Local workstation comparison benchmark; not CPU-isolated per 2026-06-04 benchmark isolation broadcast. Julia entries include CLI startup and are dispatch-order evidence, not in-process kernel latency."
+      ],
+      "groups": [
+        {
+          "group": "capacitor_bank.free_response",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 130.27848814148487,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 130.27848814148487,
+              "median_ns": 124.86462334268971,
+              "stddev_ns": 45.38133379060383,
+              "ops_per_s": 7675864.329297262,
+              "rounds": 195306,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 907.6353466076519,
+              "median_ns": 863.1031960248947,
+              "stddev_ns": 369.9656669917416,
+              "ops_per_s": 1101764.0550663515,
+              "rounds": 53201,
+              "relative_to_fastest": 6.966886
+            },
+            {
+              "backend": "julia",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 233346245.71725726,
+              "median_ns": 233096767.91541278,
+              "stddev_ns": 10342738.286498178,
+              "ops_per_s": 4.285477132602714,
+              "rounds": 3,
+              "relative_to_fastest": 1791134.123877
+            }
+          ]
+        },
+        {
+          "group": "capacitor_bank.step_batch_1000",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 87172.9979321473,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 87172.9979321473,
+              "median_ns": 83437.5387057662,
+              "stddev_ns": 11445.002942325133,
+              "ops_per_s": 11471.442117642533,
+              "rounds": 10336,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 10378581.90956404,
+              "median_ns": 10244949.48796928,
+              "stddev_ns": 413066.2229143067,
+              "ops_per_s": 96.3522770946658,
+              "rounds": 92,
+              "relative_to_fastest": 119.057302
+            },
+            {
+              "backend": "julia",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 2856153884.669766,
+              "median_ns": 2886518576.880917,
+              "stddev_ns": 112714027.7165212,
+              "ops_per_s": 0.3501211910770774,
+              "rounds": 3,
+              "relative_to_fastest": 32764.203967
+            }
+          ]
+        },
+        {
+          "group": "capacitor_bank.step_single",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 294.49401096378153,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 294.49401096378153,
+              "median_ns": 383.4203299548891,
+              "stddev_ns": 131.2565277906888,
+              "ops_per_s": 3395654.7935468387,
+              "rounds": 199247,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 11288.004925230103,
+              "median_ns": 10746.996849775314,
+              "stddev_ns": 2524.9095449923366,
+              "ops_per_s": 88589.61407474891,
+              "rounds": 1768,
+              "relative_to_fastest": 38.330168
+            },
+            {
+              "backend": "julia",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 461769563.9996479,
+              "median_ns": 244547730.07892072,
+              "stddev_ns": 388380934.1584582,
+              "ops_per_s": 2.1655823119619084,
+              "rounds": 3,
+              "relative_to_fastest": 1568010.033509
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "daq_pcie_dma_ring_mock",
+      "source": "bench/results/daq_pcie_dma_ring_mock.json",
+      "dispatch_key": "daq.pcie_dma_ring_mock",
+      "datetime": "2026-06-19T18:08:40.975899+00:00",
+      "backends": [
+        "go",
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.3",
+        "command": "taskset -c 8-11 pytest bench/kernels/bench_daq_bus_mock.py --benchmark-only -k pcie --benchmark-json=daq_pcie_raw.json",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+          "go": "go version go1.24.0 linux/amd64"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "taskset affinity to logical cores 8-11; no kernel isolcpus reservation",
+        "host_load_before": "12.87 8.43 7.62 10/4017 2244689",
+        "host_load_after": "12.24 8.37 7.61 9/4014 2245935"
+      },
+      "notes": [
+        "Local non-isolated comparison benchmark only; not a production latency claim.",
+        "MIF-018 PCIe DMA ring mock has allocated Python, Rust, and Go comparison surfaces; the Python and Rust runtime paths replay 256 frames through the ring buffer.",
+        "Go is a polyglot-parity reference measured via CLI subprocess (go run); the Go scaffold has no ring buffer, so it performs 256 sequential frame encode/decode round-trips over the same frame codec and validates the summed sequence checksum (32640).",
+        "This report reflects fail-closed reserved-header, sequence-order, and timestamp-monotonic replay semantics."
+      ],
+      "groups": [
+        {
+          "group": "daq_pcie_dma_ring_mock.ring_256",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 87289.079557,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 87289.079557,
+              "median_ns": 80105.965026,
+              "stddev_ns": 17149.617283,
+              "ops_per_s": 11456.186789,
+              "rounds": 2654,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 5820855.268602,
+              "median_ns": 5582525.482168,
+              "stddev_ns": 809080.14248,
+              "ops_per_s": 171.79606,
+              "rounds": 112,
+              "relative_to_fastest": 66.684805
+            },
+            {
+              "backend": "go",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 55239233.343552,
+              "median_ns": 39433065.045159,
+              "stddev_ns": 32296319.315882,
+              "ops_per_s": 18.103075,
+              "rounds": 3,
+              "relative_to_fastest": 632.830975
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "daq_udp_multicast_mock",
+      "source": "bench/results/daq_udp_multicast_mock.json",
+      "dispatch_key": "daq.udp_multicast_mock",
+      "datetime": "2026-06-05T10:50:22.342212+00:00",
+      "backends": [
+        "go",
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.3",
+        "command": "./.venv/bin/pytest bench/kernels/bench_daq_bus_mock.py --benchmark-only --benchmark-json=bench/results/daq_bus_mock_raw.json --no-cov",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+          "go": "go version go1.26.2 linux/amd64"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "none",
+        "host_load_before": "not captured separately; raw run completed before summary conversion",
+        "host_load_after": "1.91 2.70 2.82 1/3204 3076556"
+      },
+      "notes": [
+        "Local non-isolated comparison benchmark only; not a production latency claim.",
+        "MIF-018 UDP multicast mock has allocated Python, Rust, and Go surfaces. Go is measured via CLI startup as the optional network-service scaffold.",
+        "This report reflects fail-closed reserved-header, sequence-order, and timestamp-monotonic replay semantics."
+      ],
+      "groups": [
+        {
+          "group": "daq_udp_multicast_mock.frame_round_trip",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 1361.853105914623,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 1361.853105914623,
+              "median_ns": 1332.0241123437881,
+              "stddev_ns": 406.46652517464514,
+              "ops_per_s": 734293.5854512724,
+              "rounds": 67847,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 22072.17128507844,
+              "median_ns": 21239.04414474964,
+              "stddev_ns": 3513.928037929304,
+              "ops_per_s": 45305.91880084018,
+              "rounds": 10141,
+              "relative_to_fastest": 16.207454
+            },
+            {
+              "backend": "go",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 46265606.38037821,
+              "median_ns": 31955444.02115047,
+              "stddev_ns": 30219211.670913912,
+              "ops_per_s": 21.614328185356104,
+              "rounds": 3,
+              "relative_to_fastest": 33972.537992
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "diagnostic_normalisation",
+      "source": "bench/results/diagnostic_normalisation.json",
+      "dispatch_key": null,
+      "datetime": "2026-06-05T02:48:33.284970+00:00",
+      "backends": [
+        "julia",
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.3",
+        "command": "./.venv/bin/pytest bench/kernels/bench_diagnostic_normalisation.py --benchmark-only --benchmark-json=bench/results/diagnostic_normalisation_raw.json --no-cov",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+          "julia": "julia version 1.12.6"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "none",
+        "host_load_before": "6.12 5.51 4.45 10/3271 2872601",
+        "host_load_after": "6.11 5.58 4.51 4/3289 2873885"
+      },
+      "notes": [
+        "Local non-isolated comparison benchmark only; not a production latency claim.",
+        "MIF-016 has allocated Python, Rust, and Julia surfaces. Julia is measured via CLI startup and remains a calibration/reference backend, not the runtime path.",
+        "2026-06-05 rerun after finite affine-coefficient validation hardening across runtime surfaces."
+      ],
+      "groups": [
+        {
+          "group": "diagnostic_normalisation.batch_4096x4",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 1648881.9115688237,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 1648881.9115688237,
+              "median_ns": 1531630.9873014688,
+              "stddev_ns": 354945.3540640334,
+              "ops_per_s": 606.4715689970502,
+              "rounds": 357,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 69644769.12980899,
+              "median_ns": 69724748.95883352,
+              "stddev_ns": 6239385.392642033,
+              "ops_per_s": 14.35858015605059,
+              "rounds": 12,
+              "relative_to_fastest": 42.237572
+            }
+          ]
+        },
+        {
+          "group": "diagnostic_normalisation.single_4ch",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 704.7979481150182,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 704.7979481150182,
+              "median_ns": 603.9626896381378,
+              "stddev_ns": 971.9782814598259,
+              "ops_per_s": 1418846.3554334962,
+              "rounds": 53579,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 20002.550599485556,
+              "median_ns": 17473.0084836483,
+              "stddev_ns": 8290.69629626174,
+              "ops_per_s": 49993.624314377135,
+              "rounds": 7560,
+              "relative_to_fastest": 28.380546
+            },
+            {
+              "backend": "julia",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 1376428265.9782717,
+              "median_ns": 842096896.1436301,
+              "stddev_ns": 998046527.4394585,
+              "ops_per_s": 0.7265180647022443,
+              "rounds": 3,
+              "relative_to_fastest": 1952940.228699
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "diagnostic_stress_inject",
+      "source": "bench/results/diagnostic_stress_inject.json",
+      "dispatch_key": null,
+      "datetime": "2026-06-05T10:39:37.197775+00:00",
+      "backends": [
+        "julia",
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.3",
+        "command": "./.venv/bin/pytest bench/kernels/bench_diagnostic_stress_inject.py --benchmark-only --benchmark-json=bench/results/diagnostic_stress_inject_raw.json --no-cov",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+          "julia": "julia version 1.12.6"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "none",
+        "host_load_before": "3.41 3.64 2.91 2/3229 3058187",
+        "host_load_after": "3.27 3.60 2.91 6/3244 3058789"
+      },
+      "notes": [
+        "Local non-isolated comparison benchmark only; not a production latency claim.",
+        "MIF-017 has allocated Python, Rust, and Julia surfaces. Julia is measured via CLI startup and remains a calibration/reference backend, not the runtime path.",
+        "This report reflects the signed-jitter MIF-017 contract; max jitter is interpreted as absolute early/late timing magnitude."
+      ],
+      "groups": [
+        {
+          "group": "diagnostic_stress_inject.batch_4096",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 3211754.14492467,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 3211754.14492467,
+              "median_ns": 3079244.401305914,
+              "stddev_ns": 483724.686549971,
+              "ops_per_s": 311.3563351604095,
+              "rounds": 328,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 56675893.165027864,
+              "median_ns": 51252593.9848274,
+              "stddev_ns": 13347830.457107402,
+              "ops_per_s": 17.644185987298297,
+              "rounds": 13,
+              "relative_to_fastest": 17.646398
+            }
+          ]
+        },
+        {
+          "group": "diagnostic_stress_inject.single_frame",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 929.7941712947264,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 929.7941712947264,
+              "median_ns": 856.1182767152786,
+              "stddev_ns": 595.0109684747234,
+              "ops_per_s": 1075506.849658471,
+              "rounds": 104613,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 13280.361151184534,
+              "median_ns": 10565.854609012604,
+              "stddev_ns": 6177.287509793513,
+              "ops_per_s": 75299.15704971665,
+              "rounds": 17226,
+              "relative_to_fastest": 14.283119
+            },
+            {
+              "backend": "julia",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 608894323.6973137,
+              "median_ns": 588068024.0225047,
+              "stddev_ns": 90256727.15507923,
+              "ops_per_s": 1.6423211074260369,
+              "rounds": 3,
+              "relative_to_fastest": 654870.015855
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "doppler_kuramoto",
+      "source": "bench/results/doppler_kuramoto.json",
+      "dispatch_key": "kinematic.doppler_kuramoto",
+      "datetime": "2026-06-05T01:03:28.183055+00:00",
+      "backends": [
+        "julia",
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.3",
+        "command": "./.venv/bin/pytest bench/kernels/bench_doppler_kuramoto.py --benchmark-only --benchmark-json=bench/results/doppler_kuramoto_raw.json --no-cov",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+          "julia": "1.12.6"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "none; local workstation comparison run",
+        "affinity_or_reserved_cores": "none",
+        "cpu_governor": "powersave",
+        "host_load_before": "3.68 4.01 3.69 6/3235 2600610",
+        "host_load_after": "3.30 3.88 3.66 3/3205 2601221",
+        "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+      },
+      "notes": [
+        "Julia is measured through the package CLI harness; the recorded timing includes Julia process startup.",
+        "Non-isolated local comparison run on a workstation with powersave governor and nontrivial host load; do not treat as a production performance claim."
+      ],
+      "groups": [
+        {
+          "group": "doppler_kuramoto.affine_trace_1000",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 374859.8796129617,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 374859.8796129617,
+              "median_ns": 344950.9385973215,
+              "stddev_ns": 61314.48311252801,
+              "ops_per_s": 2667.663450760556,
+              "rounds": 1909,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 88319650.69596966,
+              "median_ns": 85921152.14560181,
+              "stddev_ns": 8608099.677267,
+              "ops_per_s": 11.322508548436023,
+              "rounds": 12,
+              "relative_to_fastest": 235.607104
+            },
+            {
+              "backend": "julia",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 1724346919.9941802,
+              "median_ns": 1729421814.903617,
+              "stddev_ns": 15375985.204596983,
+              "ops_per_s": 0.5799297046347117,
+              "rounds": 3,
+              "relative_to_fastest": 4599.977255
+            }
+          ]
+        },
+        {
+          "group": "doppler_kuramoto.derivatives_3",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 482.707445307861,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 482.707445307861,
+              "median_ns": 472.5530743598938,
+              "stddev_ns": 55.10455539210645,
+              "ops_per_s": 2071648.1788720293,
+              "rounds": 103789,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 21881.221025328254,
+              "median_ns": 20840.205252170563,
+              "stddev_ns": 2993.4825040766773,
+              "ops_per_s": 45701.28873715348,
+              "rounds": 6317,
+              "relative_to_fastest": 45.330192
+            }
+          ]
+        },
+        {
+          "group": "doppler_kuramoto.trace_120",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 78162.46054704461,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 78162.46054704461,
+              "median_ns": 76130.96386194229,
+              "stddev_ns": 8266.920482043613,
+              "ops_per_s": 12793.865405479624,
+              "rounds": 11028,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 15588581.77017872,
+              "median_ns": 15206034.993752837,
+              "stddev_ns": 1338044.0603047626,
+              "ops_per_s": 64.14951755989891,
+              "rounds": 66,
+              "relative_to_fastest": 199.438217
+            },
+            {
+              "backend": "julia",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 1487265611.6106858,
+              "median_ns": 1516404515.8308,
+              "stddev_ns": 80930151.54507047,
+              "ops_per_s": 0.6723748550314529,
+              "rounds": 3,
+              "relative_to_fastest": 19027.876057
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "faraday_back_emf",
+      "source": "bench/results/faraday_back_emf.json",
+      "dispatch_key": "physics.faraday_back_emf",
+      "datetime": "2026-06-05T02:17:30+00:00",
+      "backends": [
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.3",
+        "command": "./.venv/bin/pytest bench/kernels/bench_faraday_recovery.py --benchmark-only --benchmark-json=bench/results/faraday_recovery_raw.json --no-cov",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+          "julia": "julia version 1.12.6"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "none; local workstation comparison run",
+        "affinity_or_reserved_cores": "none",
+        "cpu_governor": "powersave",
+        "host_load_before": "3.94 4.08 3.70 3/3238 2789913",
+        "host_load_after": "3.65 3.99 3.68 6/3256 2790699",
+        "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+      },
+      "notes": [
+        "MIF-009 scalar Faraday EMF is measured for Python and Rust after finite-observable validation hardening.",
+        "Non-isolated local comparison run on a workstation with powersave governor and nontrivial host load; do not treat as a production performance claim."
+      ],
+      "groups": [
+        {
+          "group": "faraday_recovery.scalar_emf",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 84.46476550466477,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 84.46476550466477,
+              "median_ns": 77.45751645416021,
+              "stddev_ns": 21.79979629838475,
+              "ops_per_s": 11839256.215596462,
+              "rounds": 63412,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 744.5682629450583,
+              "median_ns": 623.0548024177551,
+              "stddev_ns": 348.1005555895211,
+              "ops_per_s": 1343060.1998057363,
+              "rounds": 98552,
+              "relative_to_fastest": 8.815134
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "faraday_recovery_waveform",
+      "source": "bench/results/faraday_recovery_waveform.json",
+      "dispatch_key": "physics.faraday_recovery_waveform",
+      "datetime": "2026-06-05T02:17:30+00:00",
+      "backends": [
+        "julia",
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.3",
+        "command": "./.venv/bin/pytest bench/kernels/bench_faraday_recovery.py --benchmark-only --benchmark-json=bench/results/faraday_recovery_raw.json --no-cov",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+          "julia": "julia version 1.12.6"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "none; local workstation comparison run",
+        "affinity_or_reserved_cores": "none",
+        "cpu_governor": "powersave",
+        "host_load_before": "3.94 4.08 3.70 3/3238 2789913",
+        "host_load_after": "3.65 3.99 3.68 6/3256 2790699",
+        "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+      },
+      "notes": [
+        "Julia is measured through the package CLI harness; the recorded timing includes Julia process startup.",
+        "MIF-009 waveform recovery rejects non-finite derived flux, flux-rate, EMF, power, and energy observables before returning a report.",
+        "Non-isolated local comparison run on a workstation with powersave governor and nontrivial host load; do not treat as a production performance claim."
+      ],
+      "groups": [
+        {
+          "group": "faraday_recovery.waveform_batch_4096",
+          "fastest_backend": "python",
+          "fastest_mean_ns": 117128.77281211519,
+          "backends": [
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 117128.77281211519,
+              "median_ns": 106494.17527019978,
+              "stddev_ns": 29894.23051231391,
+              "ops_per_s": 8537.6118607858,
+              "rounds": 2405,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 246892.43513069328,
+              "median_ns": 236135.55822521448,
+              "stddev_ns": 23529.902394137174,
+              "ops_per_s": 4050.3468624733155,
+              "rounds": 3100,
+              "relative_to_fastest": 2.107872
+            },
+            {
+              "backend": "julia",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 1819912805.5945039,
+              "median_ns": 1808577269.082889,
+              "stddev_ns": 59538540.36430803,
+              "ops_per_s": 0.54947687434582,
+              "rounds": 5,
+              "relative_to_fastest": 15537.709155
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "kinematic_safety_certificate",
+      "source": "bench/results/kinematic_safety_certificate.json",
+      "dispatch_key": null,
+      "datetime": "2026-06-05T02:36:08.920659+00:00",
+      "backends": [
+        "julia",
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.3",
+        "command": "./.venv/bin/pytest bench/kernels/bench_kinematic_safety_certificate.py --benchmark-only --benchmark-json=bench/results/kinematic_safety_certificate_raw.json --no-cov",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+          "julia": "julia version 1.12.6"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "none",
+        "host_load_before": "3.98 3.79 3.62 10/3215 2841733",
+        "host_load_after": "3.70 3.73 3.60 4/3228 2842395"
+      },
+      "notes": [
+        "Local non-isolated comparison benchmark only; not a production latency claim.",
+        "MIF-011 sampled kinematic safety certificate has allocated Python, Rust, and Julia audit surfaces.",
+        "2026-06-05 rerun after zero-based first_violation_index parity hardening across runtime surfaces."
+      ],
+      "groups": [
+        {
+          "group": "kinematic_safety_certificate.trace_512",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 5512.455479776285,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 5512.455479776285,
+              "median_ns": 5274.079740047455,
+              "stddev_ns": 749.3305760427808,
+              "ops_per_s": 181407.36077937152,
+              "rounds": 43208,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 54710.977532576995,
+              "median_ns": 51653.943955898285,
+              "stddev_ns": 11109.952843458674,
+              "ops_per_s": 18277.86753407142,
+              "rounds": 3005,
+              "relative_to_fastest": 9.924974
+            },
+            {
+              "backend": "julia",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 726425961.3584727,
+              "median_ns": 475768987.0893955,
+              "stddev_ns": 440365781.03284436,
+              "ops_per_s": 1.3766027829318253,
+              "rounds": 3,
+              "relative_to_fastest": 131779.016452
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "merge_window",
+      "source": "bench/results/merge_window.json",
+      "dispatch_key": "kinematic.merge_window",
+      "datetime": "2026-06-19T19:02:14.791449+00:00",
+      "backends": [
+        "julia",
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.3",
+        "command": "taskset -c 8-11 pytest bench/kernels/bench_merge_window.py --benchmark-only --benchmark-json=merge_raw.json",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+          "julia": "julia version 1.12.6"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "taskset affinity to logical cores 8-11; no kernel isolcpus reservation",
+        "affinity_or_reserved_cores": "logical cores 8-11 of 12",
+        "cpu_governor": "powersave",
+        "host_load_before": "5.47 7.21 9.01 3/4139 2469762",
+        "host_load_after": "5.23 7.07 8.94 3/4141 2470886",
+        "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+      },
+      "notes": [
+        "MIF-003 has Python and Rust runtime surfaces plus a Julia polyglot-parity reference on the trace_256 group; production stays on the Rust runtime path.",
+        "Julia is measured through the package CLI harness; the recorded timing includes Julia process startup, so it ranks last and is a comparison reference, not a runtime path.",
+        "Non-isolated local comparison run under taskset affinity and nontrivial host load; do not treat as a production performance claim."
+      ],
+      "groups": [
+        {
+          "group": "merge_window.evaluate_single",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 694.515534,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 694.515534,
+              "median_ns": 644.00956,
+              "stddev_ns": 311.409061,
+              "ops_per_s": 1439852.603572,
+              "rounds": 3341,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 26853.570054,
+              "median_ns": 23201.486329,
+              "stddev_ns": 7944.260526,
+              "ops_per_s": 37238.996453,
+              "rounds": 184,
+              "relative_to_fastest": 38.665183
+            }
+          ]
+        },
+        {
+          "group": "merge_window.trace_256",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 571911.408616,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 571911.408616,
+              "median_ns": 518432.003446,
+              "stddev_ns": 130505.772467,
+              "ops_per_s": 1748.522559,
+              "rounds": 1823,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 5681024.507685,
+              "median_ns": 5291324.516293,
+              "stddev_ns": 1134419.28885,
+              "ops_per_s": 176.024588,
+              "rounds": 134,
+              "relative_to_fastest": 9.9334
+            },
+            {
+              "backend": "julia",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 1086051416.804548,
+              "median_ns": 1083519915.991928,
+              "stddev_ns": 36203631.141322,
+              "ops_per_s": 0.920767,
+              "rounds": 5,
+              "relative_to_fastest": 1898.985403
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "moving_frame_upde",
+      "source": "bench/results/moving_frame_upde.json",
+      "dispatch_key": "kinematic.moving_frame_upde",
+      "datetime": "2026-06-05T01:19:24+00:00",
+      "backends": [
+        "julia",
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.3",
+        "command": "./.venv/bin/pytest bench/kernels/bench_moving_frame_upde.py --benchmark-only --benchmark-json=bench/results/moving_frame_upde_raw.json --no-cov",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
+          "julia": "1.12.6"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "none; local workstation comparison run",
+        "affinity_or_reserved_cores": "none",
+        "cpu_governor": "powersave",
+        "host_load_before": "3.09 3.02 3.22 5/3212 2642287",
+        "host_load_after": "3.35 3.11 3.24 5/3211 2643065",
+        "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+      },
+      "notes": [
+        "Julia is measured through the package CLI harness; the recorded timing includes Julia process startup.",
+        "Non-isolated local comparison run on a workstation with powersave governor and nontrivial host load; do not treat as a production performance claim."
+      ],
+      "groups": [
+        {
+          "group": "moving_frame_upde.affine_trace_1000",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 865905.206264901,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 865905.206264901,
+              "median_ns": 848188.0649924278,
+              "stddev_ns": 50797.35020838537,
+              "ops_per_s": 1154.8608239850175,
+              "rounds": 1169,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 199226054.40951884,
+              "median_ns": 197342394.85114813,
+              "stddev_ns": 10946589.938693061,
+              "ops_per_s": 5.0194238046016375,
+              "rounds": 5,
+              "relative_to_fastest": 230.078365
+            },
+            {
+              "backend": "julia",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 3010488961.978505,
+              "median_ns": 2999661565.9911184,
+              "stddev_ns": 27077779.690392926,
+              "ops_per_s": 0.33217195366921265,
+              "rounds": 3,
+              "relative_to_fastest": 3476.695763
+            }
+          ]
+        },
+        {
+          "group": "moving_frame_upde.derivatives_2",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 591.338933202333,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 591.338933202333,
+              "median_ns": 514.0900611877441,
+              "stddev_ns": 2416.2965152947572,
+              "ops_per_s": 1691077.5595048452,
+              "rounds": 182718,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 19558.923646146275,
+              "median_ns": 18157.06491470337,
+              "stddev_ns": 3882.1246274897157,
+              "ops_per_s": 51127.55783966831,
+              "rounds": 2636,
+              "relative_to_fastest": 33.075657
+            }
+          ]
+        },
+        {
+          "group": "moving_frame_upde.trace_120",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 143407.98847918006,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 143407.98847918006,
+              "median_ns": 132649.90411698818,
+              "stddev_ns": 35349.16754047412,
+              "ops_per_s": 6973.112241548383,
+              "rounds": 4809,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 30778333.42831582,
+              "median_ns": 29702906.031161547,
+              "stddev_ns": 4465068.983105417,
+              "ops_per_s": 32.490388159873795,
+              "rounds": 24,
+              "relative_to_fastest": 214.620774
+            },
+            {
+              "backend": "julia",
+              "role": "parity_cli",
+              "runtime_comparable": false,
+              "mean_ns": 2742898611.6622887,
+              "median_ns": 2724726055.0502687,
+              "stddev_ns": 75676368.12615292,
+              "ops_per_s": 0.3645778213413315,
+              "rounds": 3,
+              "relative_to_fastest": 19126.539886
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "plasmoid_merger_petri_net",
+      "source": "bench/results/plasmoid_merger_petri_net.json",
+      "dispatch_key": "lifecycle.plasmoid_merger_petri_net",
+      "datetime": "2026-06-04T12:07:02.104995+00:00",
+      "backends": [
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.3",
+        "command": "./.venv/bin/pytest bench/kernels/bench_plasmoid_merger_petri_net.py --benchmark-only --benchmark-json=bench/results/plasmoid_merger_petri_net_raw.json --no-cov",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "none",
+        "host_load_before": "5.73 4.62 4.23 10/2853 2024308",
+        "host_load_after": "5.91 4.76 4.29 1/2852 2025636"
+      },
+      "notes": [
+        "Local non-isolated comparison benchmark only; not a production latency claim.",
+        "MIF-012 has Python and Rust runtime surfaces. No Julia/Go/Mojo surface is allocated because this is a stateful Petri-net FSM/control contract, not a numerical ODE/PDE kernel."
+      ],
+      "groups": [
+        {
+          "group": "plasmoid_merger_petri_net.boundedness_100x500",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 4179429.57719788,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 4179429.57719788,
+              "median_ns": 4081535.5023369193,
+              "stddev_ns": 590177.5378825885,
+              "ops_per_s": 239.2671012943482,
+              "rounds": 160,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 421378243.0626452,
+              "median_ns": 410123400.85580945,
+              "stddev_ns": 34842393.03350969,
+              "ops_per_s": 2.3731647669605302,
+              "rounds": 5,
+              "relative_to_fastest": 100.821951
+            }
+          ]
+        },
+        {
+          "group": "plasmoid_merger_petri_net.campaign_8",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 3434.2588710243385,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 3434.2588710243385,
+              "median_ns": 3072.083927690983,
+              "stddev_ns": 1222.2051867919924,
+              "ops_per_s": 291183.6403589836,
+              "rounds": 17842,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 45507.8233985467,
+              "median_ns": 42006.83906674385,
+              "stddev_ns": 12807.222155002866,
+              "ops_per_s": 21974.243664484624,
+              "rounds": 6965,
+              "relative_to_fastest": 13.251134
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "pulsed_shot_fsm",
+      "source": "bench/results/pulsed_shot_fsm.json",
+      "dispatch_key": "lifecycle.pulsed_shot_fsm",
+      "datetime": "2026-06-05T01:53:16+00:00",
+      "backends": [
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.3",
+        "command": "./.venv/bin/pytest bench/kernels/bench_pulsed_shot_fsm.py --benchmark-only --benchmark-json=bench/results/pulsed_shot_fsm_raw.json --no-cov",
+        "runtime_versions": {
+          "python": "3.12.3",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "none; local workstation comparison run",
+        "affinity_or_reserved_cores": "none",
+        "cpu_governor": "powersave",
+        "host_load_before": "3.79 3.21 3.32 6/3229 2730349",
+        "host_load_after": "3.24 3.12 3.29 4/3235 2730737",
+        "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+      },
+      "notes": [
+        "MIF-004 has Python, Rust, and Lean surfaces; Lean proves the adjacent eight-state lifecycle cycle and is not a runtime benchmark backend.",
+        "Non-isolated local comparison run on a workstation with powersave governor and nontrivial host load; do not treat as a production performance claim."
+      ],
+      "groups": [
+        {
+          "group": "pulsed_shot_fsm.campaign_8",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 2565.9043488745515,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 2565.9043488745515,
+              "median_ns": 2498.0399757623672,
+              "stddev_ns": 432.55717587535156,
+              "ops_per_s": 389726.1409758383,
+              "rounds": 61103,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 19679.263446420493,
+              "median_ns": 19020.866602659225,
+              "stddev_ns": 3636.679266267362,
+              "ops_per_s": 50814.90995446236,
+              "rounds": 7195,
+              "relative_to_fastest": 7.669523
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "excluded_artifacts": [
+    {
+      "file": "bench/results/belova_merge_parity.json",
+      "reason": "not a cross-backend performance comparison (schema: scpn-mif-core/belova-merge-parity/1.0.0)"
+    },
+    {
+      "file": "bench/results/trigger_latency_budget.json",
+      "reason": "not a cross-backend performance comparison (schema: scpn-mif-core/trigger-latency-budget/1.0.0)"
+    }
+  ]
+}

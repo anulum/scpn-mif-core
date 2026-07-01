@@ -129,6 +129,7 @@ nav:
           - Functional-safety readiness mapping: standards/safety_readiness_mapping.md
       - Validation:
           - Belova FRC-merge reproduction: validation/belova_merge_reproduction.md
+          - Polyglot benchmark dashboard: validation/benchmark_dashboard.md
   - API:
       - api/index.md
       - Merge-trigger orchestrator: api/merge_trigger.md

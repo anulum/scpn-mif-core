@@ -191,6 +191,29 @@ they are FUSION physics, not MIF kinematics. The drift gate lives in
 `tests/physics_parity/test_belova_merge_parity.py`; the verified-source register
 is in `.coordination/research/SCPN-MIF-CORE/`.
 
+## Polyglot benchmark dashboard
+
+`docs/_generated/benchmark_dashboard.json` consolidates every reviewed per-kernel
+comparison result in this directory into one citation-ready artefact, regenerated
+by:
+
+```bash
+python -m tools.benchmark_dashboard          # rewrite the JSON
+python -m tools.benchmark_dashboard --check   # fail on drift
+```
+
+It copies numbers from the committed per-kernel result files rather than
+re-running anything, ranks the `fastest_backend` per group over the in-process
+runtime backends (`rust`, `python`) only, and keeps the Julia/Go CLI paths and
+the SystemVerilog cosimulation fixture as `runtime_comparable = false` parity
+provenance. The top-level `environments` block surfaces the real host, governor,
+Python, and toolchain-version spread across the runs instead of asserting a
+single uniform host. The latency budget and the Belova parity anchor are recorded
+under `excluded_artifacts` because they are not cross-backend performance
+comparisons. The committed artefact's currency is enforced by
+`tests/unit/bench/test_benchmark_dashboard.py`, and it is documented at
+`docs/validation/benchmark_dashboard.md`.
+
 ## Running
 
 ```bash
