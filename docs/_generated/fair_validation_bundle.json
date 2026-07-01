@@ -1,0 +1,520 @@
+{
+  "SPDX-License-Identifier": "AGPL-3.0-or-later",
+  "artifact_count": 44,
+  "artifacts": [
+    {
+      "kind": "project-documentation",
+      "media_type": "text/markdown",
+      "path": "README.md",
+      "sha256": "sha256:441b3edd9923e19dfd8d72ec8411948cb1ed6dc1466f087bd306708faac65a29",
+      "size_bytes": 24194
+    },
+    {
+      "kind": "license",
+      "media_type": "text/plain",
+      "path": "LICENSE",
+      "sha256": "sha256:252691ccb6489698d1dd7441bfc717f83f8e2d75f8e5bf7b1c4b14214dd11ebc",
+      "size_bytes": 34729
+    },
+    {
+      "kind": "license",
+      "media_type": "text/markdown",
+      "path": "NOTICE.md",
+      "sha256": "sha256:5016b5a69cbbff7ab9eae8df1f25c4427e85339b6032f6334866f73967b37e9c",
+      "size_bytes": 2104
+    },
+    {
+      "kind": "citation-metadata",
+      "media_type": "application/vnd.citationstyles.csl+yaml",
+      "path": "CITATION.cff",
+      "sha256": "sha256:3388c32ef56ad8b0052515d751d352076ae260b8d0718e69b0c532915540cb1c",
+      "size_bytes": 1857
+    },
+    {
+      "kind": "citation-metadata",
+      "media_type": "application/json",
+      "path": ".zenodo.json",
+      "sha256": "sha256:5bbb38162bca25a81051587958e4aa610b44a930ed010db407c947e9ad3bf789",
+      "size_bytes": 2113
+    },
+    {
+      "kind": "supporting-artifact",
+      "media_type": "application/toml",
+      "path": "pyproject.toml",
+      "sha256": "sha256:1a15356dfd965b41178fdc1486cf50ebe7e3662cebfdfd2242643096d33af594",
+      "size_bytes": 9948
+    },
+    {
+      "kind": "supporting-artifact",
+      "media_type": "text/markdown",
+      "path": "bench/README.md",
+      "sha256": "sha256:1f607837e456804cd9f866d40c5491f3f7516df9736dd51ff8a1166b7a17e6f2",
+      "size_bytes": 12275
+    },
+    {
+      "kind": "supporting-artifact",
+      "media_type": "application/toml",
+      "path": "bench/dispatch.toml",
+      "sha256": "sha256:b94cdb5e6d639bb63cb2352f73c3ef84c17d9734bcb3b30832c8635051be032b",
+      "size_bytes": 3154
+    },
+    {
+      "kind": "generated-dashboard",
+      "media_type": "application/json",
+      "path": "docs/_generated/benchmark_dashboard.json",
+      "sha256": "sha256:fe51460bdd852fe80a6bc99202b08616e8db41b6503c6e5d3bcf6d129bd63494",
+      "size_bytes": 59417
+    },
+    {
+      "kind": "generated-dashboard",
+      "media_type": "application/json",
+      "path": "docs/_generated/capability_manifest.json",
+      "sha256": "sha256:549498d4b4a2d51307931cf0e6b239c3c4efb935e956e84d5af70b02c3b358ca",
+      "size_bytes": 31265
+    },
+    {
+      "kind": "generated-dashboard",
+      "media_type": "application/json",
+      "path": "docs/_generated/formal_manifest.json",
+      "sha256": "sha256:f28d95c6df9197819dd56aa0f84e36fea8c4e6bb3f526c5bbff1022181fa4e63",
+      "size_bytes": 7317
+    },
+    {
+      "kind": "generated-dashboard",
+      "media_type": "application/json",
+      "path": "docs/_generated/studio_manifest.json",
+      "sha256": "sha256:017b67584d460236b69e7c0216560eb1444f428c95e5ee3137143cf62268c448",
+      "size_bytes": 12451
+    },
+    {
+      "kind": "generated-dashboard",
+      "media_type": "application/json",
+      "path": "docs/_generated/timing_evidence_package.json",
+      "sha256": "sha256:a0ee9f6fe275cae430cd2e0b1b50b9fbc182fa93d1655a533f1829b3a584c34d",
+      "size_bytes": 2625
+    },
+    {
+      "kind": "validation-documentation",
+      "media_type": "text/markdown",
+      "path": "docs/validation/belova_merge_reproduction.md",
+      "sha256": "sha256:c64262c8a5ffa6dc2815c8148332c40dae018f9cff5ddcc62eb8e4c9de772f09",
+      "size_bytes": 3629
+    },
+    {
+      "kind": "validation-documentation",
+      "media_type": "text/markdown",
+      "path": "docs/validation/benchmark_dashboard.md",
+      "sha256": "sha256:c07c5b0daee0de950f90063b536c39820c38901afad605c405369f908006cd1e",
+      "size_bytes": 4155
+    },
+    {
+      "kind": "validation-documentation",
+      "media_type": "text/markdown",
+      "path": "docs/validation/fair_validation_bundle.md",
+      "sha256": "sha256:7ae727b9d31a2126e3e5f4cc629532292d0a84f5b30bf852ba9ac031c61c896a",
+      "size_bytes": 2274
+    },
+    {
+      "kind": "reproduction-tool",
+      "media_type": "text/x-python",
+      "path": "tools/belova_merge_parity.py",
+      "sha256": "sha256:c6c7d93dd7d602b27e63f2c4d375b0174d4b4d54ae15c56e381479dd878f3837",
+      "size_bytes": 12136
+    },
+    {
+      "kind": "reproduction-tool",
+      "media_type": "text/x-python",
+      "path": "tools/benchmark_dashboard.py",
+      "sha256": "sha256:c1c0b857dbbeb3bb6cf43fa0cffade94e04ffe2ca3afc68f5a4a16751971d693",
+      "size_bytes": 19276
+    },
+    {
+      "kind": "reproduction-tool",
+      "media_type": "text/x-python",
+      "path": "tools/fair_validation_bundle.py",
+      "sha256": "sha256:2404c4f71e01eb7f4d2b9d4f65a2e3ee383cbb07dc33e3c6bd703697d1e831f5",
+      "size_bytes": 16626
+    },
+    {
+      "kind": "reproduction-tool",
+      "media_type": "text/x-python",
+      "path": "tools/formal_manifest.py",
+      "sha256": "sha256:0426961ed4f9b810f5c693c0ff4b37915b7a1bf2eeb1df4b3aa2f83d9043fb8d",
+      "size_bytes": 6198
+    },
+    {
+      "kind": "reproduction-tool",
+      "media_type": "text/x-python",
+      "path": "tools/timing_evidence_package.py",
+      "sha256": "sha256:c8476a0026515e27d9dd13a82782729566fb6e0dc9d8e13142bc57cbffc1896d",
+      "size_bytes": 11514
+    },
+    {
+      "kind": "reproduction-tool",
+      "media_type": "text/x-python",
+      "path": "tools/trigger_latency_budget.py",
+      "sha256": "sha256:6e2f09a17962357bf8dc019b45e928a85fcf2f7a32dde6f3d398ebc526e01991",
+      "size_bytes": 12073
+    },
+    {
+      "kind": "reproduction-tool",
+      "media_type": "text/x-python",
+      "path": "tools/validate_sota_evidence_ledger.py",
+      "sha256": "sha256:0d723548fa2ba8b0e64013e3538f147412f8390d02f2eb6fd6a43dcc9e23d766",
+      "size_bytes": 10700
+    },
+    {
+      "kind": "verification-test",
+      "media_type": "text/x-python",
+      "path": "tests/unit/bench/test_benchmark_dashboard.py",
+      "sha256": "sha256:48ff921d3ae75068e7dcb37cd8be74febf940a5203f9c80351ec49f7fdb2fd26",
+      "size_bytes": 19422
+    },
+    {
+      "kind": "verification-test",
+      "media_type": "text/x-python",
+      "path": "tests/unit/fpga/test_timing_evidence_package.py",
+      "sha256": "sha256:084bdaa26bfd128a0ea9e0618e0e52b7d35824a11ee13195559db93f5b9eeeef",
+      "size_bytes": 8746
+    },
+    {
+      "kind": "verification-test",
+      "media_type": "text/x-python",
+      "path": "tests/unit/test_fair_validation_bundle.py",
+      "sha256": "sha256:b7692290908bf14ebebf96855e995b34d5e284b7f3dd1c934c8c298e6ac574b8",
+      "size_bytes": 9369
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/adc_to_spike_quantiser.json",
+      "sha256": "sha256:c817cff18aa0e2b4efa17f274a61487772ef5da82cf27b8dd1bccce79507f6f6",
+      "size_bytes": 2404
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/aer_decode_rate.json",
+      "sha256": "sha256:359fb7290b38346de63e662cd7b7146aa31fb6570d82c0db361e6ef4e704e2aa",
+      "size_bytes": 2900
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/aer_spike_buffer.json",
+      "sha256": "sha256:79273dbb45aa503e4ea55303bb1f467476e0154e1ce9a6605069c7a5bb765bcb",
+      "size_bytes": 2876
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/belova_merge_parity.json",
+      "sha256": "sha256:4d385bb215d0685de1fd82c0187447ae371428af6d9660a59480978f261823ce",
+      "size_bytes": 4236
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/capacitor_bank.json",
+      "sha256": "sha256:82bfd1d18601e666fa86a45a26e3eb3b98eb976a7df0ada34de8712ddce9104c",
+      "size_bytes": 3813
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/daq_pcie_dma_ring_mock.json",
+      "sha256": "sha256:5460a23ffc8f8dcf047fee224a5af8b3573b90d831ce9ae30645d1b6a6ff3dbd",
+      "size_bytes": 2947
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/daq_udp_multicast_mock.json",
+      "sha256": "sha256:20adc576ce417fadb926c79e0abe7ffd7167db806292b20fc217b2cb13aa2883",
+      "size_bytes": 2483
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/diagnostic_normalisation.json",
+      "sha256": "sha256:5407a651aeb6d2a475e01415fe6c85715a558c1d0d044ba861eb9e6f2f7dcf37",
+      "size_bytes": 2788
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/diagnostic_stress_inject.json",
+      "sha256": "sha256:8c2536bc964b5a24a61607eb5df4a7e00dda9e1d13695edcc14c74b209300298",
+      "size_bytes": 3208
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/doppler_kuramoto.json",
+      "sha256": "sha256:d5414dce3a5806a1305f048977410c57a1b3884288deb0825f2739c4d3720e05",
+      "size_bytes": 3625
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/faraday_back_emf.json",
+      "sha256": "sha256:3a46d8dc892c0169f9ddc5c4a07c7d254a9257c896e1bd11cc20035878068886",
+      "size_bytes": 1932
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/faraday_recovery_waveform.json",
+      "sha256": "sha256:9f3490e724fde178c3868998b90db419a3e7de62f9d6be10bf9490ab0978ed00",
+      "size_bytes": 2408
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/kinematic_safety_certificate.json",
+      "sha256": "sha256:8c6cc9e687466b5880c0cb8e834cfd01e22849b88aef0f36bbe65d7e4b9a4d81",
+      "size_bytes": 2181
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/merge_window.json",
+      "sha256": "sha256:97a6be2211e972bc07fe473fb78b35ae1306b9ce158dc9493e334b59e9df456e",
+      "size_bytes": 3060
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/moving_frame_upde.json",
+      "sha256": "sha256:35df2cf62fd43a11bcb59f3e9d30c06f4353cc5383eedbf0d85cf6e26cf3dc0b",
+      "size_bytes": 3638
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/plasmoid_merger_petri_net.json",
+      "sha256": "sha256:474a597ec432888d8168cd920013d909631cbcc858b3220d1e34a79cf3fe22f7",
+      "size_bytes": 2415
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/pulsed_shot_fsm.json",
+      "sha256": "sha256:c39043132ed348f98db55abcb7ec9e12af8d7e17041601eb49b122c476d8bdc2",
+      "size_bytes": 1923
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/trigger_latency_budget.json",
+      "sha256": "sha256:00d358b01bf999f05c95bc1dbc32a1d1f39ace5b8b888978aefd3641cb1cd46b",
+      "size_bytes": 3212
+    }
+  ],
+  "citation": {
+    "cff": {
+      "date_released": "2026-06-20",
+      "doi": "10.5281/zenodo.20768029",
+      "identifiers": [
+        "10.5281/zenodo.20768029",
+        "10.5281/zenodo.20768030",
+        "10.5281/zenodo.20778130"
+      ],
+      "license": "AGPL-3.0-or-later",
+      "title": "SCPN-MIF-CORE",
+      "version": "0.1.0"
+    },
+    "metadata_files": [
+      "CITATION.cff",
+      ".zenodo.json"
+    ],
+    "zenodo": {
+      "creators": [
+        {
+          "affiliation": "ANULUM CH & LI",
+          "name": "Sotek, Miroslav",
+          "orcid": "0009-0009-3560-0851"
+        }
+      ],
+      "keywords": [
+        "magneto-inertial-fusion",
+        "field-reversed-configuration",
+        "pulsed-plasma",
+        "kuramoto-synchronisation",
+        "spiking-neural-network",
+        "fixed-point",
+        "systemverilog",
+        "formal-verification",
+        "hall-mhd",
+        "magneto-rayleigh-taylor",
+        "SCPN"
+      ],
+      "license": "AGPL-3.0-or-later",
+      "publication_date": "2026-06-20",
+      "related_identifiers": [
+        {
+          "identifier": "https://github.com/anulum/scpn-mif-core",
+          "relation": "isSupplementTo",
+          "scheme": "url"
+        },
+        {
+          "identifier": "https://github.com/anulum/sc-neurocore",
+          "relation": "isPartOf",
+          "scheme": "url"
+        },
+        {
+          "identifier": "https://github.com/anulum/scpn-fusion-core",
+          "relation": "references",
+          "scheme": "url"
+        }
+      ],
+      "title": "SCPN-MIF-CORE: Deterministic Phase Synchronisation and Sub-50 ns FPGA Trigger Synthesis for High-Beta Pulsed Plasmas",
+      "version": "0.1.0"
+    }
+  },
+  "claim_boundary": "This public FAIR bundle inventories validation and benchmark artifacts, but it does not promote public SOTA, validation, or sub-50 ns claims. The internal evidence ledger must pass before upload or claim promotion.",
+  "environment": {
+    "benchmark_dashboard": {
+      "backend_roles": {
+        "go": "parity_cli",
+        "julia": "parity_cli",
+        "python": "runtime_reference",
+        "rust": "runtime",
+        "systemverilog": "cosimulation_fixture"
+      },
+      "distinct_cpu_governors": [
+        "powersave"
+      ],
+      "group_count": 27,
+      "kernel_count": 16,
+      "python_versions": [
+        "3.12.3"
+      ],
+      "runtime_comparable_backends": [
+        "python",
+        "rust"
+      ],
+      "schema": "scpn-mif-core/benchmark-dashboard/1.0.0",
+      "toolchains": {
+        "go": [
+          "go version go1.24.0 linux/amd64",
+          "go version go1.26.2 linux/amd64"
+        ],
+        "julia": [
+          "1.12.6",
+          "julia version 1.12.6"
+        ],
+        "rustc": [
+          "rustc 1.85.0 (4d91de4e4 2025-02-17)"
+        ],
+        "verilator": [
+          "Verilator 5.020 2024-01-01 rev (Debian 5.020-1)"
+        ],
+        "yosys": [
+          "Yosys 0.33 (git sha1 2584903a060)"
+        ]
+      }
+    },
+    "project": {
+      "dependencies": [
+        "numpy>=1.26",
+        "scipy>=1.13",
+        "jax>=0.4.30",
+        "pydantic>=2.5"
+      ],
+      "name": "scpn-mif-core",
+      "optional_extras": [
+        "accelerated",
+        "demo",
+        "dev",
+        "docs",
+        "ecosystem",
+        "formal",
+        "studio"
+      ],
+      "requires_python": ">=3.12,<3.13",
+      "version": "0.1.0"
+    }
+  },
+  "fair4rs": {
+    "accessible": {
+      "access_right": "open",
+      "license": "AGPL-3.0-or-later",
+      "repository": "https://github.com/anulum/scpn-mif-core"
+    },
+    "findable": {
+      "indexed_artifact_checksums": true,
+      "metadata_files": [
+        "CITATION.cff",
+        ".zenodo.json"
+      ],
+      "persistent_identifiers": [
+        "10.5281/zenodo.20768029",
+        "10.5281/zenodo.20778130"
+      ]
+    },
+    "interoperable": {
+      "formats": [
+        "JSON",
+        "Markdown",
+        "CFF",
+        "TOML",
+        "Python"
+      ],
+      "schemas": [
+        "scpn-mif-core/fair-validation-bundle/1.0.0",
+        "scpn-mif-core/benchmark-dashboard/1.0.0"
+      ]
+    },
+    "reusable": {
+      "claim_boundary": "No SOTA, validation, or sub-50 ns claim is promoted by this bundle.",
+      "environment_manifest": true,
+      "reproduction_commands": true
+    }
+  },
+  "gates": {
+    "internal_sota_ledger": {
+      "bundled": false,
+      "path": "docs/internal/sota_world_class_evidence_ledger.json",
+      "reason": "The SOTA evidence ledger is internal, gitignored, and not included in this public bundle; run the ledger validator locally before any Zenodo upload or public claim promotion.",
+      "required_before_upload": true
+    }
+  },
+  "publication_state": "blocked_by_internal_ledger",
+  "reproduction": {
+    "commands": [
+      {
+        "command": "python tools/validate_sota_evidence_ledger.py docs/internal/sota_world_class_evidence_ledger.json --repo . --check-references",
+        "label": "internal-sota-ledger-gate",
+        "purpose": "Fail closed until the private claim ledger has no unresolved blockers."
+      },
+      {
+        "command": "python tools/benchmark_dashboard.py --check",
+        "label": "benchmark-dashboard-drift",
+        "purpose": "Verify the benchmark dashboard still matches committed per-kernel results."
+      },
+      {
+        "command": "python tools/fair_validation_bundle.py --check",
+        "label": "fair-bundle-drift",
+        "purpose": "Verify this FAIR bundle manifest still matches public source artifacts."
+      },
+      {
+        "command": "python tools/capability_manifest.py --repo . --check",
+        "label": "capability-manifest-drift",
+        "purpose": "Verify the public capability inventory and README block are current."
+      },
+      {
+        "command": "python tools/emit_studio_manifest.py --check",
+        "label": "studio-manifest-drift",
+        "purpose": "Verify the Studio federation envelope remains current."
+      },
+      {
+        "command": "python -m mkdocs build --strict",
+        "label": "documentation-build",
+        "purpose": "Verify the public documentation graph builds without warnings promoted to errors."
+      }
+    ]
+  },
+  "schema": "scpn-mif-core/fair-validation-bundle/1.0.0",
+  "upload_allowed": false
+}

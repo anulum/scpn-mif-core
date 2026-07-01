@@ -6,7 +6,8 @@
 # Project: SCPN-MIF-CORE — common task entry points
 .PHONY: help install install-dev test test-rust test-julia test-lean test-go test-all \
         lint fmt mypy bandit sast preflight preflight-fast \
-        docs docs-build bench bench-rust benchmark-dashboard benchmark-dashboard-check bridge build \
+        docs docs-build bench bench-rust benchmark-dashboard benchmark-dashboard-check \
+        fair-validation-bundle fair-validation-bundle-check bridge build \
         formal synth-zu3eg synth-zu9eg cosim contract verify-floors \
         install-hooks demo clean
 
@@ -41,6 +42,8 @@ help:
 	@echo "  bench-rust      run Rust criterion benchmarks"
 	@echo "  benchmark-dashboard        regenerate the polyglot benchmark dashboard artefact"
 	@echo "  benchmark-dashboard-check  fail if the committed dashboard is stale"
+	@echo "  fair-validation-bundle        regenerate the FAIR validation bundle manifest"
+	@echo "  fair-validation-bundle-check  fail if the committed FAIR bundle is stale"
 	@echo ""
 	@echo "  bridge          build Python extension from Rust (maturin develop)"
 	@echo "  build           build sdist + wheel"
@@ -149,6 +152,12 @@ benchmark-dashboard:
 
 benchmark-dashboard-check:
 	python tools/benchmark_dashboard.py --check
+
+fair-validation-bundle:
+	python tools/fair_validation_bundle.py
+
+fair-validation-bundle-check:
+	python tools/fair_validation_bundle.py --check
 
 update-dispatch:
 	python tools/update_dispatch.py

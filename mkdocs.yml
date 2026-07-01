@@ -130,6 +130,7 @@ nav:
       - Validation:
           - Belova FRC-merge reproduction: validation/belova_merge_reproduction.md
           - Polyglot benchmark dashboard: validation/benchmark_dashboard.md
+          - FAIR validation bundle: validation/fair_validation_bundle.md
   - API:
       - api/index.md
       - Merge-trigger orchestrator: api/merge_trigger.md
