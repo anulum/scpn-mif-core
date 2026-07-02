@@ -7,7 +7,7 @@
 ```bash
 git clone https://github.com/anulum/scpn-mif-core.git
 cd scpn-mif-core
-python -m venv .venv
+python -m venv --copies .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 pre-commit install
@@ -16,10 +16,13 @@ pre-commit install
 Repository-locality requirement: this checkout is expected to live under the
 Samsung GOTM working tree at
 `/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-MIF-CORE`,
-on the ext4 `/media/anulum/GOTM` mount, with no symlinks inside the project
-tree. The local guard (`python tools/check_samsung_workspace.py`) runs as part
-of the pre-commit/preflight pipeline to prevent old-mirror, home-directory, or
-symlinked workspace states.
+on the ext4 `/media/anulum/GOTM` mount. The local guard
+(`python tools/check_samsung_workspace.py`) runs as part of the
+pre-commit/preflight pipeline to prevent old-mirror, home-directory, symlinked
+workspace, incomplete `.venv`, or Windows-layout `.venv` states. Dependency-tree
+roots such as `.venv`, `scpn-mif-rs/target`, and `studio-web/node_modules` must
+be real directories on the GOTM disk; package-manager internals such as pnpm
+links inside a real `node_modules` directory are allowed.
 
 Rust tool-chain (stable, edition 2024) is required for the PyO3 crates:
 

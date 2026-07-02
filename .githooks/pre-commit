@@ -3,7 +3,7 @@
 # SCPN-MIF-CORE — pre-commit hook for fast local quality checks.
 set -euo pipefail
 
-# Workspace-location guard (Samsung GOTM ext4 + no symlinks).
+# Workspace-location guard (Samsung GOTM ext4 + local dependency trees).
 python tools/check_samsung_workspace.py
 
 # Sync-state tag linter (~ <1s).

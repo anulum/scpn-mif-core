@@ -170,7 +170,7 @@ and the optional `recovery` + `expansion`).
 ```bash
 git clone https://github.com/anulum/scpn-mif-core.git
 cd scpn-mif-core
-python -m venv .venv && source .venv/bin/activate
+python -m venv --copies .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 make install-hooks   # wires preflight as the pre-push gate
 make preflight       # ten-gate local quality check
