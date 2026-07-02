@@ -59,7 +59,7 @@ def _make_complete_venv(repo: Path) -> Path:
     bin_dir = venv / "bin"
     bin_dir.mkdir(parents=True)
     (venv / "pyvenv.cfg").write_text("home = /usr/bin\n", encoding="utf-8")
-    for name in ("python", "pytest", "mypy", "ruff", "maturin"):
+    for name in ("python", "pip", "pytest", "mypy", "ruff", "maturin"):
         _write_executable(bin_dir / name)
     return venv
 
@@ -144,13 +144,13 @@ def test_venv_requires_pyvenv_cfg_and_executable_toolchain(tmp_path: Path, monke
 def test_venv_tools_must_execute(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     repo, policy = _make_repo(tmp_path, monkeypatch)
     venv = _make_complete_venv(repo)
-    broken_pytest = venv / "bin" / "pytest"
-    broken_pytest.write_text("#!/missing/python\n", encoding="utf-8")
-    broken_pytest.chmod(broken_pytest.stat().st_mode | stat.S_IXUSR)
+    broken_pip = venv / "bin" / "pip"
+    broken_pip.write_text("#!/missing/python\n", encoding="utf-8")
+    broken_pip.chmod(broken_pip.stat().st_mode | stat.S_IXUSR)
 
     errors = collect_workspace_errors(repo, policy=policy)
 
-    assert any(".venv/bin/pytest must execute --version" in error for error in errors)
+    assert any(".venv/bin/pip must execute --version" in error for error in errors)
 
 
 def test_venv_python_version_command_must_pass(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

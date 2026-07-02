@@ -27,7 +27,7 @@ FORBIDDEN_ROOTS = (
     Path("/home/anulum/SCPN-MIF-CORE"),
 )
 DependencyTreeKind = Literal["python-venv", "node-modules", "rust-target", "generic"]
-PYTHON_VENV_TOOLS = ("python", "pytest", "mypy", "ruff", "maturin")
+PYTHON_VENV_TOOLS = ("python", "pip", "pytest", "mypy", "ruff", "maturin")
 
 
 @dataclass(frozen=True)
