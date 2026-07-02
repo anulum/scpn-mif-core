@@ -6,8 +6,8 @@
       "kind": "project-documentation",
       "media_type": "text/markdown",
       "path": "README.md",
-      "sha256": "sha256:441b3edd9923e19dfd8d72ec8411948cb1ed6dc1466f087bd306708faac65a29",
-      "size_bytes": 24194
+      "sha256": "sha256:31e3e5c717eebce978273dc12ee1922ee5f38326d8782d0715bf50541cfb8c1c",
+      "size_bytes": 24203
     },
     {
       "kind": "license",
@@ -69,8 +69,8 @@
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/capability_manifest.json",
-      "sha256": "sha256:549498d4b4a2d51307931cf0e6b239c3c4efb935e956e84d5af70b02c3b358ca",
-      "size_bytes": 31265
+      "sha256": "sha256:f6f313db402ae280d7b841389d1d1179a4604b0f6a785f156290088d66cc0c87",
+      "size_bytes": 31317
     },
     {
       "kind": "generated-dashboard",
