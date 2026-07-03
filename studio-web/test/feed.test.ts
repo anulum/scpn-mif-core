@@ -20,7 +20,7 @@ import {
 const VALID_FEED = {
   feed_schema: 'studio.mif-feed.v1',
   studio: 'scpn-mif-core',
-  studio_version: '0.1.0',
+  studio_version: '0.1.1',
   content_digest: 'sha256:abc',
   verbs: [
     {
@@ -88,7 +88,7 @@ afterEach(() => {
 describe('narrowFeed', () => {
   it('maps the snake_case wire feed to camelCase domain types', () => {
     const feed = narrowFeed(VALID_FEED);
-    expect(feed.studioVersion).toBe('0.1.0');
+    expect(feed.studioVersion).toBe('0.1.1');
     expect(feed.contentDigest).toBe('sha256:abc');
     expect(feed.verbs).toHaveLength(2);
     expect(feed.claims).toHaveLength(3);
@@ -150,7 +150,7 @@ describe('narrowFeed', () => {
     const feed = narrowFeed({
       feed_schema: 'studio.mif-feed.v1',
       studio: 'scpn-mif-core',
-      studio_version: '0.1.0',
+      studio_version: '0.1.1',
       content_digest: 'sha256:abc',
       verbs: [],
       claims: [],
@@ -177,7 +177,7 @@ describe('loadStudioFeed', () => {
     mockFetch(() => Promise.resolve({ ok: true, json: () => Promise.resolve(VALID_FEED) }));
     const feed = await loadStudioFeed();
     expect(globalThis.fetch).toHaveBeenCalledWith(DEFAULT_FEED_URL);
-    expect(feed.studioVersion).toBe('0.1.0');
+    expect(feed.studioVersion).toBe('0.1.1');
     expect(feed.verbs).toHaveLength(2);
   });
 

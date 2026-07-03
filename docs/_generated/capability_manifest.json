@@ -773,7 +773,7 @@
     "name": "scpn-mif-core",
     "readme": "README.md",
     "requires_python": ">=3.12,<3.13",
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "project_label": "SCPN MIF Core",
   "quality_gates": {

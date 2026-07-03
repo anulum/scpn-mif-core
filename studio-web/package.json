@@ -1,6 +1,6 @@
 {
   "name": "scpn-mif-core-studio-web",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "The SCPN-MIF-CORE MIF Studio UI remote — a Module Federation 2.x remote exposing the MifStudioPanel the SCPN Studio Hub federates at runtime.",
   "license": "AGPL-3.0-or-later",

@@ -511,7 +511,7 @@ checksum = "6b947ae49db0d222b1dbc6b113ce7248a3fc3a6ca21b696717bfc000ba4484d8"
 
 [[package]]
 name = "mif-aer"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "criterion",
  "crossbeam",
@@ -525,7 +525,7 @@ dependencies = [
 
 [[package]]
 name = "mif-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "mif-types",
  "ndarray",
@@ -536,14 +536,14 @@ dependencies = [
 
 [[package]]
 name = "mif-daq"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "thiserror",
 ]
 
 [[package]]
 name = "mif-diagnostics"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "proptest",
  "thiserror",
@@ -551,7 +551,7 @@ dependencies = [
 
 [[package]]
 name = "mif-ffi"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "mif-aer",
  "mif-core",
@@ -566,7 +566,7 @@ dependencies = [
 
 [[package]]
 name = "mif-fpga"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "mif-core",
  "mif-types",
@@ -578,7 +578,7 @@ dependencies = [
 
 [[package]]
 name = "mif-kinematic"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "criterion",
  "mif-core",
@@ -593,7 +593,7 @@ dependencies = [
 
 [[package]]
 name = "mif-lifecycle"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "chrono",
  "criterion",
@@ -607,7 +607,7 @@ dependencies = [
 
 [[package]]
 name = "mif-types"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
  "thiserror",

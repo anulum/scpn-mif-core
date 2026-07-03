@@ -54,9 +54,9 @@ def test_bundle_carries_zenodo_cff_metadata() -> None:
 
     citation = build_bundle()["citation"]
 
-    assert citation["zenodo"]["version"] == "0.1.0"
+    assert citation["zenodo"]["version"] == "0.1.1"
     assert citation["zenodo"]["license"] == "AGPL-3.0-or-later"
-    assert citation["cff"]["version"] == "0.1.0"
+    assert citation["cff"]["version"] == "0.1.1"
     assert citation["cff"]["doi"] == "10.5281/zenodo.20768029"
     assert "10.5281/zenodo.20778130" in citation["cff"]["identifiers"]
     assert citation["metadata_files"] == ["CITATION.cff", ".zenodo.json"]
@@ -106,7 +106,7 @@ def test_environment_summary_lifts_project_and_benchmark_context() -> None:
     environment = build_bundle()["environment"]
 
     assert environment["project"]["name"] == "scpn-mif-core"
-    assert environment["project"]["version"] == "0.1.0"
+    assert environment["project"]["version"] == "0.1.1"
     assert environment["project"]["requires_python"] == ">=3.12,<3.13"
     assert "dev" in environment["project"]["optional_extras"]
     assert environment["benchmark_dashboard"]["schema"] == "scpn-mif-core/benchmark-dashboard/1.0.0"

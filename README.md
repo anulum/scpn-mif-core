@@ -414,14 +414,17 @@ bypassing the CPU completely.
 The repository is currently in **pre-alpha**. The P0 bootstrap release `0.0.1`
 shipped the governance, build system, source-tree skeleton, testing
 infrastructure, benchmark scaffolding, documentation site, CI/CD workflows, and
-the compatibility matrix `LOCKED-skeleton` row. The current release `0.1.0` adds
-the P1 upstream-pending kinematic, lifecycle, diagnostic, AER, and DAQ modules
-(Python with Rust, and Julia or Go paths where applicable), the public API facade
-and the end-to-end merge-trigger orchestrator with its CLI, the MIF-008 trigger
-fabric and its registerless fast-veto lane with the MIF-010 SymbiYosys proofs and
-MIF-015 cosimulation, and the latency-budget and Belova-parity artifacts.
+the compatibility matrix `LOCKED-skeleton` row. Release `0.1.0` added the P1
+upstream-pending kinematic, lifecycle, diagnostic, AER, and DAQ modules (Python
+with Rust, and Julia or Go paths where applicable), the public API facade and the
+end-to-end merge-trigger orchestrator with its CLI, the MIF-008 trigger fabric
+and its registerless fast-veto lane with the MIF-010 SymbiYosys proofs and
+MIF-015 cosimulation, and the latency-budget and Belova-parity artifacts. The
+current release `0.1.1` is a maintenance release that aligns the public release
+metadata, FAIR validation bundle, generated capability inventory, and Studio
+feed for publication.
 
-`0.1.0` remains pre-alpha: the Vivado timing-closure number, live FUSION dispatch,
+`0.1.1` remains pre-alpha: the Vivado timing-closure number, live FUSION dispatch,
 and the hardware trigger chain are still gated (see the items above).
 
 ### Capability inventory
@@ -434,7 +437,7 @@ and the hardware trigger chain are still gated (see the items above).
 
 | Surface | Current inventory |
 |---|---:|
-| Package version | 0.1.0 |
+| Package version | 0.1.1 |
 | Public API exports | 171 |
 | Python capability source modules | 22 |
 | Python capability classes | 82 |

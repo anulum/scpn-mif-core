@@ -6,8 +6,8 @@
       "kind": "project-documentation",
       "media_type": "text/markdown",
       "path": "README.md",
-      "sha256": "sha256:31e3e5c717eebce978273dc12ee1922ee5f38326d8782d0715bf50541cfb8c1c",
-      "size_bytes": 24203
+      "sha256": "sha256:b4976f61729acb82c9a173d89df049ce900537f18ba131cd7abf6ca64eb08ae3",
+      "size_bytes": 24375
     },
     {
       "kind": "license",
@@ -27,21 +27,21 @@
       "kind": "citation-metadata",
       "media_type": "application/vnd.citationstyles.csl+yaml",
       "path": "CITATION.cff",
-      "sha256": "sha256:3388c32ef56ad8b0052515d751d352076ae260b8d0718e69b0c532915540cb1c",
+      "sha256": "sha256:7e99541d3bfd74f0ceeaffbbf008ba1bfcfa7b8793ff7cd97ea887830f6bfb94",
       "size_bytes": 1857
     },
     {
       "kind": "citation-metadata",
       "media_type": "application/json",
       "path": ".zenodo.json",
-      "sha256": "sha256:5bbb38162bca25a81051587958e4aa610b44a930ed010db407c947e9ad3bf789",
+      "sha256": "sha256:337c68734a60c789705f51a38970b965ceb7b8ca43790b939ae097a44ae7e4a2",
       "size_bytes": 2113
     },
     {
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "pyproject.toml",
-      "sha256": "sha256:1a15356dfd965b41178fdc1486cf50ebe7e3662cebfdfd2242643096d33af594",
+      "sha256": "sha256:740c493f950a58f45097f42bd8545130c14ae239b0b778e3e3a2cef4a48ff886",
       "size_bytes": 9948
     },
     {
@@ -69,7 +69,7 @@
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/capability_manifest.json",
-      "sha256": "sha256:f6f313db402ae280d7b841389d1d1179a4604b0f6a785f156290088d66cc0c87",
+      "sha256": "sha256:afc0bb5682d8fa1d5406e7e8faa3f3e622c3fb8c8fe4aa643bb488059f0eae69",
       "size_bytes": 31317
     },
     {
@@ -83,7 +83,7 @@
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/studio_manifest.json",
-      "sha256": "sha256:017b67584d460236b69e7c0216560eb1444f428c95e5ee3137143cf62268c448",
+      "sha256": "sha256:6d39d2e031aff2bafae68502d2bce3eb97d67594faaacb0429659c916dd2b3e5",
       "size_bytes": 12451
     },
     {
@@ -181,7 +181,7 @@
       "kind": "verification-test",
       "media_type": "text/x-python",
       "path": "tests/unit/test_fair_validation_bundle.py",
-      "sha256": "sha256:b7692290908bf14ebebf96855e995b34d5e284b7f3dd1c934c8c298e6ac574b8",
+      "sha256": "sha256:d1546ae6b8a8374c1ced271ab4e0e49fbc9038d89993d5076cca23348d4f257a",
       "size_bytes": 9369
     },
     {
@@ -313,7 +313,7 @@
   ],
   "citation": {
     "cff": {
-      "date_released": "2026-06-20",
+      "date_released": "2026-07-03",
       "doi": "10.5281/zenodo.20768029",
       "identifiers": [
         "10.5281/zenodo.20768029",
@@ -322,7 +322,7 @@
       ],
       "license": "AGPL-3.0-or-later",
       "title": "SCPN-MIF-CORE",
-      "version": "0.1.0"
+      "version": "0.1.1"
     },
     "metadata_files": [
       "CITATION.cff",
@@ -350,7 +350,7 @@
         "SCPN"
       ],
       "license": "AGPL-3.0-or-later",
-      "publication_date": "2026-06-20",
+      "publication_date": "2026-07-03",
       "related_identifiers": [
         {
           "identifier": "https://github.com/anulum/scpn-mif-core",
@@ -369,7 +369,7 @@
         }
       ],
       "title": "SCPN-MIF-CORE: Deterministic Phase Synchronisation and Sub-50 ns FPGA Trigger Synthesis for High-Beta Pulsed Plasmas",
-      "version": "0.1.0"
+      "version": "0.1.1"
     }
   },
   "claim_boundary": "This public FAIR bundle inventories validation and benchmark artifacts, but it does not promote public SOTA, validation, or sub-50 ns claims. The internal evidence ledger must pass before upload or claim promotion.",
@@ -433,7 +433,7 @@
         "studio"
       ],
       "requires_python": ">=3.12,<3.13",
-      "version": "0.1.0"
+      "version": "0.1.1"
     }
   },
   "fair4rs": {

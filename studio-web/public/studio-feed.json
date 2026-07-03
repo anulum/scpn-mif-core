@@ -45,7 +45,7 @@
   "content_digest": "fallback",
   "feed_schema": "studio.mif-feed.v1",
   "studio": "scpn-mif-core",
-  "studio_version": "0.1.0",
+  "studio_version": "0.1.1",
   "verbs": [
     {
       "domain_distinctive": true,

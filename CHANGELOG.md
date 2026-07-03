@@ -10,6 +10,8 @@
 
 ## Unreleased
 
+## [0.1.1] - 2026-07-03
+
 ### Added
 
 - `accelerated` optional extra and prebuilt abi3 wheels (Linux x86_64/aarch64,
