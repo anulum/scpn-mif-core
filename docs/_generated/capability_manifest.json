@@ -521,7 +521,7 @@
     "python_capability_classes": 87,
     "python_capability_source_modules": 23,
     "rust_workspace_crates": 10,
-    "test_files": 104
+    "test_files": 105
   },
   "documentation": {
     "public_pages": [
@@ -898,6 +898,7 @@
       "tests/unit/physics/test_fusion_frc_contract.py",
       "tests/unit/physics/test_fusion_merge_window_replay.py",
       "tests/unit/studio/__init__.py",
+      "tests/unit/studio/test_evidence_seal.py",
       "tests/unit/studio/test_federation.py",
       "tests/unit/studio/test_studio_vertical.py",
       "tests/unit/test_capability_manifest.py",

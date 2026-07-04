@@ -6,7 +6,7 @@
       "kind": "project-documentation",
       "media_type": "text/markdown",
       "path": "README.md",
-      "sha256": "sha256:437400f2004e25fee94e785138bfed00681a6bfc56dfeb19212b7a3f03b88615",
+      "sha256": "sha256:1abd1c22e015d723282baad0ec3eab4021e4e5b8c6523fccea6404db7af60f7f",
       "size_bytes": 24375
     },
     {
@@ -69,8 +69,8 @@
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/capability_manifest.json",
-      "sha256": "sha256:be090d82d030eb7b2e75cddf1f485c3b6b4c78ecc2b620dd6660be185ec83953",
-      "size_bytes": 32392
+      "sha256": "sha256:e2b0669757a743c42a5ae0fcfb4d01bf675df0c54c78386dcaa0790e632287e2",
+      "size_bytes": 32441
     },
     {
       "kind": "generated-dashboard",
@@ -181,8 +181,8 @@
       "kind": "verification-test",
       "media_type": "text/x-python",
       "path": "tests/unit/test_fair_validation_bundle.py",
-      "sha256": "sha256:d1546ae6b8a8374c1ced271ab4e0e49fbc9038d89993d5076cca23348d4f257a",
-      "size_bytes": 9369
+      "sha256": "sha256:a6f1e16fc498895debdb1db33725252f93967208be2b0f49721f875c2b31a168",
+      "size_bytes": 9525
     },
     {
       "kind": "benchmark-result",
