@@ -106,11 +106,11 @@ def test_waveform_faraday_recovery_parity() -> None:
     )
     rust_emf, rust_power, rust_energy, rust_peak_emf, rust_peak_power = rust.evaluate_faraday_recovery(
         rust_spec,
-        time_s.tolist(),
-        radius_m.tolist(),
-        radial_velocity_m_s.tolist(),
-        magnetic_field_t.tolist(),
-        magnetic_field_rate_t_s.tolist(),
+        time_s,
+        radius_m,
+        radial_velocity_m_s,
+        magnetic_field_t,
+        magnetic_field_rate_t_s,
     )
     assert np.allclose(py_report.back_emf_V, rust_emf, rtol=PARITY_REL_TOL, atol=PARITY_ABS_TOL)
     assert np.allclose(py_report.recovered_power_W, rust_power, rtol=PARITY_REL_TOL, atol=PARITY_ABS_TOL)
@@ -138,11 +138,11 @@ def test_python_and_rust_zero_coupling_waveform_parity() -> None:
     )
     _, rust_power, rust_energy, _, rust_peak_power = rust.evaluate_faraday_recovery(
         rust_spec,
-        time_s.tolist(),
-        radius_m.tolist(),
-        radial_velocity_m_s.tolist(),
-        magnetic_field_t.tolist(),
-        magnetic_field_rate_t_s.tolist(),
+        time_s,
+        radius_m,
+        radial_velocity_m_s,
+        magnetic_field_t,
+        magnetic_field_rate_t_s,
     )
 
     assert np.all(py_report.recovered_power_W == 0.0)

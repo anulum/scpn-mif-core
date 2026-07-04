@@ -53,6 +53,9 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 # Python bridge
 pyo3 = { version = "0.29", features = ["extension-module", "abi3-py312"] }
+# Zero-copy NumPy views over the FFI boundary (batch surfaces only).
+# Verified: https://crates.io/api/v1/crates/numpy (0.29.0, matches pyo3 0.29)
+numpy = "0.29"
 
 # Concurrency
 crossbeam = "0.8"

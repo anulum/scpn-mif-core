@@ -90,14 +90,15 @@ def test_bench_python_waveform_batch_4096(benchmark, py_spec: PyFaradayRecoveryS
 
 
 def test_bench_rust_waveform_batch_4096(benchmark, rust_spec: rust.FaradayRecoverySpec) -> None:
+    # The FFI batch contract is zero-copy NumPy views; pass the arrays directly.
     def call() -> float:
         return rust.evaluate_faraday_recovery(
             rust_spec,
-            TIME_LIST,
-            RADIUS_LIST,
-            RADIAL_VELOCITY_LIST,
-            MAGNETIC_FIELD_LIST,
-            MAGNETIC_FIELD_RATE_LIST,
+            TIME_S,
+            RADIUS_M,
+            RADIAL_VELOCITY_M_S,
+            MAGNETIC_FIELD_T,
+            MAGNETIC_FIELD_RATE_T_S,
         )[2]
 
     benchmark.group = "faraday_recovery.waveform_batch_4096"

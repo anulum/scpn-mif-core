@@ -154,20 +154,24 @@ pytest bench/kernels/bench_faraday_recovery.py --benchmark-only
 python tools/update_dispatch.py
 ```
 
-Measured on the local i5-11600K rig with Python 3.12.3, Rust 1.85.0, and
+Measured on the local i5-11600K rig with Python 3.12, Rust 1.85.0, and
 Julia 1.12.6. This was a non-isolated workstation comparison with the CPU
-governor set to `powersave` and nontrivial host load; treat it as local
-regression evidence, not a production latency claim.
+governor set to `powersave` and heavy host load; treat it as local
+regression evidence, not a production latency claim. Medians are quoted
+because means are outlier-inflated under contention.
 
 | Operation | Python | Rust | Julia | Dispatch |
 | :--- | :--- | :--- | :--- | :--- |
-| Scalar `faraday_back_emf` | 745 ns | 84.5 ns | not used for scalar dispatch | `rust`, then `python` |
-| 4 096-sample waveform | 117 us | 247 us | 1.82 s through CLI startup | `python`, then `rust`, then `julia` |
+| Scalar `faraday_back_emf` | 975 ns | 313 ns | not used for scalar dispatch | `rust`, then `python` |
+| 4 096-sample waveform | 242 us | 93.7 us | 13.6 s through CLI startup | `rust`, then `python`, then `mojo`, then `julia` |
 
-The waveform Rust result is slower here because the current PyO3 bridge moves
-Python lists across the FFI boundary. The Rust core remains the production
-kernel; Python is the fastest measured facade for NumPy-resident waveform
-batches until a zero-copy array bridge lands.
+The waveform ranking flipped on 2026-07-04 when the zero-copy array bridge
+landed: the PyO3 boundary now consumes the five input channels as NumPy views
+and returns the two waveform outputs as NumPy arrays, with no Python-list
+materialisation in either direction. The earlier list-copying boundary had
+left Python fastest on this group;
+`bench/results/faraday_recovery_waveform.json` records both the new
+measurement and that provenance.
 
 The recovery waveform also ships a Mojo surface (`mojo/faraday_recovery.mojo`,
 compiled with `mojo build -Xlinker -lm`): a subprocess CLI whose flux array is

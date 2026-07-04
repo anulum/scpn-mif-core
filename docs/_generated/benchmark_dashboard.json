@@ -23,6 +23,7 @@
   "backend_coverage": {
     "go": 2,
     "julia": 10,
+    "mojo": 1,
     "python": 17,
     "rust": 16,
     "systemverilog": 1
@@ -936,26 +937,25 @@
       "kernel": "faraday_back_emf",
       "source": "bench/results/faraday_back_emf.json",
       "dispatch_key": "physics.faraday_back_emf",
-      "datetime": "2026-06-05T02:17:30+00:00",
+      "datetime": "2026-07-04T10:58:56.748053+00:00",
       "backends": [
         "python",
         "rust"
       ],
       "provenance": {
         "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
-        "python_version": "3.12.3",
-        "command": "./.venv/bin/pytest bench/kernels/bench_faraday_recovery.py --benchmark-only --benchmark-json=bench/results/faraday_recovery_raw.json --no-cov",
+        "python_version": "3.12.13",
+        "command": "taskset -c 8-11 pytest bench/kernels/bench_faraday_recovery.py --benchmark-only --benchmark-json=bench/results/local/faraday_recovery_raw.json",
         "runtime_versions": {
-          "python": "3.12.3",
-          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
-          "julia": "julia version 1.12.6"
+          "python": "3.12.13",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)"
         },
         "cpu_isolated": false,
-        "isolation_method": "none; local workstation comparison run",
-        "affinity_or_reserved_cores": "none",
+        "isolation_method": "taskset affinity to logical cores 8-11; no kernel isolcpus reservation",
+        "affinity_or_reserved_cores": "logical cores 8-11 of 12",
         "cpu_governor": "powersave",
-        "host_load_before": "3.94 4.08 3.70 3/3238 2789913",
-        "host_load_after": "3.65 3.99 3.68 6/3256 2790699",
+        "host_load_before": "37.89 45.13 46.99",
+        "host_load_after": "44.89 49.38 48.83",
         "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
       },
       "notes": [
@@ -966,29 +966,29 @@
         {
           "group": "faraday_recovery.scalar_emf",
           "fastest_backend": "rust",
-          "fastest_mean_ns": 84.46476550466477,
+          "fastest_mean_ns": 575.7388566552829,
           "backends": [
             {
               "backend": "rust",
               "role": "runtime",
               "runtime_comparable": true,
-              "mean_ns": 84.46476550466477,
-              "median_ns": 77.45751645416021,
-              "stddev_ns": 21.79979629838475,
-              "ops_per_s": 11839256.215596462,
-              "rounds": 63412,
+              "mean_ns": 575.7388566552829,
+              "median_ns": 313.0408003926277,
+              "stddev_ns": 25518.12153614927,
+              "ops_per_s": 1736898.5755268184,
+              "rounds": 28797,
               "relative_to_fastest": 1.0
             },
             {
               "backend": "python",
               "role": "runtime_reference",
               "runtime_comparable": true,
-              "mean_ns": 744.5682629450583,
-              "median_ns": 623.0548024177551,
-              "stddev_ns": 348.1005555895211,
-              "ops_per_s": 1343060.1998057363,
-              "rounds": 98552,
-              "relative_to_fastest": 8.815134
+              "mean_ns": 2452.310557777142,
+              "median_ns": 974.9783203005791,
+              "stddev_ns": 65679.99627129939,
+              "ops_per_s": 407778.6954138607,
+              "rounds": 17011,
+              "relative_to_fastest": 4.259415
             }
           ]
         }
@@ -998,30 +998,31 @@
       "kernel": "faraday_recovery_waveform",
       "source": "bench/results/faraday_recovery_waveform.json",
       "dispatch_key": "physics.faraday_recovery_waveform",
-      "datetime": "2026-06-05T02:17:30+00:00",
+      "datetime": "2026-07-04T10:58:56.748053+00:00",
       "backends": [
         "julia",
+        "mojo",
         "python",
         "rust"
       ],
       "provenance": {
         "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
-        "python_version": "3.12.3",
-        "command": "./.venv/bin/pytest bench/kernels/bench_faraday_recovery.py --benchmark-only --benchmark-json=bench/results/faraday_recovery_raw.json --no-cov",
+        "python_version": "3.12.13",
+        "command": "taskset -c 8-11 pytest bench/kernels/bench_faraday_recovery.py --benchmark-only --benchmark-json=bench/results/local/faraday_recovery_raw.json",
         "runtime_versions": {
-          "python": "3.12.3",
-          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
-          "julia": "julia version 1.12.6"
+          "python": "3.12.13",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)"
         },
         "cpu_isolated": false,
-        "isolation_method": "none; local workstation comparison run",
-        "affinity_or_reserved_cores": "none",
+        "isolation_method": "taskset affinity to logical cores 8-11; no kernel isolcpus reservation",
+        "affinity_or_reserved_cores": "logical cores 8-11 of 12",
         "cpu_governor": "powersave",
-        "host_load_before": "3.94 4.08 3.70 3/3238 2789913",
-        "host_load_after": "3.65 3.99 3.68 6/3256 2790699",
+        "host_load_before": "37.89 45.13 46.99",
+        "host_load_after": "44.89 49.38 48.83",
         "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
       },
       "notes": [
+        "REGENERATED 2026-07-04 after the zero-copy FFI boundary landed (NumPy views in, NumPy arrays out, no Python-list materialisation): Rust now leads the 4096-sample batch (median 93.7 us vs Python 241.8 us); the previous list-copying boundary had left Python fastest on this group.",
         "Julia is measured through the package CLI harness; the recorded timing includes Julia process startup.",
         "MIF-009 waveform recovery rejects non-finite derived flux, flux-rate, EMF, power, and energy observables before returning a report.",
         "Non-isolated local comparison run on a workstation with powersave governor and nontrivial host load; do not treat as a production performance claim."
@@ -1029,41 +1030,52 @@
       "groups": [
         {
           "group": "faraday_recovery.waveform_batch_4096",
-          "fastest_backend": "python",
-          "fastest_mean_ns": 117128.77281211519,
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 442020.14153900865,
           "backends": [
-            {
-              "backend": "python",
-              "role": "runtime_reference",
-              "runtime_comparable": true,
-              "mean_ns": 117128.77281211519,
-              "median_ns": 106494.17527019978,
-              "stddev_ns": 29894.23051231391,
-              "ops_per_s": 8537.6118607858,
-              "rounds": 2405,
-              "relative_to_fastest": 1.0
-            },
             {
               "backend": "rust",
               "role": "runtime",
               "runtime_comparable": true,
-              "mean_ns": 246892.43513069328,
-              "median_ns": 236135.55822521448,
-              "stddev_ns": 23529.902394137174,
-              "ops_per_s": 4050.3468624733155,
-              "rounds": 3100,
-              "relative_to_fastest": 2.107872
+              "mean_ns": 442020.14153900865,
+              "median_ns": 93740.00364914536,
+              "stddev_ns": 1496552.1311038795,
+              "ops_per_s": 2262.3403461168955,
+              "rounds": 96,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 2432808.9206824666,
+              "median_ns": 241844.04173865914,
+              "stddev_ns": 5505905.621707588,
+              "ops_per_s": 411.04748979606416,
+              "rounds": 286,
+              "relative_to_fastest": 5.503842
+            },
+            {
+              "backend": "mojo",
+              "role": "unclassified",
+              "runtime_comparable": false,
+              "mean_ns": 328234565.6771213,
+              "median_ns": 302920835.907571,
+              "stddev_ns": 59357634.29148775,
+              "ops_per_s": 3.046601743290141,
+              "rounds": 3,
+              "relative_to_fastest": 742.578301
             },
             {
               "backend": "julia",
               "role": "parity_cli",
               "runtime_comparable": false,
-              "mean_ns": 1819912805.5945039,
-              "median_ns": 1808577269.082889,
-              "stddev_ns": 59538540.36430803,
-              "ops_per_s": 0.54947687434582,
+              "mean_ns": 12570319279.818796,
+              "median_ns": 13648011235.985905,
+              "stddev_ns": 1771965782.7147827,
+              "ops_per_s": 0.07955247418460283,
               "rounds": 5,
-              "relative_to_fastest": 15537.709155
+              "relative_to_fastest": 28438.34047
             }
           ]
         }

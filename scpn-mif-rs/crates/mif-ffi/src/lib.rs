@@ -13,6 +13,7 @@
 
 #![deny(missing_docs)]
 
+use numpy::{PyArray1, PyReadonlyArray1};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use std::{collections::HashMap, sync::Mutex};
@@ -70,7 +71,13 @@ use mif_lifecycle::{
     verify_merger_liveness as lifecycle_verify_merger_liveness,
 };
 
-type PyFaradayRecoveryWaveform = (Vec<f64>, Vec<f64>, f64, f64, f64);
+type PyFaradayRecoveryWaveform<'py> = (
+    Bound<'py, PyArray1<f64>>,
+    Bound<'py, PyArray1<f64>>,
+    f64,
+    f64,
+    f64,
+);
 type PyAERDecodedObservation = (String, u64, u64, usize, Vec<f64>);
 type PyDopplerKuramotoState = (f64, Vec<f64>, Vec<f64>, f64, f64);
 type PyMovingFrameUPDEState = (f64, Vec<f64>, Vec<f64>, Vec<f64>, f64, f64, f64, f64, f64);
@@ -2010,27 +2017,32 @@ fn recovered_power(spec: &PyFaradayRecoverySpec, back_emf_v: f64) -> PyResult<f6
 }
 
 /// Evaluate a full Faraday recovery waveform.
+///
+/// The five input channels are consumed as zero-copy NumPy views
+/// (`PyReadonlyArray1`), and the two waveform outputs are returned as NumPy
+/// arrays allocated once on the Python heap — no intermediate Python lists.
 #[pyfunction]
-fn evaluate_faraday_recovery(
+fn evaluate_faraday_recovery<'py>(
+    py: Python<'py>,
     spec: &PyFaradayRecoverySpec,
-    time_s: Vec<f64>,
-    radius_m: Vec<f64>,
-    radial_velocity_m_s: Vec<f64>,
-    magnetic_field_t: Vec<f64>,
-    magnetic_field_rate_t_s: Vec<f64>,
-) -> PyResult<PyFaradayRecoveryWaveform> {
+    time_s: PyReadonlyArray1<'py, f64>,
+    radius_m: PyReadonlyArray1<'py, f64>,
+    radial_velocity_m_s: PyReadonlyArray1<'py, f64>,
+    magnetic_field_t: PyReadonlyArray1<'py, f64>,
+    magnetic_field_rate_t_s: PyReadonlyArray1<'py, f64>,
+) -> PyResult<PyFaradayRecoveryWaveform<'py>> {
     let report = core_evaluate_faraday_recovery(
         &spec.inner,
-        &time_s,
-        &radius_m,
-        &radial_velocity_m_s,
-        &magnetic_field_t,
-        &magnetic_field_rate_t_s,
+        time_s.as_slice()?,
+        radius_m.as_slice()?,
+        radial_velocity_m_s.as_slice()?,
+        magnetic_field_t.as_slice()?,
+        magnetic_field_rate_t_s.as_slice()?,
     )
     .map_err(|e| PyValueError::new_err(e.to_string()))?;
     Ok((
-        report.back_emf_v,
-        report.recovered_power_w,
+        PyArray1::from_vec(py, report.back_emf_v),
+        PyArray1::from_vec(py, report.recovered_power_w),
         report.recovered_energy_j,
         report.peak_abs_back_emf_v,
         report.peak_recovered_power_w,

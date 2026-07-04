@@ -48,22 +48,22 @@
       "kind": "supporting-artifact",
       "media_type": "text/markdown",
       "path": "bench/README.md",
-      "sha256": "sha256:0fd2491b4121fd27945fb7ebae8c121ce0be6fd98db554cdd9a79a3d95c5ac9c",
-      "size_bytes": 12851
+      "sha256": "sha256:931861e67711184bfe51f448677a79e345862046e8e6654752e8257111da7c80",
+      "size_bytes": 12927
     },
     {
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "bench/dispatch.toml",
-      "sha256": "sha256:726d4c1d0fdf831c3a81cdd49ba164c680c515b6554bf2137a25c392253a8b86",
+      "sha256": "sha256:967c453ed93a4af9cc558ad1bfd1d5a42098f5f3343656ec0380645ed2a1e1b5",
       "size_bytes": 3447
     },
     {
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/benchmark_dashboard.json",
-      "sha256": "sha256:d212eb9f2f18418cbb650dee6d6c58303a5653dff64234ac27cdcb24fcb9c645",
-      "size_bytes": 63596
+      "sha256": "sha256:ac508f0dea3de608fab609ebf0977cf63db283f7b29d411232fabc85ea4c7f4a",
+      "size_bytes": 64306
     },
     {
       "kind": "generated-dashboard",
@@ -258,15 +258,15 @@
       "kind": "benchmark-result",
       "media_type": "application/json",
       "path": "bench/results/faraday_back_emf.json",
-      "sha256": "sha256:3a46d8dc892c0169f9ddc5c4a07c7d254a9257c896e1bd11cc20035878068886",
-      "size_bytes": 1932
+      "sha256": "sha256:4f4defdcfb21d8f26f25a8b06eab57cb1e925cbe1aa8f181efa18b1bb8285593",
+      "size_bytes": 2111
     },
     {
       "kind": "benchmark-result",
       "media_type": "application/json",
       "path": "bench/results/faraday_recovery_waveform.json",
-      "sha256": "sha256:9f3490e724fde178c3868998b90db419a3e7de62f9d6be10bf9490ab0978ed00",
-      "size_bytes": 2408
+      "sha256": "sha256:ab7d904f05a5c77a86a0971b5a76b9a5c181672dab24ab22b7486ad829ddc22d",
+      "size_bytes": 3242
     },
     {
       "kind": "benchmark-result",

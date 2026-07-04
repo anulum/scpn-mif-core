@@ -62,17 +62,19 @@ def rust_evaluate_faraday_recovery(
         spec.load_resistance_ohm,
         spec.coupling_efficiency,
     )
+    # Zero-copy boundary: contiguous float64 views in, NumPy arrays out — the
+    # PyO3 side reads the buffers directly and never materialises Python lists.
+    time = np.ascontiguousarray(time_s, dtype=np.float64)
+    radii = np.ascontiguousarray(radius_m, dtype=np.float64)
+    fields = np.ascontiguousarray(magnetic_field_T, dtype=np.float64)
     emf, power, energy, peak_emf, peak_power = _rust.evaluate_faraday_recovery(
         rust_spec,
-        list(time_s),
-        list(radius_m),
-        list(radial_velocity_m_s),
-        list(magnetic_field_T),
-        list(magnetic_field_rate_T_s),
+        time,
+        radii,
+        np.ascontiguousarray(radial_velocity_m_s, dtype=np.float64),
+        fields,
+        np.ascontiguousarray(magnetic_field_rate_T_s, dtype=np.float64),
     )
-    time = np.asarray(time_s, dtype=np.float64)
-    radii = np.asarray(radius_m, dtype=np.float64)
-    fields = np.asarray(magnetic_field_T, dtype=np.float64)
     flux = np.pi * radii * radii * fields
     flux_rate = -np.asarray(emf, dtype=np.float64) / spec.turns
     return FaradayRecoveryReport(

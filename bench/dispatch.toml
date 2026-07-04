@@ -12,7 +12,7 @@
 # benchmark campaign. Manual edits are blocked by the preflight gate.
 
 schema_version = "1.0.0"
-last_updated = "2026-07-04T1004"
+last_updated = "2026-07-04T1059"
 benchmark_host = "i5-11600K (mining rig)"
 
 [kernels]
@@ -49,7 +49,7 @@ benchmark_host = "i5-11600K (mining rig)"
 "physics.faraday_back_emf" = ["rust", "python"]
 # The Mojo recovery-waveform is a compiled subprocess CLI surface (tolerance-aware ~1 ULP
 # on the product-rule sum, bit-exact flux): behind in-process backends, ahead of Julia.
-"physics.faraday_recovery_waveform" = ["python", "rust", "mojo", "julia"]
+"physics.faraday_recovery_waveform" = ["rust", "python", "mojo", "julia"]
 # I/O hardening trio (MIF-016, MIF-017, MIF-018) — registered for the
 # multi-language dispatch from P1 prototype onward.
 "diagnostics.normalisation" = ["rust", "python", "julia"]    # MIF-016
