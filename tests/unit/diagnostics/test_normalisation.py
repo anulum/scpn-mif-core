@@ -20,6 +20,7 @@ from scpn_mif_core.diagnostics import (
     ClipPolicy,
     DiagnosticChannelCalibration,
     DiagnosticNormalisationState,
+    NormalisedDiagnosticMatrix,
     NormalisedDiagnosticSample,
     dispatched_normalisation_state,
     fit_diagnostic_calibrations,
@@ -401,3 +402,19 @@ def test_normalise_matrix_reject_policy_raises_on_out_of_range() -> None:
     state = DiagnosticNormalisationState((reject,))
     with pytest.raises(ValueError, match="above calibrated range"):
         state.normalise_matrix([[150.0]])
+
+
+def test_matrix_dataclass_validates_shapes_and_range_directly() -> None:
+    names = ("a", "b")
+    good_features = np.zeros((2, 2))
+    good_mask = np.zeros((2, 2), dtype=np.bool_)
+    with pytest.raises(ValueError, match="two-dimensional"):
+        NormalisedDiagnosticMatrix(names, np.zeros(4), good_mask, (0, 0))
+    with pytest.raises(ValueError, match="clip_mask shape"):
+        NormalisedDiagnosticMatrix(names, good_features, np.zeros((1, 2), dtype=np.bool_), (0, 0))
+    with pytest.raises(ValueError, match="channel_names length"):
+        NormalisedDiagnosticMatrix(("a",), good_features, good_mask, (0, 0))
+    with pytest.raises(ValueError, match="clipped_counts length"):
+        NormalisedDiagnosticMatrix(names, good_features, good_mask, (0,))
+    with pytest.raises(ValueError, match=r"\[-1, 1\]"):
+        NormalisedDiagnosticMatrix(names, np.full((2, 2), 2.0), good_mask, (0, 0))
