@@ -18,13 +18,13 @@
     "python",
     "rust"
   ],
-  "kernel_count": 16,
-  "group_count": 27,
+  "kernel_count": 17,
+  "group_count": 29,
   "backend_coverage": {
     "go": 2,
     "julia": 10,
-    "python": 16,
-    "rust": 15,
+    "python": 17,
+    "rust": 16,
     "systemverilog": 1
   },
   "environments": {
@@ -36,6 +36,7 @@
       "powersave"
     ],
     "python_versions": [
+      "3.12.13",
       "3.12.3"
     ],
     "toolchains": {
@@ -1530,6 +1531,98 @@
               "ops_per_s": 50814.90995446236,
               "rounds": 7195,
               "relative_to_fastest": 7.669523
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "streaming_trigger",
+      "source": "bench/results/streaming_trigger.json",
+      "dispatch_key": "kinematic.streaming_trigger",
+      "datetime": "2026-07-04T09:53:16.059510+00:00",
+      "backends": [
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.13",
+        "command": "taskset -c 8-11 pytest bench/kernels/bench_streaming_trigger.py --benchmark-only --benchmark-json=bench/results/local/streaming_trigger_raw.json",
+        "runtime_versions": {
+          "python": "3.12.13",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "taskset affinity to logical cores 8-11; no kernel isolcpus reservation",
+        "affinity_or_reserved_cores": "logical cores 8-11 of 12",
+        "cpu_governor": "powersave",
+        "host_load_before": "36.26 38.49 34.02",
+        "host_load_after": "56.92 57.20 47.16",
+        "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+      },
+      "notes": [
+        "Causal streaming merge-trigger: per-sample push on a persistent engine (push_single) and a 512-sample session including construction (session_512); Python and Rust/PyO3 runtime surfaces.",
+        "The Python-visible Rust figures include per-call FFI conversion overhead; the in-process Rust per-push cost, measured by the criterion bench scpn-mif-rs/crates/mif-kinematic/benches/streaming_trigger.rs on the same host and affinity, was mean 43.3 ns / median 29.2 ns (non-isolated, n=2 channels).",
+        "Non-isolated local comparison run under taskset affinity and heavy host load (load average ~34-38); absolute timings are noisy and means are outlier-inflated. The fastest-first ranking (rust < python) holds across the distribution; do not treat as a production performance claim.",
+        "max_ns is recorded per surface because the streaming engine's claim class is worst-case per-sample cost, not throughput; under this host load the max reflects scheduler preemption, not the kernel."
+      ],
+      "groups": [
+        {
+          "group": "streaming_trigger.push_single",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 18540.474939716518,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 18540.474939716518,
+              "median_ns": 11443.044058978558,
+              "stddev_ns": 120290.15725866746,
+              "ops_per_s": 53936.05089683264,
+              "rounds": 4323,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 94933.69642927899,
+              "median_ns": 32259.966246783733,
+              "stddev_ns": 523189.7237475829,
+              "ops_per_s": 10533.667576559095,
+              "rounds": 1515,
+              "relative_to_fastest": 5.120349
+            }
+          ]
+        },
+        {
+          "group": "streaming_trigger.session_512",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 7444839.304234911,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 7444839.304234911,
+              "median_ns": 6078082.951717079,
+              "stddev_ns": 4141843.998729759,
+              "ops_per_s": 134.32123369421305,
+              "rounds": 143,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 32076016.6321538,
+              "median_ns": 28135774.889960885,
+              "stddev_ns": 14679272.967442846,
+              "ops_per_s": 31.175940936430838,
+              "rounds": 19,
+              "relative_to_fastest": 4.30849
             }
           ]
         }

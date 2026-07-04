@@ -12,7 +12,7 @@
 # benchmark campaign. Manual edits are blocked by the preflight gate.
 
 schema_version = "1.0.0"
-last_updated = "2026-06-19T1912"
+last_updated = "2026-07-04T1004"
 benchmark_host = "i5-11600K (mining rig)"
 
 [kernels]
@@ -32,6 +32,10 @@ benchmark_host = "i5-11600K (mining rig)"
 # on the same rig.
 "kinematic.moving_frame_upde" = ["rust", "python", "julia"]
 "kinematic.merge_window" = ["rust", "python", "julia"]
+# Causal streaming merge-trigger (per-sample push): Rust is fastest through the
+# PyO3 surface; the in-process Rust per-push cost is measured separately by the
+# mif-kinematic criterion bench (see bench/results/streaming_trigger.json notes).
+"kinematic.streaming_trigger" = ["rust", "python"]
 "lifecycle.pulsed_shot_fsm" = ["rust", "python"]
 "lifecycle.plasmoid_merger_petri_net" = ["rust", "python"]
 # MIF-005 capacitor bank: Rust is fastest for the single Crank-Nicolson step,

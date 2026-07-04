@@ -20,6 +20,7 @@ pub mod doppler_kuramoto;
 pub mod merge_window;
 pub mod moving_frame_upde;
 pub mod safety_certificate;
+pub mod streaming_trigger;
 
 pub use doppler_kuramoto::{
     DopplerKuramoto, DopplerKuramotoError, DopplerKuramotoSpec, DopplerKuramotoState,
@@ -33,6 +34,10 @@ pub use moving_frame_upde::{
 pub use safety_certificate::{
     KINEMATIC_SAFETY_TOLERANCE_M, KinematicSafetyCertificate, KinematicSafetyError,
     KinematicSafetySpec, certify_sampled_kinematic_safety,
+};
+pub use streaming_trigger::{
+    StreamingMergeTrigger, StreamingTriggerDecision, StreamingTriggerError, StreamingTriggerSample,
+    StreamingTriggerSpec,
 };
 
 /// Crate version derived from the workspace.

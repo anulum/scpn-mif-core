@@ -23,3 +23,7 @@ thiserror = { workspace = true }
 [dev-dependencies]
 proptest = { workspace = true }
 criterion = { workspace = true }
+
+[[bench]]
+name = "streaming_trigger"
+harness = false

@@ -307,6 +307,18 @@ from scpn_mif_core.kinematic import (
     MovingFrameUPDEState as MovingFrameUPDEState,
 )
 from scpn_mif_core.kinematic import (
+    StreamingMergeTrigger as StreamingMergeTrigger,
+)
+from scpn_mif_core.kinematic import (
+    StreamingTriggerDecision as StreamingTriggerDecision,
+)
+from scpn_mif_core.kinematic import (
+    StreamingTriggerSample as StreamingTriggerSample,
+)
+from scpn_mif_core.kinematic import (
+    StreamingTriggerSpec as StreamingTriggerSpec,
+)
+from scpn_mif_core.kinematic import (
     certify_positions_sampled_kinematic_safety as certify_positions_sampled_kinematic_safety,
 )
 from scpn_mif_core.kinematic import (
@@ -323,6 +335,9 @@ from scpn_mif_core.kinematic import (
 )
 from scpn_mif_core.kinematic import (
     dispatched_sampled_kinematic_safety_certificate as dispatched_sampled_kinematic_safety_certificate,
+)
+from scpn_mif_core.kinematic import (
+    dispatched_streaming_merge_trigger as dispatched_streaming_merge_trigger,
 )
 from scpn_mif_core.kinematic import (
     doppler_derivatives as doppler_derivatives,
@@ -626,6 +641,10 @@ __all__ = [
     "SiblingReport",
     "SiblingSpec",
     "SpikeBuffer",
+    "StreamingMergeTrigger",
+    "StreamingTriggerDecision",
+    "StreamingTriggerSample",
+    "StreamingTriggerSpec",
     "StressCampaignReport",
     "StressEnvelope",
     "StressInjectionConfig",
@@ -669,6 +688,7 @@ __all__ = [
     "dispatched_plasmoid_merger_petri_net",
     "dispatched_pulsed_shot_fsm",
     "dispatched_sampled_kinematic_safety_certificate",
+    "dispatched_streaming_merge_trigger",
     "doppler_derivatives",
     "ecosystem",
     "egress_latency_ps",

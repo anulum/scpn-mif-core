@@ -67,11 +67,18 @@ from scpn_mif_core.kinematic.safety_certificate import (
     certify_positions_sampled_kinematic_safety,
     certify_sampled_kinematic_safety,
 )
+from scpn_mif_core.kinematic.streaming_trigger import (
+    StreamingMergeTrigger,
+    StreamingTriggerDecision,
+    StreamingTriggerSample,
+    StreamingTriggerSpec,
+)
 
 _DOPPLER_KERNEL = "kinematic.doppler_kuramoto"
 _MOVING_FRAME_KERNEL = "kinematic.moving_frame_upde"
 _MERGE_WINDOW_KERNEL = "kinematic.merge_window"
 _SAFETY_CERTIFICATE_KERNEL = "kinematic.sampled_safety_certificate"
+_STREAMING_TRIGGER_KERNEL = "kinematic.streaming_trigger"
 
 
 def dispatched_doppler_kuramoto(
@@ -111,6 +118,15 @@ def dispatched_merge_window_monitor(spec: MergeWindowSpec) -> MergeWindowMonitor
     return MergeWindowMonitor(spec)
 
 
+def dispatched_streaming_merge_trigger(spec: StreamingTriggerSpec) -> StreamingMergeTrigger:
+    """Return a streaming merge-trigger engine backed by the fastest available backend."""
+    if preferred_backend(_STREAMING_TRIGGER_KERNEL) == "rust" and is_rust_available():
+        from scpn_mif_core.kinematic._rust_adapter import RustBackedStreamingMergeTrigger
+
+        return RustBackedStreamingMergeTrigger(spec)  # type: ignore[return-value]
+    return StreamingMergeTrigger(spec)
+
+
 def dispatched_sampled_kinematic_safety_certificate(
     separation_m: ArrayLike,
     spec: KinematicSafetySpec | None = None,
@@ -145,12 +161,17 @@ __all__ = [
     "MovingFrameUPDEReport",
     "MovingFrameUPDESpec",
     "MovingFrameUPDEState",
+    "StreamingMergeTrigger",
+    "StreamingTriggerDecision",
+    "StreamingTriggerSample",
+    "StreamingTriggerSpec",
     "certify_positions_sampled_kinematic_safety",
     "certify_sampled_kinematic_safety",
     "dispatched_doppler_kuramoto",
     "dispatched_merge_window_monitor",
     "dispatched_moving_frame_upde",
     "dispatched_sampled_kinematic_safety_certificate",
+    "dispatched_streaming_merge_trigger",
     "doppler_derivatives",
     "evaluate_doppler_kuramoto",
     "evaluate_merge_window_trace",

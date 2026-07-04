@@ -111,15 +111,15 @@ def test_committed_dashboard_aggregates_real_kernels_honestly() -> None:
     dashboard = build_dashboard()
 
     assert dashboard["schema"] == "scpn-mif-core/benchmark-dashboard/1.0.0"
-    assert dashboard["kernel_count"] == 16
-    assert dashboard["group_count"] == 27
+    assert dashboard["kernel_count"] == 17
+    assert dashboard["group_count"] == 29
     assert dashboard["backend_roles"] == dict(BACKEND_ROLE)
     assert dashboard["runtime_comparable_backends"] == ["python", "rust"]
 
     coverage = dashboard["backend_coverage"]
     assert isinstance(coverage, dict)
-    assert coverage["python"] == 16
-    assert coverage["rust"] == 15  # adc_to_spike_quantiser has no Rust surface
+    assert coverage["python"] == 17
+    assert coverage["rust"] == 16  # adc_to_spike_quantiser has no Rust surface
     assert coverage["systemverilog"] == 1
 
     excluded = dashboard["excluded_artifacts"]
@@ -146,7 +146,10 @@ def test_environments_surface_real_toolchain_spread() -> None:
         "go version go1.26.2 linux/amd64",
     ]
     assert "python" not in toolchains
-    assert environments["python_versions"] == ["3.12.3"]
+    # Two CPython patch levels really were used across the promoted runs
+    # (3.12.3 for the 2026-06 kernels, 3.12.13 for the streaming trigger);
+    # the dashboard surfaces the spread rather than asserting uniformity.
+    assert environments["python_versions"] == ["3.12.13", "3.12.3"]
 
 
 def test_merge_window_ranking_and_runtime_comparability() -> None:

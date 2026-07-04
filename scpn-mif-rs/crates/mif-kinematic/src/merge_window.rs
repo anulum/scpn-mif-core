@@ -19,7 +19,7 @@
 use crate::{DopplerKuramotoError, phase_lock_error};
 
 /// Immutable merge-window tolerance specification.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MergeWindowSpec {
     /// Maximum circular phase separation in radians.
     pub phase_tolerance_rad: f64,
@@ -61,7 +61,7 @@ impl MergeWindowSpec {
 }
 
 /// Single merge-window evaluation sample.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct MergeWindowSample {
     /// Optional sample time in seconds.
     pub t_s: Option<f64>,

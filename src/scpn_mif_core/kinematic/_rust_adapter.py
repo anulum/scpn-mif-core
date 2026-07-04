@@ -40,6 +40,11 @@ from scpn_mif_core.kinematic.safety_certificate import (
     KinematicSafetyCertificate,
     KinematicSafetySpec,
 )
+from scpn_mif_core.kinematic.streaming_trigger import (
+    StreamingTriggerDecision,
+    StreamingTriggerSample,
+    StreamingTriggerSpec,
+)
 
 
 class RustBackedDopplerKuramoto:
@@ -152,6 +157,89 @@ class RustBackedMergeWindowMonitor:
             None if t_s is None else float(t_s),
         )
         return _merge_window_sample_from_tuple(raw)
+
+
+class RustBackedStreamingMergeTrigger:
+    """Adapter exposing the Python streaming-trigger API on top of the PyO3 engine."""
+
+    def __init__(self, spec: StreamingTriggerSpec) -> None:
+        self.spec = spec
+        self._rust_engine = _rust.StreamingMergeTrigger(
+            _rust_merge_window_spec(spec.merge_window),
+            spec.safety.tolerance_m,
+            spec.safety.contraction,
+            spec.safety.disturbance_ratio,
+            spec.safety.numerical_tolerance_m,
+            spec.bank_feasible,
+            armed=spec.armed,
+        )
+
+    @property
+    def decision(self) -> StreamingTriggerDecision:
+        """Return the current (latched) decision."""
+        return StreamingTriggerDecision(str(self._rust_engine.decision))
+
+    @property
+    def first_fire_time_s(self) -> float | None:
+        """Return the time of the sample that latched ``FIRE``, or ``None``."""
+        value = self._rust_engine.first_fire_time_s
+        return None if value is None else _float(value)
+
+    @property
+    def first_violation_index(self) -> int | None:
+        """Return the zero-based index of the first envelope violation, or ``None``."""
+        value = self._rust_engine.first_violation_index
+        return None if value is None else int(cast(SupportsIndex, value))
+
+    @property
+    def samples_seen(self) -> int:
+        """Return the number of samples pushed so far."""
+        return int(self._rust_engine.samples_seen)
+
+    def reset(self) -> None:
+        """Reset the engine to its post-construction state."""
+        self._rust_engine.reset()
+
+    def push(
+        self,
+        phases_rad: ArrayLike,
+        positions_m: ArrayLike,
+        t_s: float | None = None,
+    ) -> StreamingTriggerSample:
+        """Evaluate one sample through the Rust engine and return the Python dataclass."""
+        raw = self._rust_engine.push(
+            list(np.asarray(phases_rad, dtype=np.float64)),
+            list(np.asarray(positions_m, dtype=np.float64)),
+            None if t_s is None else float(t_s),
+        )
+        (
+            decision,
+            t_value,
+            phase_lock_error,
+            reference_error,
+            separation,
+            safety_slack,
+            candidate,
+            achieved,
+            streak,
+            sample_index,
+        ) = raw
+        window = MergeWindowSample(
+            t_s=None if t_value is None else _float(t_value),
+            phase_lock_error_rad=_float(phase_lock_error),
+            reference_error_m=_float(reference_error),
+            separation_m=_float(separation),
+            candidate_lock=bool(candidate),
+            lock_achieved=bool(achieved),
+            streak=int(cast(SupportsIndex, streak)),
+        )
+        return StreamingTriggerSample(
+            decision=StreamingTriggerDecision(str(decision)),
+            window=window,
+            separation_m=_float(separation),
+            safety_slack_m=_float(safety_slack),
+            sample_index=int(cast(SupportsIndex, sample_index)),
+        )
 
 
 def rust_doppler_derivatives(

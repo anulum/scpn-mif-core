@@ -35,6 +35,7 @@
       "docs/api/kinematic/merge_window_predictor.md",
       "docs/api/kinematic/moving_frame_upde.md",
       "docs/api/kinematic/safety_certificate.md",
+      "docs/api/kinematic/streaming_trigger.md",
       "docs/api/lifecycle/capacitor_bank.md",
       "docs/api/lifecycle/plasmoid_merger_petri_net.md",
       "docs/api/lifecycle/pulsed_shot_fsm.md",
@@ -379,6 +380,10 @@
         "path": "src/scpn_mif_core/aer/_rust_adapter.py"
       },
       {
+        "name": "RustBackedStreamingMergeTrigger",
+        "path": "src/scpn_mif_core/kinematic/_rust_adapter.py"
+      },
+      {
         "name": "SchedulerAction",
         "path": "src/scpn_mif_core/lifecycle/pulsed_shot_fsm.py"
       },
@@ -393,6 +398,22 @@
       {
         "name": "SpikeBuffer",
         "path": "src/scpn_mif_core/aer/spike_buffer.py"
+      },
+      {
+        "name": "StreamingMergeTrigger",
+        "path": "src/scpn_mif_core/kinematic/streaming_trigger.py"
+      },
+      {
+        "name": "StreamingTriggerDecision",
+        "path": "src/scpn_mif_core/kinematic/streaming_trigger.py"
+      },
+      {
+        "name": "StreamingTriggerSample",
+        "path": "src/scpn_mif_core/kinematic/streaming_trigger.py"
+      },
+      {
+        "name": "StreamingTriggerSpec",
+        "path": "src/scpn_mif_core/kinematic/streaming_trigger.py"
       },
       {
         "name": "StressCampaignReport",
@@ -434,6 +455,7 @@
       "src/scpn_mif_core/kinematic/merge_window_predictor.py",
       "src/scpn_mif_core/kinematic/moving_frame_upde.py",
       "src/scpn_mif_core/kinematic/safety_certificate.py",
+      "src/scpn_mif_core/kinematic/streaming_trigger.py",
       "src/scpn_mif_core/lifecycle/_rust_adapter.py",
       "src/scpn_mif_core/lifecycle/capacitor_bank.py",
       "src/scpn_mif_core/lifecycle/plasmoid_merger_petri_net.py",
@@ -487,19 +509,19 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 55,
+    "capability_documentation_pages": 56,
     "github_workflows": 16,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,
     "optional_extras": 7,
-    "public_api_exports": 171,
-    "public_documentation_pages": 55,
-    "python_capability_classes": 82,
-    "python_capability_source_modules": 22,
+    "public_api_exports": 176,
+    "public_documentation_pages": 56,
+    "python_capability_classes": 87,
+    "python_capability_source_modules": 23,
     "rust_workspace_crates": 10,
-    "test_files": 102
+    "test_files": 104
   },
   "documentation": {
     "public_pages": [
@@ -536,6 +558,7 @@
       "docs/api/kinematic/merge_window_predictor.md",
       "docs/api/kinematic/moving_frame_upde.md",
       "docs/api/kinematic/safety_certificate.md",
+      "docs/api/kinematic/streaming_trigger.md",
       "docs/api/lifecycle/capacitor_bank.md",
       "docs/api/lifecycle/plasmoid_merger_petri_net.md",
       "docs/api/lifecycle/pulsed_shot_fsm.md",
@@ -667,6 +690,10 @@
     "SiblingReport",
     "SiblingSpec",
     "SpikeBuffer",
+    "StreamingMergeTrigger",
+    "StreamingTriggerDecision",
+    "StreamingTriggerSample",
+    "StreamingTriggerSpec",
     "StressCampaignReport",
     "StressEnvelope",
     "StressInjectionConfig",
@@ -710,6 +737,7 @@
     "dispatched_plasmoid_merger_petri_net",
     "dispatched_pulsed_shot_fsm",
     "dispatched_sampled_kinematic_safety_certificate",
+    "dispatched_streaming_merge_trigger",
     "doppler_derivatives",
     "ecosystem",
     "egress_latency_ps",
@@ -853,6 +881,8 @@
       "tests/unit/kinematic/test_moving_frame_upde_rust_parity.py",
       "tests/unit/kinematic/test_safety_certificate.py",
       "tests/unit/kinematic/test_safety_certificate_rust_parity.py",
+      "tests/unit/kinematic/test_streaming_trigger.py",
+      "tests/unit/kinematic/test_streaming_trigger_rust_parity.py",
       "tests/unit/lifecycle/__init__.py",
       "tests/unit/lifecycle/test_capacitor_bank.py",
       "tests/unit/lifecycle/test_capacitor_bank_rust_parity.py",

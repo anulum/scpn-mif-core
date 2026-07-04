@@ -50,6 +50,8 @@ use mif_kinematic::{
     MergeWindowMonitor as KinematicMergeWindowMonitor, MergeWindowSpec as KinematicMergeWindowSpec,
     MovingFrameUPDE as KinematicMovingFrameUPDE,
     MovingFrameUPDESpec as KinematicMovingFrameUPDESpec,
+    StreamingMergeTrigger as KinematicStreamingMergeTrigger,
+    StreamingTriggerSpec as KinematicStreamingTriggerSpec,
     certify_sampled_kinematic_safety as kinematic_certify_sampled_safety,
     doppler_derivatives_at_time as kinematic_doppler_derivatives_at_time,
     moving_frame_derivatives_at_time as kinematic_moving_frame_derivatives_at_time,
@@ -73,6 +75,18 @@ type PyAERDecodedObservation = (String, u64, u64, usize, Vec<f64>);
 type PyDopplerKuramotoState = (f64, Vec<f64>, Vec<f64>, f64, f64);
 type PyMovingFrameUPDEState = (f64, Vec<f64>, Vec<f64>, Vec<f64>, f64, f64, f64, f64, f64);
 type PyMergeWindowSample = (Option<f64>, f64, f64, f64, bool, bool, usize);
+type PyStreamingTriggerSample = (
+    String,
+    Option<f64>,
+    f64,
+    f64,
+    f64,
+    f64,
+    bool,
+    bool,
+    usize,
+    usize,
+);
 type PyKinematicSafetyCertificate = (
     bool,
     usize,
@@ -1716,6 +1730,127 @@ impl PyMergeWindowMonitor {
     }
 }
 
+/// PyO3 wrapper around the causal streaming merge-trigger engine.
+#[pyclass(
+    name = "StreamingMergeTrigger",
+    module = "scpn_mif_core_rs",
+    unsendable
+)]
+struct PyStreamingMergeTrigger {
+    inner: Mutex<KinematicStreamingMergeTrigger>,
+}
+
+#[pymethods]
+impl PyStreamingMergeTrigger {
+    #[new]
+    #[pyo3(
+        signature = (
+            merge_window,
+            tolerance_m,
+            contraction,
+            disturbance_ratio,
+            numerical_tolerance_m,
+            bank_feasible,
+            armed=true
+        )
+    )]
+    #[allow(clippy::too_many_arguments)]
+    fn new(
+        merge_window: PyMergeWindowSpec,
+        tolerance_m: f64,
+        contraction: f64,
+        disturbance_ratio: f64,
+        numerical_tolerance_m: f64,
+        bank_feasible: bool,
+        armed: bool,
+    ) -> PyResult<Self> {
+        let safety = KinematicSafetySpecRust::new(
+            tolerance_m,
+            contraction,
+            disturbance_ratio,
+            numerical_tolerance_m,
+        )
+        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        let spec = KinematicStreamingTriggerSpec {
+            merge_window: merge_window.inner,
+            safety,
+            bank_feasible,
+            armed,
+        };
+        Ok(Self {
+            inner: Mutex::new(KinematicStreamingMergeTrigger::new(spec)),
+        })
+    }
+
+    #[getter]
+    fn decision(&self) -> String {
+        self.inner
+            .lock()
+            .expect("StreamingMergeTrigger mutex poisoned")
+            .decision()
+            .as_str()
+            .to_string()
+    }
+
+    #[getter]
+    fn first_fire_time_s(&self) -> Option<f64> {
+        self.inner
+            .lock()
+            .expect("StreamingMergeTrigger mutex poisoned")
+            .first_fire_time_s()
+    }
+
+    #[getter]
+    fn first_violation_index(&self) -> Option<usize> {
+        self.inner
+            .lock()
+            .expect("StreamingMergeTrigger mutex poisoned")
+            .first_violation_index()
+    }
+
+    #[getter]
+    fn samples_seen(&self) -> usize {
+        self.inner
+            .lock()
+            .expect("StreamingMergeTrigger mutex poisoned")
+            .samples_seen()
+    }
+
+    fn reset(&self) {
+        self.inner
+            .lock()
+            .expect("StreamingMergeTrigger mutex poisoned")
+            .reset();
+    }
+
+    #[pyo3(signature = (phases_rad, positions_m, t_s=None))]
+    fn push(
+        &self,
+        phases_rad: Vec<f64>,
+        positions_m: Vec<f64>,
+        t_s: Option<f64>,
+    ) -> PyResult<PyStreamingTriggerSample> {
+        let sample = self
+            .inner
+            .lock()
+            .expect("StreamingMergeTrigger mutex poisoned")
+            .push(&phases_rad, &positions_m, t_s)
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        Ok((
+            sample.decision.as_str().to_string(),
+            sample.window.t_s,
+            sample.window.phase_lock_error_rad,
+            sample.window.reference_error_m,
+            sample.separation_m,
+            sample.safety_slack_m,
+            sample.window.candidate_lock,
+            sample.window.lock_achieved,
+            sample.window.streak,
+            sample.sample_index,
+        ))
+    }
+}
+
 fn py_scheduler_command(command: LifecycleSchedulerCommand) -> PySchedulerCommand {
     (
         command.t_s,
@@ -2147,6 +2282,7 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyDopplerKuramoto>()?;
     m.add_class::<PyMovingFrameUPDE>()?;
     m.add_class::<PyMergeWindowMonitor>()?;
+    m.add_class::<PyStreamingMergeTrigger>()?;
     m.add_function(wrap_pyfunction!(analytical_voltage_underdamped, m)?)?;
     m.add_function(wrap_pyfunction!(analytical_current_underdamped, m)?)?;
     m.add_function(wrap_pyfunction!(analytical_voltage_critically_damped, m)?)?;

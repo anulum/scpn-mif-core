@@ -1,12 +1,12 @@
 {
   "SPDX-License-Identifier": "AGPL-3.0-or-later",
-  "artifact_count": 44,
+  "artifact_count": 45,
   "artifacts": [
     {
       "kind": "project-documentation",
       "media_type": "text/markdown",
       "path": "README.md",
-      "sha256": "sha256:b4976f61729acb82c9a173d89df049ce900537f18ba131cd7abf6ca64eb08ae3",
+      "sha256": "sha256:437400f2004e25fee94e785138bfed00681a6bfc56dfeb19212b7a3f03b88615",
       "size_bytes": 24375
     },
     {
@@ -41,36 +41,36 @@
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "pyproject.toml",
-      "sha256": "sha256:740c493f950a58f45097f42bd8545130c14ae239b0b778e3e3a2cef4a48ff886",
-      "size_bytes": 9948
+      "sha256": "sha256:22207c69db19c1815dff1a1ec1c3456d7033c21b789bd7537f204ba3ee73fe04",
+      "size_bytes": 9972
     },
     {
       "kind": "supporting-artifact",
       "media_type": "text/markdown",
       "path": "bench/README.md",
-      "sha256": "sha256:1f607837e456804cd9f866d40c5491f3f7516df9736dd51ff8a1166b7a17e6f2",
-      "size_bytes": 12275
+      "sha256": "sha256:0fd2491b4121fd27945fb7ebae8c121ce0be6fd98db554cdd9a79a3d95c5ac9c",
+      "size_bytes": 12851
     },
     {
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "bench/dispatch.toml",
-      "sha256": "sha256:b94cdb5e6d639bb63cb2352f73c3ef84c17d9734bcb3b30832c8635051be032b",
-      "size_bytes": 3154
+      "sha256": "sha256:726d4c1d0fdf831c3a81cdd49ba164c680c515b6554bf2137a25c392253a8b86",
+      "size_bytes": 3447
     },
     {
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/benchmark_dashboard.json",
-      "sha256": "sha256:fe51460bdd852fe80a6bc99202b08616e8db41b6503c6e5d3bcf6d129bd63494",
-      "size_bytes": 59417
+      "sha256": "sha256:d212eb9f2f18418cbb650dee6d6c58303a5653dff64234ac27cdcb24fcb9c645",
+      "size_bytes": 63596
     },
     {
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/capability_manifest.json",
-      "sha256": "sha256:afc0bb5682d8fa1d5406e7e8faa3f3e622c3fb8c8fe4aa643bb488059f0eae69",
-      "size_bytes": 31317
+      "sha256": "sha256:be090d82d030eb7b2e75cddf1f485c3b6b4c78ecc2b620dd6660be185ec83953",
+      "size_bytes": 32392
     },
     {
       "kind": "generated-dashboard",
@@ -167,8 +167,8 @@
       "kind": "verification-test",
       "media_type": "text/x-python",
       "path": "tests/unit/bench/test_benchmark_dashboard.py",
-      "sha256": "sha256:48ff921d3ae75068e7dcb37cd8be74febf940a5203f9c80351ec49f7fdb2fd26",
-      "size_bytes": 19422
+      "sha256": "sha256:541af8898b3fbaa75c38996e3a9898b293d2f61db6fff06bd2a8676605a22e6a",
+      "size_bytes": 19655
     },
     {
       "kind": "verification-test",
@@ -306,6 +306,13 @@
     {
       "kind": "benchmark-result",
       "media_type": "application/json",
+      "path": "bench/results/streaming_trigger.json",
+      "sha256": "sha256:6429892f6ff03fa589791a578afa1ce3c37c3898ab06f99570b41b327889f111",
+      "size_bytes": 3419
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
       "path": "bench/results/trigger_latency_budget.json",
       "sha256": "sha256:00d358b01bf999f05c95bc1dbc32a1d1f39ace5b8b888978aefd3641cb1cd46b",
       "size_bytes": 3212
@@ -385,9 +392,10 @@
       "distinct_cpu_governors": [
         "powersave"
       ],
-      "group_count": 27,
-      "kernel_count": 16,
+      "group_count": 29,
+      "kernel_count": 17,
       "python_versions": [
+        "3.12.13",
         "3.12.3"
       ],
       "runtime_comparable_backends": [
