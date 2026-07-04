@@ -17,10 +17,9 @@ from __future__ import annotations
 
 import shutil
 import subprocess
-
-import numpy as np
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from scpn_mif_core.diagnostics import (
