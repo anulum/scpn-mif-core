@@ -320,3 +320,17 @@ def test_dispatched_streaming_merge_trigger_returns_working_engine() -> None:
     sample = engine.push(phases, positions)
     assert sample.decision is StreamingTriggerDecision.FIRE
     assert sample.sample_index == 0
+
+
+def test_dispatched_streaming_trigger_uses_python_floor_when_rust_is_not_available(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import scpn_mif_core.kinematic as kinematic
+
+    monkeypatch.setattr(kinematic, "preferred_backend", lambda _kernel: "rust")
+    monkeypatch.setattr(kinematic, "is_rust_available", lambda: False)
+
+    engine = dispatched_streaming_merge_trigger(_spec(consecutive=1))
+    assert engine.__class__ is StreamingMergeTrigger
+    phases, positions = _locked_sample(0.002)
+    assert engine.push(phases, positions).decision is StreamingTriggerDecision.FIRE
