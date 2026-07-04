@@ -39,6 +39,16 @@ documentation build. This page is the navigable overview of the vertical's surfa
 - **`federation`** — `build_federation_document()`, which wraps the schema-A manifest and
   the descriptive `architecture-map.v2` extension into the ratified two-block envelope the
   Hub ingests (see [Federation](#federation)).
+- **`evidence_seal`** — `seal_mif_evidence()`, WS-1 sealing of the four evidence
+  bundles into verifiable honesty envelopes. All MIF evidence is
+  **recompute-verifiable** (the decision, proof, cosim, and benchmark all replay
+  from committed inputs), so sealing is recompute-mode only and fails closed on
+  an attestation-bearing bundle — MIF has no provider-attestation lane and will
+  not misgrade one. Exactness is per class: deterministic surfaces seal
+  `bit-exact`; a benchmark seals with a `tolerance` statement that the
+  *procedure* reproduces while wall-clock numbers are never claimed equal. The
+  production signer is the platform hybrid Ed25519+ML-DSA-65; key custody and
+  the signed-keyring deployment are hub-side, CEO-gated concerns.
 - **`__init__`** — fail-closed re-exports; importing the vertical without the SDK
   installed raises a clear error rather than degrading silently.
 

@@ -30,6 +30,11 @@ from .evidence import (
     formal_proof_evidence,
     merge_trigger_evidence,
 )
+from .evidence_seal import (
+    EXACTNESS_BY_SCHEMA,
+    MIF_GRADER,
+    seal_mif_evidence,
+)
 from .federation import (
     ARCHITECTURE_MAP_VERSION,
     build_architecture_map_extension,
@@ -40,6 +45,8 @@ from .verbs import MIF_VERBS, STUDIO_ID, evidence_schemas
 
 __all__ = [
     "ARCHITECTURE_MAP_VERSION",
+    "EXACTNESS_BY_SCHEMA",
+    "MIF_GRADER",
     "MIF_VERBS",
     "STUDIO_ID",
     "benchmark_evidence",
@@ -51,4 +58,5 @@ __all__ = [
     "evidence_schemas",
     "formal_proof_evidence",
     "merge_trigger_evidence",
+    "seal_mif_evidence",
 ]
