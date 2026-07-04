@@ -117,12 +117,30 @@ def test_rewrite_dispatch_preserves_absent_trailing_newline() -> None:
     assert not after.endswith("\n")
 
 
+def test_merge_ordering_keeps_unmeasured_parity_surfaces_in_place() -> None:
+    # Mojo has no promoted JSON rows; it must keep its curated slot while the
+    # measured backends re-rank among their own positions.
+    existing = ["rust", "python", "mojo", "julia"]
+    assert update_dispatch._merge_ordering(existing, ["rust", "python", "julia"]) == existing
+    assert update_dispatch._merge_ordering(existing, ["python", "rust", "julia"]) == [
+        "python",
+        "rust",
+        "mojo",
+        "julia",
+    ]
+
+
+def test_merge_ordering_appends_newly_measured_backends() -> None:
+    assert update_dispatch._merge_ordering(["python"], ["rust", "python"]) == ["python", "rust"]
+
+
 def test_main_check_reports_stale(
     tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text('"kinematic.merge_window" = ["python", "rust"]\n', encoding="utf-8")
     monkeypatch.setattr(update_dispatch, "DISPATCH_PATH", dispatch)
+    monkeypatch.setattr(update_dispatch, "PACKAGED_SNAPSHOT_PATH", tmp_path / "snapshot.toml")
     monkeypatch.setattr(
         update_dispatch, "collect_backend_orderings", lambda: {"kinematic.merge_window": ["rust", "python"]}
     )
@@ -130,10 +148,47 @@ def test_main_check_reports_stale(
     assert "stale" in capsys.readouterr().err
 
 
+def test_main_check_stale_table_with_current_snapshot_reports_only_stale(
+    tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    dispatch = tmp_path / "dispatch.toml"
+    dispatch.write_text('"kinematic.merge_window" = ["python", "rust"]\n', encoding="utf-8")
+    snapshot = tmp_path / "snapshot.toml"
+    snapshot.write_text(dispatch.read_text(encoding="utf-8"), encoding="utf-8")
+    monkeypatch.setattr(update_dispatch, "DISPATCH_PATH", dispatch)
+    monkeypatch.setattr(update_dispatch, "PACKAGED_SNAPSHOT_PATH", snapshot)
+    monkeypatch.setattr(
+        update_dispatch, "collect_backend_orderings", lambda: {"kinematic.merge_window": ["rust", "python"]}
+    )
+    assert update_dispatch.main(["--check"]) == 1
+    err = capsys.readouterr().err
+    assert "stale" in err
+    assert "out of step" not in err
+
+
+def test_main_check_reports_out_of_step_snapshot(
+    tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    dispatch = tmp_path / "dispatch.toml"
+    dispatch.write_text('"kinematic.merge_window" = ["rust", "python"]\n', encoding="utf-8")
+    snapshot = tmp_path / "snapshot.toml"
+    snapshot.write_text('"kinematic.merge_window" = ["python"]\n', encoding="utf-8")
+    monkeypatch.setattr(update_dispatch, "DISPATCH_PATH", dispatch)
+    monkeypatch.setattr(update_dispatch, "PACKAGED_SNAPSHOT_PATH", snapshot)
+    monkeypatch.setattr(
+        update_dispatch, "collect_backend_orderings", lambda: {"kinematic.merge_window": ["rust", "python"]}
+    )
+    assert update_dispatch.main(["--check"]) == 1
+    assert "out of step" in capsys.readouterr().err
+
+
 def test_main_check_up_to_date(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text('"kinematic.merge_window" = ["rust", "python"]\n', encoding="utf-8")
+    snapshot = tmp_path / "snapshot.toml"
+    snapshot.write_text(dispatch.read_text(encoding="utf-8"), encoding="utf-8")
     monkeypatch.setattr(update_dispatch, "DISPATCH_PATH", dispatch)
+    monkeypatch.setattr(update_dispatch, "PACKAGED_SNAPSHOT_PATH", snapshot)
     monkeypatch.setattr(
         update_dispatch, "collect_backend_orderings", lambda: {"kinematic.merge_window": ["rust", "python"]}
     )
@@ -143,12 +198,16 @@ def test_main_check_up_to_date(tmp_path, monkeypatch: pytest.MonkeyPatch) -> Non
 def test_main_writes_when_changed(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text('last_updated = "old"\n"kinematic.merge_window" = ["python", "rust"]\n', encoding="utf-8")
+    snapshot = tmp_path / "snapshot.toml"
     monkeypatch.setattr(update_dispatch, "DISPATCH_PATH", dispatch)
+    monkeypatch.setattr(update_dispatch, "PACKAGED_SNAPSHOT_PATH", snapshot)
     monkeypatch.setattr(
         update_dispatch, "collect_backend_orderings", lambda: {"kinematic.merge_window": ["rust", "python"]}
     )
     assert update_dispatch.main([]) == 0
     assert '"kinematic.merge_window" = ["rust", "python"]' in dispatch.read_text(encoding="utf-8")
+    # The packaged snapshot is written in the same pass and byte-matches the table.
+    assert snapshot.read_bytes() == dispatch.read_bytes()
 
 
 def test_main_missing_dispatch_file_returns_1(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:

@@ -25,6 +25,15 @@ bench/
 
 ## Workflow
 
+`bench/dispatch.toml` is the source of truth; `tools/update_dispatch.py` also
+writes a byte-identical packaged snapshot to
+`src/scpn_mif_core/_dispatch_table.toml`, which ships inside the wheel so
+pip-installed users resolve the measured fastest-first ordering (and therefore
+the Rust dispatch) without a repository checkout. `--check` fails when either
+file is stale. Backends listed on a kernel line without promoted measurement
+rows (the Mojo CLI parity surfaces) keep their curated slot when the table is
+regenerated; measured backends re-rank among their own positions.
+
 Per `feedback_multilang_workflow_canonical.md`:
 
 1. Profile the Python reference (`pytest-benchmark`).

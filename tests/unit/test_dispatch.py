@@ -157,8 +157,48 @@ def test_dispatch_reload_resets_cache(tmp_path: Path, monkeypatch: pytest.Monkey
 
 
 def test_dispatch_handles_missing_table(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """A non-existent dispatch.toml degrades to the ``['python']`` fallback."""
+    """With no repo table, unknown kernels still degrade to the ``['python']`` fallback."""
     missing = tmp_path / "absent.toml"
     monkeypatch.setattr(_dispatch, "_DISPATCH_PATH", missing)
     _dispatch.reload()
     assert _dispatch.available_backends("anything") == ["python"]
+
+
+def test_packaged_snapshot_is_byte_identical_to_repo_table() -> None:
+    """The wheel snapshot must never drift from the bench source of truth."""
+    repo_table = _dispatch._DISPATCH_PATH
+    packaged = Path(str(_dispatch.__file__)).parent / "_dispatch_table.toml"
+    assert packaged.is_file(), "packaged dispatch snapshot missing from scpn_mif_core/"
+    assert packaged.read_bytes() == repo_table.read_bytes()
+
+
+def test_installed_layout_resolves_rust_via_packaged_snapshot(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Simulate a pip install: repo table absent, packaged snapshot must still dispatch Rust.
+
+    Regression test for the shipped defect where installed wheels silently fell
+    back to ``['python']`` on every kernel because ``bench/dispatch.toml`` does
+    not exist relative to site-packages.
+    """
+    monkeypatch.setattr(_dispatch, "_DISPATCH_PATH", tmp_path / "not-a-checkout" / "dispatch.toml")
+    _dispatch.reload()
+    backends = _dispatch.available_backends("kinematic.merge_window")
+    assert backends[0] == "rust", f"installed layout must keep the measured ordering, got {backends!r}"
+    assert _dispatch.preferred_backend("lifecycle.capacitor_bank") == "rust"
+
+
+def test_missing_repo_table_and_packaged_snapshot_degrades_to_python(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """With neither source available the loader degrades to the ``['python']`` floor."""
+
+    class _AbsentResource:
+        def joinpath(self, _name: str) -> _AbsentResource:
+            return self
+
+        def is_file(self) -> bool:
+            return False
+
+    monkeypatch.setattr(_dispatch, "_DISPATCH_PATH", tmp_path / "absent.toml")
+    monkeypatch.setattr(_dispatch.resources, "files", lambda _pkg: _AbsentResource())
+    _dispatch.reload()
+    assert _dispatch.available_backends("kinematic.merge_window") == ["python"]

@@ -21,6 +21,7 @@ DEFAULT_REQUIRED_MEMBERS: tuple[str, ...] = (
     "scpn_mif_core/__init__.py",
     "scpn_mif_core/py.typed",
     "scpn_mif_core/VERSION",
+    "scpn_mif_core/_dispatch_table.toml",
 )
 
 

@@ -119,7 +119,7 @@ where = ["src"]
 include = ["scpn_mif_core*"]
 
 [tool.setuptools.package-data]
-scpn_mif_core = ["py.typed", "VERSION"]
+scpn_mif_core = ["py.typed", "VERSION", "_dispatch_table.toml"]
 
 [tool.ruff]
 line-length = 120

@@ -48,6 +48,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 RESULTS_DIR = REPO / "bench" / "results"
 DISPATCH_PATH = REPO / "bench" / "dispatch.toml"
+PACKAGED_SNAPSHOT_PATH = REPO / "src" / "scpn_mif_core" / "_dispatch_table.toml"
 
 _TEST_NAME_RE = re.compile(r"^test_bench_(?P<backend>[a-z]+)_")
 _KERNEL_LINE_RE = re.compile(r'^(\s*)("[\w\.\-]+")\s*=\s*\[(?P<body>[^\]]*)\](?P<tail>.*)$')
@@ -133,13 +134,28 @@ def collect_backend_orderings() -> dict[str, list[str]]:
     return rankings
 
 
+def _merge_ordering(existing: list[str], measured: list[str]) -> list[str]:
+    """Merge a measured ranking into an existing kernel line's backend list.
+
+    Backends present in the measurements are re-ranked among the slots they
+    already occupy (fastest measured first). Backends listed on the line but
+    absent from the promoted measurements — curated CLI parity surfaces such as
+    the Mojo subprocess paths, whose ranking rationale lives in the table
+    comments — keep their existing slot rather than being dropped. Newly
+    measured backends not yet on the line are appended in measured order.
+    """
+    ranked = iter([b for b in measured if b in existing])
+    merged = [next(ranked) if backend in measured else backend for backend in existing]
+    return merged + [b for b in measured if b not in existing]
+
+
 def rewrite_dispatch(
     text: str,
     rankings: dict[str, list[str]],
     *,
     new_last_updated: str | None,
 ) -> str:
-    """Return ``text`` with kernel lines replaced for ranked kernels and ``last_updated`` refreshed."""
+    """Return ``text`` with kernel lines re-ranked for measured kernels and ``last_updated`` refreshed."""
     out: list[str] = []
     for raw_line in text.splitlines():
         # Update the last_updated field once.
@@ -155,7 +171,9 @@ def rewrite_dispatch(
             if kernel in rankings:
                 indent = match.group(1)
                 tail = match.group("tail")
-                backends_body = ", ".join(f'"{b}"' for b in rankings[kernel])
+                existing = [item.strip().strip('"') for item in match.group("body").split(",") if item.strip()]
+                merged = _merge_ordering(existing, rankings[kernel])
+                backends_body = ", ".join(f'"{b}"' for b in merged)
                 out.append(f'{indent}"{kernel}" = [{backends_body}]{tail}')
                 continue
         out.append(raw_line)
@@ -183,19 +201,28 @@ def main(argv: list[str] | None = None) -> int:
     before = DISPATCH_PATH.read_text(encoding="utf-8")
     now_utc = None if args.check else dt.datetime.now(tz=dt.UTC).strftime("%Y-%m-%dT%H%M")
     after = rewrite_dispatch(before, rankings, new_last_updated=now_utc)
+    snapshot_current = PACKAGED_SNAPSHOT_PATH.is_file() and PACKAGED_SNAPSHOT_PATH.read_text(encoding="utf-8") == before
 
-    if before == after:
+    if before == after and snapshot_current:
         print("dispatch.toml already up to date", file=sys.stderr)
         return 0
 
     if args.check:
-        print("dispatch.toml is stale; run `python tools/update_dispatch.py` to refresh", file=sys.stderr)
+        if before != after:
+            print("dispatch.toml is stale; run `python tools/update_dispatch.py` to refresh", file=sys.stderr)
+        if not snapshot_current:
+            print(
+                "packaged dispatch snapshot src/scpn_mif_core/_dispatch_table.toml is out of "
+                "step with bench/dispatch.toml; run `python tools/update_dispatch.py` to sync",
+                file=sys.stderr,
+            )
         return 1
 
     DISPATCH_PATH.write_text(after, encoding="utf-8")
+    PACKAGED_SNAPSHOT_PATH.write_text(after, encoding="utf-8")
     for kernel, order in rankings.items():
         print(f"  {kernel:<40s} → {order}", file=sys.stderr)
-    print(f"dispatch.toml rewritten ({len(rankings)} kernel(s))", file=sys.stderr)
+    print(f"dispatch.toml + packaged snapshot rewritten ({len(rankings)} kernel(s))", file=sys.stderr)
     return 0
 
 
