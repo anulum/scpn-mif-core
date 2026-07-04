@@ -136,3 +136,5 @@ data/
 
 # External reference PDFs — local-only library (copyright: do not publish to the public repo)
 docs/external_sources/pdfs/
+mutants/
+mutants.out/

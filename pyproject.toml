@@ -283,3 +283,21 @@ exclude_lines = [
 ]
 show_missing = true
 skip_covered = false
+
+[tool.mutmut]
+# Advisory mutation-testing pilot (SOTA-11): decision-critical kinematic kernels.
+# Not a CI gate yet. KNOWN BLOCKER (2026-07-04): mutmut 3.6's in-process pytest
+# runner fails against this repository's src layout + numpy-importing conftest
+# (the same per-process numpy reimport class as the coverage gremlin); the same
+# pytest invocation passes when run as a subprocess from the mutants workspace.
+# The Rust decision core is baselined with cargo-mutants instead; revisit when
+# mutmut grows a subprocess runner.
+paths_to_mutate = [
+    "src/scpn_mif_core/kinematic/streaming_trigger.py",
+    "src/scpn_mif_core/kinematic/merge_window.py",
+    "src/scpn_mif_core/kinematic/safety_certificate.py",
+]
+tests_dir = ["tests/unit/kinematic/"]
+# Neutralise the repository addopts (the 100% whole-package coverage gate cannot
+# hold under mutmut's per-mutant focused runs).
+pytest_add_cli_args = ["-o", "addopts=", "-p", "no:cacheprovider"]

@@ -41,8 +41,8 @@
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "pyproject.toml",
-      "sha256": "sha256:22207c69db19c1815dff1a1ec1c3456d7033c21b789bd7537f204ba3ee73fe04",
-      "size_bytes": 9972
+      "sha256": "sha256:32c684a17e1669f107c91a1cea54336c42649c4d1c6bb167bd91fcb7712bac4c",
+      "size_bytes": 10923
     },
     {
       "kind": "supporting-artifact",
@@ -76,8 +76,8 @@
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/formal_manifest.json",
-      "sha256": "sha256:f28d95c6df9197819dd56aa0f84e36fea8c4e6bb3f526c5bbff1022181fa4e63",
-      "size_bytes": 7317
+      "sha256": "sha256:a8098d65f63d4c74e8b8a83d3d5db63331431fb0dbc78c9641529f031efa8089",
+      "size_bytes": 8613
     },
     {
       "kind": "generated-dashboard",
@@ -139,8 +139,8 @@
       "kind": "reproduction-tool",
       "media_type": "text/x-python",
       "path": "tools/formal_manifest.py",
-      "sha256": "sha256:0426961ed4f9b810f5c693c0ff4b37915b7a1bf2eeb1df4b3aa2f83d9043fb8d",
-      "size_bytes": 6198
+      "sha256": "sha256:30c4dde498facfb999a4b9645aac85220c3922166a452391ae635b971bf34a04",
+      "size_bytes": 8922
     },
     {
       "kind": "reproduction-tool",

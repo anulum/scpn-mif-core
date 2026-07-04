@@ -31,6 +31,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -39,11 +40,68 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 FORMAL_ROOT = REPO_ROOT / "hdl" / "formal"
 MANIFEST_PATH = REPO_ROOT / "docs" / "_generated" / "formal_manifest.json"
 SUITES = ("safety", "liveness", "timing")
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
+
+#: The MIF-010 functional-specification property target (development plan P6:
+#: 30 safety + 25 liveness + 15 timing). The manifest publishes counted
+#: progress against it so the "70+ properties" figure is a measured number,
+#: never prose.
+SPECIFICATION_PROPERTY_TARGET: dict[str, int] = {
+    "safety": 30,
+    "liveness": 25,
+    "timing": 15,
+}
+
+_PROPERTY_COUNT_BASIS = (
+    "assert/cover/assume statement count over each task's resolved SystemVerilog "
+    "sources (including shared `include headers); a statement inside a generate "
+    "loop counts once, so instantiated checks can exceed the statement count"
+)
 
 
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+_WORD_RE = {
+    "asserts": re.compile(r"\bassert\b"),
+    "covers": re.compile(r"\bcover\b"),
+    "assumes": re.compile(r"\bassume\b"),
+}
+
+
+def _strip_sv_comments(text: str) -> str:
+    """Remove // line and /* block */ comments so prose mentions do not count."""
+    text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
+    return re.sub(r"//[^\n]*", "", text)
+
+
+def _included_headers(path: Path, text: str) -> list[Path]:
+    """Resolve `include "..." directives relative to the including file."""
+    headers: list[Path] = []
+    for name in re.findall(r'`include\s+"([^"]+)"', text):
+        candidate = (path.parent / name).resolve()
+        if candidate.is_file():
+            headers.append(candidate)
+    return headers
+
+
+def _count_properties(inputs: list[Path]) -> dict[str, int]:
+    """Count assert/cover/assume statements over the task's SystemVerilog sources."""
+    counts = {"asserts": 0, "covers": 0, "assumes": 0}
+    seen: set[Path] = set()
+    queue = [path for path in inputs if path.suffix in {".sv", ".svh"}]
+    while queue:
+        path = queue.pop()
+        if path in seen or not path.is_file():
+            continue
+        seen.add(path)
+        text = path.read_text(encoding="utf-8")
+        queue.extend(_included_headers(path, text))
+        stripped = _strip_sv_comments(text)
+        for key, pattern in _WORD_RE.items():
+            counts[key] += len(pattern.findall(stripped))
+    return counts
 
 
 def _parse_sby(sby_path: Path) -> tuple[str, list[str], list[str]]:
@@ -100,13 +158,25 @@ def build_manifest(*, formal_root: Path | None = None, repo: Path | None = None)
                     "engines": engines,
                     "expected_status": "pass",
                     "depends_on": depends_on,
+                    "properties": _count_properties(inputs),
                 }
             )
+    per_suite: dict[str, int] = dict.fromkeys(SUITES, 0)
+    for task in tasks:
+        per_suite[str(task["suite"])] += int(task["properties"]["asserts"])
+    proven_total = sum(per_suite.values())
+    target_total = sum(SPECIFICATION_PROPERTY_TARGET.values())
     return {
         "SPDX-License-Identifier": "AGPL-3.0-or-later",
         "schema_version": SCHEMA_VERSION,
         "verifier": "tools/run_formal.py --suite all",
         "task_count": len(tasks),
+        "property_progress": {
+            "basis": _PROPERTY_COUNT_BASIS,
+            "specification_target": dict(SPECIFICATION_PROPERTY_TARGET) | {"total": target_total},
+            "proven_asserts": dict(per_suite) | {"total": proven_total},
+            "meets_specification_target": proven_total >= target_total,
+        },
         "tasks": tasks,
     }
 

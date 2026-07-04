@@ -1,8 +1,24 @@
 {
   "SPDX-License-Identifier": "AGPL-3.0-or-later",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "verifier": "tools/run_formal.py --suite all",
   "task_count": 8,
+  "property_progress": {
+    "basis": "assert/cover/assume statement count over each task's resolved SystemVerilog sources (including shared `include headers); a statement inside a generate loop counts once, so instantiated checks can exceed the statement count",
+    "specification_target": {
+      "safety": 30,
+      "liveness": 25,
+      "timing": 15,
+      "total": 70
+    },
+    "proven_asserts": {
+      "safety": 20,
+      "liveness": 16,
+      "timing": 4,
+      "total": 40
+    },
+    "meets_specification_target": false
+  },
   "tasks": [
     {
       "suite": "safety",
@@ -26,7 +42,12 @@
           "path": "hdl/src/sensors/adc_to_spike_quantiser.sv",
           "sha256": "46683cd4be84e1f5306f490f2cc3ce6b677492b46b34998e7f19c178513d66fa"
         }
-      ]
+      ],
+      "properties": {
+        "asserts": 2,
+        "covers": 3,
+        "assumes": 1
+      }
     },
     {
       "suite": "safety",
@@ -58,7 +79,12 @@
           "path": "hdl/src/aer/mif_aer_cdc_synchroniser.sv",
           "sha256": "bb8f70a177b4d8eac25a1412c86f97501bc932c80c688d341709b8159b9bb961"
         }
-      ]
+      ],
+      "properties": {
+        "asserts": 4,
+        "covers": 4,
+        "assumes": 1
+      }
     },
     {
       "suite": "safety",
@@ -82,7 +108,12 @@
           "path": "hdl/src/triggers/mif_fast_veto_gate.sv",
           "sha256": "8de67ed04240707ee6e7fca10ce44f74a32985b85f5c88722ee2507ae210cf7c"
         }
-      ]
+      ],
+      "properties": {
+        "asserts": 7,
+        "covers": 2,
+        "assumes": 0
+      }
     },
     {
       "suite": "safety",
@@ -106,7 +137,12 @@
           "path": "hdl/src/triggers/mif_trigger_fabric.sv",
           "sha256": "03c09f3a60b84af3eb993143943bef332af3d34cb9763a685318acae50d9811d"
         }
-      ]
+      ],
+      "properties": {
+        "asserts": 7,
+        "covers": 3,
+        "assumes": 1
+      }
     },
     {
       "suite": "liveness",
@@ -130,7 +166,12 @@
           "path": "hdl/src/sensors/adc_to_spike_quantiser.sv",
           "sha256": "46683cd4be84e1f5306f490f2cc3ce6b677492b46b34998e7f19c178513d66fa"
         }
-      ]
+      ],
+      "properties": {
+        "asserts": 2,
+        "covers": 3,
+        "assumes": 1
+      }
     },
     {
       "suite": "liveness",
@@ -154,7 +195,12 @@
           "path": "hdl/src/triggers/mif_fast_veto_gate.sv",
           "sha256": "8de67ed04240707ee6e7fca10ce44f74a32985b85f5c88722ee2507ae210cf7c"
         }
-      ]
+      ],
+      "properties": {
+        "asserts": 7,
+        "covers": 2,
+        "assumes": 0
+      }
     },
     {
       "suite": "liveness",
@@ -178,7 +224,12 @@
           "path": "hdl/src/triggers/mif_trigger_fabric.sv",
           "sha256": "03c09f3a60b84af3eb993143943bef332af3d34cb9763a685318acae50d9811d"
         }
-      ]
+      ],
+      "properties": {
+        "asserts": 7,
+        "covers": 3,
+        "assumes": 1
+      }
     },
     {
       "suite": "timing",
@@ -210,7 +261,12 @@
           "path": "hdl/src/triggers/mif_trigger_fabric.sv",
           "sha256": "03c09f3a60b84af3eb993143943bef332af3d34cb9763a685318acae50d9811d"
         }
-      ]
+      ],
+      "properties": {
+        "asserts": 4,
+        "covers": 4,
+        "assumes": 1
+      }
     }
   ]
 }

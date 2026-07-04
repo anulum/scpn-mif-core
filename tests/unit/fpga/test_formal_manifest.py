@@ -110,3 +110,32 @@ def test_main_writes_manifest(monkeypatch, capsys) -> None:
     monkeypatch.setattr(formal_manifest, "write_manifest", lambda: written.setdefault("done", True))
     assert formal_manifest.main([]) == 0
     assert written["done"]
+
+
+def test_property_progress_is_measured_and_fail_closed() -> None:
+    manifest = build_manifest()
+    progress = manifest["property_progress"]
+    target = progress["specification_target"]
+    proven = progress["proven_asserts"]
+    # The specification target is the development-plan P6 figure, published as
+    # data so the "70+ properties" claim is a measured number, never prose.
+    assert target == {"safety": 30, "liveness": 25, "timing": 15, "total": 70}
+    # Per-suite counts are non-negative and total consistently.
+    assert proven["total"] == proven["safety"] + proven["liveness"] + proven["timing"]
+    assert all(count >= 0 for count in proven.values())
+    # Fail-closed: the flag may only be true when the measured total reaches
+    # the specification target.
+    assert progress["meets_specification_target"] == (proven["total"] >= target["total"])
+    assert "statement count" in progress["basis"]
+
+
+def test_every_task_carries_property_counts() -> None:
+    manifest = build_manifest()
+    for task in manifest["tasks"]:
+        properties = task["properties"]
+        assert set(properties) == {"asserts", "covers", "assumes"}
+        assert all(isinstance(count, int) and count >= 0 for count in properties.values())
+    # The trigger-fabric safety task provably carries assertions today; a
+    # zero here would mean the counter regressed to prose.
+    fabric_safety = next(t for t in manifest["tasks"] if t["name"] == "mif_trigger_fabric_safety")
+    assert fabric_safety["properties"]["asserts"] > 0
