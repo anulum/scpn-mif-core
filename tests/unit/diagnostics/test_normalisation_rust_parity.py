@@ -125,3 +125,45 @@ def test_rust_rejects_non_finite_affine_span() -> None:
         rust.DiagnosticChannelCalibration(
             "wide_field_T", "T", -1.0e308, 1.0e308, "clip", "wide range calibration", None
         )
+
+
+def test_matrix_parity_is_bit_exact_and_counts_agree() -> None:
+    py_state = DiagnosticNormalisationState(_calibrations(), sample_period_ns=50)
+    rust_state = RustBackedDiagnosticNormalisationState(_calibrations(), sample_period_ns=50)
+    rng = random.Random(2026)
+    rows = [
+        [
+            rng.uniform(-100.0, 1_200.0),
+            rng.uniform(5.0e19, 6.0e21),
+            rng.uniform(-15.0, 15.0),
+            rng.uniform(-2.0e9, 2.0e9),
+        ]
+        for _ in range(64)
+    ]
+    matrix = np.asarray(rows, dtype=np.float64)
+
+    py_result = py_state.normalise_matrix(matrix)
+    rust_result = rust_state.normalise_matrix(matrix)
+
+    assert (py_result.features == rust_result.features).all()  # bit-exact
+    assert (py_result.clip_mask == rust_result.clip_mask).all()
+    assert py_result.clipped_counts == rust_result.clipped_counts
+    assert rust_result.samples == 64
+
+
+def test_matrix_rust_rows_match_single_call_ffi_surface() -> None:
+    rust_state = RustBackedDiagnosticNormalisationState(_calibrations())
+    matrix = np.asarray([[500.0, 2.0e21, -5.0, 1.0e8], [1_200.0, 5.0e22, -20.0, -2.0e9]], dtype=np.float64)
+    result = rust_state.normalise_matrix(matrix)
+    for index in range(matrix.shape[0]):
+        single = rust_state.normalise_vector(matrix[index])
+        assert (result.features[index] == single.features).all()
+        assert tuple(result.clip_mask[index]) == single.clip_mask
+
+
+def test_matrix_rust_rejects_non_contiguous_shape_errors() -> None:
+    rust_state = RustBackedDiagnosticNormalisationState(_calibrations())
+    with pytest.raises(ValueError, match="matrix"):
+        rust_state.normalise_matrix(np.empty((0, 4)))
+    with pytest.raises(ValueError, match="matrix"):
+        rust_state.normalise_matrix(np.asarray([1.0, 2.0, 3.0, 4.0]))

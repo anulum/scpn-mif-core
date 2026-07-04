@@ -2,25 +2,26 @@
   "schema_version": "1.0.0",
   "kernel": "diagnostic_normalisation",
   "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
-  "python_version": "3.12.3",
-  "datetime": "2026-06-05T02:48:33.284970+00:00",
+  "python_version": "3.12.13",
+  "datetime": "2026-07-04T11:30:51.320506+00:00",
   "benchmark_context": {
-    "command": "./.venv/bin/pytest bench/kernels/bench_diagnostic_normalisation.py --benchmark-only --benchmark-json=bench/results/diagnostic_normalisation_raw.json --no-cov",
     "cpu_isolated": false,
-    "isolation_method": "none",
-    "affinity": "none",
-    "host_load_before": "6.12 5.51 4.45 10/3271 2872601",
-    "host_load_after": "6.11 5.58 4.51 4/3289 2873885",
-    "governor": "powersave",
-    "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz, 6 cores / 12 threads",
+    "isolation_method": "taskset affinity to logical cores 8-11; no kernel isolcpus reservation",
+    "affinity_or_reserved_cores": "logical cores 8-11 of 12",
+    "host_load_before": "38 45 47 (approx; heavy shared load)",
+    "host_load_after": "35.45 33.49 34.72",
+    "cpu_governor": "powersave",
+    "heavy_jobs_running": "shared workstation under heavy concurrent load; absolute timings noisy, rankings hold across the distribution.",
     "runtime_versions": {
-      "python": "3.12.3",
+      "python": "3.12.13",
       "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)",
       "julia": "julia version 1.12.6"
     },
-    "other_heavy_jobs": "not audited; loaded workstation context recorded via load averages"
+    "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core",
+    "command": "taskset -c 8-11 pytest bench/kernels/bench_diagnostic_normalisation.py --benchmark-only --benchmark-json=bench/results/local/diag_norm_raw.json"
   },
   "notes": [
+    "REGENERATED 2026-07-04 with the new matrix_4096x4 group: normalise_matrix crosses the FFI boundary once (zero-copy 2-D NumPy view in, NumPy arrays out) \u2014 Rust median 128 us vs the 3.18 ms 4096-call batch loop (~25x) and vs the 37.5 ms Python matrix reference (~293x). The batch_4096x4 group intentionally remains the per-call comparison.",
     "Local non-isolated comparison benchmark only; not a production latency claim.",
     "MIF-016 has allocated Python, Rust, and Julia surfaces. Julia is measured via CLI startup and remains a calibration/reference backend, not the runtime path.",
     "2026-06-05 rerun after finite affine-coefficient validation hardening across runtime surfaces."
@@ -29,47 +30,72 @@
     {
       "name": "test_bench_python_single_4ch",
       "group": "diagnostic_normalisation.single_4ch",
-      "mean_ns": 20002.550599485556,
-      "stddev_ns": 8290.69629626174,
-      "median_ns": 17473.0084836483,
-      "ops_per_s": 49993.624314377135,
-      "rounds": 7560
+      "mean_ns": 40782.98436984159,
+      "stddev_ns": 401341.6797267152,
+      "median_ns": 25271.08881622553,
+      "max_ns": 19774829.037487507,
+      "ops_per_s": 24520.02999416308,
+      "rounds": 3145
     },
     {
       "name": "test_bench_rust_single_4ch",
       "group": "diagnostic_normalisation.single_4ch",
-      "mean_ns": 704.7979481150182,
-      "stddev_ns": 971.9782814598259,
-      "median_ns": 603.9626896381378,
-      "ops_per_s": 1418846.3554334962,
-      "rounds": 53579
+      "mean_ns": 1182.9665703588093,
+      "stddev_ns": 45914.3408463138,
+      "median_ns": 674.976035952568,
+      "max_ns": 8145479.019731283,
+      "ops_per_s": 845332.425325161,
+      "rounds": 32248
     },
     {
       "name": "test_bench_julia_cli_single_4ch",
       "group": "diagnostic_normalisation.single_4ch",
-      "mean_ns": 1376428265.9782717,
-      "stddev_ns": 998046527.4394585,
-      "median_ns": 842096896.1436301,
-      "ops_per_s": 0.7265180647022443,
+      "mean_ns": 3471986157.625603,
+      "stddev_ns": 1873376383.347939,
+      "median_ns": 2505662048.002705,
+      "max_ns": 5631215740.926563,
+      "ops_per_s": 0.28801958147317985,
       "rounds": 3
     },
     {
       "name": "test_bench_python_batch_4096x4",
       "group": "diagnostic_normalisation.batch_4096x4",
-      "mean_ns": 69644769.12980899,
-      "stddev_ns": 6239385.392642033,
-      "median_ns": 69724748.95883352,
-      "ops_per_s": 14.35858015605059,
-      "rounds": 12
+      "mean_ns": 253809544.024989,
+      "stddev_ns": 135314537.4574746,
+      "median_ns": 182872279.08149362,
+      "max_ns": 477312691.97538495,
+      "ops_per_s": 3.939962162737049,
+      "rounds": 5
     },
     {
       "name": "test_bench_rust_batch_4096x4",
       "group": "diagnostic_normalisation.batch_4096x4",
-      "mean_ns": 1648881.9115688237,
-      "stddev_ns": 354945.3540640334,
-      "median_ns": 1531630.9873014688,
-      "ops_per_s": 606.4715689970502,
-      "rounds": 357
+      "mean_ns": 4578517.031324286,
+      "stddev_ns": 3781770.489166129,
+      "median_ns": 3179110.470227897,
+      "max_ns": 37732322.00182974,
+      "ops_per_s": 218.41133125822643,
+      "rounds": 226
+    },
+    {
+      "name": "test_bench_python_matrix_4096x4",
+      "group": "diagnostic_normalisation.matrix_4096x4",
+      "mean_ns": 45258933.80341586,
+      "stddev_ns": 21576787.390123446,
+      "median_ns": 37519121.9500266,
+      "max_ns": 127580611.96655035,
+      "ops_per_s": 22.09508523429967,
+      "rounds": 40
+    },
+    {
+      "name": "test_bench_rust_matrix_4096x4",
+      "group": "diagnostic_normalisation.matrix_4096x4",
+      "mean_ns": 217313.13075133256,
+      "stddev_ns": 644575.7483037579,
+      "median_ns": 128019.48469132185,
+      "max_ns": 9070214.931853116,
+      "ops_per_s": 4601.6547483468985,
+      "rounds": 834
     }
   ]
 }

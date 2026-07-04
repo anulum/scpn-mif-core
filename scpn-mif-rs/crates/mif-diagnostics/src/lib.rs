@@ -271,6 +271,67 @@ impl DiagnosticNormalisationState {
             sample_period_ns: self.sample_period_ns,
         })
     }
+
+    /// Normalise a row-major `samples x channels` batch in one call.
+    ///
+    /// The throughput counterpart of [`Self::normalise_features`] for dirty
+    /// diagnostic streams: one boundary crossing instead of one per sample,
+    /// and per-channel clip *counts* instead of per-sample allocated
+    /// channel-name lists. `values.len()` must be a whole multiple of the
+    /// calibrated channel count; each row is normalised with exactly the
+    /// per-sample arithmetic, so a batch row is bit-identical to the
+    /// corresponding single-sample call.
+    pub fn normalise_batch(
+        &self,
+        values: &[f64],
+    ) -> Result<NormalisedDiagnosticBatch, DiagnosticError> {
+        let channels = self.calibrations.len();
+        if values.is_empty() || values.len() % channels != 0 {
+            return Err(DiagnosticError::VectorLengthMismatch {
+                expected: channels,
+                actual: values.len(),
+            });
+        }
+        let samples = values.len() / channels;
+        let mut features = Vec::with_capacity(values.len());
+        let mut clip_mask = Vec::with_capacity(values.len());
+        let mut clipped_counts = vec![0_usize; channels];
+        for row in values.chunks_exact(channels) {
+            for (channel, (calibration, value)) in
+                self.calibrations.iter().zip(row.iter()).enumerate()
+            {
+                let (feature, clipped) = calibration.normalise_value(*value)?;
+                features.push(feature);
+                clip_mask.push(clipped);
+                if clipped {
+                    clipped_counts[channel] += 1;
+                }
+            }
+        }
+        Ok(NormalisedDiagnosticBatch {
+            samples,
+            channel_names: self.channel_names(),
+            features,
+            clip_mask,
+            clipped_counts,
+        })
+    }
+}
+
+/// Result of a row-major batch normalisation (see
+/// [`DiagnosticNormalisationState::normalise_batch`]).
+#[derive(Debug, Clone, PartialEq)]
+pub struct NormalisedDiagnosticBatch {
+    /// Number of samples (rows) in the batch.
+    pub samples: usize,
+    /// Ordered channel names matching each feature row.
+    pub channel_names: Vec<String>,
+    /// Row-major `samples x channels` bounded features.
+    pub features: Vec<f64>,
+    /// Row-major `samples x channels` clip mask.
+    pub clip_mask: Vec<bool>,
+    /// Per-channel count of clipped samples across the batch.
+    pub clipped_counts: Vec<usize>,
 }
 
 /// Per-channel degradation settings for MIF-017 stress injection.
@@ -727,6 +788,36 @@ mod tests {
         assert_eq!(report.features, vec![0.0, -0.5]);
         assert_eq!(report.clip_mask, vec![false, false]);
         assert_eq!(report.out_of_range_channels, Vec::<String>::new());
+    }
+
+    #[test]
+    fn batch_rows_are_bit_identical_to_single_sample_calls() {
+        let state = fixture_state();
+        let rows: [[f64; 2]; 3] = [[500.0, -5.0], [1200.0, -20.0], [250.0, 2.5]];
+        let flat: Vec<f64> = rows.iter().flatten().copied().collect();
+        let batch = state.normalise_batch(&flat).expect("batch");
+        assert_eq!(batch.samples, 3);
+        assert_eq!(batch.channel_names, state.channel_names());
+        for (index, row) in rows.iter().enumerate() {
+            let single = state.normalise_features(row).expect("single");
+            assert_eq!(
+                &batch.features[index * 2..index * 2 + 2],
+                &single.features[..]
+            );
+            assert_eq!(
+                &batch.clip_mask[index * 2..index * 2 + 2],
+                &single.clip_mask[..]
+            );
+        }
+        // Row 1 clips both channels; the aggregate counts reflect exactly that.
+        assert_eq!(batch.clipped_counts, vec![1, 1]);
+    }
+
+    #[test]
+    fn batch_rejects_empty_and_ragged_input() {
+        let state = fixture_state();
+        assert!(state.normalise_batch(&[]).is_err());
+        assert!(state.normalise_batch(&[1.0, 2.0, 3.0]).is_err());
     }
 
     #[test]

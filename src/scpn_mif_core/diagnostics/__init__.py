@@ -27,6 +27,7 @@ from scpn_mif_core.diagnostics.normalisation import (
     DiagnosticChannelCalibration,
     DiagnosticNormalisationState,
     FloatArray,
+    NormalisedDiagnosticMatrix,
     NormalisedDiagnosticSample,
     fit_diagnostic_calibrations,
 )
@@ -81,6 +82,7 @@ __all__ = [
     "FloatArray",
     "JitterSpec",
     "NoiseSpec",
+    "NormalisedDiagnosticMatrix",
     "NormalisedDiagnosticSample",
     "StressCampaignReport",
     "StressEnvelope",

@@ -6,7 +6,7 @@
       "kind": "project-documentation",
       "media_type": "text/markdown",
       "path": "README.md",
-      "sha256": "sha256:1abd1c22e015d723282baad0ec3eab4021e4e5b8c6523fccea6404db7af60f7f",
+      "sha256": "sha256:6207d639ca6fd8d4cd5bc6da703d1cd6ae819e3bf39d523fe1e00d2a33eb97ad",
       "size_bytes": 24375
     },
     {
@@ -55,22 +55,22 @@
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "bench/dispatch.toml",
-      "sha256": "sha256:967c453ed93a4af9cc558ad1bfd1d5a42098f5f3343656ec0380645ed2a1e1b5",
+      "sha256": "sha256:f2184ee66b941d6c2435d7289b48eecf2488a18a1283832df27144e120cd89d2",
       "size_bytes": 3447
     },
     {
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/benchmark_dashboard.json",
-      "sha256": "sha256:ac508f0dea3de608fab609ebf0977cf63db283f7b29d411232fabc85ea4c7f4a",
-      "size_bytes": 64306
+      "sha256": "sha256:82f4a520a8c7cb6ded5b661c6e0e3bca3a8e849393642d094f94602b8aac593f",
+      "size_bytes": 65891
     },
     {
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/capability_manifest.json",
-      "sha256": "sha256:e2b0669757a743c42a5ae0fcfb4d01bf675df0c54c78386dcaa0790e632287e2",
-      "size_bytes": 32441
+      "sha256": "sha256:4ae3b8f95774e17485b4a727cc8ae98f0ffbcbefc469da8348c1425a2e89248b",
+      "size_bytes": 32603
     },
     {
       "kind": "generated-dashboard",
@@ -167,7 +167,7 @@
       "kind": "verification-test",
       "media_type": "text/x-python",
       "path": "tests/unit/bench/test_benchmark_dashboard.py",
-      "sha256": "sha256:541af8898b3fbaa75c38996e3a9898b293d2f61db6fff06bd2a8676605a22e6a",
+      "sha256": "sha256:4a47799c6a1961101bead3b74e423ef0a5eac793914c9845d310bdff160e4342",
       "size_bytes": 19655
     },
     {
@@ -181,7 +181,7 @@
       "kind": "verification-test",
       "media_type": "text/x-python",
       "path": "tests/unit/test_fair_validation_bundle.py",
-      "sha256": "sha256:a6f1e16fc498895debdb1db33725252f93967208be2b0f49721f875c2b31a168",
+      "sha256": "sha256:c5b6770babee08e22e87acb9724970a25220a641d3a17b1fd56732557d1f90f0",
       "size_bytes": 9525
     },
     {
@@ -237,8 +237,8 @@
       "kind": "benchmark-result",
       "media_type": "application/json",
       "path": "bench/results/diagnostic_normalisation.json",
-      "sha256": "sha256:5407a651aeb6d2a475e01415fe6c85715a558c1d0d044ba861eb9e6f2f7dcf37",
-      "size_bytes": 2788
+      "sha256": "sha256:ce77d6bcf8a7546027b6ca2704eb0ca3823f67c52795a7b5de855bb5e4b2f7a6",
+      "size_bytes": 4087
     },
     {
       "kind": "benchmark-result",
@@ -392,7 +392,7 @@
       "distinct_cpu_governors": [
         "powersave"
       ],
-      "group_count": 29,
+      "group_count": 30,
       "kernel_count": 17,
       "python_versions": [
         "3.12.13",

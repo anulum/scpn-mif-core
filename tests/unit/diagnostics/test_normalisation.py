@@ -336,3 +336,68 @@ def test_dispatched_normalisation_uses_python_fallback_when_rust_is_not_availabl
 
     assert state.__class__ is DiagnosticNormalisationState
     assert state.sample_period_ns == 50
+
+
+# --------------------------------------------------------------------------- #
+# Positional matrix normalisation (the one-call batch counterpart).
+# --------------------------------------------------------------------------- #
+
+
+def test_normalise_matrix_rows_match_normalise_vector_bit_exactly() -> None:
+    state = DiagnosticNormalisationState(_calibrations(), sample_period_ns=50)
+    rows = [
+        [500.0, 2.0e21, -5.0],
+        [1_200.0, 5.0e22, -20.0],  # clips every channel above range
+        [250.0, 1.5e20, 2.5],
+    ]
+    result = state.normalise_matrix(rows)
+
+    assert result.samples == 3
+    assert result.channel_names == state.channel_names
+    assert result.sample_period_ns == 50
+    for index, row in enumerate(rows):
+        single = state.normalise_vector(row)
+        assert (result.features[index] == single.features).all()
+        assert tuple(result.clip_mask[index]) == single.clip_mask
+
+
+def test_normalise_matrix_aggregates_clipped_counts_per_channel() -> None:
+    state = DiagnosticNormalisationState(_calibrations())
+    result = state.normalise_matrix(
+        [
+            [1_200.0, 2.0e21, -5.0],  # clips channel 0 only
+            [1_500.0, 5.0e22, -5.0],  # clips channels 0 and 1
+        ]
+    )
+    assert result.clipped_counts == (2, 1, 0)
+
+
+def test_normalise_matrix_outputs_are_read_only() -> None:
+    state = DiagnosticNormalisationState(_calibrations())
+    result = state.normalise_matrix([[500.0, 2.0e21, -5.0]])
+    assert not result.features.flags.writeable
+    assert not result.clip_mask.flags.writeable
+
+
+def test_normalise_matrix_rejects_wrong_shape_and_empty_input() -> None:
+    state = DiagnosticNormalisationState(_calibrations())
+    with pytest.raises(ValueError, match="matrix"):
+        state.normalise_matrix([500.0, 2.0e21, -5.0])  # 1-D
+    with pytest.raises(ValueError, match="matrix"):
+        state.normalise_matrix([[500.0, 2.0e21]])  # ragged width
+    with pytest.raises(ValueError, match="matrix"):
+        state.normalise_matrix(np.empty((0, 3)))  # zero rows
+
+
+def test_normalise_matrix_reject_policy_raises_on_out_of_range() -> None:
+    reject = DiagnosticChannelCalibration(
+        name="strict_eV",
+        unit="eV",
+        physical_min=0.0,
+        physical_max=100.0,
+        clip_policy="reject",
+        provenance="strict calibration",
+    )
+    state = DiagnosticNormalisationState((reject,))
+    with pytest.raises(ValueError, match="above calibrated range"):
+        state.normalise_matrix([[150.0]])

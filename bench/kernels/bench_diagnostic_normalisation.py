@@ -17,6 +17,8 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+
+import numpy as np
 from pathlib import Path
 
 import pytest
@@ -165,4 +167,51 @@ def test_bench_rust_batch_4096x4(benchmark, rust_state: object) -> None:
             rust_state.normalise_features(values)
 
     benchmark.group = "diagnostic_normalisation.batch_4096x4"
+    benchmark(call)
+
+
+def test_bench_python_matrix_4096x4(benchmark, py_state: DiagnosticNormalisationState) -> None:
+    base = _values()
+    matrix = np.asarray(
+        [
+            [
+                base[0] + (idx % 17),
+                base[1] + (idx % 19) * 1.0e18,
+                base[2] + (idx % 5) * 0.1,
+                base[3] - (idx % 11) * 1.0e6,
+            ]
+            for idx in range(4096)
+        ],
+        dtype=np.float64,
+    )
+
+    def call() -> tuple[int, ...]:
+        return py_state.normalise_matrix(matrix).clipped_counts
+
+    benchmark.group = "diagnostic_normalisation.matrix_4096x4"
+    benchmark(call)
+
+
+def test_bench_rust_matrix_4096x4(benchmark) -> None:
+    from scpn_mif_core.diagnostics._rust_adapter import RustBackedDiagnosticNormalisationState
+
+    state = RustBackedDiagnosticNormalisationState(_calibrations(), sample_period_ns=50)
+    base = _values()
+    matrix = np.asarray(
+        [
+            [
+                base[0] + (idx % 17),
+                base[1] + (idx % 19) * 1.0e18,
+                base[2] + (idx % 5) * 0.1,
+                base[3] - (idx % 11) * 1.0e6,
+            ]
+            for idx in range(4096)
+        ],
+        dtype=np.float64,
+    )
+
+    def call() -> tuple[int, ...]:
+        return state.normalise_matrix(matrix).clipped_counts
+
+    benchmark.group = "diagnostic_normalisation.matrix_4096x4"
     benchmark(call)

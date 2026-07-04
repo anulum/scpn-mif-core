@@ -39,7 +39,7 @@ from dataclasses import dataclass
 from typing import Final, Literal
 
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 
 ClipPolicy = Literal["clip", "reject"]
 FloatArray = NDArray[np.float64]
@@ -150,6 +150,58 @@ class NormalisedDiagnosticSample:
         return self.features
 
 
+@dataclass(frozen=True)
+class NormalisedDiagnosticMatrix:
+    """Read-only ``samples x channels`` normalisation result with aggregate clipping.
+
+    The throughput counterpart of :class:`NormalisedDiagnosticSample`: one
+    result for a positional row-major batch, carrying per-channel clipped-sample
+    *counts* instead of per-row channel-name lists.
+
+    Attributes
+    ----------
+    channel_names : tuple of str
+        Ordered channel names matching each feature row.
+    features : FloatArray
+        Read-only ``(samples, channels)`` bounded feature matrix.
+    clip_mask : numpy.ndarray
+        Read-only ``(samples, channels)`` boolean clip mask.
+    clipped_counts : tuple of int
+        Per-channel count of clipped samples across the batch.
+    sample_period_ns : int or None
+        Optional nominal sample period carried from the state.
+    """
+
+    channel_names: tuple[str, ...]
+    features: FloatArray
+    clip_mask: NDArray[np.bool_]
+    clipped_counts: tuple[int, ...]
+    sample_period_ns: int | None = None
+
+    def __post_init__(self) -> None:
+        """Freeze the matrices and validate shapes against the channel metadata."""
+        features = _readonly_float_array(self.features)
+        if features.ndim != 2:
+            raise ValueError("features must be two-dimensional (samples x channels)")
+        clip_mask = np.asarray(self.clip_mask, dtype=np.bool_)
+        clip_mask.setflags(write=False)
+        if clip_mask.shape != features.shape:
+            raise ValueError("clip_mask shape must match features shape")
+        if len(self.channel_names) != features.shape[1]:
+            raise ValueError("channel_names length must match the channel dimension")
+        if len(self.clipped_counts) != features.shape[1]:
+            raise ValueError("clipped_counts length must match the channel dimension")
+        if features.size and (np.any(features < -1.0) or np.any(features > 1.0)):
+            raise ValueError("features must lie in [-1, 1]")
+        object.__setattr__(self, "features", features)
+        object.__setattr__(self, "clip_mask", clip_mask)
+
+    @property
+    def samples(self) -> int:
+        """Number of samples (rows) in the batch."""
+        return int(self.features.shape[0])
+
+
 class DiagnosticNormalisationState:
     """Deterministic ordered normalisation state for a diagnostic vector."""
 
@@ -221,6 +273,48 @@ class DiagnosticNormalisationState:
         if not rows:
             return _readonly_float_array(np.empty((0, len(self._calibrations)), dtype=np.float64))
         return _readonly_float_array(np.vstack(rows))
+
+    def normalise_matrix(self, values: ArrayLike) -> NormalisedDiagnosticMatrix:
+        """Normalise a positional row-major ``samples x channels`` matrix in one call.
+
+        The positional counterpart of :meth:`normalise_batch` and the batch
+        counterpart of :meth:`normalise_vector`: each row is normalised with
+        exactly the per-sample arithmetic, so a matrix row is bit-identical to
+        the corresponding :meth:`normalise_vector` features, while clipping is
+        aggregated into per-channel counts.
+
+        Parameters
+        ----------
+        values : ArrayLike
+            Two-dimensional ``(samples, channels)`` matrix of raw physical
+            values, at least one row, column count equal to the calibrated
+            channel count.
+
+        Returns
+        -------
+        NormalisedDiagnosticMatrix
+            The bounded feature matrix, the clip mask, and per-channel
+            clipped-sample counts.
+        """
+        matrix = np.asarray(values, dtype=np.float64)
+        channels = len(self._calibrations)
+        if matrix.ndim != 2 or matrix.shape[0] < 1 or matrix.shape[1] != channels:
+            raise ValueError(f"values must be a (samples, {channels}) matrix with at least one row")
+        features = np.empty_like(matrix)
+        clip_mask = np.zeros(matrix.shape, dtype=np.bool_)
+        for row in range(matrix.shape[0]):
+            for column, calibration in enumerate(self._calibrations):
+                feature, clipped = calibration.normalise_value(float(matrix[row, column]))
+                features[row, column] = feature
+                clip_mask[row, column] = clipped
+        clipped_counts = tuple(int(count) for count in clip_mask.sum(axis=0))
+        return NormalisedDiagnosticMatrix(
+            channel_names=self.channel_names,
+            features=features,
+            clip_mask=clip_mask,
+            clipped_counts=clipped_counts,
+            sample_period_ns=self._sample_period_ns,
+        )
 
     def calibration_manifest(self) -> dict[str, object]:
         """Return the explicit calibration manifest required by MIF-016."""

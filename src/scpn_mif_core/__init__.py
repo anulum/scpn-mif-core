@@ -139,6 +139,9 @@ from scpn_mif_core.diagnostics import (
     NoiseSpec as NoiseSpec,
 )
 from scpn_mif_core.diagnostics import (
+    NormalisedDiagnosticMatrix as NormalisedDiagnosticMatrix,
+)
+from scpn_mif_core.diagnostics import (
     NormalisedDiagnosticSample as NormalisedDiagnosticSample,
 )
 from scpn_mif_core.diagnostics import (
@@ -624,6 +627,7 @@ __all__ = [
     "MovingFrameUPDESpec",
     "MovingFrameUPDEState",
     "NoiseSpec",
+    "NormalisedDiagnosticMatrix",
     "NormalisedDiagnosticSample",
     "PlasmaState",
     "PlasmoidMergerPetriNet",

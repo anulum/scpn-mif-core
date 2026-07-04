@@ -12,7 +12,7 @@
 # benchmark campaign. Manual edits are blocked by the preflight gate.
 
 schema_version = "1.0.0"
-last_updated = "2026-07-04T1059"
+last_updated = "2026-07-04T1131"
 benchmark_host = "i5-11600K (mining rig)"
 
 [kernels]

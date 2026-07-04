@@ -296,6 +296,10 @@
         "path": "src/scpn_mif_core/diagnostics/stress_inject.py"
       },
       {
+        "name": "NormalisedDiagnosticMatrix",
+        "path": "src/scpn_mif_core/diagnostics/normalisation.py"
+      },
+      {
         "name": "NormalisedDiagnosticSample",
         "path": "src/scpn_mif_core/diagnostics/normalisation.py"
       },
@@ -516,9 +520,9 @@
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,
     "optional_extras": 7,
-    "public_api_exports": 176,
+    "public_api_exports": 177,
     "public_documentation_pages": 56,
-    "python_capability_classes": 87,
+    "python_capability_classes": 88,
     "python_capability_source_modules": 23,
     "rust_workspace_crates": 10,
     "test_files": 105
@@ -672,6 +676,7 @@
     "MovingFrameUPDESpec",
     "MovingFrameUPDEState",
     "NoiseSpec",
+    "NormalisedDiagnosticMatrix",
     "NormalisedDiagnosticSample",
     "PlasmaState",
     "PlasmoidMergerPetriNet",

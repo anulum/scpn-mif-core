@@ -438,9 +438,9 @@ and the hardware trigger chain are still gated (see the items above).
 | Surface | Current inventory |
 |---|---:|
 | Package version | 0.1.1 |
-| Public API exports | 176 |
+| Public API exports | 177 |
 | Python capability source modules | 23 |
-| Python capability classes | 87 |
+| Python capability classes | 88 |
 | Rust workspace crates | 10 |
 | Julia reference modules | 9 |
 | Go parity sources | 2 |

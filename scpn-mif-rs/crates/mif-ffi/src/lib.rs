@@ -13,7 +13,7 @@
 
 #![deny(missing_docs)]
 
-use numpy::{PyArray1, PyReadonlyArray1};
+use numpy::{PyArray1, PyArray2, PyArrayMethods, PyReadonlyArray1, PyReadonlyArray2};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use std::{collections::HashMap, sync::Mutex};
@@ -129,6 +129,11 @@ type PyMergerVerificationReport = (
     usize,
 );
 type PyNormalisedDiagnosticSample = (Vec<f64>, Vec<bool>, Vec<String>);
+type PyNormalisedDiagnosticBatch<'py> = (
+    Bound<'py, PyArray2<f64>>,
+    Bound<'py, PyArray2<bool>>,
+    Vec<usize>,
+);
 type PyStressInjectedFrame = (u64, Vec<Option<f64>>, Vec<String>, Vec<String>);
 type PyDecodedDaqFrame = (String, String, u64, u64, Vec<f64>);
 
@@ -416,6 +421,32 @@ impl PyDiagnosticNormalisationState {
                 )
             })
             .map_err(|e| PyValueError::new_err(e.to_string()))
+    }
+
+    /// Normalise a row-major `samples x channels` batch in one boundary crossing.
+    ///
+    /// The input is consumed as a zero-copy 2-D NumPy view; the feature and
+    /// clip-mask outputs come back as NumPy arrays of the same shape, plus the
+    /// per-channel clipped-sample counts. Each row is bit-identical to the
+    /// corresponding `normalise_features` call.
+    fn normalise_batch<'py>(
+        &self,
+        py: Python<'py>,
+        values: PyReadonlyArray2<'py, f64>,
+    ) -> PyResult<PyNormalisedDiagnosticBatch<'py>> {
+        let array = values.as_array();
+        let slice = array.as_slice().ok_or_else(|| {
+            PyValueError::new_err("values must be a C-contiguous samples x channels array")
+        })?;
+        let batch = self
+            .inner
+            .normalise_batch(slice)
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        let channels = batch.features.len() / batch.samples;
+        let features = PyArray1::from_vec(py, batch.features).reshape([batch.samples, channels])?;
+        let clip_mask =
+            PyArray1::from_vec(py, batch.clip_mask).reshape([batch.samples, channels])?;
+        Ok((features, clip_mask, batch.clipped_counts))
     }
 }
 

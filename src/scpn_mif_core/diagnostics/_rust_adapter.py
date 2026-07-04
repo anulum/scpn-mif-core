@@ -23,11 +23,13 @@ from collections.abc import Mapping, Sequence
 
 import numpy as np
 import scpn_mif_core_rs as _rust
+from numpy.typing import ArrayLike
 
 from scpn_mif_core.diagnostics.normalisation import (
     DiagnosticChannelCalibration,
     DiagnosticNormalisationState,
     FloatArray,
+    NormalisedDiagnosticMatrix,
     NormalisedDiagnosticSample,
 )
 from scpn_mif_core.diagnostics.stress_inject import (
@@ -74,6 +76,21 @@ class RustBackedDiagnosticNormalisationState(DiagnosticNormalisationState):
             features=array,
             clip_mask=tuple(bool(value) for value in clip_mask),
             out_of_range_channels=tuple(str(name) for name in out_of_range),
+            sample_period_ns=self.sample_period_ns,
+        )
+
+    def normalise_matrix(self, values: ArrayLike) -> NormalisedDiagnosticMatrix:
+        """Normalise a positional row-major matrix through one zero-copy FFI call."""
+        matrix = np.ascontiguousarray(values, dtype=np.float64)
+        channels = len(self.channel_names)
+        if matrix.ndim != 2 or matrix.shape[0] < 1 or matrix.shape[1] != channels:
+            raise ValueError(f"values must be a (samples, {channels}) matrix with at least one row")
+        features, clip_mask, clipped_counts = self._inner.normalise_batch(matrix)
+        return NormalisedDiagnosticMatrix(
+            channel_names=self.channel_names,
+            features=np.asarray(features, dtype=np.float64),
+            clip_mask=np.asarray(clip_mask, dtype=np.bool_),
+            clipped_counts=tuple(int(count) for count in clipped_counts),
             sample_period_ns=self.sample_period_ns,
         )
 

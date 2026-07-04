@@ -112,7 +112,7 @@ def test_committed_dashboard_aggregates_real_kernels_honestly() -> None:
 
     assert dashboard["schema"] == "scpn-mif-core/benchmark-dashboard/1.0.0"
     assert dashboard["kernel_count"] == 17
-    assert dashboard["group_count"] == 29
+    assert dashboard["group_count"] == 30
     assert dashboard["backend_roles"] == dict(BACKEND_ROLE)
     assert dashboard["runtime_comparable_backends"] == ["python", "rust"]
 

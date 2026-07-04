@@ -57,6 +57,20 @@ The Python reference remains the canonical manifest surface. Rust mirrors the
 affine kernel through PyO3, and Julia mirrors the reference behaviour for
 calibration/scaling audit scripts.
 
+## Matrix batch surface
+
+`normalise_matrix(values)` is the positional row-major batch counterpart of
+`normalise_vector`: one call normalises a `(samples, channels)` matrix and
+returns a `NormalisedDiagnosticMatrix` — the bounded feature matrix, the clip
+mask, and per-channel clipped-sample *counts* (aggregates, not per-row
+channel-name lists). Each matrix row is bit-identical to the corresponding
+`normalise_vector` features. On the Rust backend the whole matrix crosses the
+FFI boundary once as a zero-copy 2-D NumPy view and the outputs come back as
+NumPy arrays, so the per-call bridge overhead of the 4 096-call loop
+disappears: median 128 µs for the 4 096×4 batch versus 3.18 ms through the
+per-call loop and 37.5 ms for the Python matrix reference (non-isolated local
+comparison, 2026-07-04).
+
 ## Validation
 
 The committed tests verify:
@@ -67,6 +81,9 @@ The committed tests verify:
 - invalid range, non-finite endpoint, non-finite affine-span,
   subnormal-scale, missing-channel, and zero-span fit guards;
 - Python/Rust parity across 16 seeded random vectors;
+- matrix rows bit-identical to single-vector calls on both backends, matrix
+  Python↔Rust bit-exact parity with agreeing clipped counts, read-only
+  outputs, and shape/reject failure semantics;
 - Julia reference behaviour in `julia/SCPNMIFCore/test/runtests.jl`.
 
 End-to-end ControlObservation cosimulation remains downstream of MIF-015. This
