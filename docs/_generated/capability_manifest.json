@@ -539,7 +539,7 @@
   },
   "counts": {
     "capability_documentation_pages": 58,
-    "github_workflows": 16,
+    "github_workflows": 17,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
     "julia_reference_modules": 9,
@@ -854,6 +854,7 @@
       ".github/workflows/docs.yml",
       ".github/workflows/formal.yml",
       ".github/workflows/fuzz-nightly.yml",
+      ".github/workflows/mutation-nightly.yml",
       ".github/workflows/paper.yml",
       ".github/workflows/pre-commit.yml",
       ".github/workflows/release.yml",
