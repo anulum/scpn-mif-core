@@ -39,6 +39,24 @@ module mif_aer_cdc_synchroniser_formal (
 
     // META_Q = first dest flop, SYNC_OUT = second dest flop, SYNC_DEPTH_N = 2.
     `SC_ASSERT_CDC_TWO_FLOP(aer_ingress, dst_clk, rst_n, async_in, meta_q, sync_out, 2)
+
+    // SAFETY — the first stage is a pure registered sample of the asynchronous
+    // input: meta_q equals async_in delayed by exactly one destination edge, so
+    // no combinational path bypasses the first flop of the synchroniser.
+    logic past_valid;
+    always_ff @(posedge dst_clk or negedge rst_n) begin
+        if (!rst_n) begin
+            past_valid <= 1'b0;
+        end else begin
+            past_valid <= 1'b1;
+        end
+    end
+
+    always_ff @(posedge dst_clk) begin
+        if (past_valid && rst_n && $past(rst_n)) begin
+            assert (meta_q == $past(async_in));
+        end
+    end
 endmodule
 
 `default_nettype wire

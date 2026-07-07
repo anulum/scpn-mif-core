@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SCPN-MIF-CORE — MIF-010 timing tier: per-stage advance bound of the AER-ingress
+# two-flop CDC synchroniser via the vendored NEU-C.2 sc_latency_monitor. Proves
+# each stage advances within one destination cycle (end-to-end crossing <= 2).
+
+[options]
+mode prove
+depth 10
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv -formal mif_aer_cdc_synchroniser.sv
+read_verilog -sv -formal timing_wrapper_lib.sv
+read_verilog -sv -formal mif_aer_cdc_synchroniser_stage_timing.sv
+prep -top mif_aer_cdc_synchroniser_stage_timing
+
+[files]
+../../src/aer/mif_aer_cdc_synchroniser.sv
+timing_wrapper_lib.sv
+mif_aer_cdc_synchroniser_stage_timing.sv
+timing_assertions.svh

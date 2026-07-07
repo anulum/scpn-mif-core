@@ -40,7 +40,7 @@ def test_package_splits_formal_timing_and_blocked_hardware_evidence() -> None:
     assert package["public_timing_claim_allowed"] is False
     assert sections["open_tool_formal"]["status"] == "passed"
     assert sections["open_tool_formal"]["evidence_class"] == "formal_proof"
-    assert _metrics(sections["open_tool_formal"])["timing_task_count"] == 1
+    assert _metrics(sections["open_tool_formal"])["timing_task_count"] == 4
     assert sections["post_route_timing"]["status"] == "blocked"
     assert sections["post_route_timing"]["evidence_class"] == "hardware_timing_report"
     assert _string_tuple(sections["post_route_timing"], "required_fields") == POST_ROUTE_REQUIRED_FIELDS

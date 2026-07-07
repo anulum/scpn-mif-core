@@ -2,7 +2,7 @@
   "SPDX-License-Identifier": "AGPL-3.0-or-later",
   "schema_version": "1.1.0",
   "verifier": "tools/run_formal.py --suite all",
-  "task_count": 8,
+  "task_count": 11,
   "property_progress": {
     "basis": "assert/cover/assume statement count over each task's resolved SystemVerilog sources (including shared `include headers); a statement inside a generate loop counts once, so instantiated checks can exceed the statement count",
     "specification_target": {
@@ -12,12 +12,12 @@
       "total": 70
     },
     "proven_asserts": {
-      "safety": 20,
-      "liveness": 16,
-      "timing": 4,
-      "total": 40
+      "safety": 33,
+      "liveness": 28,
+      "timing": 16,
+      "total": 77
     },
-    "meets_specification_target": false
+    "meets_specification_target": true
   },
   "tasks": [
     {
@@ -32,7 +32,7 @@
       "depends_on": [
         {
           "path": "hdl/formal/mif_adc_to_spike_quantiser_formal.sv",
-          "sha256": "0c25b34710e8f62b8e1cf608356155821ae061ce2afab2729dd07a2f25f4d962"
+          "sha256": "f877ea6043ba9cd31ab5d5b5d3a7a7994aa03ac59971169cb69097f9950020b1"
         },
         {
           "path": "hdl/formal/safety/mif_adc_to_spike_quantiser_safety.sby",
@@ -44,7 +44,7 @@
         }
       ],
       "properties": {
-        "asserts": 2,
+        "asserts": 5,
         "covers": 3,
         "assumes": 1
       }
@@ -61,11 +61,193 @@
       "depends_on": [
         {
           "path": "hdl/formal/mif_aer_cdc_synchroniser_formal.sv",
-          "sha256": "17e36af148f04c11787c4b4513d5694882acdda2d3d0fbad4d4eaf61f40d4c32"
+          "sha256": "f321d53a92323e7ee06e03282bf03ec380a5c85c00419779e61e2dce46534cc1"
         },
         {
           "path": "hdl/formal/safety/mif_aer_cdc_synchroniser_safety.sby",
           "sha256": "52d52d23ade97e9a912e99e5697c16de382467ed1c1a44b3e7fcec6c4f6609e6"
+        },
+        {
+          "path": "hdl/formal/timing/timing_assertions.svh",
+          "sha256": "d0a0a1f941364e523d58af4b5a4d272634d7f317264a5f2a30f9d53967c8246b"
+        },
+        {
+          "path": "hdl/formal/timing/timing_wrapper_lib.sv",
+          "sha256": "8434b442e7866a39fb9179a7dd093d78fd798e18efe59547afd4bf28e09381b2"
+        },
+        {
+          "path": "hdl/src/aer/mif_aer_cdc_synchroniser.sv",
+          "sha256": "bb8f70a177b4d8eac25a1412c86f97501bc932c80c688d341709b8159b9bb961"
+        }
+      ],
+      "properties": {
+        "asserts": 5,
+        "covers": 4,
+        "assumes": 1
+      }
+    },
+    {
+      "suite": "safety",
+      "name": "mif_fast_veto_gate_safety",
+      "sby": "hdl/formal/safety/mif_fast_veto_gate_safety.sby",
+      "mode": "prove",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/mif_fast_veto_gate_formal.sv",
+          "sha256": "3981bc71002734cb9df548f86bec4639a81594657655215b276029a3b8a5d600"
+        },
+        {
+          "path": "hdl/formal/safety/mif_fast_veto_gate_safety.sby",
+          "sha256": "354fe9a2cd6c95882a363636c6d3e6eafe321d2734028a3f71cd0db0ed7eef9d"
+        },
+        {
+          "path": "hdl/src/triggers/mif_fast_veto_gate.sv",
+          "sha256": "8de67ed04240707ee6e7fca10ce44f74a32985b85f5c88722ee2507ae210cf7c"
+        }
+      ],
+      "properties": {
+        "asserts": 10,
+        "covers": 2,
+        "assumes": 0
+      }
+    },
+    {
+      "suite": "safety",
+      "name": "mif_trigger_fabric_safety",
+      "sby": "hdl/formal/safety/mif_trigger_fabric_safety.sby",
+      "mode": "prove",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/mif_trigger_fabric_formal.sv",
+          "sha256": "2b34b84294f3fa5fe79271d022159beb9ae50a3f4d664f3f030917e3d2198b76"
+        },
+        {
+          "path": "hdl/formal/safety/mif_trigger_fabric_safety.sby",
+          "sha256": "d067743df3719c5ec8eeccbd7cd9cf00c96cdf5a4d7426cc84cd80e210dd6c32"
+        },
+        {
+          "path": "hdl/src/triggers/mif_trigger_fabric.sv",
+          "sha256": "03c09f3a60b84af3eb993143943bef332af3d34cb9763a685318acae50d9811d"
+        }
+      ],
+      "properties": {
+        "asserts": 13,
+        "covers": 3,
+        "assumes": 1
+      }
+    },
+    {
+      "suite": "liveness",
+      "name": "mif_adc_to_spike_quantiser_liveness",
+      "sby": "hdl/formal/liveness/mif_adc_to_spike_quantiser_liveness.sby",
+      "mode": "cover",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/liveness/mif_adc_to_spike_quantiser_liveness.sby",
+          "sha256": "5ca5fa906bee512f384d825388c7bc0ae6958b3b8b0450ef92f4fa3b2e9164cd"
+        },
+        {
+          "path": "hdl/formal/mif_adc_to_spike_quantiser_formal.sv",
+          "sha256": "f877ea6043ba9cd31ab5d5b5d3a7a7994aa03ac59971169cb69097f9950020b1"
+        },
+        {
+          "path": "hdl/src/sensors/adc_to_spike_quantiser.sv",
+          "sha256": "46683cd4be84e1f5306f490f2cc3ce6b677492b46b34998e7f19c178513d66fa"
+        }
+      ],
+      "properties": {
+        "asserts": 5,
+        "covers": 3,
+        "assumes": 1
+      }
+    },
+    {
+      "suite": "liveness",
+      "name": "mif_fast_veto_gate_liveness",
+      "sby": "hdl/formal/liveness/mif_fast_veto_gate_liveness.sby",
+      "mode": "cover",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/liveness/mif_fast_veto_gate_liveness.sby",
+          "sha256": "f016304d91537c9c92fe4c98edf4e8e82a73bc14d0e880a9b397304b01ac9acb"
+        },
+        {
+          "path": "hdl/formal/mif_fast_veto_gate_formal.sv",
+          "sha256": "3981bc71002734cb9df548f86bec4639a81594657655215b276029a3b8a5d600"
+        },
+        {
+          "path": "hdl/src/triggers/mif_fast_veto_gate.sv",
+          "sha256": "8de67ed04240707ee6e7fca10ce44f74a32985b85f5c88722ee2507ae210cf7c"
+        }
+      ],
+      "properties": {
+        "asserts": 10,
+        "covers": 2,
+        "assumes": 0
+      }
+    },
+    {
+      "suite": "liveness",
+      "name": "mif_trigger_fabric_liveness",
+      "sby": "hdl/formal/liveness/mif_trigger_fabric_liveness.sby",
+      "mode": "cover",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/liveness/mif_trigger_fabric_liveness.sby",
+          "sha256": "91cc2f60a135b67b7959b2d25b3e3c49254d8a8f25ece0e6ab38ef8e96627961"
+        },
+        {
+          "path": "hdl/formal/mif_trigger_fabric_formal.sv",
+          "sha256": "2b34b84294f3fa5fe79271d022159beb9ae50a3f4d664f3f030917e3d2198b76"
+        },
+        {
+          "path": "hdl/src/triggers/mif_trigger_fabric.sv",
+          "sha256": "03c09f3a60b84af3eb993143943bef332af3d34cb9763a685318acae50d9811d"
+        }
+      ],
+      "properties": {
+        "asserts": 13,
+        "covers": 3,
+        "assumes": 1
+      }
+    },
+    {
+      "suite": "timing",
+      "name": "mif_aer_cdc_synchroniser_stage_timing",
+      "sby": "hdl/formal/timing/mif_aer_cdc_synchroniser_stage_timing.sby",
+      "mode": "prove",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/timing/mif_aer_cdc_synchroniser_stage_timing.sby",
+          "sha256": "14e70ae1a74dfbcb7872715fda5c94a8f4dd571164554eb1496c3b0afd6ad977"
+        },
+        {
+          "path": "hdl/formal/timing/mif_aer_cdc_synchroniser_stage_timing.sv",
+          "sha256": "7644a760a6cdf0b291472b3242b5eec61448981b22a6afded313a2c60fc07992"
         },
         {
           "path": "hdl/formal/timing/timing_assertions.svh",
@@ -87,9 +269,9 @@
       }
     },
     {
-      "suite": "safety",
-      "name": "mif_fast_veto_gate_safety",
-      "sby": "hdl/formal/safety/mif_fast_veto_gate_safety.sby",
+      "suite": "timing",
+      "name": "mif_fast_veto_gate_timing",
+      "sby": "hdl/formal/timing/mif_fast_veto_gate_timing.sby",
       "mode": "prove",
       "engines": [
         "smtbmc z3"
@@ -97,12 +279,20 @@
       "expected_status": "pass",
       "depends_on": [
         {
-          "path": "hdl/formal/mif_fast_veto_gate_formal.sv",
-          "sha256": "9b417db5362940b669269d45e762e0bdcaf2e83241c1d44b6457d3ac0f9b1cf7"
+          "path": "hdl/formal/timing/mif_fast_veto_gate_timing.sby",
+          "sha256": "a6266b0712841d6731ae048ebf6cd92bc03b4ae9d77f613b5277b8529c3d1b4e"
         },
         {
-          "path": "hdl/formal/safety/mif_fast_veto_gate_safety.sby",
-          "sha256": "354fe9a2cd6c95882a363636c6d3e6eafe321d2734028a3f71cd0db0ed7eef9d"
+          "path": "hdl/formal/timing/mif_fast_veto_gate_timing.sv",
+          "sha256": "88e9a97f231b81544e6b750aacdc128cc41d7730ef96c32e2c1e629e38c75578"
+        },
+        {
+          "path": "hdl/formal/timing/timing_assertions.svh",
+          "sha256": "d0a0a1f941364e523d58af4b5a4d272634d7f317264a5f2a30f9d53967c8246b"
+        },
+        {
+          "path": "hdl/formal/timing/timing_wrapper_lib.sv",
+          "sha256": "8434b442e7866a39fb9179a7dd093d78fd798e18efe59547afd4bf28e09381b2"
         },
         {
           "path": "hdl/src/triggers/mif_fast_veto_gate.sv",
@@ -110,15 +300,15 @@
         }
       ],
       "properties": {
-        "asserts": 7,
-        "covers": 2,
-        "assumes": 0
+        "asserts": 4,
+        "covers": 4,
+        "assumes": 1
       }
     },
     {
-      "suite": "safety",
-      "name": "mif_trigger_fabric_safety",
-      "sby": "hdl/formal/safety/mif_trigger_fabric_safety.sby",
+      "suite": "timing",
+      "name": "mif_trigger_fabric_response_timing",
+      "sby": "hdl/formal/timing/mif_trigger_fabric_response_timing.sby",
       "mode": "prove",
       "engines": [
         "smtbmc z3"
@@ -126,99 +316,20 @@
       "expected_status": "pass",
       "depends_on": [
         {
-          "path": "hdl/formal/mif_trigger_fabric_formal.sv",
-          "sha256": "8731c15cc121397f24a8a191454667342ffdaf250bd51334ff03bc1df59adb90"
+          "path": "hdl/formal/timing/mif_trigger_fabric_response_timing.sby",
+          "sha256": "2d99cb2137c1e4f62591cf16ae68f2fd5904d4edfca44a666921a819c8f1962a"
         },
         {
-          "path": "hdl/formal/safety/mif_trigger_fabric_safety.sby",
-          "sha256": "d067743df3719c5ec8eeccbd7cd9cf00c96cdf5a4d7426cc84cd80e210dd6c32"
+          "path": "hdl/formal/timing/mif_trigger_fabric_response_timing.sv",
+          "sha256": "8539aedea62048039161f0fc70afc40db1202e0311ef677d7c8c0129c9dec6c9"
         },
         {
-          "path": "hdl/src/triggers/mif_trigger_fabric.sv",
-          "sha256": "03c09f3a60b84af3eb993143943bef332af3d34cb9763a685318acae50d9811d"
-        }
-      ],
-      "properties": {
-        "asserts": 7,
-        "covers": 3,
-        "assumes": 1
-      }
-    },
-    {
-      "suite": "liveness",
-      "name": "mif_adc_to_spike_quantiser_liveness",
-      "sby": "hdl/formal/liveness/mif_adc_to_spike_quantiser_liveness.sby",
-      "mode": "cover",
-      "engines": [
-        "smtbmc z3"
-      ],
-      "expected_status": "pass",
-      "depends_on": [
-        {
-          "path": "hdl/formal/liveness/mif_adc_to_spike_quantiser_liveness.sby",
-          "sha256": "5ca5fa906bee512f384d825388c7bc0ae6958b3b8b0450ef92f4fa3b2e9164cd"
+          "path": "hdl/formal/timing/timing_assertions.svh",
+          "sha256": "d0a0a1f941364e523d58af4b5a4d272634d7f317264a5f2a30f9d53967c8246b"
         },
         {
-          "path": "hdl/formal/mif_adc_to_spike_quantiser_formal.sv",
-          "sha256": "0c25b34710e8f62b8e1cf608356155821ae061ce2afab2729dd07a2f25f4d962"
-        },
-        {
-          "path": "hdl/src/sensors/adc_to_spike_quantiser.sv",
-          "sha256": "46683cd4be84e1f5306f490f2cc3ce6b677492b46b34998e7f19c178513d66fa"
-        }
-      ],
-      "properties": {
-        "asserts": 2,
-        "covers": 3,
-        "assumes": 1
-      }
-    },
-    {
-      "suite": "liveness",
-      "name": "mif_fast_veto_gate_liveness",
-      "sby": "hdl/formal/liveness/mif_fast_veto_gate_liveness.sby",
-      "mode": "cover",
-      "engines": [
-        "smtbmc z3"
-      ],
-      "expected_status": "pass",
-      "depends_on": [
-        {
-          "path": "hdl/formal/liveness/mif_fast_veto_gate_liveness.sby",
-          "sha256": "f016304d91537c9c92fe4c98edf4e8e82a73bc14d0e880a9b397304b01ac9acb"
-        },
-        {
-          "path": "hdl/formal/mif_fast_veto_gate_formal.sv",
-          "sha256": "9b417db5362940b669269d45e762e0bdcaf2e83241c1d44b6457d3ac0f9b1cf7"
-        },
-        {
-          "path": "hdl/src/triggers/mif_fast_veto_gate.sv",
-          "sha256": "8de67ed04240707ee6e7fca10ce44f74a32985b85f5c88722ee2507ae210cf7c"
-        }
-      ],
-      "properties": {
-        "asserts": 7,
-        "covers": 2,
-        "assumes": 0
-      }
-    },
-    {
-      "suite": "liveness",
-      "name": "mif_trigger_fabric_liveness",
-      "sby": "hdl/formal/liveness/mif_trigger_fabric_liveness.sby",
-      "mode": "cover",
-      "engines": [
-        "smtbmc z3"
-      ],
-      "expected_status": "pass",
-      "depends_on": [
-        {
-          "path": "hdl/formal/liveness/mif_trigger_fabric_liveness.sby",
-          "sha256": "91cc2f60a135b67b7959b2d25b3e3c49254d8a8f25ece0e6ab38ef8e96627961"
-        },
-        {
-          "path": "hdl/formal/mif_trigger_fabric_formal.sv",
-          "sha256": "8731c15cc121397f24a8a191454667342ffdaf250bd51334ff03bc1df59adb90"
+          "path": "hdl/formal/timing/timing_wrapper_lib.sv",
+          "sha256": "8434b442e7866a39fb9179a7dd093d78fd798e18efe59547afd4bf28e09381b2"
         },
         {
           "path": "hdl/src/triggers/mif_trigger_fabric.sv",
@@ -226,8 +337,8 @@
         }
       ],
       "properties": {
-        "asserts": 7,
-        "covers": 3,
+        "asserts": 4,
+        "covers": 4,
         "assumes": 1
       }
     },

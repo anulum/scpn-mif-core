@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SCPN-MIF-CORE — MIF-010 timing tier: zero-cycle veto/disarm response of the
+# MIF-008 fast-veto lane via the vendored NEU-C.2 sc_latency_monitor. Proves the
+# ZERO added-cycle bound; a registered veto path would violate it.
+
+[options]
+mode prove
+depth 10
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv -formal mif_fast_veto_gate.sv
+read_verilog -sv -formal timing_wrapper_lib.sv
+read_verilog -sv -formal mif_fast_veto_gate_timing.sv
+prep -top mif_fast_veto_gate_timing
+
+[files]
+../../src/triggers/mif_fast_veto_gate.sv
+timing_wrapper_lib.sv
+mif_fast_veto_gate_timing.sv
+timing_assertions.svh

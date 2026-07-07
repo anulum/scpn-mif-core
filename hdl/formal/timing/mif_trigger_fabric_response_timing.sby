@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SCPN-MIF-CORE — MIF-010 timing tier: bounded disarm/veto response of the
+# MIF-008 trigger fabric via the vendored NEU-C.2 sc_deadline_monitor. Proves
+# the <= 1 cycle reload/clear bounds for the fabric's control inputs.
+
+[options]
+mode prove
+depth 20
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv -formal mif_trigger_fabric.sv
+read_verilog -sv -formal timing_wrapper_lib.sv
+read_verilog -sv -formal mif_trigger_fabric_response_timing.sv
+prep -top mif_trigger_fabric_response_timing
+
+[files]
+../../src/triggers/mif_trigger_fabric.sv
+timing_wrapper_lib.sv
+mif_trigger_fabric_response_timing.sv
+timing_assertions.svh

@@ -82,6 +82,18 @@ module mif_fast_veto_gate_formal #(
         // Safety (interlock surface) — the veto mirror tracks the veto exactly.
         assert (veto_active == safety_veto);
 
+        // Safety (arm gating) — an unarmed lane is dead: no permit, no fire.
+        if (!arm) begin
+            assert (!fast_permit);
+            assert (!fast_fire);
+        end
+
+        // Safety (bank gating) — a bank that is not ready blocks the permit,
+        // mirroring the fabric's bank_ready wire on the zero-cycle lane.
+        if (!bank_ready) begin
+            assert (!fast_permit);
+        end
+
         // Liveness — a gated fire is reachable.
         cover (fast_fire);
 

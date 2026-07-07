@@ -56,6 +56,31 @@ module mif_adc_to_spike_quantiser_formal (
         end
     end
 
+    // SAFETY — address legality: the AER address register only ever holds one of
+    // the two configured spike event codes (base + positive, base + negative), so
+    // no other address can ever be presented on the bus. Inductive from the reset
+    // value (the base address) and the two presentation assignments.
+    always_ff @(posedge clk) begin
+        if (rst_n) begin
+            assert (aer_address == 16'h4100 || aer_address == 16'h4101);
+        end
+    end
+
+    // SAFETY — handshake discipline on the valid line and the address bus:
+    // a presented event withdraws only through an accept (valid can fall only
+    // after a ready cycle), and the address never moves without a live
+    // presentation, so a stalled sink can never observe a shifting event.
+    always_ff @(posedge clk) begin
+        if (past_valid && rst_n && $past(rst_n)) begin
+            if ($past(aer_valid) && !aer_valid) begin
+                assert ($past(aer_ready));
+            end
+            if (aer_address != $past(aer_address)) begin
+                assert (aer_valid);
+            end
+        end
+    end
+
     // LIVENESS — bounded-cover witnesses (run under `mode cover`): the lane reaches
     // each state of the handshake, so the back-pressure path is real and drains.
     always_ff @(posedge clk) begin

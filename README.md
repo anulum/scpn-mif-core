@@ -439,7 +439,7 @@ and the hardware trigger chain are still gated (see the items above).
 |---|---:|
 | Package version | 0.1.1 |
 | Public API exports | 187 |
-| Python capability source modules | 25 |
+| Python capability source modules | 26 |
 | Python capability classes | 93 |
 | Rust workspace crates | 10 |
 | Julia reference modules | 9 |
@@ -448,7 +448,7 @@ and the hardware trigger chain are still gated (see the items above).
 | Synthesisable HDL RTL modules | 4 |
 | Capability documentation pages | 58 |
 | Optional extras | 7 |
-| Python test files | 108 |
+| Python test files | 109 |
 | Public documentation pages | 58 |
 | GitHub Actions workflows | 16 |
 

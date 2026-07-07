@@ -95,11 +95,21 @@ module mif_trigger_fabric_formal #(
         end
     end
 
+    localparam logic [HOLD_COUNTER_WIDTH-1:0] RELOAD_REF = LOCK_HOLD_CYCLES[HOLD_COUNTER_WIDTH-1:0];
+
     always_ff @(posedge clk) begin
         if (rst_n) begin
             // Safety — the kinematic-envelope veto is absolute.
             if (safety_veto) begin
                 assert (!trigger);
+            end
+
+            // Safety (exact fire instant) — a trigger can only assert on the
+            // final debounce step with the one-shot clear, so no earlier step
+            // and no already-fired arming can pulse the bank.
+            if (trigger) begin
+                assert (hold_remaining == HOLD_COUNTER_WIDTH'(1));
+                assert (!fired);
             end
 
             // Safety — a trigger asserts only with every gating condition met.
@@ -140,6 +150,27 @@ module mif_trigger_fabric_formal #(
             end
             if ($past(fired) && $past(arm)) begin
                 assert (fired);
+            end
+
+            // Safety (disarm reset) — a disarmed cycle reloads the debounce and
+            // clears the one-shot on the next edge, so the next arming starts
+            // from the full consecutive-cycles requirement.
+            if ($past(!arm)) begin
+                assert (hold_remaining == RELOAD_REF);
+                assert (!fired);
+            end
+
+            // Safety (broken lock reloads) — an armed cycle without lock reloads
+            // the full debounce: partial streaks never accumulate across gaps.
+            if ($past(arm) && $past(!lock_now)) begin
+                assert (hold_remaining == RELOAD_REF);
+            end
+
+            // Safety (monotone countdown) — under sustained armed lock the
+            // debounce decrements by exactly one per cycle behind the zero
+            // guard, so the hold time cannot be shortened or stretched.
+            if ($past(arm) && $past(lock_now) && $past(hold_remaining) != '0) begin
+                assert (hold_remaining == $past(hold_remaining) - HOLD_COUNTER_WIDTH'(1));
             end
 
             // Liveness — the one-shot can clear so a re-arm can fire again.

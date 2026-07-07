@@ -474,6 +474,7 @@
       "src/scpn_mif_core/diagnostics/_rust_adapter.py",
       "src/scpn_mif_core/diagnostics/normalisation.py",
       "src/scpn_mif_core/diagnostics/stress_inject.py",
+      "src/scpn_mif_core/kinematic/_erfc.py",
       "src/scpn_mif_core/kinematic/_rust_adapter.py",
       "src/scpn_mif_core/kinematic/doppler_kuramoto.py",
       "src/scpn_mif_core/kinematic/fire_time.py",
@@ -547,9 +548,9 @@
     "public_api_exports": 187,
     "public_documentation_pages": 58,
     "python_capability_classes": 93,
-    "python_capability_source_modules": 25,
+    "python_capability_source_modules": 26,
     "rust_workspace_crates": 10,
-    "test_files": 108
+    "test_files": 109
   },
   "documentation": {
     "public_pages": [
@@ -914,6 +915,7 @@
       "tests/unit/kinematic/test_doppler_kuramoto.py",
       "tests/unit/kinematic/test_doppler_kuramoto_mojo_parity.py",
       "tests/unit/kinematic/test_doppler_kuramoto_rust_parity.py",
+      "tests/unit/kinematic/test_erfc.py",
       "tests/unit/kinematic/test_fire_time.py",
       "tests/unit/kinematic/test_merge_window.py",
       "tests/unit/kinematic/test_merge_window_features.py",
