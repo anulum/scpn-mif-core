@@ -1,0 +1,81 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Mutation nightly
+
+# Nightly cargo-mutants run over the Rust decision core and the probability
+# surfaces: streaming trigger, merge window, safety certificate, trigger
+# probability propagation, and the vendored fdlibm erfc. The job fails when
+# the kill-rate over viable mutants drops below 90 % — advisory to merges
+# (nothing gates on a nightly), binding as a red nightly signal. The measured
+# baseline is 99+ % with every survivor a documented value-equivalent mutant
+# (see mutation_hardening.rs and the erfc test module); the 90 % floor leaves
+# headroom for new equivalent mutants without letting real regressions hide.
+# cargo-mutants is pinned to 26.0.0: 27.x needs rustc >= 1.88 and the repo
+# toolchain pin is 1.85.
+
+on:
+  schedule:
+    - cron: "17 3 * * *"   # 03:17 UTC daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mutation-nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mutants:
+    name: cargo-mutants (decision core + probability surfaces)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: scpn-mif-rs
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - name: Install Rust 1.85
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8  # stable
+        with:
+          toolchain: 1.85.0
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32  # v2
+        with:
+          workspaces: scpn-mif-rs
+      - name: Install cargo-mutants 26.0.0
+        run: cargo install cargo-mutants --version 26.0.0 --locked
+      - name: Run mutants over the scoped files
+        # Non-zero exit means missed mutants; the threshold step below decides.
+        run: |
+          cargo mutants -p mif-kinematic \
+            --file "crates/mif-kinematic/src/streaming_trigger.rs" \
+            --file "crates/mif-kinematic/src/merge_window.rs" \
+            --file "crates/mif-kinematic/src/safety_certificate.rs" \
+            --file "crates/mif-kinematic/src/trigger_probability.rs" \
+            --file "crates/mif-kinematic/src/erfc.rs" \
+            --no-shuffle -j 2 || true
+      - name: Enforce the 90 % kill-rate floor
+        run: |
+          caught=$(wc -l < mutants.out/caught.txt)
+          missed=$(wc -l < mutants.out/missed.txt)
+          total=$((caught + missed))
+          if [ "$total" -eq 0 ]; then
+            echo "no viable mutants were tested - treating as failure" >&2
+            exit 1
+          fi
+          rate=$((100 * caught / total))
+          echo "kill-rate: ${caught}/${total} viable mutants (${rate}%)"
+          if [ -s mutants.out/missed.txt ]; then
+            echo "missed mutants:"
+            cat mutants.out/missed.txt
+          fi
+          if [ "$rate" -lt 90 ]; then
+            echo "kill-rate ${rate}% is below the 90% floor" >&2
+            exit 1
+          fi
+      - name: Upload mutants workspace on failure
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: mutants-out
+          path: scpn-mif-rs/mutants.out/
+          if-no-files-found: ignore
