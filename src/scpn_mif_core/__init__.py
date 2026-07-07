@@ -268,6 +268,12 @@ from scpn_mif_core.kinematic import (
     DopplerKuramotoState as DopplerKuramotoState,
 )
 from scpn_mif_core.kinematic import (
+    FireTimeDecision as FireTimeDecision,
+)
+from scpn_mif_core.kinematic import (
+    FireTimePolicy as FireTimePolicy,
+)
+from scpn_mif_core.kinematic import (
     KinematicSafetyCertificate as KinematicSafetyCertificate,
 )
 from scpn_mif_core.kinematic import (
@@ -391,10 +397,16 @@ from scpn_mif_core.kinematic import (
     propagate_trigger_probabilities as propagate_trigger_probabilities,
 )
 from scpn_mif_core.kinematic import (
+    select_fire_time as select_fire_time,
+)
+from scpn_mif_core.kinematic import (
     trigger_probabilities_from_trace as trigger_probabilities_from_trace,
 )
 from scpn_mif_core.kinematic import (
     validate_merge_window_features as validate_merge_window_features,
+)
+from scpn_mif_core.kinematic import (
+    window_margin as window_margin,
 )
 
 # Pulsed-shot lifecycle — capacitor bank, shot FSM, plasmoid-merger Petri net
@@ -614,6 +626,8 @@ __all__ = [
     "FaradayRecoveryReport",
     "FaradayRecoverySpec",
     "FaradayRecoveryState",
+    "FireTimeDecision",
+    "FireTimePolicy",
     "FloatArray",
     "FusionFRCContractReport",
     "FusionFRCSurface",
@@ -755,10 +769,12 @@ __all__ = [
     "propagate_trigger_probabilities",
     "recovered_power",
     "render_compatibility_matrix",
+    "select_fire_time",
     "tae_descriptor_profile",
     "trigger_probabilities_from_trace",
     "validate_merge_window_features",
     "validate_stress_config",
     "verify_merger_boundedness",
     "verify_merger_liveness",
+    "window_margin",
 ]

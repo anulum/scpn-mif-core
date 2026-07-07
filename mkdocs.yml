@@ -144,6 +144,7 @@ nav:
           - Merge-window monitor: api/kinematic/merge_window.md
           - Streaming merge trigger: api/kinematic/streaming_trigger.md
           - Probabilistic trigger propagation: api/kinematic/trigger_probability.md
+          - Fire-time selection: api/kinematic/fire_time.md
           - Merge-window feature boundary: api/kinematic/merge_window_features.md
           - Merge-window predictor: api/kinematic/merge_window_predictor.md
           - Safety certificate: api/kinematic/safety_certificate.md

@@ -6,7 +6,7 @@
       "kind": "project-documentation",
       "media_type": "text/markdown",
       "path": "README.md",
-      "sha256": "sha256:2a3dccf56af9f92cfc9ea81eacacf8d04950e6306731db61a9d05033591280c3",
+      "sha256": "sha256:47ddbe60bd210b24d74b1e93ca85806724a17f7849f460f09e3b8eb6b02ddf65",
       "size_bytes": 24375
     },
     {
@@ -69,8 +69,8 @@
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/capability_manifest.json",
-      "sha256": "sha256:94eecdb3ac0b060860b6f815a20947ca63220aec21afcf53302b684eb3f33f12",
-      "size_bytes": 33488
+      "sha256": "sha256:9e4cdf17cdef8a77f37b938c4c1d9d744b9a6a6fab4ccfa55ff86e83de842b89",
+      "size_bytes": 33981
     },
     {
       "kind": "generated-dashboard",
@@ -167,7 +167,7 @@
       "kind": "verification-test",
       "media_type": "text/x-python",
       "path": "tests/unit/bench/test_benchmark_dashboard.py",
-      "sha256": "sha256:ae9b5d6e542b3e36316160a79151ad8097d6456dff355d9318ce126619048c18",
+      "sha256": "sha256:2e7b7f158a2a51c2d73a2541eb9dab614213ec5ce2e420127150adc16836eba1",
       "size_bytes": 19655
     },
     {

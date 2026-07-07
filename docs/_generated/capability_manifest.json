@@ -30,6 +30,7 @@
       "docs/api/interop/imas_mapping.md",
       "docs/api/interop/trigger_io.md",
       "docs/api/kinematic/doppler_kuramoto.md",
+      "docs/api/kinematic/fire_time.md",
       "docs/api/kinematic/merge_window.md",
       "docs/api/kinematic/merge_window_features.md",
       "docs/api/kinematic/merge_window_predictor.md",
@@ -183,6 +184,14 @@
       {
         "name": "FaradayRecoveryState",
         "path": "src/scpn_mif_core/physics/faraday_recovery.py"
+      },
+      {
+        "name": "FireTimeDecision",
+        "path": "src/scpn_mif_core/kinematic/fire_time.py"
+      },
+      {
+        "name": "FireTimePolicy",
+        "path": "src/scpn_mif_core/kinematic/fire_time.py"
       },
       {
         "name": "FusionCompressionStroke",
@@ -467,6 +476,7 @@
       "src/scpn_mif_core/diagnostics/stress_inject.py",
       "src/scpn_mif_core/kinematic/_rust_adapter.py",
       "src/scpn_mif_core/kinematic/doppler_kuramoto.py",
+      "src/scpn_mif_core/kinematic/fire_time.py",
       "src/scpn_mif_core/kinematic/merge_window.py",
       "src/scpn_mif_core/kinematic/merge_window_features.py",
       "src/scpn_mif_core/kinematic/merge_window_predictor.py",
@@ -527,19 +537,19 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 57,
+    "capability_documentation_pages": 58,
     "github_workflows": 16,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,
     "optional_extras": 7,
-    "public_api_exports": 183,
-    "public_documentation_pages": 57,
-    "python_capability_classes": 91,
-    "python_capability_source_modules": 24,
+    "public_api_exports": 187,
+    "public_documentation_pages": 58,
+    "python_capability_classes": 93,
+    "python_capability_source_modules": 25,
     "rust_workspace_crates": 10,
-    "test_files": 107
+    "test_files": 108
   },
   "documentation": {
     "public_pages": [
@@ -571,6 +581,7 @@
       "docs/api/interop/imas_mapping.md",
       "docs/api/interop/trigger_io.md",
       "docs/api/kinematic/doppler_kuramoto.md",
+      "docs/api/kinematic/fire_time.md",
       "docs/api/kinematic/merge_window.md",
       "docs/api/kinematic/merge_window_features.md",
       "docs/api/kinematic/merge_window_predictor.md",
@@ -656,6 +667,8 @@
     "FaradayRecoveryReport",
     "FaradayRecoverySpec",
     "FaradayRecoveryState",
+    "FireTimeDecision",
+    "FireTimePolicy",
     "FloatArray",
     "FusionFRCContractReport",
     "FusionFRCSurface",
@@ -802,12 +815,14 @@
     "propagate_trigger_probabilities",
     "recovered_power",
     "render_compatibility_matrix",
+    "select_fire_time",
     "tae_descriptor_profile",
     "trigger_probabilities_from_trace",
     "validate_merge_window_features",
     "validate_stress_config",
     "verify_merger_boundedness",
-    "verify_merger_liveness"
+    "verify_merger_liveness",
+    "window_margin"
   ],
   "packaging": {
     "optional_extras": [
@@ -899,6 +914,7 @@
       "tests/unit/kinematic/test_doppler_kuramoto.py",
       "tests/unit/kinematic/test_doppler_kuramoto_mojo_parity.py",
       "tests/unit/kinematic/test_doppler_kuramoto_rust_parity.py",
+      "tests/unit/kinematic/test_fire_time.py",
       "tests/unit/kinematic/test_merge_window.py",
       "tests/unit/kinematic/test_merge_window_features.py",
       "tests/unit/kinematic/test_merge_window_predictor.py",

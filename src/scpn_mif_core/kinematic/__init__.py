@@ -31,6 +31,12 @@ from scpn_mif_core.kinematic.doppler_kuramoto import (
     order_parameter,
     phase_lock_error,
 )
+from scpn_mif_core.kinematic.fire_time import (
+    FireTimeDecision,
+    FireTimePolicy,
+    select_fire_time,
+    window_margin,
+)
 from scpn_mif_core.kinematic.merge_window import (
     MergeWindowMonitor,
     MergeWindowSample,
@@ -175,6 +181,8 @@ __all__ = [
     "DopplerKuramotoReport",
     "DopplerKuramotoSpec",
     "DopplerKuramotoState",
+    "FireTimeDecision",
+    "FireTimePolicy",
     "KinematicSafetyCertificate",
     "KinematicSafetySpec",
     "MeasurementNoiseSpec",
@@ -216,6 +224,8 @@ __all__ = [
     "phase_lock_error",
     "predict_merge_window",
     "propagate_trigger_probabilities",
+    "select_fire_time",
     "trigger_probabilities_from_trace",
     "validate_merge_window_features",
+    "window_margin",
 ]
