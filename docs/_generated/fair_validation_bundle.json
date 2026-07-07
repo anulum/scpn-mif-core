@@ -1,12 +1,12 @@
 {
   "SPDX-License-Identifier": "AGPL-3.0-or-later",
-  "artifact_count": 46,
+  "artifact_count": 47,
   "artifacts": [
     {
       "kind": "project-documentation",
       "media_type": "text/markdown",
       "path": "README.md",
-      "sha256": "sha256:95b9b2ab182c1bafc65f4a08ed15a9b46c4022fcdcf4240b7b09672ea4f41fa3",
+      "sha256": "sha256:008137780e1a5497b9580d9ecfaf14e5403da2aa58cf3da7aaabf492548d8b72",
       "size_bytes": 24375
     },
     {
@@ -55,22 +55,22 @@
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "bench/dispatch.toml",
-      "sha256": "sha256:aaedc0b3e9223ff86f103e42edc3cf4b02df8a08a131d619c23a0c860bfca689",
-      "size_bytes": 3764
+      "sha256": "sha256:caf1cac33916077d949ccae5eda14281f8509b2484a1a906f8866c457521afc1",
+      "size_bytes": 4017
     },
     {
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/benchmark_dashboard.json",
-      "sha256": "sha256:971c25822358638dc42b4d10c249baba38037a8232831390d78054b2e3b8b010",
-      "size_bytes": 70392
+      "sha256": "sha256:839ef07aa15c1a6279f9290c5a53cc69920d6c4963d66f6b2133b9583e2c78bc",
+      "size_bytes": 74472
     },
     {
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/capability_manifest.json",
-      "sha256": "sha256:7986fe2333c986f577e54d13753bd50c90908a0451ec3987c8f63d19d2e1e9c3",
-      "size_bytes": 34118
+      "sha256": "sha256:1b066e3a3d3c9f03776f94e7e56da80ebcb1aedf82c9ea2ea731fcc0339c5d03",
+      "size_bytes": 34404
     },
     {
       "kind": "generated-dashboard",
@@ -167,7 +167,7 @@
       "kind": "verification-test",
       "media_type": "text/x-python",
       "path": "tests/unit/bench/test_benchmark_dashboard.py",
-      "sha256": "sha256:2e7b7f158a2a51c2d73a2541eb9dab614213ec5ce2e420127150adc16836eba1",
+      "sha256": "sha256:dff79854c9a7dc7736e90825b144fea150a5606acd2fa99a214d6b43034a0b02",
       "size_bytes": 19655
     },
     {
@@ -181,7 +181,7 @@
       "kind": "verification-test",
       "media_type": "text/x-python",
       "path": "tests/unit/test_fair_validation_bundle.py",
-      "sha256": "sha256:02ee6466f165f2bc9af729100e02afa51869fbc4e0c5e9e4f24e32753c08f5d4",
+      "sha256": "sha256:9db5981f219f448cf9675d3181c90c542740c86ef2d49df9b036b3128ff72c2b",
       "size_bytes": 9525
     },
     {
@@ -281,6 +281,13 @@
       "path": "bench/results/merge_window.json",
       "sha256": "sha256:97a6be2211e972bc07fe473fb78b35ae1306b9ce158dc9493e334b59e9df456e",
       "size_bytes": 3060
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/merger_campaign.json",
+      "sha256": "sha256:13333f7233481e0f6d712d1b82f931499b34b4a7e8c9d2c288434fbf1d73f0fc",
+      "size_bytes": 3380
     },
     {
       "kind": "benchmark-result",
@@ -399,8 +406,8 @@
       "distinct_cpu_governors": [
         "powersave"
       ],
-      "group_count": 32,
-      "kernel_count": 18,
+      "group_count": 34,
+      "kernel_count": 19,
       "python_versions": [
         "3.12.13",
         "3.12.3"

@@ -504,6 +504,12 @@ from scpn_mif_core.lifecycle import (
     dispatched_capacitor_bank as dispatched_capacitor_bank,
 )
 from scpn_mif_core.lifecycle import (
+    dispatched_merger_boundedness_campaign as dispatched_merger_boundedness_campaign,
+)
+from scpn_mif_core.lifecycle import (
+    dispatched_merger_liveness_campaign as dispatched_merger_liveness_campaign,
+)
+from scpn_mif_core.lifecycle import (
     dispatched_plasmoid_merger_petri_net as dispatched_plasmoid_merger_petri_net,
 )
 from scpn_mif_core.lifecycle import (
@@ -516,7 +522,13 @@ from scpn_mif_core.lifecycle import (
     verify_merger_boundedness as verify_merger_boundedness,
 )
 from scpn_mif_core.lifecycle import (
+    verify_merger_boundedness_seeded as verify_merger_boundedness_seeded,
+)
+from scpn_mif_core.lifecycle import (
     verify_merger_liveness as verify_merger_liveness,
+)
+from scpn_mif_core.lifecycle import (
+    verify_merger_liveness_seeded as verify_merger_liveness_seeded,
 )
 
 # Merge-trigger pipeline — end-to-end FRC merge fire/abort/hold decision
@@ -722,6 +734,8 @@ __all__ = [
     "dispatched_evaluate_faraday_recovery",
     "dispatched_faraday_back_emf",
     "dispatched_merge_window_monitor",
+    "dispatched_merger_boundedness_campaign",
+    "dispatched_merger_liveness_campaign",
     "dispatched_moving_frame_upde",
     "dispatched_normalisation_state",
     "dispatched_plasmoid_merger_petri_net",
@@ -775,6 +789,8 @@ __all__ = [
     "validate_merge_window_features",
     "validate_stress_config",
     "verify_merger_boundedness",
+    "verify_merger_boundedness_seeded",
     "verify_merger_liveness",
+    "verify_merger_liveness_seeded",
     "window_margin",
 ]

@@ -70,7 +70,9 @@ use mif_lifecycle::{
     SchedulerCommand as LifecycleSchedulerCommand, ShotState as LifecycleShotState,
     TransitionRecord as LifecycleTransitionRecord,
     verify_merger_boundedness as lifecycle_verify_merger_boundedness,
+    verify_merger_boundedness_parallel as lifecycle_verify_merger_boundedness_parallel,
     verify_merger_liveness as lifecycle_verify_merger_liveness,
+    verify_merger_liveness_parallel as lifecycle_verify_merger_liveness_parallel,
 };
 
 type PyFaradayRecoveryWaveform<'py> = (
@@ -2291,6 +2293,36 @@ fn verify_merger_liveness(
         .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
+/// Verify MIF-012 boundedness over independently seeded trials on the rayon pool.
+///
+/// Bit-identical to the sequential seeded campaign and to the Python
+/// `verify_merger_boundedness_seeded` reference; see the merger_campaign
+/// module for the per-trial seeding contract.
+#[pyfunction]
+fn verify_merger_boundedness_parallel(
+    spec: &PyPlasmoidMergerSpec,
+    trials: usize,
+    steps_per_trial: usize,
+    seed: u64,
+) -> PyResult<PyMergerVerificationReport> {
+    lifecycle_verify_merger_boundedness_parallel(spec.inner, trials, steps_per_trial, seed)
+        .map(py_merger_report)
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+/// Verify MIF-012 liveness over independently seeded trials on the rayon pool.
+#[pyfunction]
+fn verify_merger_liveness_parallel(
+    spec: &PyPlasmoidMergerSpec,
+    trials: usize,
+    steps_per_trial: usize,
+    seed: u64,
+) -> PyResult<PyMergerVerificationReport> {
+    lifecycle_verify_merger_liveness_parallel(spec.inner, trials, steps_per_trial, seed)
+        .map(py_merger_report)
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
 /// Decode MIF-006 AER features from a Rust-backed spike buffer.
 #[pyfunction]
 fn decode_aer_features(buffer: &PyAERSpikeBuffer, spec: &PyAERDecodeSpec) -> PyResult<Vec<f64>> {
@@ -2450,6 +2482,8 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(propagate_trigger_probabilities, m)?)?;
     m.add_function(wrap_pyfunction!(verify_merger_boundedness, m)?)?;
     m.add_function(wrap_pyfunction!(verify_merger_liveness, m)?)?;
+    m.add_function(wrap_pyfunction!(verify_merger_boundedness_parallel, m)?)?;
+    m.add_function(wrap_pyfunction!(verify_merger_liveness_parallel, m)?)?;
     m.add_function(wrap_pyfunction!(decode_aer_features, m)?)?;
     m.add_function(wrap_pyfunction!(decode_aer_observation, m)?)?;
     m.add_function(wrap_pyfunction!(fit_diagnostic_calibrations, m)?)?;

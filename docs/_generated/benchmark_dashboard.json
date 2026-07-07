@@ -18,14 +18,14 @@
     "python",
     "rust"
   ],
-  "kernel_count": 18,
-  "group_count": 32,
+  "kernel_count": 19,
+  "group_count": 34,
   "backend_coverage": {
     "go": 2,
     "julia": 10,
     "mojo": 1,
-    "python": 18,
-    "rust": 17,
+    "python": 19,
+    "rust": 18,
     "systemverilog": 1
   },
   "environments": {
@@ -1285,6 +1285,98 @@
               "ops_per_s": 0.920767,
               "rounds": 5,
               "relative_to_fastest": 1898.985403
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "merger_campaign",
+      "source": "bench/results/merger_campaign.json",
+      "dispatch_key": "lifecycle.merger_campaign",
+      "datetime": "2026-07-07T12:00:04.437720+00:00",
+      "backends": [
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.13",
+        "command": "taskset -c 8-11 pytest bench/kernels/bench_merger_campaign.py --benchmark-only --benchmark-json=bench/results/local/merger_campaign_raw.json",
+        "runtime_versions": {
+          "python": "3.12.13",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "taskset affinity to logical cores 8-11; no kernel isolcpus reservation",
+        "affinity_or_reserved_cores": "logical cores 8-11 of 12",
+        "cpu_governor": "powersave",
+        "host_load_before": "11.70 14.25 17.11",
+        "host_load_after": "15.49 14.97 17.31",
+        "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+      },
+      "notes": [
+        "Independently seeded MIF-012 merger verification campaigns at the default budgets: boundedness 100 trials x 500 steps (per-step stochastic stimuli) and liveness 1000 trials x 200 steps (shared nominal stimuli).",
+        "The Rust surface runs the trials across the rayon pool (bounded here to the 4 taskset cores); the Python floor runs the identical per-trial work sequentially. Reports are bit-identical across Python, Rust sequential, and Rust parallel (per-trial seeding makes the campaign invariant to execution order), so the comparison is pure execution cost.",
+        "Non-isolated local comparison run under taskset affinity and moderate host load (load average ~12-17); the rust<python ranking (about two orders of magnitude at these budgets) is robust, absolute numbers are not a production performance claim.",
+        "max_ns is recorded per surface; outliers reflect scheduler preemption, not the kernel."
+      ],
+      "groups": [
+        {
+          "group": "merger_campaign.boundedness_100x500",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 6504370.941356384,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 6504370.941356384,
+              "median_ns": 5657855.88696599,
+              "stddev_ns": 4584323.6764242165,
+              "ops_per_s": 153.74276913417637,
+              "rounds": 213,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 563394203.6191002,
+              "median_ns": 588397541.0833955,
+              "stddev_ns": 63354798.00279931,
+              "ops_per_s": 1.7749561383064574,
+              "rounds": 5,
+              "relative_to_fastest": 86.617785
+            }
+          ]
+        },
+        {
+          "group": "merger_campaign.liveness_1000x200",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 1105563.125045059,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 1105563.125045059,
+              "median_ns": 689915.4977872968,
+              "stddev_ns": 1145538.4543318145,
+              "ops_per_s": 904.5164200454346,
+              "rounds": 642,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 89787286.20180239,
+              "median_ns": 75547019.01972294,
+              "stddev_ns": 50881964.3505807,
+              "ops_per_s": 11.137434288329409,
+              "rounds": 9,
+              "relative_to_fastest": 81.214075
             }
           ]
         }

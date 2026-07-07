@@ -545,12 +545,12 @@
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,
     "optional_extras": 7,
-    "public_api_exports": 187,
+    "public_api_exports": 191,
     "public_documentation_pages": 58,
     "python_capability_classes": 93,
     "python_capability_source_modules": 26,
     "rust_workspace_crates": 10,
-    "test_files": 109
+    "test_files": 111
   },
   "documentation": {
     "public_pages": [
@@ -769,6 +769,8 @@
     "dispatched_evaluate_faraday_recovery",
     "dispatched_faraday_back_emf",
     "dispatched_merge_window_monitor",
+    "dispatched_merger_boundedness_campaign",
+    "dispatched_merger_liveness_campaign",
     "dispatched_moving_frame_upde",
     "dispatched_normalisation_state",
     "dispatched_plasmoid_merger_petri_net",
@@ -822,7 +824,9 @@
     "validate_merge_window_features",
     "validate_stress_config",
     "verify_merger_boundedness",
+    "verify_merger_boundedness_seeded",
     "verify_merger_liveness",
+    "verify_merger_liveness_seeded",
     "window_margin"
   ],
   "packaging": {
@@ -933,6 +937,8 @@
       "tests/unit/lifecycle/__init__.py",
       "tests/unit/lifecycle/test_capacitor_bank.py",
       "tests/unit/lifecycle/test_capacitor_bank_rust_parity.py",
+      "tests/unit/lifecycle/test_merger_campaign.py",
+      "tests/unit/lifecycle/test_merger_campaign_rust_parity.py",
       "tests/unit/lifecycle/test_plasmoid_merger_petri_net.py",
       "tests/unit/lifecycle/test_plasmoid_merger_petri_net_rust_parity.py",
       "tests/unit/lifecycle/test_pulsed_shot_fsm.py",

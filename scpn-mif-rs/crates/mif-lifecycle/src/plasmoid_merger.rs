@@ -268,7 +268,7 @@ pub struct MergerTransitionRecord {
 }
 
 /// Boundedness or liveness verification summary.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MergerVerificationReport {
     /// Whether all trials satisfied the property.
     pub passed: bool,
@@ -559,18 +559,18 @@ pub enum MergerError {
 }
 
 #[derive(Debug, Clone)]
-struct Lcg {
+pub(crate) struct Lcg {
     state: u64,
 }
 
 impl Lcg {
-    fn new(seed: u64) -> Self {
+    pub(crate) fn new(seed: u64) -> Self {
         Self {
             state: seed.wrapping_add(0x9E37_79B9_7F4A_7C15),
         }
     }
 
-    fn next_u64(&mut self) -> u64 {
+    pub(crate) fn next_u64(&mut self) -> u64 {
         self.state = self
             .state
             .wrapping_mul(6364136223846793005)
@@ -632,7 +632,7 @@ fn validate_fraction_closed(field: &'static str, value: f64) -> Result<(), Merge
     }
 }
 
-fn validate_budget(trials: usize, steps_per_trial: usize) -> Result<(), MergerError> {
+pub(crate) fn validate_budget(trials: usize, steps_per_trial: usize) -> Result<(), MergerError> {
     if trials < 1 {
         return Err(MergerError::BudgetTooSmall { field: "trials" });
     }
@@ -690,11 +690,11 @@ fn all_places() -> [MergerPlace; 6] {
     ]
 }
 
-fn empty_counts() -> BTreeMap<MergerPlace, usize> {
+pub(crate) fn empty_counts() -> BTreeMap<MergerPlace, usize> {
     all_places().into_iter().map(|place| (place, 0)).collect()
 }
 
-fn boundedness_observation(rng: &mut Lcg) -> Result<MergerObservation, MergerError> {
+pub(crate) fn boundedness_observation(rng: &mut Lcg) -> Result<MergerObservation, MergerError> {
     MergerObservation::new(
         rng.uniform(0.0, 0.01),
         rng.uniform(0.0, 4.0e5),
@@ -705,7 +705,7 @@ fn boundedness_observation(rng: &mut Lcg) -> Result<MergerObservation, MergerErr
     )
 }
 
-fn nominal_liveness_campaign(
+pub(crate) fn nominal_liveness_campaign(
     spec: PlasmoidMergerSpec,
 ) -> Result<Vec<MergerObservation>, MergerError> {
     Ok(vec![

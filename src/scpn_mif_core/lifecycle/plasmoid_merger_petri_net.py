@@ -431,6 +431,137 @@ def verify_merger_liveness(
     )
 
 
+_TRIAL_MIX = 0xD1B54A32D192ED03
+_TRIAL_GOLDEN = 0x9E3779B97F4A7C15
+_MASK64 = (1 << 64) - 1
+
+
+def _trial_seed(seed: int, trial: int) -> int:
+    """Derive the deterministic per-trial generator seed.
+
+    ``seed ^ ((trial + 1) * mix)`` pushed through one SplitMix64 step — the
+    same per-index mixing convention as the MIF-017 stress injector — so
+    every trial owns an independent stimulus stream and the campaign result
+    is invariant to trial execution order.
+    """
+    state = ((int(seed) ^ (((trial + 1) * _TRIAL_MIX) & _MASK64)) + _TRIAL_GOLDEN) & _MASK64
+    z = state
+    z = ((z ^ (z >> 30)) * 0xBF58476D1CE4E5B9) & _MASK64
+    z = ((z ^ (z >> 27)) * 0x94D049BB133111EB) & _MASK64
+    return (z ^ (z >> 31)) & _MASK64
+
+
+def _boundedness_trial(
+    spec: PlasmoidMergerSpec, steps: int, trial: int, trial_seed: int
+) -> tuple[str | None, MergerPlace, int]:
+    """Run one independently seeded boundedness trial."""
+    rng = _Lcg(trial_seed)
+    net = PlasmoidMergerPetriNet(spec, seed=rng.randrange(2**32))
+    max_tokens = 0
+    failure: str | None = None
+    for step_idx in range(steps):
+        step = net.step(_boundedness_observation(rng))
+        max_tokens = max(max_tokens, step.marking.max_tokens_per_place)
+        if step.marking.total_tokens != 1 or step.marking.max_tokens_per_place > 1:
+            failure = f"trial {trial} step {step_idx} broke one-safe marking"
+            break
+    return failure, net.place, max_tokens
+
+
+def _liveness_trial(
+    spec: PlasmoidMergerSpec,
+    steps: int,
+    trial: int,
+    trial_seed: int,
+    campaign: tuple[MergerObservation, ...],
+) -> tuple[str | None, MergerPlace, int]:
+    """Run one independently seeded liveness trial over the nominal stimuli."""
+    rng = _Lcg(trial_seed)
+    net = PlasmoidMergerPetriNet(spec, seed=rng.randrange(2**32))
+    max_tokens = 0
+    reached = False
+    for step_idx in range(steps):
+        step = net.step(campaign[min(step_idx, len(campaign) - 1)])
+        max_tokens = max(max_tokens, step.marking.max_tokens_per_place)
+        if net.place is MergerPlace.PHASE_LOCKED:
+            reached = True
+            break
+    failure = None if reached else f"trial {trial} did not reach phase_locked within {steps} steps"
+    return failure, net.place, max_tokens
+
+
+def _fold_campaign(
+    outcomes: list[tuple[str | None, MergerPlace, int]],
+    trials_count: int,
+    steps_count: int,
+) -> MergerVerificationReport:
+    """Fold per-trial outcomes into a report in trial order."""
+    failures: list[str] = []
+    terminal_counts = dict.fromkeys(MergerPlace, 0)
+    max_tokens = 0
+    for failure, terminal, trial_max in outcomes:
+        if failure is not None:
+            failures.append(failure)
+        terminal_counts[terminal] += 1
+        max_tokens = max(max_tokens, trial_max)
+    return MergerVerificationReport(
+        passed=not failures,
+        trials=trials_count,
+        steps_per_trial=steps_count,
+        failures=tuple(failures),
+        terminal_counts=terminal_counts,
+        max_tokens_per_place=max_tokens,
+    )
+
+
+def verify_merger_boundedness_seeded(
+    spec: PlasmoidMergerSpec | None = None,
+    *,
+    trials: int = 100,
+    steps_per_trial: int = 500,
+    seed: int = 0,
+) -> MergerVerificationReport:
+    """Run the boundedness campaign with independent per-trial seeding.
+
+    Unlike :func:`verify_merger_boundedness`, which threads one generator
+    through every trial (so trial *k*'s stimuli depend on how trials
+    ``0..k-1`` consumed the stream), each trial here draws from its own
+    :func:`_trial_seed`-derived generator. The result is therefore invariant
+    to trial execution order — the property the Rust parallel campaign lane
+    relies on — and the Rust sequential, Rust parallel, and this reference
+    all produce bit-identical reports.
+    """
+    checked_spec = PlasmoidMergerSpec() if spec is None else spec
+    trials_count, steps_count = _validate_budget(trials, steps_per_trial)
+    outcomes = [
+        _boundedness_trial(checked_spec, steps_count, trial, _trial_seed(seed, trial)) for trial in range(trials_count)
+    ]
+    return _fold_campaign(outcomes, trials_count, steps_count)
+
+
+def verify_merger_liveness_seeded(
+    spec: PlasmoidMergerSpec | None = None,
+    *,
+    trials: int = 1000,
+    steps_per_trial: int = 200,
+    seed: int = 0,
+) -> MergerVerificationReport:
+    """Run the liveness campaign with independent per-trial seeding.
+
+    The per-trial seeding contract matches
+    :func:`verify_merger_boundedness_seeded`; see there for how it differs
+    from the shared-stream :func:`verify_merger_liveness`.
+    """
+    checked_spec = PlasmoidMergerSpec() if spec is None else spec
+    trials_count, steps_count = _validate_budget(trials, steps_per_trial)
+    campaign = _nominal_liveness_campaign(checked_spec)
+    outcomes = [
+        _liveness_trial(checked_spec, steps_count, trial, _trial_seed(seed, trial), campaign)
+        for trial in range(trials_count)
+    ]
+    return _fold_campaign(outcomes, trials_count, steps_count)
+
+
 def _unsafe(spec: PlasmoidMergerSpec, observation: MergerObservation) -> bool:
     return (
         observation.tilt_growth_rate_s > spec.max_tilt_growth_rate_s

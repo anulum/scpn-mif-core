@@ -92,6 +92,24 @@ The result is a non-isolated local comparison, not a production latency claim.
 
 Raw summary: `bench/results/plasmoid_merger_petri_net.json`.
 
+## Independently seeded campaigns (rayon lane)
+
+`verify_merger_boundedness_seeded` / `verify_merger_liveness_seeded` and the
+dispatched `dispatched_merger_boundedness_campaign` /
+`dispatched_merger_liveness_campaign` run the same verification trials with an
+**independent generator per trial** (the `seed ^ ((trial + 1) * mix)`
+SplitMix64 convention shared with the MIF-017 stress injector). Unlike the
+original shared-stream verifiers — where trial *k*'s stimuli depend on how
+earlier trials consumed the generator, which is inherently sequential — the
+seeded campaigns are invariant to trial execution order, so the Rust backend
+runs them across the rayon pool and still produces a report **bit-identical**
+to the Python floor and the Rust sequential lane (asserted whole-report, with
+failure strings, in `tests/unit/lifecycle/test_merger_campaign_rust_parity.py`).
+At the default budgets the measured gap is about two orders of magnitude
+(boundedness 100x500: 5.7 ms vs 588 ms median; liveness 1000x200: 0.7 ms vs
+75.6 ms — see `bench/results/merger_campaign.json` for honest context). The
+shared-stream verifiers remain unchanged as the original documented contract.
+
 ## Ownership
 
 `SYNC-STATE: upstream-pending` applies to all MIF-012 implementation surfaces.

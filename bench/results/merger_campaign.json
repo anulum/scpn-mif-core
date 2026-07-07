@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0.0",
+  "kernel": "merger_campaign",
+  "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "python_version": "3.12.13",
+  "datetime": "2026-07-07T12:00:04.437720+00:00",
+  "notes": [
+    "Independently seeded MIF-012 merger verification campaigns at the default budgets: boundedness 100 trials x 500 steps (per-step stochastic stimuli) and liveness 1000 trials x 200 steps (shared nominal stimuli).",
+    "The Rust surface runs the trials across the rayon pool (bounded here to the 4 taskset cores); the Python floor runs the identical per-trial work sequentially. Reports are bit-identical across Python, Rust sequential, and Rust parallel (per-trial seeding makes the campaign invariant to execution order), so the comparison is pure execution cost.",
+    "Non-isolated local comparison run under taskset affinity and moderate host load (load average ~12-17); the rust<python ranking (about two orders of magnitude at these budgets) is robust, absolute numbers are not a production performance claim.",
+    "max_ns is recorded per surface; outliers reflect scheduler preemption, not the kernel."
+  ],
+  "tests": [
+    {
+      "name": "test_bench_python_boundedness_100x500",
+      "group": "merger_campaign.boundedness_100x500",
+      "mean_ns": 563394203.6191002,
+      "stddev_ns": 63354798.00279931,
+      "median_ns": 588397541.0833955,
+      "max_ns": 637002261.9375958,
+      "ops_per_s": 1.7749561383064574,
+      "rounds": 5
+    },
+    {
+      "name": "test_bench_rust_boundedness_100x500",
+      "group": "merger_campaign.boundedness_100x500",
+      "mean_ns": 6504370.941356384,
+      "stddev_ns": 4584323.6764242165,
+      "median_ns": 5657855.88696599,
+      "max_ns": 37853239.91905898,
+      "ops_per_s": 153.74276913417637,
+      "rounds": 213
+    },
+    {
+      "name": "test_bench_python_liveness_1000x200",
+      "group": "merger_campaign.liveness_1000x200",
+      "mean_ns": 89787286.20180239,
+      "stddev_ns": 50881964.3505807,
+      "median_ns": 75547019.01972294,
+      "max_ns": 223409606.02741688,
+      "ops_per_s": 11.137434288329409,
+      "rounds": 9
+    },
+    {
+      "name": "test_bench_rust_liveness_1000x200",
+      "group": "merger_campaign.liveness_1000x200",
+      "mean_ns": 1105563.125045059,
+      "stddev_ns": 1145538.4543318145,
+      "median_ns": 689915.4977872968,
+      "max_ns": 11479889.97399807,
+      "ops_per_s": 904.5164200454346,
+      "rounds": 642
+    }
+  ],
+  "hardware": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+  "benchmark_context": {
+    "cpu_isolated": false,
+    "isolation_method": "taskset affinity to logical cores 8-11; no kernel isolcpus reservation",
+    "affinity_or_reserved_cores": "logical cores 8-11 of 12",
+    "host_load_before": "11.70 14.25 17.11",
+    "host_load_after": "15.49 14.97 17.31",
+    "cpu_governor": "powersave",
+    "heavy_jobs_running": "shared workstation under moderate concurrent load (load average ~12-17); the rust<python ranking is robust to this load, absolute numbers are not.",
+    "runtime_versions": {
+      "python": "3.12.13",
+      "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)"
+    },
+    "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core",
+    "command": "taskset -c 8-11 pytest bench/kernels/bench_merger_campaign.py --benchmark-only --benchmark-json=bench/results/local/merger_campaign_raw.json"
+  }
+}

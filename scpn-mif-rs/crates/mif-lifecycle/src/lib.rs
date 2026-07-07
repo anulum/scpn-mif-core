@@ -31,6 +31,7 @@
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 
 pub mod capacitor_bank;
+pub mod merger_campaign;
 pub mod plasmoid_merger;
 pub mod pulsed_shot;
 pub mod types;
@@ -39,6 +40,10 @@ pub use capacitor_bank::{
     CapacitorBank, analytical_current_critically_damped, analytical_current_overdamped,
     analytical_current_underdamped, analytical_voltage_critically_damped,
     analytical_voltage_overdamped, analytical_voltage_underdamped, free_response,
+};
+pub use merger_campaign::{
+    verify_merger_boundedness_parallel, verify_merger_boundedness_seeded,
+    verify_merger_liveness_parallel, verify_merger_liveness_seeded,
 };
 pub use plasmoid_merger::{
     MergerError, MergerMarking, MergerObservation, MergerPlace, MergerStep, MergerTransition,

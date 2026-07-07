@@ -12,7 +12,7 @@
 # benchmark campaign. Manual edits are blocked by the preflight gate.
 
 schema_version = "1.0.0"
-last_updated = "2026-07-07T0240"
+last_updated = "2026-07-07T1200"
 benchmark_host = "i5-11600K (mining rig)"
 
 [kernels]
@@ -43,6 +43,10 @@ benchmark_host = "i5-11600K (mining rig)"
 "kinematic.trigger_probability" = ["rust", "python"]
 "lifecycle.pulsed_shot_fsm" = ["rust", "python"]
 "lifecycle.plasmoid_merger_petri_net" = ["rust", "python"]
+# Independently seeded MIF-012 verification campaigns: Rust runs the trials on
+# the rayon pool, the Python floor sequentially; reports are bit-identical (see
+# bench/results/merger_campaign.json notes).
+"lifecycle.merger_campaign" = ["rust", "python"]
 # MIF-005 capacitor bank: Rust is fastest for the single Crank-Nicolson step,
 # 1 000-step batch, and analytical free-response groups. Julia is measured via
 # CLI startup and remains a research-reference backend, not the runtime path.

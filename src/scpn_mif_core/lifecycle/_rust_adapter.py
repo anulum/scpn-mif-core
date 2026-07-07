@@ -49,6 +49,7 @@ from scpn_mif_core.lifecycle.plasmoid_merger_petri_net import (
     MergerStep,
     MergerTransition,
     MergerTransitionRecord,
+    MergerVerificationReport,
     PlasmoidMergerSpec,
 )
 from scpn_mif_core.lifecycle.pulsed_shot_fsm import (
@@ -291,3 +292,42 @@ def _int(value: object) -> int:
 
 def _float(value: object) -> float:
     return float(cast(SupportsFloat, value))
+
+
+def _merger_report_from_tuple(raw: tuple[object, ...]) -> MergerVerificationReport:
+    passed, trials, steps_per_trial, failures, terminal_counts, max_tokens = raw
+    counts = dict.fromkeys(MergerPlace, 0)
+    for place, count in cast("dict[str, object]", terminal_counts).items():
+        counts[MergerPlace(str(place))] = _int(count)
+    return MergerVerificationReport(
+        passed=bool(passed),
+        trials=_int(trials),
+        steps_per_trial=_int(steps_per_trial),
+        failures=tuple(str(item) for item in cast("list[object]", failures)),
+        terminal_counts=counts,
+        max_tokens_per_place=_int(max_tokens),
+    )
+
+
+def rust_verify_merger_boundedness_parallel(
+    spec: PlasmoidMergerSpec,
+    *,
+    trials: int,
+    steps_per_trial: int,
+    seed: int,
+) -> MergerVerificationReport:
+    """Return the rayon-parallel independently seeded boundedness campaign."""
+    raw = _rust.verify_merger_boundedness_parallel(_rust_plasmoid_merger_spec(spec), trials, steps_per_trial, seed)
+    return _merger_report_from_tuple(raw)
+
+
+def rust_verify_merger_liveness_parallel(
+    spec: PlasmoidMergerSpec,
+    *,
+    trials: int,
+    steps_per_trial: int,
+    seed: int,
+) -> MergerVerificationReport:
+    """Return the rayon-parallel independently seeded liveness campaign."""
+    raw = _rust.verify_merger_liveness_parallel(_rust_plasmoid_merger_spec(spec), trials, steps_per_trial, seed)
+    return _merger_report_from_tuple(raw)

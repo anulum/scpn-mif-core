@@ -52,7 +52,9 @@ from scpn_mif_core.lifecycle.plasmoid_merger_petri_net import (
     PlasmoidMergerSpec,
     build_control_petri_net,
     verify_merger_boundedness,
+    verify_merger_boundedness_seeded,
     verify_merger_liveness,
+    verify_merger_liveness_seeded,
 )
 from scpn_mif_core.lifecycle.pulsed_shot_fsm import (
     BankTelemetry,
@@ -68,6 +70,7 @@ from scpn_mif_core.lifecycle.pulsed_shot_fsm import (
 _CAPACITOR_BANK_KERNEL = "lifecycle.capacitor_bank"
 _PULSED_SHOT_FSM_KERNEL = "lifecycle.pulsed_shot_fsm"
 _PLASMOID_MERGER_KERNEL = "lifecycle.plasmoid_merger_petri_net"
+_MERGER_CAMPAIGN_KERNEL = "lifecycle.merger_campaign"
 
 
 def dispatched_capacitor_bank(spec: CapacitorBankSpec, initial_voltage_V: float = 0.0) -> CapacitorBank:
@@ -117,6 +120,47 @@ def dispatched_plasmoid_merger_petri_net(
     return PlasmoidMergerPetriNet(spec, seed=seed)
 
 
+def dispatched_merger_boundedness_campaign(
+    spec: PlasmoidMergerSpec | None = None,
+    *,
+    trials: int = 100,
+    steps_per_trial: int = 500,
+    seed: int = 0,
+) -> MergerVerificationReport:
+    """Run the independently seeded boundedness campaign on the fastest backend.
+
+    The Rust backend runs the trials across the rayon pool; the Python floor
+    runs them sequentially. Both produce bit-identical reports (per-trial
+    seeding makes the campaign invariant to execution order).
+    """
+    checked_spec = PlasmoidMergerSpec() if spec is None else spec
+    if preferred_backend(_MERGER_CAMPAIGN_KERNEL) == "rust" and is_rust_available():
+        from scpn_mif_core.lifecycle._rust_adapter import rust_verify_merger_boundedness_parallel
+
+        return rust_verify_merger_boundedness_parallel(
+            checked_spec, trials=trials, steps_per_trial=steps_per_trial, seed=seed
+        )
+    return verify_merger_boundedness_seeded(checked_spec, trials=trials, steps_per_trial=steps_per_trial, seed=seed)
+
+
+def dispatched_merger_liveness_campaign(
+    spec: PlasmoidMergerSpec | None = None,
+    *,
+    trials: int = 1000,
+    steps_per_trial: int = 200,
+    seed: int = 0,
+) -> MergerVerificationReport:
+    """Run the independently seeded liveness campaign on the fastest backend."""
+    checked_spec = PlasmoidMergerSpec() if spec is None else spec
+    if preferred_backend(_MERGER_CAMPAIGN_KERNEL) == "rust" and is_rust_available():
+        from scpn_mif_core.lifecycle._rust_adapter import rust_verify_merger_liveness_parallel
+
+        return rust_verify_merger_liveness_parallel(
+            checked_spec, trials=trials, steps_per_trial=steps_per_trial, seed=seed
+        )
+    return verify_merger_liveness_seeded(checked_spec, trials=trials, steps_per_trial=steps_per_trial, seed=seed)
+
+
 __all__ = [
     "BankTelemetry",
     "CapacitorBank",
@@ -149,9 +193,13 @@ __all__ = [
     "analytical_voltage_underdamped",
     "build_control_petri_net",
     "dispatched_capacitor_bank",
+    "dispatched_merger_boundedness_campaign",
+    "dispatched_merger_liveness_campaign",
     "dispatched_plasmoid_merger_petri_net",
     "dispatched_pulsed_shot_fsm",
     "free_response",
     "verify_merger_boundedness",
+    "verify_merger_boundedness_seeded",
     "verify_merger_liveness",
+    "verify_merger_liveness_seeded",
 ]
