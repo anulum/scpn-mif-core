@@ -11,7 +11,7 @@
 The manifest is the citation-ready inventory for a future Zenodo validation
 bundle. It is deliberately fail-closed: it records public citation metadata,
 artifact checksums, reproduction commands, and environment context, while the
-internal SOTA evidence ledger remains a required local gate that is not bundled
+internal claim evidence ledger remains a required local gate that is not bundled
 or promoted as a public artifact.
 """
 
@@ -75,7 +75,7 @@ CORE_ARTIFACTS = (
     "tools/formal_manifest.py",
     "tools/timing_evidence_package.py",
     "tools/trigger_latency_budget.py",
-    "tools/validate_sota_evidence_ledger.py",
+    "tools/validate_claim_evidence_ledger.py",
     "tests/unit/bench/test_benchmark_dashboard.py",
     "tests/unit/fpga/test_timing_evidence_package.py",
     "tests/unit/test_fair_validation_bundle.py",
@@ -83,10 +83,10 @@ CORE_ARTIFACTS = (
 
 REPRODUCTION_COMMANDS = (
     {
-        "label": "internal-sota-ledger-gate",
+        "label": "internal-claim-ledger-gate",
         "command": (
-            "python tools/validate_sota_evidence_ledger.py "
-            "docs/internal/sota_world_class_evidence_ledger.json --repo . --check-references"
+            "python tools/validate_claim_evidence_ledger.py "
+            "docs/internal/claim_evidence_ledger.json --repo . --check-references"
         ),
         "purpose": "Fail closed until the private claim ledger has no unresolved blockers.",
     },
@@ -353,7 +353,7 @@ def _fair4rs_metadata() -> dict[str, JsonValue]:
         "reusable": {
             "reproduction_commands": True,
             "environment_manifest": True,
-            "claim_boundary": "No SOTA, validation, or sub-50 ns claim is promoted by this bundle.",
+            "claim_boundary": "No performance-superiority, validation, or sub-50 ns claim is promoted by this bundle.",
         },
     }
 
@@ -369,16 +369,16 @@ def build_bundle() -> dict[str, Any]:
         "upload_allowed": False,
         "claim_boundary": (
             "This public FAIR bundle inventories validation and benchmark artifacts, "
-            "but it does not promote public SOTA, validation, or sub-50 ns claims. "
+            "but it does not promote public performance-superiority, validation, or sub-50 ns claims. "
             "The internal evidence ledger must pass before upload or claim promotion."
         ),
         "gates": {
-            "internal_sota_ledger": {
-                "path": "docs/internal/sota_world_class_evidence_ledger.json",
+            "internal_claim_ledger": {
+                "path": "docs/internal/claim_evidence_ledger.json",
                 "bundled": False,
                 "required_before_upload": True,
                 "reason": (
-                    "The SOTA evidence ledger is internal, gitignored, and not included in this public bundle; "
+                    "The claim evidence ledger is internal, gitignored, and not included in this public bundle; "
                     "run the ledger validator locally before any Zenodo upload or public claim promotion."
                 ),
             }

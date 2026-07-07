@@ -4,8 +4,8 @@
 # © Code 2020–2026 Miroslav Šotek. All rights reserved.
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
-# SCPN-MIF-CORE — SOTA evidence-ledger validator tests.
-"""Tests for the SOTA evidence-ledger validator."""
+# SCPN-MIF-CORE — claim evidence-ledger validator tests.
+"""Tests for the claim evidence-ledger validator."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 from typing import Protocol
 
-from tools.validate_sota_evidence_ledger import (
+from tools.validate_claim_evidence_ledger import (
     LedgerFinding,
     main,
     validate_ledger_document,
@@ -37,7 +37,7 @@ class CaptureFixture(Protocol):
 
 def _claim(**overrides: object) -> dict[str, object]:
     claim: dict[str, object] = {
-        "id": "SOTA-1",
+        "id": "CLAIM-1",
         "lane": "validation",
         "claim": "Draft validation ledger exists.",
         "current_state": "draft",
@@ -96,7 +96,7 @@ def test_validate_ledger_document_reports_unresolved_local_reference(tmp_path: P
 
 def test_validate_ledger_document_accepts_public_claim_with_passed_evidence() -> None:
     claim = _claim(
-        current_state="sota_gate_passed",
+        current_state="claim_gate_passed",
         public_claim_allowed=True,
         evidence=[
             {
@@ -167,16 +167,16 @@ def test_validate_ledger_document_reports_claim_schema_errors() -> None:
 
 
 def test_validate_ledger_document_reports_missing_fields() -> None:
-    findings = validate_ledger_document(_ledger({"id": "SOTA-2"}))
+    findings = validate_ledger_document(_ledger({"id": "CLAIM-2"}))
 
     assert LedgerFinding("$.claims[0]", "missing required field 'lane'") in findings
     assert LedgerFinding("$.claims[0]", "missing required field 'next_actions'") in findings
 
 
 def test_validate_ledger_document_rejects_duplicate_claim_ids() -> None:
-    findings = validate_ledger_document(_ledger(_claim(id="SOTA-X"), _claim(id="SOTA-X")))
+    findings = validate_ledger_document(_ledger(_claim(id="CLAIM-X"), _claim(id="CLAIM-X")))
 
-    assert LedgerFinding("$.claims[1]", "duplicate claim id 'SOTA-X'") in findings
+    assert LedgerFinding("$.claims[1]", "duplicate claim id 'CLAIM-X'") in findings
 
 
 def test_validate_ledger_document_reports_bad_string_list_items() -> None:
@@ -271,7 +271,7 @@ def test_main_returns_zero_for_valid_ledger(tmp_path: Path, capsys: CaptureFixtu
     path.write_text(json.dumps(_ledger()), encoding="utf-8")
 
     assert main([str(path)]) == 0
-    assert capsys.readouterr().out == "SOTA evidence ledger: OK\n"
+    assert capsys.readouterr().out == "claim evidence ledger: OK\n"
 
 
 def test_main_accepts_check_references_for_valid_ledger(tmp_path: Path, capsys: CaptureFixture) -> None:
@@ -284,7 +284,7 @@ def test_main_accepts_check_references_for_valid_ledger(tmp_path: Path, capsys: 
     )
 
     assert main(["--repo", str(tmp_path), "--check-references", str(path)]) == 0
-    assert capsys.readouterr().out == "SOTA evidence ledger: OK\n"
+    assert capsys.readouterr().out == "claim evidence ledger: OK\n"
 
 
 def test_main_reports_findings_for_invalid_ledger(tmp_path: Path, capsys: CaptureFixture) -> None:
@@ -294,5 +294,5 @@ def test_main_reports_findings_for_invalid_ledger(tmp_path: Path, capsys: Captur
     assert main([str(path)]) == 1
 
     captured = capsys.readouterr()
-    assert "SOTA evidence ledger invalid: 1 finding(s)" in captured.err
+    assert "claim evidence ledger invalid: 1 finding(s)" in captured.err
     assert "$: ledger root must be an object" in captured.err

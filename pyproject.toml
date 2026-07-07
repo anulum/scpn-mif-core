@@ -285,7 +285,7 @@ show_missing = true
 skip_covered = false
 
 [tool.mutmut]
-# Advisory mutation-testing pilot (SOTA-11): decision-critical kinematic kernels.
+# Advisory mutation-testing pilot: decision-critical kinematic kernels.
 # Not a CI gate yet. KNOWN BLOCKER (2026-07-04): mutmut 3.6's in-process pytest
 # runner fails against this repository's src layout + numpy-importing conftest
 # (the same per-process numpy reimport class as the coverage gremlin); the same

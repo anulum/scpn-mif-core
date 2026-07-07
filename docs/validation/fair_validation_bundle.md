@@ -15,11 +15,11 @@ public benchmark and validation surfaces.
 
 The manifest is intentionally fail-closed. It does not include
 `docs/internal/`, coordination files, credentials, or agent metadata, and it does
-not promote a public SOTA, validation, or sub-50 ns claim. The private SOTA
+not promote a public performance-superiority, validation, or sub-50 ns claim. The private claim
 evidence ledger must pass before upload or claim promotion:
 
 ```sh
-python tools/validate_sota_evidence_ledger.py docs/internal/sota_world_class_evidence_ledger.json --repo . --check-references
+python tools/validate_claim_evidence_ledger.py docs/internal/claim_evidence_ledger.json --repo . --check-references
 ```
 
 ## Regeneration

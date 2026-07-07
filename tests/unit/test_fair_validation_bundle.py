@@ -35,17 +35,17 @@ def test_committed_fair_bundle_is_current() -> None:
 
 
 def test_bundle_is_fail_closed_until_internal_ledger_allows_claims() -> None:
-    """The public bundle must not promote SOTA or validation claims by itself."""
+    """The public bundle must not promote performance-superiority or validation claims by itself."""
 
     bundle = build_bundle()
 
     assert bundle["schema"] == SCHEMA
     assert bundle["publication_state"] == "blocked_by_internal_ledger"
     assert bundle["upload_allowed"] is False
-    gate = bundle["gates"]["internal_sota_ledger"]
+    gate = bundle["gates"]["internal_claim_ledger"]
     assert gate["bundled"] is False
     assert gate["required_before_upload"] is True
-    assert gate["path"] == "docs/internal/sota_world_class_evidence_ledger.json"
+    assert gate["path"] == "docs/internal/claim_evidence_ledger.json"
     assert "not included in this public bundle" in gate["reason"]
 
 
@@ -74,7 +74,7 @@ def test_artifacts_are_public_and_checksummed() -> None:
     assert ".zenodo.json" in paths
     assert "docs/_generated/benchmark_dashboard.json" in paths
     assert "bench/results/trigger_latency_budget.json" in paths
-    assert "docs/internal/sota_world_class_evidence_ledger.json" not in paths
+    assert "docs/internal/claim_evidence_ledger.json" not in paths
 
     for artifact in bundle["artifacts"]:
         path = artifact["path"]
@@ -94,8 +94,8 @@ def test_reproduction_commands_cover_claim_and_generated_artifact_gates() -> Non
     assert "python tools/benchmark_dashboard.py --check" in commands
     assert "python tools/fair_validation_bundle.py --check" in commands
     assert (
-        "python tools/validate_sota_evidence_ledger.py "
-        "docs/internal/sota_world_class_evidence_ledger.json --repo . --check-references"
+        "python tools/validate_claim_evidence_ledger.py "
+        "docs/internal/claim_evidence_ledger.json --repo . --check-references"
     ) in commands
     assert "python -m mkdocs build --strict" in commands
 

@@ -979,7 +979,7 @@
       "tests/unit/test_studio_manifest.py",
       "tests/unit/test_update_dispatch.py",
       "tests/unit/test_uspto_patent_documentation.py",
-      "tests/unit/test_validate_sota_evidence_ledger.py",
+      "tests/unit/test_validate_claim_evidence_ledger.py",
       "tests/unit/test_verify_version_floors.py",
       "tests/unit/test_version.py"
     ]

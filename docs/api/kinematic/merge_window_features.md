@@ -13,7 +13,7 @@
 The grey-box merge-window predictor (M2) is now built on top of this boundary guard.
 This module remains its first line of defence: the enumerated lock-window feature
 contract and the fail-closed validator that both adversarial critics of the
-SotA-trajectory study required before the predictor could exist. See
+competitive-trajectory study required before the predictor could exist. See
 [ADR 0010](../../adr/0010-merge-window-predictor-feature-boundary.md) for the full
 decision and [ADR 0001](../../adr/0001-repository-scope-and-ownership-boundaries.md)
 for the ownership boundary it protects.

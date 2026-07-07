@@ -18,7 +18,7 @@ path.
 
 ## Context
 
-The SotA-trajectory study (the `mif-sota-trajectories` deep-research workflow,
+The competitive-trajectory study (an internal deep-research workflow,
 `2026-06-20`) proposes a calibrated grey-box predictor of time-to-lock /
 lock-probability for the FRC merge, intended to refine *when* a compression fires
 inside an already-permitted window. Both adversarial critiques flagged it as the

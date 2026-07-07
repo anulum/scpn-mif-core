@@ -5,11 +5,11 @@
 # © Code 2020–2026 Miroslav Šotek. All rights reserved.
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
-# SCPN-MIF-CORE — SOTA evidence-ledger validator.
-"""Validate the internal SOTA evidence ledger before claims are promoted.
+# SCPN-MIF-CORE — claim evidence-ledger validator.
+"""Validate the internal claim evidence ledger before claims are promoted.
 
 The ledger is intentionally data-only. This tool enforces the non-negotiable
-claim boundary: public SOTA, sub-50 ns, or validation claims need resolved
+claim boundary: public performance-superiority, sub-50 ns, or validation claims need resolved
 blockers and at least one passed evidence artifact from an accepted evidence
 class.
 """
@@ -27,7 +27,7 @@ from typing import cast
 type JsonMapping = Mapping[str, object]
 
 ALLOWED_EVIDENCE_STATUSES = frozenset({"blocked", "draft", "partial", "passed"})
-ALLOWED_STATES = frozenset({"blocked", "draft", "partial", "ready", "sota_gate_passed"})
+ALLOWED_STATES = frozenset({"blocked", "draft", "partial", "ready", "claim_gate_passed"})
 REMOTE_REFERENCE_PREFIXES = ("doi:", "http://", "https://")
 PUBLIC_EVIDENCE_TYPES = frozenset(
     {
@@ -52,7 +52,7 @@ REQUIRED_CLAIM_FIELDS = (
 
 @dataclass(frozen=True)
 class LedgerFinding:
-    """A stable validation finding for a SOTA evidence ledger."""
+    """A stable validation finding for a claim evidence ledger."""
 
     path: str
     message: str
@@ -224,7 +224,7 @@ def validate_ledger_document(
     repo: Path | None = None,
     check_references: bool = False,
 ) -> tuple[LedgerFinding, ...]:
-    """Validate a decoded SOTA evidence ledger document."""
+    """Validate a decoded claim evidence ledger document."""
 
     root = _mapping(document)
     if root is None:
@@ -270,8 +270,8 @@ def validate_ledger_path(
 def _parser() -> argparse.ArgumentParser:
     """Build the command-line parser."""
 
-    parser = argparse.ArgumentParser(description="Validate a SOTA evidence ledger JSON file.")
-    parser.add_argument("ledger", type=Path, help="path to the SOTA evidence ledger JSON file")
+    parser = argparse.ArgumentParser(description="Validate a claim evidence ledger JSON file.")
+    parser.add_argument("ledger", type=Path, help="path to the claim evidence ledger JSON file")
     parser.add_argument(
         "--check-references",
         action="store_true",
@@ -287,16 +287,16 @@ def _parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Run the SOTA evidence-ledger validator."""
+    """Run the claim evidence-ledger validator."""
 
     args = _parser().parse_args(argv)
     findings = validate_ledger_path(args.ledger, repo=args.repo.resolve(), check_references=args.check_references)
     if findings:
-        print(f"SOTA evidence ledger invalid: {len(findings)} finding(s)", file=sys.stderr)
+        print(f"claim evidence ledger invalid: {len(findings)} finding(s)", file=sys.stderr)
         for finding in findings:
             print(finding.format(), file=sys.stderr)
         return 1
-    print("SOTA evidence ledger: OK")
+    print("claim evidence ledger: OK")
     return 0
 
 

@@ -41,8 +41,8 @@
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "pyproject.toml",
-      "sha256": "sha256:32c684a17e1669f107c91a1cea54336c42649c4d1c6bb167bd91fcb7712bac4c",
-      "size_bytes": 10923
+      "sha256": "sha256:7de30feb5fbad5651fe94b0d2cb82160401990a1b74dbff0179f0ac68a28c7bc",
+      "size_bytes": 10913
     },
     {
       "kind": "supporting-artifact",
@@ -69,8 +69,8 @@
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/capability_manifest.json",
-      "sha256": "sha256:1b066e3a3d3c9f03776f94e7e56da80ebcb1aedf82c9ea2ea731fcc0339c5d03",
-      "size_bytes": 34404
+      "sha256": "sha256:32cd04d1493141a7d8ab7ae717ed37b7648d14fb67b47d7e21e88bf8de4c3bdf",
+      "size_bytes": 34405
     },
     {
       "kind": "generated-dashboard",
@@ -111,8 +111,8 @@
       "kind": "validation-documentation",
       "media_type": "text/markdown",
       "path": "docs/validation/fair_validation_bundle.md",
-      "sha256": "sha256:7ae727b9d31a2126e3e5f4cc629532292d0a84f5b30bf852ba9ac031c61c896a",
-      "size_bytes": 2274
+      "sha256": "sha256:0cdf29320476e76f18ae8b67f304ae7c81088a26fbf6f79aa9d8d713357065d6",
+      "size_bytes": 2284
     },
     {
       "kind": "reproduction-tool",
@@ -132,8 +132,8 @@
       "kind": "reproduction-tool",
       "media_type": "text/x-python",
       "path": "tools/fair_validation_bundle.py",
-      "sha256": "sha256:2404c4f71e01eb7f4d2b9d4f65a2e3ee383cbb07dc33e3c6bd703697d1e831f5",
-      "size_bytes": 16626
+      "sha256": "sha256:e473ac62513153c5cec5b870c382f9285293933ec999060123242b2c767f2637",
+      "size_bytes": 16648
     },
     {
       "kind": "reproduction-tool",
@@ -159,9 +159,9 @@
     {
       "kind": "reproduction-tool",
       "media_type": "text/x-python",
-      "path": "tools/validate_sota_evidence_ledger.py",
-      "sha256": "sha256:0d723548fa2ba8b0e64013e3538f147412f8390d02f2eb6fd6a43dcc9e23d766",
-      "size_bytes": 10700
+      "path": "tools/validate_claim_evidence_ledger.py",
+      "sha256": "sha256:ccb8bc498e779bf51291bf7566b80665389c198bfc0fd078782efe3d298d1a15",
+      "size_bytes": 10729
     },
     {
       "kind": "verification-test",
@@ -181,8 +181,8 @@
       "kind": "verification-test",
       "media_type": "text/x-python",
       "path": "tests/unit/test_fair_validation_bundle.py",
-      "sha256": "sha256:9db5981f219f448cf9675d3181c90c542740c86ef2d49df9b036b3128ff72c2b",
-      "size_bytes": 9525
+      "sha256": "sha256:db573d30aee0e983e5a175b19ae005e730e371ac04b406ee9a9bab43d829da7c",
+      "size_bytes": 9513
     },
     {
       "kind": "benchmark-result",
@@ -393,7 +393,7 @@
       "version": "0.1.1"
     }
   },
-  "claim_boundary": "This public FAIR bundle inventories validation and benchmark artifacts, but it does not promote public SOTA, validation, or sub-50 ns claims. The internal evidence ledger must pass before upload or claim promotion.",
+  "claim_boundary": "This public FAIR bundle inventories validation and benchmark artifacts, but it does not promote public performance-superiority, validation, or sub-50 ns claims. The internal evidence ledger must pass before upload or claim promotion.",
   "environment": {
     "benchmark_dashboard": {
       "backend_roles": {
@@ -489,16 +489,16 @@
       ]
     },
     "reusable": {
-      "claim_boundary": "No SOTA, validation, or sub-50 ns claim is promoted by this bundle.",
+      "claim_boundary": "No performance-superiority, validation, or sub-50 ns claim is promoted by this bundle.",
       "environment_manifest": true,
       "reproduction_commands": true
     }
   },
   "gates": {
-    "internal_sota_ledger": {
+    "internal_claim_ledger": {
       "bundled": false,
-      "path": "docs/internal/sota_world_class_evidence_ledger.json",
-      "reason": "The SOTA evidence ledger is internal, gitignored, and not included in this public bundle; run the ledger validator locally before any Zenodo upload or public claim promotion.",
+      "path": "docs/internal/claim_evidence_ledger.json",
+      "reason": "The claim evidence ledger is internal, gitignored, and not included in this public bundle; run the ledger validator locally before any Zenodo upload or public claim promotion.",
       "required_before_upload": true
     }
   },
@@ -506,8 +506,8 @@
   "reproduction": {
     "commands": [
       {
-        "command": "python tools/validate_sota_evidence_ledger.py docs/internal/sota_world_class_evidence_ledger.json --repo . --check-references",
-        "label": "internal-sota-ledger-gate",
+        "command": "python tools/validate_claim_evidence_ledger.py docs/internal/claim_evidence_ledger.json --repo . --check-references",
+        "label": "internal-claim-ledger-gate",
         "purpose": "Fail closed until the private claim ledger has no unresolved blockers."
       },
       {
