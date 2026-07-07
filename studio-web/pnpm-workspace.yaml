@@ -2,7 +2,12 @@
 # tooling pulls it): <7.28.0 carries high-severity TLS-bypass, WebSocket-DoS, and
 # cross-origin advisories. pnpm 11 reads overrides here, not in package.json.
 overrides:
+  # Security floor for the TLS-bypass/WebSocket-DoS advisories (<7.28.0).
   undici: '>=7.28.0'
+  # jsdom 29.1.1 requires undici 7.x internals directly
+  # (lib/handler/wrap-handler.js, removed in undici 8); keep its subtree on
+  # the secured 7.x line instead of letting the blanket override force 8.x.
+  jsdom>undici: '>=7.28.0 <8.0.0'
 
 minimumReleaseAgeExclude:
   - '@module-federation/vite@1.16.10'
