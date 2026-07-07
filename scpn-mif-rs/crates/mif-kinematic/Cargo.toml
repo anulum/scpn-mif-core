@@ -16,7 +16,6 @@ mif-types = { path = "../mif-types" }
 mif-core = { path = "../mif-core" }
 ndarray = { workspace = true }
 nalgebra = { workspace = true }
-libm = { workspace = true }
 rayon = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }

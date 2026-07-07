@@ -17,6 +17,7 @@
 #![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 
 pub mod doppler_kuramoto;
+pub mod erfc;
 pub mod merge_window;
 pub mod moving_frame_upde;
 pub mod safety_certificate;

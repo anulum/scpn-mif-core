@@ -117,9 +117,10 @@ pub enum TriggerProbabilityError {
     LengthMismatch,
 }
 
-/// Return `Φ(z)` via the complementary error function.
+/// Return `Φ(z)` via the complementary error function (the vendored fdlibm
+/// port shared verbatim with the Python reference).
 fn standard_normal_cdf(z: f64) -> f64 {
-    0.5 * libm::erfc(-z / std::f64::consts::SQRT_2)
+    0.5 * crate::erfc::erfc(-z / std::f64::consts::SQRT_2)
 }
 
 /// Return `P(nominal + ε ≤ threshold)` for `ε ~ N(0, σ²)`.
@@ -388,6 +389,85 @@ mod tests {
                 field: "phase_lock_error_sigma_rad"
             })
         );
+    }
+
+    #[test]
+    fn pinned_probabilities_on_generic_noisy_trace() {
+        // Every value below is pinned to the bit-exact Python reference output
+        // on a generic asymmetric fixture (no zeros, no boundary symmetry), so
+        // any arithmetic mutation in the CDF argument, the slack-sigma
+        // composition, the streak-state sums, or the survival products moves
+        // at least one pinned constant. The FIRE/ABORT/HOLD total is NOT used
+        // here: abort is defined as one-minus the others, so the total is 1 by
+        // construction and discriminates nothing.
+        let noise = MeasurementNoiseSpec::new(0.02, 0.004, 0.0003).expect("noise spec");
+        let trace = propagate_trigger_probabilities(
+            window(2),
+            safety(),
+            noise,
+            &[0.045, 0.048, 0.042, 0.05],
+            &[0.008, 0.0085, 0.009, 0.0078],
+            &[0.018, 0.0162, 0.0155, 0.0148],
+        )
+        .expect("trace");
+        assert_eq!(
+            trace.samples[0].candidate_lock_probability,
+            0.4139829495370354
+        );
+        assert_eq!(
+            trace.samples[0].violation_probability,
+            1.3083924389022834e-11
+        );
+        assert_eq!(
+            trace.samples[1].lock_at_sample_probability,
+            0.14440570950010687
+        );
+        assert_eq!(
+            trace.samples[1].fire_at_sample_probability,
+            0.14345081331841453
+        );
+        assert_eq!(trace.samples[2].violation_probability, 0.4214396876443184);
+        assert_eq!(
+            trace.samples[2].cumulative_violation_probability,
+            0.4252654715074333
+        );
+        assert_eq!(
+            trace.samples[3].lock_at_sample_probability,
+            0.09056364042963547
+        );
+        assert_eq!(trace.samples[3].lock_probability, 0.3151827365763854);
+        assert_eq!(trace.lock_probability, 0.3151827365763854);
+        assert_eq!(trace.violation_probability, 0.6293409533343857);
+        assert_eq!(trace.fire_probability, 0.22312044889578106);
+        assert_eq!(trace.abort_unsafe_probability, 0.5230458371034671);
+        assert_eq!(trace.hold_probability, 0.25383371400075183);
+    }
+
+    #[test]
+    fn pinned_initial_violation_uses_tolerance_plus_numerical_tolerance() {
+        // sigma_sep = 0.25, tolerance 0.5, numerical tolerance 0.125: the
+        // initial hazard is Phi((0.5 - 0.625)/0.25); flipping the plus in
+        // `tolerance_m + numerical_tolerance_m` yields Phi(+0.5) instead.
+        let window = MergeWindowSpec::new(0.5, 0.25, 1, 0.0).expect("window spec");
+        let safety = KinematicSafetySpec::new(0.5, 0.5, 0.25, 0.125).expect("safety spec");
+        let noise = MeasurementNoiseSpec::new(0.0, 0.0, 0.25).expect("noise spec");
+        let trace = propagate_trigger_probabilities(window, safety, noise, &[0.6], &[0.3], &[0.5])
+            .expect("trace");
+        assert_eq!(trace.samples[0].violation_probability, 0.30853753872598694);
+    }
+
+    #[test]
+    fn noiseless_exceedance_is_strict_at_the_boundary() {
+        // sigma = 0 and the separation exactly at tolerance + numerical
+        // tolerance (binary-representable 0.5 + 0.25): the certificate's
+        // strict `<` comparison means NOT violated; a `>=` mutant flips this
+        // to a certain violation.
+        let window = MergeWindowSpec::new(0.5, 0.25, 1, 0.0).expect("window spec");
+        let safety = KinematicSafetySpec::new(0.5, 0.5, 0.25, 0.25).expect("safety spec");
+        let noise = MeasurementNoiseSpec::new(0.0, 0.0, 0.0).expect("noise spec");
+        let trace = propagate_trigger_probabilities(window, safety, noise, &[0.6], &[0.3], &[0.75])
+            .expect("trace");
+        assert_eq!(trace.samples[0].violation_probability, 0.0);
     }
 
     #[test]

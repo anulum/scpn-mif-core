@@ -73,8 +73,11 @@ print(trace.fire_probability, trace.abort_unsafe_probability, trace.hold_probabi
 boundary** (read-only NumPy views in, per-sample probability columns out as
 NumPy arrays) when the extension is available, with the pure-Python reference
 as the guaranteed floor. Parity is bit-exact — both backends implement the
-identical operation sequence and every probability is asserted equal with no
-tolerance in `tests/unit/kinematic/test_trigger_probability_rust_parity.py`.
+identical operation sequence, including a **shared vendored fdlibm `erfc`**
+(`kinematic/_erfc.py` ↔ `mif-kinematic/src/erfc.rs`; the platform
+implementations genuinely differ by an ulp on real inputs, so neither is
+called), and every probability is asserted equal with no tolerance in
+`tests/unit/kinematic/test_trigger_probability_rust_parity.py`.
 Measurements live in `bench/results/trigger_probability.json`; the notes there
 record that the per-sample tuple boundary was measured first and lost the
 4096-sample group to object-conversion overhead before the boundary was

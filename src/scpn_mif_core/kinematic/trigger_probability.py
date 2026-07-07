@@ -60,6 +60,7 @@ from dataclasses import dataclass
 from numpy.typing import ArrayLike
 
 from scpn_mif_core.diagnostics.stress_inject import NoiseSpec
+from scpn_mif_core.kinematic._erfc import erfc
 from scpn_mif_core.kinematic.doppler_kuramoto import _as_1d_float_array, _require_finite
 from scpn_mif_core.kinematic.merge_window import MergeWindowSpec, MergeWindowTrace
 from scpn_mif_core.kinematic.safety_certificate import KinematicSafetySpec
@@ -72,9 +73,11 @@ def _standard_normal_cdf(z: float) -> float:
 
     ``Phi(z) = erfc(-z/sqrt2)/2`` keeps full relative accuracy in both tails, so
     quoted false-fire rates stay meaningful at the 1e-9 level rather than
-    being swamped by an absolute-error approximation.
+    being swamped by an absolute-error approximation. The ``erfc`` is the
+    vendored fdlibm port shared verbatim with the Rust kernel — the platform
+    implementations differ by an ulp on real inputs, so neither is called.
     """
-    return 0.5 * math.erfc(-z / _SQRT2)
+    return 0.5 * erfc(-z / _SQRT2)
 
 
 def _threshold_probability(nominal: float, threshold: float, sigma: float) -> float:

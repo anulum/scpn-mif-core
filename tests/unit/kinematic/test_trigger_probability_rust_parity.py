@@ -110,6 +110,19 @@ def test_parity_negative_separations_fold_identically() -> None:
     )
 
 
+def test_parity_at_the_platform_erfc_divergence_point() -> None:
+    # z = -1/2 puts the CDF argument at 0.5/sqrt(2), where glibc's erfc and the
+    # musl-derived Rust libm crate return values one ulp apart — the input that
+    # forced the shared vendored fdlibm port. Pinned so a regression to either
+    # platform implementation fails parity immediately.
+    window = MergeWindowSpec(phase_tolerance_rad=0.5, spatial_tolerance_m=0.25, consecutive_samples=1)
+    safety = KinematicSafetySpec(tolerance_m=0.5, contraction=0.5, disturbance_ratio=0.25, numerical_tolerance_m=0.125)
+    noise = MeasurementNoiseSpec(phase_lock_error_sigma_rad=0.0, reference_error_sigma_m=0.0, separation_sigma_m=0.25)
+    _assert_bit_exact((window, safety, noise, [0.6], [0.3], [0.5]))
+    py_trace = propagate_trigger_probabilities(window, safety, noise, [0.6], [0.3], [0.5])
+    assert py_trace.samples[0].violation_probability == 0.30853753872598694
+
+
 def test_rust_rejects_invalid_inputs_like_python() -> None:
     noise = MeasurementNoiseSpec(phase_lock_error_sigma_rad=0.0, reference_error_sigma_m=0.0, separation_sigma_m=0.0)
     with pytest.raises(ValueError, match="must not be empty"):
