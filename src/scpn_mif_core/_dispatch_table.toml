@@ -12,7 +12,7 @@
 # benchmark campaign. Manual edits are blocked by the preflight gate.
 
 schema_version = "1.0.0"
-last_updated = "2026-07-04T1131"
+last_updated = "2026-07-07T0113"
 benchmark_host = "i5-11600K (mining rig)"
 
 [kernels]
@@ -36,6 +36,11 @@ benchmark_host = "i5-11600K (mining rig)"
 # PyO3 surface; the in-process Rust per-push cost is measured separately by the
 # mif-kinematic criterion bench (see bench/results/streaming_trigger.json notes).
 "kinematic.streaming_trigger" = ["rust", "python"]
+# Probabilistic trigger propagation (P(lock)/P(violation) operating point):
+# Rust is fastest for both the 64-sample per-shot planning call and the
+# 4096-sample campaign trace over a zero-copy column boundary (see
+# bench/results/trigger_probability.json notes).
+"kinematic.trigger_probability" = ["rust", "python"]
 "lifecycle.pulsed_shot_fsm" = ["rust", "python"]
 "lifecycle.plasmoid_merger_petri_net" = ["rust", "python"]
 # MIF-005 capacitor bank: Rust is fastest for the single Crank-Nicolson step,

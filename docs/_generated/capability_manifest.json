@@ -36,6 +36,7 @@
       "docs/api/kinematic/moving_frame_upde.md",
       "docs/api/kinematic/safety_certificate.md",
       "docs/api/kinematic/streaming_trigger.md",
+      "docs/api/kinematic/trigger_probability.md",
       "docs/api/lifecycle/capacitor_bank.md",
       "docs/api/lifecycle/plasmoid_merger_petri_net.md",
       "docs/api/lifecycle/pulsed_shot_fsm.md",
@@ -214,6 +215,10 @@
       {
         "name": "KinematicSafetySpec",
         "path": "src/scpn_mif_core/kinematic/safety_certificate.py"
+      },
+      {
+        "name": "MeasurementNoiseSpec",
+        "path": "src/scpn_mif_core/kinematic/trigger_probability.py"
       },
       {
         "name": "MergeWindowFeatureBoundaryError",
@@ -442,6 +447,14 @@
       {
         "name": "TransitionRecord",
         "path": "src/scpn_mif_core/lifecycle/pulsed_shot_fsm.py"
+      },
+      {
+        "name": "TriggerProbabilitySample",
+        "path": "src/scpn_mif_core/kinematic/trigger_probability.py"
+      },
+      {
+        "name": "TriggerProbabilityTrace",
+        "path": "src/scpn_mif_core/kinematic/trigger_probability.py"
       }
     ],
     "python_source_modules": [
@@ -460,6 +473,7 @@
       "src/scpn_mif_core/kinematic/moving_frame_upde.py",
       "src/scpn_mif_core/kinematic/safety_certificate.py",
       "src/scpn_mif_core/kinematic/streaming_trigger.py",
+      "src/scpn_mif_core/kinematic/trigger_probability.py",
       "src/scpn_mif_core/lifecycle/_rust_adapter.py",
       "src/scpn_mif_core/lifecycle/capacitor_bank.py",
       "src/scpn_mif_core/lifecycle/plasmoid_merger_petri_net.py",
@@ -513,19 +527,19 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 56,
+    "capability_documentation_pages": 57,
     "github_workflows": 16,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,
     "optional_extras": 7,
-    "public_api_exports": 177,
-    "public_documentation_pages": 56,
-    "python_capability_classes": 88,
-    "python_capability_source_modules": 23,
+    "public_api_exports": 183,
+    "public_documentation_pages": 57,
+    "python_capability_classes": 91,
+    "python_capability_source_modules": 24,
     "rust_workspace_crates": 10,
-    "test_files": 105
+    "test_files": 107
   },
   "documentation": {
     "public_pages": [
@@ -563,6 +577,7 @@
       "docs/api/kinematic/moving_frame_upde.md",
       "docs/api/kinematic/safety_certificate.md",
       "docs/api/kinematic/streaming_trigger.md",
+      "docs/api/kinematic/trigger_probability.md",
       "docs/api/lifecycle/capacitor_bank.md",
       "docs/api/lifecycle/plasmoid_merger_petri_net.md",
       "docs/api/lifecycle/pulsed_shot_fsm.md",
@@ -653,6 +668,7 @@
     "KinematicSafetySpec",
     "MERGE_WINDOW_FEATURE_KEYS",
     "MIF_IMAS_INPUT_MAP",
+    "MeasurementNoiseSpec",
     "MergeTriggerOutcome",
     "MergeTriggerReport",
     "MergeTriggerScenario",
@@ -709,6 +725,8 @@
     "TransitionRecord",
     "TriggerEgress",
     "TriggerIngress",
+    "TriggerProbabilitySample",
+    "TriggerProbabilityTrace",
     "WhiteRabbitTimestamp",
     "__version__",
     "aer",
@@ -743,6 +761,7 @@
     "dispatched_pulsed_shot_fsm",
     "dispatched_sampled_kinematic_safety_certificate",
     "dispatched_streaming_merge_trigger",
+    "dispatched_trigger_probabilities",
     "doppler_derivatives",
     "ecosystem",
     "egress_latency_ps",
@@ -780,9 +799,11 @@
     "phase_lock_error",
     "physics",
     "predict_merge_window",
+    "propagate_trigger_probabilities",
     "recovered_power",
     "render_compatibility_matrix",
     "tae_descriptor_profile",
+    "trigger_probabilities_from_trace",
     "validate_merge_window_features",
     "validate_stress_config",
     "verify_merger_boundedness",
@@ -888,6 +909,8 @@
       "tests/unit/kinematic/test_safety_certificate_rust_parity.py",
       "tests/unit/kinematic/test_streaming_trigger.py",
       "tests/unit/kinematic/test_streaming_trigger_rust_parity.py",
+      "tests/unit/kinematic/test_trigger_probability.py",
+      "tests/unit/kinematic/test_trigger_probability_rust_parity.py",
       "tests/unit/lifecycle/__init__.py",
       "tests/unit/lifecycle/test_capacitor_bank.py",
       "tests/unit/lifecycle/test_capacitor_bank_rust_parity.py",

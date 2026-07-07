@@ -39,6 +39,9 @@ num-traits = "0.2"
 rand = "0.9"
 rand_pcg = "0.9"
 rayon = "1.10"
+# Pure-Rust libm port for erf/erfc (no_std, rust-lang crate).
+# Verified: https://crates.io/api/v1/crates/libm (0.2.16)
+libm = "0.2"
 
 # Serialisation
 serde = { version = "1.0", features = ["derive"] }

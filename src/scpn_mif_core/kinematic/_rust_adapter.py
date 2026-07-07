@@ -45,6 +45,11 @@ from scpn_mif_core.kinematic.streaming_trigger import (
     StreamingTriggerSample,
     StreamingTriggerSpec,
 )
+from scpn_mif_core.kinematic.trigger_probability import (
+    MeasurementNoiseSpec,
+    TriggerProbabilitySample,
+    TriggerProbabilityTrace,
+)
 
 
 class RustBackedDopplerKuramoto:
@@ -310,6 +315,60 @@ def rust_certify_sampled_kinematic_safety(
         minimum_step_slack_m=None if raw[8] is None else _float(raw[8]),
         max_step_violation_m=_float(raw[9]),
         first_violation_index=None if raw[10] is None else int(cast(SupportsIndex, raw[10])),
+    )
+
+
+def rust_propagate_trigger_probabilities(
+    merge_window: MergeWindowSpec,
+    safety: KinematicSafetySpec,
+    noise: MeasurementNoiseSpec,
+    phase_lock_errors_rad: ArrayLike,
+    reference_errors_m: ArrayLike,
+    separations_m: ArrayLike,
+) -> TriggerProbabilityTrace:
+    """Return the Rust-computed probabilistic trigger propagation.
+
+    The observable traces cross the FFI as read-only NumPy views and the
+    per-sample probability columns come back as NumPy arrays, so the only
+    per-sample Python work is assembling the result dataclasses.
+    """
+    raw = _rust.propagate_trigger_probabilities(
+        _rust_merge_window_spec(merge_window),
+        safety.tolerance_m,
+        safety.contraction,
+        safety.disturbance_ratio,
+        safety.numerical_tolerance_m,
+        noise.phase_lock_error_sigma_rad,
+        noise.reference_error_sigma_m,
+        noise.separation_sigma_m,
+        np.ascontiguousarray(np.asarray(phase_lock_errors_rad, dtype=np.float64)),
+        np.ascontiguousarray(np.asarray(reference_errors_m, dtype=np.float64)),
+        np.ascontiguousarray(np.asarray(separations_m, dtype=np.float64)),
+    )
+    candidate, lock_at, lock, violation, cumulative_violation, fire_at = (
+        cast(NDArray[np.float64], column).tolist() for column in raw[:6]
+    )
+    samples = tuple(
+        TriggerProbabilitySample(
+            sample_index=index,
+            candidate_lock_probability=row[0],
+            lock_at_sample_probability=row[1],
+            lock_probability=row[2],
+            violation_probability=row[3],
+            cumulative_violation_probability=row[4],
+            fire_at_sample_probability=row[5],
+        )
+        for index, row in enumerate(
+            zip(candidate, lock_at, lock, violation, cumulative_violation, fire_at, strict=True)
+        )
+    )
+    return TriggerProbabilityTrace(
+        samples=samples,
+        lock_probability=_float(raw[6]),
+        violation_probability=_float(raw[7]),
+        fire_probability=_float(raw[8]),
+        abort_unsafe_probability=_float(raw[9]),
+        hold_probability=_float(raw[10]),
     )
 
 

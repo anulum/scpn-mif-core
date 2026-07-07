@@ -73,12 +73,20 @@ from scpn_mif_core.kinematic.streaming_trigger import (
     StreamingTriggerSample,
     StreamingTriggerSpec,
 )
+from scpn_mif_core.kinematic.trigger_probability import (
+    MeasurementNoiseSpec,
+    TriggerProbabilitySample,
+    TriggerProbabilityTrace,
+    propagate_trigger_probabilities,
+    trigger_probabilities_from_trace,
+)
 
 _DOPPLER_KERNEL = "kinematic.doppler_kuramoto"
 _MOVING_FRAME_KERNEL = "kinematic.moving_frame_upde"
 _MERGE_WINDOW_KERNEL = "kinematic.merge_window"
 _SAFETY_CERTIFICATE_KERNEL = "kinematic.sampled_safety_certificate"
 _STREAMING_TRIGGER_KERNEL = "kinematic.streaming_trigger"
+_TRIGGER_PROBABILITY_KERNEL = "kinematic.trigger_probability"
 
 
 def dispatched_doppler_kuramoto(
@@ -127,6 +135,26 @@ def dispatched_streaming_merge_trigger(spec: StreamingTriggerSpec) -> StreamingM
     return StreamingMergeTrigger(spec)
 
 
+def dispatched_trigger_probabilities(
+    merge_window: MergeWindowSpec,
+    safety: KinematicSafetySpec,
+    noise: MeasurementNoiseSpec,
+    phase_lock_errors_rad: ArrayLike,
+    reference_errors_m: ArrayLike,
+    separations_m: ArrayLike,
+) -> TriggerProbabilityTrace:
+    """Return the propagated trigger probabilities from the fastest available backend."""
+    if preferred_backend(_TRIGGER_PROBABILITY_KERNEL) == "rust" and is_rust_available():
+        from scpn_mif_core.kinematic._rust_adapter import rust_propagate_trigger_probabilities
+
+        return rust_propagate_trigger_probabilities(
+            merge_window, safety, noise, phase_lock_errors_rad, reference_errors_m, separations_m
+        )
+    return propagate_trigger_probabilities(
+        merge_window, safety, noise, phase_lock_errors_rad, reference_errors_m, separations_m
+    )
+
+
 def dispatched_sampled_kinematic_safety_certificate(
     separation_m: ArrayLike,
     spec: KinematicSafetySpec | None = None,
@@ -149,6 +177,7 @@ __all__ = [
     "DopplerKuramotoState",
     "KinematicSafetyCertificate",
     "KinematicSafetySpec",
+    "MeasurementNoiseSpec",
     "MergeWindowFeatureBoundaryError",
     "MergeWindowFeatureVector",
     "MergeWindowMonitor",
@@ -165,6 +194,8 @@ __all__ = [
     "StreamingTriggerDecision",
     "StreamingTriggerSample",
     "StreamingTriggerSpec",
+    "TriggerProbabilitySample",
+    "TriggerProbabilityTrace",
     "certify_positions_sampled_kinematic_safety",
     "certify_sampled_kinematic_safety",
     "dispatched_doppler_kuramoto",
@@ -172,6 +203,7 @@ __all__ = [
     "dispatched_moving_frame_upde",
     "dispatched_sampled_kinematic_safety_certificate",
     "dispatched_streaming_merge_trigger",
+    "dispatched_trigger_probabilities",
     "doppler_derivatives",
     "evaluate_doppler_kuramoto",
     "evaluate_merge_window_trace",
@@ -183,5 +215,7 @@ __all__ = [
     "order_parameter",
     "phase_lock_error",
     "predict_merge_window",
+    "propagate_trigger_probabilities",
+    "trigger_probabilities_from_trace",
     "validate_merge_window_features",
 ]

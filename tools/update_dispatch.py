@@ -100,6 +100,7 @@ def _kernel_qualified_name(json_doc: dict[str, object], default: str) -> str:
         "moving_frame_upde": "kinematic.moving_frame_upde",
         "merge_window": "kinematic.merge_window",
         "streaming_trigger": "kinematic.streaming_trigger",
+        "trigger_probability": "kinematic.trigger_probability",
         "faraday_recovery": "physics.faraday_back_emf",
         "faraday_recovery_waveform": "physics.faraday_recovery_waveform",
         "pulsed_shot_fsm": "lifecycle.pulsed_shot_fsm",

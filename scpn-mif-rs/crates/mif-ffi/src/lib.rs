@@ -48,6 +48,7 @@ use mif_kinematic::{
     DopplerKuramoto as KinematicDopplerKuramoto,
     DopplerKuramotoSpec as KinematicDopplerKuramotoSpec,
     KinematicSafetySpec as KinematicSafetySpecRust,
+    MeasurementNoiseSpec as KinematicMeasurementNoiseSpec,
     MergeWindowMonitor as KinematicMergeWindowMonitor, MergeWindowSpec as KinematicMergeWindowSpec,
     MovingFrameUPDE as KinematicMovingFrameUPDE,
     MovingFrameUPDESpec as KinematicMovingFrameUPDESpec,
@@ -56,6 +57,7 @@ use mif_kinematic::{
     certify_sampled_kinematic_safety as kinematic_certify_sampled_safety,
     doppler_derivatives_at_time as kinematic_doppler_derivatives_at_time,
     moving_frame_derivatives_at_time as kinematic_moving_frame_derivatives_at_time,
+    propagate_trigger_probabilities as kinematic_propagate_trigger_probabilities,
 };
 use mif_lifecycle::{
     BankTelemetry as LifecycleBankTelemetry, CapacitorBank, CapacitorBankSpec,
@@ -106,6 +108,19 @@ type PyKinematicSafetyCertificate = (
     Option<f64>,
     f64,
     Option<usize>,
+);
+type PyTriggerProbabilityTrace<'py> = (
+    Bound<'py, PyArray1<f64>>,
+    Bound<'py, PyArray1<f64>>,
+    Bound<'py, PyArray1<f64>>,
+    Bound<'py, PyArray1<f64>>,
+    Bound<'py, PyArray1<f64>>,
+    Bound<'py, PyArray1<f64>>,
+    f64,
+    f64,
+    f64,
+    f64,
+    f64,
 );
 type PySchedulerCommand = (f64, String, String, String, bool, f64);
 type PyTransitionRecord = (f64, String, String, String);
@@ -2120,6 +2135,96 @@ fn moving_frame_derivatives(
     .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
+/// Propagate sensor noise through the merge-trigger decision law.
+///
+/// Observable traces cross the boundary as read-only NumPy views and the
+/// per-sample probability columns return as NumPy arrays (one allocation
+/// per column), so the cost stays in the kernel rather than in per-sample
+/// object conversion — the same batch pattern as `normalise_batch`.
+#[pyfunction]
+#[allow(clippy::too_many_arguments)]
+#[pyo3(signature = (
+    merge_window,
+    tolerance_m,
+    contraction,
+    disturbance_ratio,
+    numerical_tolerance_m,
+    phase_lock_error_sigma_rad,
+    reference_error_sigma_m,
+    separation_sigma_m,
+    phase_lock_errors_rad,
+    reference_errors_m,
+    separations_m
+))]
+fn propagate_trigger_probabilities<'py>(
+    py: Python<'py>,
+    merge_window: &PyMergeWindowSpec,
+    tolerance_m: f64,
+    contraction: f64,
+    disturbance_ratio: f64,
+    numerical_tolerance_m: f64,
+    phase_lock_error_sigma_rad: f64,
+    reference_error_sigma_m: f64,
+    separation_sigma_m: f64,
+    phase_lock_errors_rad: PyReadonlyArray1<'py, f64>,
+    reference_errors_m: PyReadonlyArray1<'py, f64>,
+    separations_m: PyReadonlyArray1<'py, f64>,
+) -> PyResult<PyTriggerProbabilityTrace<'py>> {
+    let safety = KinematicSafetySpecRust::new(
+        tolerance_m,
+        contraction,
+        disturbance_ratio,
+        numerical_tolerance_m,
+    )
+    .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let noise = KinematicMeasurementNoiseSpec::new(
+        phase_lock_error_sigma_rad,
+        reference_error_sigma_m,
+        separation_sigma_m,
+    )
+    .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let phase_lock_errors = phase_lock_errors_rad.as_slice()?;
+    let reference_errors = reference_errors_m.as_slice()?;
+    let separations = separations_m.as_slice()?;
+    let trace = kinematic_propagate_trigger_probabilities(
+        merge_window.inner,
+        safety,
+        noise,
+        phase_lock_errors,
+        reference_errors,
+        separations,
+    )
+    .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let count = trace.samples.len();
+    let mut candidate = Vec::with_capacity(count);
+    let mut lock_at = Vec::with_capacity(count);
+    let mut lock = Vec::with_capacity(count);
+    let mut violation = Vec::with_capacity(count);
+    let mut cumulative_violation = Vec::with_capacity(count);
+    let mut fire_at = Vec::with_capacity(count);
+    for sample in &trace.samples {
+        candidate.push(sample.candidate_lock_probability);
+        lock_at.push(sample.lock_at_sample_probability);
+        lock.push(sample.lock_probability);
+        violation.push(sample.violation_probability);
+        cumulative_violation.push(sample.cumulative_violation_probability);
+        fire_at.push(sample.fire_at_sample_probability);
+    }
+    Ok((
+        PyArray1::from_vec(py, candidate),
+        PyArray1::from_vec(py, lock_at),
+        PyArray1::from_vec(py, lock),
+        PyArray1::from_vec(py, violation),
+        PyArray1::from_vec(py, cumulative_violation),
+        PyArray1::from_vec(py, fire_at),
+        trace.lock_probability,
+        trace.violation_probability,
+        trace.fire_probability,
+        trace.abort_unsafe_probability,
+        trace.hold_probability,
+    ))
+}
+
 /// Certify a sampled MIF-011 kinematic safety trace.
 #[pyfunction]
 #[pyo3(signature = (
@@ -2342,6 +2447,7 @@ fn scpn_mif_core_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(doppler_derivatives, m)?)?;
     m.add_function(wrap_pyfunction!(moving_frame_derivatives, m)?)?;
     m.add_function(wrap_pyfunction!(certify_sampled_kinematic_safety, m)?)?;
+    m.add_function(wrap_pyfunction!(propagate_trigger_probabilities, m)?)?;
     m.add_function(wrap_pyfunction!(verify_merger_boundedness, m)?)?;
     m.add_function(wrap_pyfunction!(verify_merger_liveness, m)?)?;
     m.add_function(wrap_pyfunction!(decode_aer_features, m)?)?;

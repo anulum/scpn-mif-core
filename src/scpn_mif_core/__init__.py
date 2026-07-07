@@ -274,6 +274,9 @@ from scpn_mif_core.kinematic import (
     KinematicSafetySpec as KinematicSafetySpec,
 )
 from scpn_mif_core.kinematic import (
+    MeasurementNoiseSpec as MeasurementNoiseSpec,
+)
+from scpn_mif_core.kinematic import (
     MergeWindowFeatureBoundaryError as MergeWindowFeatureBoundaryError,
 )
 from scpn_mif_core.kinematic import (
@@ -322,6 +325,12 @@ from scpn_mif_core.kinematic import (
     StreamingTriggerSpec as StreamingTriggerSpec,
 )
 from scpn_mif_core.kinematic import (
+    TriggerProbabilitySample as TriggerProbabilitySample,
+)
+from scpn_mif_core.kinematic import (
+    TriggerProbabilityTrace as TriggerProbabilityTrace,
+)
+from scpn_mif_core.kinematic import (
     certify_positions_sampled_kinematic_safety as certify_positions_sampled_kinematic_safety,
 )
 from scpn_mif_core.kinematic import (
@@ -341,6 +350,9 @@ from scpn_mif_core.kinematic import (
 )
 from scpn_mif_core.kinematic import (
     dispatched_streaming_merge_trigger as dispatched_streaming_merge_trigger,
+)
+from scpn_mif_core.kinematic import (
+    dispatched_trigger_probabilities as dispatched_trigger_probabilities,
 )
 from scpn_mif_core.kinematic import (
     doppler_derivatives as doppler_derivatives,
@@ -374,6 +386,12 @@ from scpn_mif_core.kinematic import (
 )
 from scpn_mif_core.kinematic import (
     predict_merge_window as predict_merge_window,
+)
+from scpn_mif_core.kinematic import (
+    propagate_trigger_probabilities as propagate_trigger_probabilities,
+)
+from scpn_mif_core.kinematic import (
+    trigger_probabilities_from_trace as trigger_probabilities_from_trace,
 )
 from scpn_mif_core.kinematic import (
     validate_merge_window_features as validate_merge_window_features,
@@ -604,6 +622,7 @@ __all__ = [
     "JitterSpec",
     "KinematicSafetyCertificate",
     "KinematicSafetySpec",
+    "MeasurementNoiseSpec",
     "MergeTriggerOutcome",
     "MergeTriggerReport",
     "MergeTriggerScenario",
@@ -659,6 +678,8 @@ __all__ = [
     "TransitionRecord",
     "TriggerEgress",
     "TriggerIngress",
+    "TriggerProbabilitySample",
+    "TriggerProbabilityTrace",
     "WhiteRabbitTimestamp",
     "__version__",
     "aer",
@@ -693,6 +714,7 @@ __all__ = [
     "dispatched_pulsed_shot_fsm",
     "dispatched_sampled_kinematic_safety_certificate",
     "dispatched_streaming_merge_trigger",
+    "dispatched_trigger_probabilities",
     "doppler_derivatives",
     "ecosystem",
     "egress_latency_ps",
@@ -730,9 +752,11 @@ __all__ = [
     "phase_lock_error",
     "physics",
     "predict_merge_window",
+    "propagate_trigger_probabilities",
     "recovered_power",
     "render_compatibility_matrix",
     "tae_descriptor_profile",
+    "trigger_probabilities_from_trace",
     "validate_merge_window_features",
     "validate_stress_config",
     "verify_merger_boundedness",

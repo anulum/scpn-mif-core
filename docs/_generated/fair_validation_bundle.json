@@ -1,12 +1,12 @@
 {
   "SPDX-License-Identifier": "AGPL-3.0-or-later",
-  "artifact_count": 45,
+  "artifact_count": 46,
   "artifacts": [
     {
       "kind": "project-documentation",
       "media_type": "text/markdown",
       "path": "README.md",
-      "sha256": "sha256:6207d639ca6fd8d4cd5bc6da703d1cd6ae819e3bf39d523fe1e00d2a33eb97ad",
+      "sha256": "sha256:2a3dccf56af9f92cfc9ea81eacacf8d04950e6306731db61a9d05033591280c3",
       "size_bytes": 24375
     },
     {
@@ -55,22 +55,22 @@
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "bench/dispatch.toml",
-      "sha256": "sha256:f2184ee66b941d6c2435d7289b48eecf2488a18a1283832df27144e120cd89d2",
-      "size_bytes": 3447
+      "sha256": "sha256:59b2504b2709234b54a5f9fc54bbbdfcffcd4fcd186f7fe1fd21f9069682cd4c",
+      "size_bytes": 3764
     },
     {
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/benchmark_dashboard.json",
-      "sha256": "sha256:82f4a520a8c7cb6ded5b661c6e0e3bca3a8e849393642d094f94602b8aac593f",
-      "size_bytes": 65891
+      "sha256": "sha256:ba17b933f1de385f87ad8431f850d2abc5cce2d4ce59f5a7f9c953582ed31020",
+      "size_bytes": 70297
     },
     {
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/capability_manifest.json",
-      "sha256": "sha256:4ae3b8f95774e17485b4a727cc8ae98f0ffbcbefc469da8348c1425a2e89248b",
-      "size_bytes": 32603
+      "sha256": "sha256:94eecdb3ac0b060860b6f815a20947ca63220aec21afcf53302b684eb3f33f12",
+      "size_bytes": 33488
     },
     {
       "kind": "generated-dashboard",
@@ -167,7 +167,7 @@
       "kind": "verification-test",
       "media_type": "text/x-python",
       "path": "tests/unit/bench/test_benchmark_dashboard.py",
-      "sha256": "sha256:4a47799c6a1961101bead3b74e423ef0a5eac793914c9845d310bdff160e4342",
+      "sha256": "sha256:ae9b5d6e542b3e36316160a79151ad8097d6456dff355d9318ce126619048c18",
       "size_bytes": 19655
     },
     {
@@ -181,7 +181,7 @@
       "kind": "verification-test",
       "media_type": "text/x-python",
       "path": "tests/unit/test_fair_validation_bundle.py",
-      "sha256": "sha256:c5b6770babee08e22e87acb9724970a25220a641d3a17b1fd56732557d1f90f0",
+      "sha256": "sha256:02ee6466f165f2bc9af729100e02afa51869fbc4e0c5e9e4f24e32753c08f5d4",
       "size_bytes": 9525
     },
     {
@@ -316,6 +316,13 @@
       "path": "bench/results/trigger_latency_budget.json",
       "sha256": "sha256:00d358b01bf999f05c95bc1dbc32a1d1f39ace5b8b888978aefd3641cb1cd46b",
       "size_bytes": 3212
+    },
+    {
+      "kind": "benchmark-result",
+      "media_type": "application/json",
+      "path": "bench/results/trigger_probability.json",
+      "sha256": "sha256:51088ccad7810098e776ed8e8784db38697f67791d3c2270043981dde20517df",
+      "size_bytes": 3648
     }
   ],
   "citation": {
@@ -392,8 +399,8 @@
       "distinct_cpu_governors": [
         "powersave"
       ],
-      "group_count": 30,
-      "kernel_count": 17,
+      "group_count": 32,
+      "kernel_count": 18,
       "python_versions": [
         "3.12.13",
         "3.12.3"

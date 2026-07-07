@@ -21,6 +21,7 @@ pub mod merge_window;
 pub mod moving_frame_upde;
 pub mod safety_certificate;
 pub mod streaming_trigger;
+pub mod trigger_probability;
 
 pub use doppler_kuramoto::{
     DopplerKuramoto, DopplerKuramotoError, DopplerKuramotoSpec, DopplerKuramotoState,
@@ -38,6 +39,10 @@ pub use safety_certificate::{
 pub use streaming_trigger::{
     StreamingMergeTrigger, StreamingTriggerDecision, StreamingTriggerError, StreamingTriggerSample,
     StreamingTriggerSpec,
+};
+pub use trigger_probability::{
+    MeasurementNoiseSpec, TriggerProbabilityError, TriggerProbabilitySample,
+    TriggerProbabilityTrace, propagate_trigger_probabilities,
 };
 
 /// Crate version derived from the workspace.

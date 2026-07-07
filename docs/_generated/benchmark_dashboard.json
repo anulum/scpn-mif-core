@@ -18,14 +18,14 @@
     "python",
     "rust"
   ],
-  "kernel_count": 17,
-  "group_count": 30,
+  "kernel_count": 18,
+  "group_count": 32,
   "backend_coverage": {
     "go": 2,
     "julia": 10,
     "mojo": 1,
-    "python": 17,
-    "rust": 16,
+    "python": 18,
+    "rust": 17,
     "systemverilog": 1
   },
   "environments": {
@@ -1668,6 +1668,99 @@
               "ops_per_s": 31.175940936430838,
               "rounds": 19,
               "relative_to_fastest": 4.30849
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "kernel": "trigger_probability",
+      "source": "bench/results/trigger_probability.json",
+      "dispatch_key": "kinematic.trigger_probability",
+      "datetime": "2026-07-07T01:12:37.996284+00:00",
+      "backends": [
+        "python",
+        "rust"
+      ],
+      "provenance": {
+        "host": "11th Gen Intel(R) Core(TM) i5-11600K @ 3.90GHz",
+        "python_version": "3.12.13",
+        "command": "taskset -c 8-11 pytest bench/kernels/bench_trigger_probability.py --benchmark-only --benchmark-json=bench/results/local/trigger_probability_raw.json",
+        "runtime_versions": {
+          "python": "3.12.13",
+          "rustc": "rustc 1.85.0 (4d91de4e4 2025-02-17)"
+        },
+        "cpu_isolated": false,
+        "isolation_method": "taskset affinity to logical cores 8-11; no kernel isolcpus reservation",
+        "affinity_or_reserved_cores": "logical cores 8-11 of 12",
+        "cpu_governor": "powersave",
+        "host_load_before": "53.20 60.74 52.88",
+        "host_load_after": "50.43 59.90 52.69",
+        "hardware_summary": "x86_64, 12 logical CPUs, 6 cores, 2 threads per core"
+      },
+      "notes": [
+        "Probabilistic trigger propagation (P(lock)/P(violation) with the FIRE/ABORT_UNSAFE/HOLD operating point): a 64-sample approach trace (the per-shot planning call) and a 4096-sample campaign trace; Python and Rust/PyO3 runtime surfaces.",
+        "The FFI boundary is zero-copy in both directions (read-only NumPy views in, per-sample probability columns out as NumPy arrays); the per-call \"batch\" conversion pattern was measured first and lost the 4096-sample group to object-conversion overhead (134 ms vs 70 ms median) before the boundary was flipped to columns.",
+        "Both backends assemble the same per-sample dataclass trace on the Python side, so the 4096-sample ratio (~1.4x) is bounded by shared object construction, not the kernel; the 64-sample per-shot call shows the kernel ratio (~2.3x).",
+        "Non-isolated local comparison run under taskset affinity and heavy host load (load average ~50-61); absolute timings are noisy and means are outlier-inflated. The fastest-first ranking (rust < python) holds in both groups across the distribution; do not treat as a production performance claim.",
+        "max_ns is recorded per surface; under this host load the max reflects scheduler preemption, not the kernel."
+      ],
+      "groups": [
+        {
+          "group": "trigger_probability.trace_4096",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 19473511.354162302,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 19473511.354162302,
+              "median_ns": 16006809.542886913,
+              "stddev_ns": 14058767.93529476,
+              "ops_per_s": 51.35180717093726,
+              "rounds": 68,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 30394867.322008524,
+              "median_ns": 22177410.894073546,
+              "stddev_ns": 22711580.736126225,
+              "ops_per_s": 32.90029166457039,
+              "rounds": 35,
+              "relative_to_fastest": 1.560831
+            }
+          ]
+        },
+        {
+          "group": "trigger_probability.trace_64",
+          "fastest_backend": "rust",
+          "fastest_mean_ns": 168860.6402559476,
+          "backends": [
+            {
+              "backend": "rust",
+              "role": "runtime",
+              "runtime_comparable": true,
+              "mean_ns": 168860.6402559476,
+              "median_ns": 135461.101308465,
+              "stddev_ns": 260115.93093903284,
+              "ops_per_s": 5922.0431622447195,
+              "rounds": 1441,
+              "relative_to_fastest": 1.0
+            },
+            {
+              "backend": "python",
+              "role": "runtime_reference",
+              "runtime_comparable": true,
+              "mean_ns": 422099.1818231327,
+              "median_ns": 308466.9588133693,
+              "stddev_ns": 574307.7943063142,
+              "ops_per_s": 2369.111438882197,
+              "rounds": 1864,
+              "relative_to_fastest": 2.49969
             }
           ]
         }

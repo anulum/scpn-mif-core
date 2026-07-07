@@ -110,8 +110,8 @@ def test_environment_summary_lifts_project_and_benchmark_context() -> None:
     assert environment["project"]["requires_python"] == ">=3.12,<3.13"
     assert "dev" in environment["project"]["optional_extras"]
     assert environment["benchmark_dashboard"]["schema"] == "scpn-mif-core/benchmark-dashboard/1.0.0"
-    assert environment["benchmark_dashboard"]["kernel_count"] == 17
-    assert environment["benchmark_dashboard"]["group_count"] == 30
+    assert environment["benchmark_dashboard"]["kernel_count"] == 18
+    assert environment["benchmark_dashboard"]["group_count"] == 32
     # Two CPython patch levels were really used across the promoted runs
     # (3.12.3 for the 2026-06 kernels, 3.12.13 for the 2026-07 reruns).
     assert environment["benchmark_dashboard"]["python_versions"] == ["3.12.13", "3.12.3"]
