@@ -138,3 +138,6 @@ data/
 docs/external_sources/pdfs/
 mutants/
 mutants.out/
+node_modules/
+
+docs/internal/**
