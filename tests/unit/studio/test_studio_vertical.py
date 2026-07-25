@@ -178,12 +178,31 @@ def test_merge_trigger_evidence_non_fire_rejected() -> None:
     assert bundle["claim_boundary"]["admission"] == "rejected"
 
 
+def test_legacy_bridge_matches_canonical_merge_claim_boundary() -> None:
+    """Golden guard for the one field shared during the legacy-bridge window."""
+    from scpn_mif_core.evidence import merge_trigger_evidence as legacy_merge_trigger_evidence
+
+    report = evaluate_merge_trigger(_scenario([-5.0e-4, 5.0e-4], [0.0, 0.0]))
+    legacy = legacy_merge_trigger_evidence(report, started="t0", ended="t1", host="rig", studio_version="0.1.0")
+    canonical = merge_trigger_evidence(
+        report,
+        started="t0",
+        ended="t1",
+        host="rig",
+        studio_version="0.1.0",
+        active_backend="python",
+    ).to_dict()
+    assert legacy["claim_boundary"]["status"] == canonical["claim_boundary"]["status"]
+    assert legacy["claim_boundary"]["admission"] == canonical["claim_boundary"]["admission"]
+
+
 def test_formal_proof_evidence_prove_mode() -> None:
     bundle = formal_proof_evidence(
         _PROVE_TASK, started="t0", ended="t1", host="ci", studio_version="0.1.0", checker_version="0.45"
     ).to_dict()
     assert bundle["schema"] == "studio.formal-proof.v1"
     assert bundle["evidence_kind"] == "formally-proven"
+    assert bundle["claim_boundary"]["status"] == "bounded-model"
     cert = bundle["formal_certificate"][0]
     assert cert["checker"] == "symbiyosys"
     assert cert["proof_digest"] == "sha256:" + "a" * 64
@@ -239,7 +258,7 @@ def test_cosim_evidence_bit_true_and_mismatch() -> None:
         harness="mif008", bit_true=True, mismatch_count=0, started="t0", ended="t1", host="ci", studio_version="0.1.0"
     ).to_dict()
     assert ok["numeric_provenance"]["parity"][0]["exactness"] == "bit-exact"
-    assert ok["claim_boundary"]["status"] == "reference-validated"
+    assert ok["claim_boundary"]["status"] == "bounded-model"
 
     bad = cosim_evidence(
         harness="mif008", bit_true=False, mismatch_count=3, started="t0", ended="t1", host="ci", studio_version="0.1.0"
@@ -311,26 +330,33 @@ def test_a_caller_may_declare_verified_at_source_when_it_re_ran_the_source() -> 
         freshness=Freshness.VERIFIED_AT_SOURCE,
     ).to_dict()
     assert bundle["freshness"] == "verified-at-source"
+    assert bundle["claim_boundary"]["status"] == "reference-validated"
 
 
-def test_default_freshness_floors_a_reference_validated_cosim_to_boundary() -> None:
-    # End-to-end: a bit-true cosim is reference-validated + admitted, but the default
-    # traceable-unchecked freshness floors its rendered verdict to boundary; only a
-    # re-run (verified-at-source) renders it validated.
-    from scpn_studio_platform.evidence import AdmissionDecision, ClaimStatus, EvidenceKind, Freshness
-    from scpn_studio_platform.evidence.conformance import present
+def test_default_freshness_lowers_cosim_boundary_until_source_is_rechecked() -> None:
+    # Era-v2 producer contract: a stale admitted claim cannot even carry the
+    # reference-validated label. The mapper lowers it to bounded-model and promotes
+    # only after an explicit same-session source verification.
+    from scpn_studio_platform.evidence import Freshness
 
-    floored = present(
-        EvidenceKind.MEASURED,
-        ClaimStatus.REFERENCE_VALIDATED,
-        AdmissionDecision.ADMITTED,
-        Freshness.TRACEABLE_UNCHECKED,
-    )
-    fresh = present(
-        EvidenceKind.MEASURED,
-        ClaimStatus.REFERENCE_VALIDATED,
-        AdmissionDecision.ADMITTED,
-        Freshness.VERIFIED_AT_SOURCE,
-    )
-    assert floored == "boundary"
-    assert fresh == "validated"
+    stale = cosim_evidence(
+        harness="mif008",
+        bit_true=True,
+        mismatch_count=0,
+        started="t0",
+        ended="t1",
+        host="ci",
+        studio_version="0.1.0",
+    ).to_dict()
+    fresh = cosim_evidence(
+        harness="mif008",
+        bit_true=True,
+        mismatch_count=0,
+        started="t0",
+        ended="t1",
+        host="ci",
+        studio_version="0.1.0",
+        freshness=Freshness.VERIFIED_AT_SOURCE,
+    ).to_dict()
+    assert stale["claim_boundary"]["status"] == "bounded-model"
+    assert fresh["claim_boundary"]["status"] == "reference-validated"

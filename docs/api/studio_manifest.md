@@ -8,19 +8,17 @@
 
 # STUDIO capability manifest
 
-`scpn_mif_core.studio_manifest` advertises MIF's verbs to SCPN STUDIO as a v1
+`scpn_mif_core.studio_manifest` is the dependency-free legacy bridge that advertises
+MIF's verbs to SCPN STUDIO as a v1
 schema-A capability manifest — the document a studio publishes so the federating
 Hub knows its verbs and the `studio.*.v1` evidence bundles they produce
 (SCPN_STUDIO_V1_CONTRACT.md §3). It is the schema-A companion to
 [`scpn_mif_core.evidence`](evidence.md) (schema B), completing MIF's
 contract-conformant data layer.
 
-It is a forward-compatibility surface, not a studio user interface and not a
-platform fork: the manifest is content-addressed and its enumeration is
-`language-agnostic`, so the surface digest covers MIF's Python, Rust, Julia, Go,
-Lean, and SystemVerilog files rather than only Python. It maps onto the platform
-SDK's `CapabilityManifest` type with no shape change once `scpn-studio-platform`
-is consumed (additive-only contract).
+Hub federation uses the canonical SDK-authored `scpn_mif_core.studio.manifest`
+surface. This bridge remains for installations without the optional SDK and is
+drift-tested against the same `>=0.11.2,<0.12` range.
 
 ## Advertised verbs
 

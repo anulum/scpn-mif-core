@@ -5,7 +5,7 @@
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
 # SCPN-MIF-CORE — SCPN STUDIO v1 evidence-bundle emitter.
-"""Emit MIF artifacts as SCPN STUDIO ``studio.*.v1`` evidence bundles.
+"""Legacy dependency-free bridge for STUDIO ``studio.*.v1`` evidence bundles.
 
 This maps MIF's existing result artifacts onto the **locked** SCPN STUDIO v1
 schema-B evidence bundle (the provenance-first result envelope: PROV-O graph,
@@ -13,13 +13,12 @@ RO-Crate profile, evidence-kind/level axes, formal certificates, claim-boundary
 lattice, recompute provenance, in-toto-style attestation, and content-addressed
 cross-studio derivation edges).
 
-It is a **forward-compatibility surface**, not a studio UI and not a fork of the
-shared platform: it produces the locked-schema JSON shape so MIF's evidence is
-provenance-grade today and its eventual studio vertical adopts the contract with
-no rework. Once ``scpn-studio-platform`` is extracted, the hand-built envelope
-here is replaced by that SDK's signing emit API (the ``attestation.signature`` is
-deliberately left for the platform signer); the field shapes do not change because
-the v1 contract is additive-only.
+This hand-built surface remains available for lean installations that cannot install
+the optional Studio SDK. It is not the Hub-ingestion API. New integrations must use
+the canonical ``scpn_mif_core.studio.evidence`` mappers from the ``studio`` extra,
+which are typed and validated by ``scpn-studio-platform``. The bridge stays covered
+until a separately announced removal window; its merge claim boundary has a golden
+parity guard against the canonical mapper.
 
 The two emitters cover MIF's most distinctive evidence: the merge-trigger decision
 (``evaluate``) and the MIF-010 formal proof (``prove``, the formally-proven kind).

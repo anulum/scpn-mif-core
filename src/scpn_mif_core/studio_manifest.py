@@ -5,7 +5,7 @@
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
 # SCPN-MIF-CORE — SCPN STUDIO v1 capability manifest (schema A).
-"""Advertise MIF's verbs to SCPN STUDIO as a v1 schema-A capability manifest.
+"""Legacy dependency-free schema-A capability-manifest bridge.
 
 The capability manifest is how a studio advertises its verbs and the evidence
 bundle types they produce to the federating Hub (SCPN_STUDIO_V1_CONTRACT.md §3).
@@ -14,11 +14,9 @@ conformance check — the schema-A analogue of
 :func:`scpn_mif_core.evidence.validate_studio_bundle`, i.e. MIF's consumer-driven
 contract test for §7.
 
-It is a forward-compatibility surface, not a studio UI and not a platform fork:
-it emits the locked schema-A shape, content-addressed and language-agnostic so the
-enumeration covers MIF's Python, Rust, Julia, Go, Lean, and SystemVerilog surfaces
-rather than only Python. Once ``scpn-studio-platform`` is extracted, this maps onto
-the SDK's ``CapabilityManifest`` type with no shape change (additive-only contract).
+It remains for lean installations without the optional Studio SDK. Hub federation
+uses the canonical SDK-authored ``scpn_mif_core.studio.manifest`` surface. This
+bridge mirrors the same SDK range and stays drift-tested while it is supported.
 """
 
 from __future__ import annotations
@@ -34,7 +32,7 @@ JsonDict = dict[str, Any]
 CONTRACT_ERA = "v1"
 PROTOCOL_VERSION = "1"
 TRANSPORT_PROFILE = "local-first"
-PLATFORM_SDK_RANGE = ">=0.10,<0.11"
+PLATFORM_SDK_RANGE = ">=0.11.2,<0.12"
 
 # Locked v1 schema-A verb-attribute enumerations (§2.3).
 SAFETY_TIERS = frozenset({"research", "certified", "production"})

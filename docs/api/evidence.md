@@ -8,19 +8,18 @@
 
 # STUDIO evidence emitter
 
-`scpn_mif_core.evidence` maps MIF's result artifacts onto the SCPN STUDIO v1
+`scpn_mif_core.evidence` is the dependency-free **legacy bridge** that maps MIF's
+result artifacts onto the SCPN STUDIO v1
 `studio.*.v1` evidence bundle — the provenance-first result envelope shared across
 the SCPN ecosystem (PROV-O graph, RO-Crate profile, evidence-kind/level axes,
 formal certificates, the claim-boundary lattice, recompute provenance, an
 in-toto-style attestation, and content-addressed cross-studio derivation edges).
 
-It is a forward-compatibility surface, not a studio user interface and not a fork
-of the shared platform: it emits the locked-schema JSON shape so MIF's evidence is
-provenance-grade today and its eventual studio vertical adopts the contract with
-no rework. Once `scpn-studio-platform` is extracted, the hand-built envelope here
-is replaced by that SDK's signing emit API — the `attestation.signature` is
-deliberately left for the platform signer, and the field shapes do not change
-because the v1 contract is additive-only.
+It is retained for lean installations without the optional SDK. **New Hub ingestion
+must use `scpn_mif_core.studio.evidence` from the `studio` extra**: that is the
+canonical, SDK-validated path and owns evidence sealing. The bridge has no removal
+date yet; a golden test keeps its merge-trigger claim boundary aligned while it is
+supported.
 
 ## What maps where
 

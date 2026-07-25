@@ -35,7 +35,7 @@ documentation build. This page is the navigable overview of the vertical's surfa
   - a cosimulation → a bit-exact `ParityCheck`;
   - a benchmark → its recompute provenance.
 - **`manifest`** — `build_manifest()`, which authors the SDK `CapabilityManifest`
-  (verbs, evidence schemas, the `>=0.2,<0.3` platform-SDK range, the UI panel module).
+  (verbs, evidence schemas, the `>=0.11.2,<0.12` platform-SDK range, the UI panel module).
 - **`federation`** — `build_federation_document()`, which wraps the schema-A manifest and
   the descriptive `architecture-map.v2` extension into the ratified two-block envelope the
   Hub ingests (see [Federation](#federation)).
@@ -59,6 +59,27 @@ validated only when it is **reference-validated AND admitted**. A reduced-order
 merge-trigger decision is admitted (it may fire) but stays **bounded-model**, so the
 Hub never presents a reduced-order decision as facility-grade validated. The TypeScript
 panel (`studio-web/`) enforces the same rule on the rendering side.
+
+Platform contract era v2 also requires `verified-at-source` freshness on every admitted
+`reference-validated` claim. Mappers therefore default stale inputs to `bounded-model`;
+only a caller that actually reran the proof/cosimulation in the current session may pass
+`verified-at-source` and receive the validated boundary.
+
+## Float-free formal claim
+
+`docs/_generated/studio_formal_proof_claim.json` is the keeper hand-off for the
+`mif_trigger_fabric_safety` proof. Generate it only after
+`python tools/run_formal.py --suite safety` passes, then run:
+
+```bash
+PYTHONPATH=src python tools/emit_studio_formal_claim.py \
+  --checker-version 'Yosys <version>; Z3 <version>'
+PYTHONPATH=src python tools/emit_studio_formal_claim.py --check
+```
+
+`scpn_mif_core.sealed_claim` rejects JSON floats, unsafe integers, path traversal,
+failed proof status, and dependency drift. The committed claim cites the proof script,
+the exact RTL subject, the formal manifest, and the observed proof-status digest.
 
 ## Contract
 

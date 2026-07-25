@@ -78,6 +78,13 @@ def _entity(schema: str, result: Mapping[str, Any]) -> ProvEntity:
     return ProvEntity(entity_id=f"result:{schema}", digest=content_digest(dict(result)))
 
 
+def _freshness_compatible_status(status: ClaimStatus, freshness: Freshness) -> ClaimStatus:
+    """Lower a stale validated claim to the era-v2 producer boundary."""
+    if status is ClaimStatus.REFERENCE_VALIDATED and not freshness.permits_validation:
+        return ClaimStatus.BOUNDED_MODEL
+    return status
+
+
 def merge_trigger_evidence(
     report: MergeTriggerReport,
     *,
@@ -187,7 +194,10 @@ def formal_proof_evidence(
         agent=ProvAgent(studio_version=studio_version, operator=operator),
         evidence_level=EvidenceLevel.SCIENTIFICALLY_CURATED,
         evidence_kind=EvidenceKind.FORMALLY_PROVEN,
-        claim_boundary=ClaimBoundary(status=ClaimStatus.REFERENCE_VALIDATED, admission=AdmissionDecision.ADMITTED),
+        claim_boundary=ClaimBoundary(
+            status=_freshness_compatible_status(ClaimStatus.REFERENCE_VALIDATED, freshness),
+            admission=AdmissionDecision.ADMITTED,
+        ),
         freshness=freshness,
         formal_certificates=(certificate,),
     )
@@ -232,7 +242,13 @@ def cosim_evidence(
         evidence_level=EvidenceLevel.SCIENTIFICALLY_CURATED,
         evidence_kind=EvidenceKind.MEASURED,
         claim_boundary=ClaimBoundary(
-            status=ClaimStatus.REFERENCE_VALIDATED if bit_true else ClaimStatus.VALIDATION_GAP,
+            status=(
+                ClaimStatus.REFERENCE_VALIDATED
+                if bit_true and freshness.permits_validation
+                else ClaimStatus.BOUNDED_MODEL
+                if bit_true
+                else ClaimStatus.VALIDATION_GAP
+            ),
             admission=AdmissionDecision.ADMITTED if bit_true else AdmissionDecision.REJECTED,
         ),
         freshness=freshness,
@@ -276,7 +292,10 @@ def benchmark_evidence(
         agent=ProvAgent(studio_version=studio_version, operator=operator),
         evidence_level=EvidenceLevel.SCIENTIFICALLY_CURATED,
         evidence_kind=EvidenceKind.MEASURED,
-        claim_boundary=ClaimBoundary(status=status, admission=AdmissionDecision.ADMITTED),
+        claim_boundary=ClaimBoundary(
+            status=_freshness_compatible_status(status, freshness),
+            admission=AdmissionDecision.ADMITTED,
+        ),
         freshness=freshness,
         numeric_provenance=NumericProvenance(active_backend=active_backend, reference_backend="python"),
     )
