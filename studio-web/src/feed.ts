@@ -93,6 +93,7 @@ interface RawFeed {
   readonly feed_schema: string;
   readonly studio: string;
   readonly studio_version: string;
+  readonly platform_sdk: string;
   readonly content_digest: string;
   readonly verbs: readonly RawVerb[];
   readonly claims: readonly RawClaim[];
@@ -103,6 +104,7 @@ interface RawFeed {
 /** The narrowed feed the panel consumes. */
 export interface StudioFeed {
   readonly studioVersion: string;
+  readonly platformSdk: string;
   readonly contentDigest: string;
   readonly verbs: readonly MifVerb[];
   readonly claims: readonly ClaimSummary[];
@@ -110,9 +112,14 @@ export interface StudioFeed {
   readonly timingEvidence: readonly TimingEvidenceSummary[];
 }
 
+/** Exact browser wire contract and compatible platform-SDK generation. */
+export const STUDIO_FEED_SCHEMA = 'studio.mif-feed.v1';
+export const SUPPORTED_PLATFORM_SDK = '>=0.11.2,<0.12';
+
 /** The bundled fallback feed — the domain sample, used when the live feed is absent. */
 export const FALLBACK_FEED: StudioFeed = {
   studioVersion: 'fallback',
+  platformSdk: SUPPORTED_PLATFORM_SDK,
   contentDigest: 'fallback',
   verbs: MIF_VERBS,
   claims: MIF_CLAIMS,
@@ -122,6 +129,135 @@ export const FALLBACK_FEED: StudioFeed = {
 
 /** Default location the standalone remote fetches the live feed from. */
 export const DEFAULT_FEED_URL = './studio-feed.json';
+
+const SAFETY_TIERS: readonly SafetyTier[] = ['research', 'certified', 'production'];
+const SIDE_EFFECTS: readonly SideEffect[] = ['read-only', 'simulated', 'live-hardware'];
+const TIMING_CLASSES: readonly TimingClass[] = ['batch', 'interactive', 'realtime'];
+const CLAIM_STATUSES: readonly ClaimStatus[] = [
+  'reference-validated',
+  'bounded-model',
+  'bounded-support',
+  'validation-gap',
+  'external-dependency-blocked',
+  'roadmap',
+  'toolchain-gated',
+];
+const ADMISSION_DECISIONS: readonly AdmissionDecision[] = ['admitted', 'rejected'];
+const EVIDENCE_KINDS: readonly EvidenceKind[] = ['measured', 'curated', 'formally-proven'];
+const EXACTNESS_VALUES: readonly Exactness[] = ['bit-exact', 'tolerance-aware'];
+const EVIDENCE_SUBSTRATES: readonly EvidenceSubstrate[] = [
+  'classical-reference',
+  'numerical-model',
+  'simulator',
+  'realtime-embedded',
+  'hardware-unmitigated',
+  'hardware-mitigated',
+  'fpga',
+  'asic',
+];
+const EVIDENCE_BADGES: readonly EvidenceBadge[] = ['cosim:local-verilator'];
+const HARDWARE_GATE_BADGES: readonly HardwareGateBadge[] = ['hil:hardware-gated'];
+const FRESHNESS_VALUES: readonly Freshness[] = [
+  'verified-at-source',
+  'traceable-unchecked',
+  'untraceable',
+];
+const BACKEND_NAMES: readonly BackendName[] = ['rust', 'python', 'mojo', 'julia', 'go'];
+const BACKEND_STATUSES: readonly BackendStatus[] = [
+  'runtime-active',
+  'build-available',
+  'declared',
+];
+const TIMING_EVIDENCE_BADGES: readonly TimingEvidenceBadge[] = [
+  'timing:cycle-budget-formal',
+  'timing:post-route-hardware-gated',
+  'timing:e2e-hil-hardware-gated',
+];
+const TIMING_EVIDENCE_STATUSES: readonly TimingEvidenceStatus[] = ['passed', 'blocked'];
+const TIMING_CLAIM_UNITS: readonly TimingClaimUnit[] = ['clock-cycles', 'nanoseconds'];
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
+function isOneOf<T extends string>(value: unknown, members: readonly T[]): value is T {
+  return typeof value === 'string' && members.some((member) => member === value);
+}
+
+function isOptionalOneOf<T extends string>(
+  value: unknown,
+  members: readonly T[],
+): value is T | undefined {
+  return value === undefined || isOneOf(value, members);
+}
+
+function isRawVerb(value: unknown): value is RawVerb {
+  if (!isRecord(value)) {
+    return false;
+  }
+  const deadlineValid =
+    value.deadline_us === undefined ||
+    (typeof value.deadline_us === 'number' &&
+      Number.isFinite(value.deadline_us) &&
+      value.deadline_us > 0);
+  return (
+    isNonEmptyString(value.name) &&
+    isOneOf(value.safety_tier, SAFETY_TIERS) &&
+    isOneOf(value.side_effect, SIDE_EFFECTS) &&
+    isOneOf(value.timing_class, TIMING_CLASSES) &&
+    deadlineValid &&
+    typeof value.domain_distinctive === 'boolean'
+  );
+}
+
+function isRawCertificate(value: unknown): value is RawCertificate {
+  return (
+    isRecord(value) &&
+    isNonEmptyString(value.checker) &&
+    isNonEmptyString(value.theorem) &&
+    typeof value.non_vacuous === 'boolean'
+  );
+}
+
+function isRawClaim(value: unknown): value is RawClaim {
+  if (!isRecord(value)) {
+    return false;
+  }
+  return (
+    isNonEmptyString(value.schema) &&
+    isOneOf(value.status, CLAIM_STATUSES) &&
+    isOneOf(value.admission, ADMISSION_DECISIONS) &&
+    isOneOf(value.kind, EVIDENCE_KINDS) &&
+    isOptionalOneOf(value.exactness, EXACTNESS_VALUES) &&
+    isOptionalOneOf(value.substrate, EVIDENCE_SUBSTRATES) &&
+    isOptionalOneOf(value.evidence_badge, EVIDENCE_BADGES) &&
+    isOptionalOneOf(value.hardware_gate, HARDWARE_GATE_BADGES) &&
+    (value.certificate === undefined || isRawCertificate(value.certificate)) &&
+    isOptionalOneOf(value.freshness, FRESHNESS_VALUES)
+  );
+}
+
+function isRawBackend(value: unknown): value is RawBackend {
+  return (
+    isRecord(value) && isOneOf(value.name, BACKEND_NAMES) && isOneOf(value.status, BACKEND_STATUSES)
+  );
+}
+
+function isRawTimingEvidence(value: unknown): value is RawTimingEvidence {
+  return (
+    isRecord(value) &&
+    isNonEmptyString(value.id) &&
+    isOneOf(value.badge, TIMING_EVIDENCE_BADGES) &&
+    isOneOf(value.status, TIMING_EVIDENCE_STATUSES) &&
+    isOneOf(value.claim_unit, TIMING_CLAIM_UNITS) &&
+    typeof value.wall_clock_claim_allowed === 'boolean' &&
+    isNonEmptyString(value.summary)
+  );
+}
 
 function toVerb(raw: RawVerb): MifVerb {
   const base = {
@@ -182,33 +318,33 @@ function toTimingEvidence(raw: RawTimingEvidence): TimingEvidenceSummary {
   };
 }
 
-/** Structural type guard for the wire feed (validates the two required collections). */
+/** Fail-closed runtime type guard for the complete browser wire contract. */
 export function isRawFeed(value: unknown): value is RawFeed {
-  if (typeof value !== 'object' || value === null) {
+  if (!isRecord(value)) {
     return false;
   }
-  const candidate = value as {
-    verbs?: unknown;
-    claims?: unknown;
-    backends?: unknown;
-    timing_evidence?: unknown;
-  };
-  if (!Array.isArray(candidate.verbs)) {
-    return false;
-  }
-  if (!Array.isArray(candidate.claims)) {
-    return false;
-  }
-  if (candidate.backends !== undefined && !Array.isArray(candidate.backends)) {
-    return false;
-  }
-  return candidate.timing_evidence === undefined || Array.isArray(candidate.timing_evidence);
+  return (
+    value.feed_schema === STUDIO_FEED_SCHEMA &&
+    value.studio === 'scpn-mif-core' &&
+    isNonEmptyString(value.studio_version) &&
+    value.platform_sdk === SUPPORTED_PLATFORM_SDK &&
+    isNonEmptyString(value.content_digest) &&
+    Array.isArray(value.verbs) &&
+    value.verbs.every(isRawVerb) &&
+    Array.isArray(value.claims) &&
+    value.claims.every(isRawClaim) &&
+    (value.backends === undefined ||
+      (Array.isArray(value.backends) && value.backends.every(isRawBackend))) &&
+    (value.timing_evidence === undefined ||
+      (Array.isArray(value.timing_evidence) && value.timing_evidence.every(isRawTimingEvidence)))
+  );
 }
 
 /** Narrow a validated wire feed to the panel's camelCase domain types. */
 export function narrowFeed(raw: RawFeed): StudioFeed {
   return {
     studioVersion: raw.studio_version,
+    platformSdk: raw.platform_sdk,
     contentDigest: raw.content_digest,
     verbs: raw.verbs.map(toVerb),
     claims: raw.claims.map(toClaim),

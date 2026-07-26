@@ -22,6 +22,10 @@
 
 ### Changed
 
+- Bound the Studio browser feed explicitly to `studio.mif-feed.v1` and
+  `scpn-studio-platform>=0.11.2,<0.12`, added complete fail-closed nested runtime
+  validation, and smoke-tested every committed feed claim against the installed
+  SDK generation.
 - Split ecosystem compatibility rendering into `symbols_present`,
   `integration_gated`, and `evidence_blocked` states, preserving the legacy
   summary only for API compatibility. Delivered-but-deferred QUANTUM surfaces

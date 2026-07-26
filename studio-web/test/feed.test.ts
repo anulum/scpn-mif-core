@@ -12,6 +12,7 @@ import { MIF_BACKENDS, MIF_TIMING_EVIDENCE } from '../src/domain.js';
 import {
   DEFAULT_FEED_URL,
   FALLBACK_FEED,
+  SUPPORTED_PLATFORM_SDK,
   isRawFeed,
   loadStudioFeed,
   narrowFeed,
@@ -21,6 +22,7 @@ const VALID_FEED = {
   feed_schema: 'studio.mif-feed.v1',
   studio: 'scpn-mif-core',
   studio_version: '0.1.1',
+  platform_sdk: '>=0.11.2,<0.12',
   content_digest: 'sha256:abc',
   verbs: [
     {
@@ -118,6 +120,7 @@ describe('narrowFeed', () => {
   it('maps the snake_case wire feed to camelCase domain types', () => {
     const feed = narrowFeed(VALID_FEED);
     expect(feed.studioVersion).toBe('0.1.1');
+    expect(feed.platformSdk).toBe(SUPPORTED_PLATFORM_SDK);
     expect(feed.contentDigest).toBe('sha256:abc');
     expect(feed.verbs).toHaveLength(2);
     expect(feed.claims).toHaveLength(3);
@@ -194,6 +197,7 @@ describe('narrowFeed', () => {
       feed_schema: 'studio.mif-feed.v1',
       studio: 'scpn-mif-core',
       studio_version: '0.1.1',
+      platform_sdk: '>=0.11.2,<0.12',
       content_digest: 'sha256:abc',
       verbs: [],
       claims: [],
@@ -232,6 +236,37 @@ describe('isRawFeed', () => {
     expect(isRawFeed({ verbs: [], claims: 'nope' })).toBe(false);
     expect(isRawFeed({ verbs: [], claims: [], backends: 'nope' })).toBe(false);
     expect(isRawFeed({ verbs: [], claims: [], timing_evidence: 'nope' })).toBe(false);
+  });
+
+  it('rejects drift in the schema identity and platform SDK generation', () => {
+    expect(isRawFeed({ ...VALID_FEED, feed_schema: 'studio.mif-feed.v2' })).toBe(false);
+    expect(isRawFeed({ ...VALID_FEED, studio: 'another-studio' })).toBe(false);
+    expect(isRawFeed({ ...VALID_FEED, platform_sdk: '>=0.12,<0.13' })).toBe(false);
+    expect(isRawFeed({ ...VALID_FEED, studio_version: '' })).toBe(false);
+  });
+
+  it('rejects malformed nested records instead of trusting their array containers', () => {
+    expect(
+      isRawFeed({
+        ...VALID_FEED,
+        verbs: [{ ...VALID_FEED.verbs[0], safety_tier: 'unrestricted' }],
+      }),
+    ).toBe(false);
+    expect(
+      isRawFeed({
+        ...VALID_FEED,
+        claims: [{ ...VALID_FEED.claims[0], status: 'future-unknown-status' }],
+      }),
+    ).toBe(false);
+    expect(
+      isRawFeed({ ...VALID_FEED, backends: [{ name: 'cuda', status: 'runtime-active' }] }),
+    ).toBe(false);
+    expect(
+      isRawFeed({
+        ...VALID_FEED,
+        timing_evidence: [{ ...VALID_FEED.timing_evidence[0], wall_clock_claim_allowed: 'no' }],
+      }),
+    ).toBe(false);
   });
 });
 

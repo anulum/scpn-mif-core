@@ -83,11 +83,17 @@ def test_merge_trigger_notebook_runs_real_public_api_without_outputs() -> None:
 def test_studio_platform_pin_tracks_published_keeper_conformance() -> None:
     pyproject = tomllib.loads(_read("pyproject.toml"))
     committed = _json("docs/_generated/studio_manifest.json")
+    feed = _json("studio-web/public/studio-feed.json")
+    release_notes = _read("studio-web/RELEASE_NOTES.md")
 
     assert pyproject["project"]["optional-dependencies"]["studio"] == [f"scpn-studio-platform{PLATFORM_SDK_RANGE}"]
     assert studio_manifest.PLATFORM_SDK_RANGE == PLATFORM_SDK_RANGE
     assert set(committed) == {"schema_a", "architecture_map"}
     assert committed["schema_a"]["platform_sdk"] == PLATFORM_SDK_RANGE
+    assert feed["feed_schema"] == "studio.mif-feed.v1"
+    assert feed["platform_sdk"] == PLATFORM_SDK_RANGE
+    assert "studio.mif-feed.v1" in release_notes
+    assert PLATFORM_SDK_RANGE in release_notes
 
 
 def test_mkdocs_excludes_internal_workstation_docs() -> None:

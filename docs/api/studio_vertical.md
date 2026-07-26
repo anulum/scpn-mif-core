@@ -115,4 +115,9 @@ The browser side is `studio-web/`, a Vite + Module Federation 2.x remote (federa
 name `scpn_mif_core`, exposing `./MifStudioPanel`). The SCPN Studio Hub loads it at
 runtime and renders MIF's verbs and honesty-graded claims; the panel mirrors the
 Python honesty rule and falls back, fail-closed, to a bundled honesty-graded sample
-when the live feed is unreachable.
+when the live feed is unreachable or violates the complete nested runtime contract.
+The browser feed declares `studio.mif-feed.v1` and the same
+`scpn-studio-platform>=0.11.2,<0.12` generation as the Python manifest; see the
+Studio web release notes in `studio-web/RELEASE_NOTES.md`. A contract smoke runs
+every committed feed claim through the installed SDK consumer so schema and honesty
+enum drift cannot pass the release gate silently.
