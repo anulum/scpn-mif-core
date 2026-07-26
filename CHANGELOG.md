@@ -43,7 +43,7 @@
   6-compatible Module Federation DTS toolchain and retains no obsolete
   release-age exceptions.
 - Grouped the CodeQL action family for atomic Dependabot updates and pinned all
-  CodeQL workflow components to the same v4.37.0 release commit.
+  CodeQL workflow components to the same v4.37.3 release commit.
 - Aligned the `ecosystem` extra with the live canonical sibling distributions:
   `sc-neurocore>=3.16.0`, `scpn-phase-orchestrator>=1.0.0`,
   `scpn-control>=0.23.0`, `scpn-fusion>=4.0.0`, and
