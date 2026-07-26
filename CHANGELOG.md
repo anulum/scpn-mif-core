@@ -53,6 +53,9 @@
 
 ### Fixed
 
+- Restored the 100% branch-coverage contract for the sealed formal-claim,
+  private-ledger receipt, formal-manifest, and Studio proof-claim tooling, and
+  refreshed the generated capability and FAIR validation surfaces.
 - Reframed the security threat model around MIF-owned merge, bank, DAQ, AER,
   and formal-input surfaces, with explicit FUSION/CONTROL ownership boundaries.
 - Corrected the Go Dependabot directory to the repository-root `go.mod` and

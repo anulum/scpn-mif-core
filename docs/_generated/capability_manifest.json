@@ -552,7 +552,7 @@
     "python_capability_classes": 93,
     "python_capability_source_modules": 26,
     "rust_workspace_crates": 10,
-    "test_files": 114
+    "test_files": 116
   },
   "documentation": {
     "public_pages": [
@@ -886,6 +886,7 @@
       "tests/contract/test_neurocore_emit_sv_contract.py",
       "tests/contract/test_phase_orch_kuramoto_contract.py",
       "tests/contract/test_quantum_qaoa_mpc_contract.py",
+      "tests/contract/test_studio_feed_sdk_contract.py",
       "tests/integration/__init__.py",
       "tests/integration/test_examples.py",
       "tests/integration/test_fusion_coupled_merge_trigger.py",
@@ -968,6 +969,7 @@
       "tests/unit/test_dispatch.py",
       "tests/unit/test_dysco_documentation.py",
       "tests/unit/test_ecosystem_dynamic_matrix.py",
+      "tests/unit/test_emit_studio_formal_claim.py",
       "tests/unit/test_emit_studio_manifest.py",
       "tests/unit/test_evidence.py",
       "tests/unit/test_fair_validation_bundle.py",

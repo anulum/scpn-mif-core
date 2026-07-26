@@ -160,6 +160,29 @@ def test_dependency_path_escape_fails_closed(tmp_path: Path) -> None:
         build_formal_proof_sealed_claim(task, **kwargs)
 
 
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (lambda task, kwargs: kwargs.update(checker=""), "checker must be non-empty"),
+        (lambda task, kwargs: task.update(mode="simulate"), "mode must be 'prove' or 'cover'"),
+        (lambda task, kwargs: task.update(depends_on=[]), "depends_on must be a non-empty list"),
+        (
+            lambda task, kwargs: task.update(sby="hdl/formal/safety/absent.sby"),
+            "must appear in depends_on",
+        ),
+    ],
+)
+def test_core_claim_inputs_fail_closed(
+    tmp_path: Path,
+    mutation: Callable[[dict[str, Any], dict[str, Any]], None],
+    message: str,
+) -> None:
+    task, kwargs = _fixture(tmp_path)
+    mutation(task, kwargs)
+    with pytest.raises(ValueError, match=message):
+        build_formal_proof_sealed_claim(task, **kwargs)
+
+
 def test_committed_claim_is_float_free_and_bound_to_live_inputs() -> None:
     repo_root = Path(__file__).resolve().parents[2]
     artifact_path = repo_root / "docs/_generated/studio_formal_proof_claim.json"

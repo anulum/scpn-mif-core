@@ -459,7 +459,7 @@ and the hardware trigger chain are still gated (see the items above).
 | Synthesisable HDL RTL modules | 4 |
 | Capability documentation pages | 60 |
 | Optional extras | 7 |
-| Python test files | 114 |
+| Python test files | 116 |
 | Public documentation pages | 60 |
 | GitHub Actions workflows | 18 |
 

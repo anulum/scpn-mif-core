@@ -14,9 +14,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
 
+import pytest
+
 from tools.validate_claim_evidence_ledger import (
     LedgerFinding,
     main,
+    parse_utc_timestamp,
     validate_ledger_document,
     validate_ledger_path,
 )
@@ -302,6 +305,41 @@ def test_validate_ledger_path_rejects_materially_future_review(tmp_path: Path) -
 
     assert validate_ledger_path(path, max_age_days=30, now=datetime(2026, 7, 10, tzinfo=UTC)) == (
         LedgerFinding("$", "'updated_utc' is more than five minutes in the future"),
+    )
+
+
+@pytest.mark.parametrize("value", ["2026-07-10T00:00:00", "not-a-dateZ", "2026-07-10T00:00:00.1Z"])
+def test_parse_utc_timestamp_rejects_noncanonical_values(value: str) -> None:
+    assert parse_utc_timestamp(value) is None
+
+
+def test_validate_ledger_path_rejects_invalid_age_arguments(tmp_path: Path) -> None:
+    path = tmp_path / "ledger.json"
+    path.write_text(json.dumps(_ledger()), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="max_age_days must be non-negative"):
+        validate_ledger_path(path, max_age_days=-1)
+    with pytest.raises(ValueError, match="now must be timezone-aware"):
+        validate_ledger_path(path, max_age_days=30, now=datetime(2026, 7, 10))
+
+
+def test_validate_ledger_path_accepts_timezone_aware_fresh_review(tmp_path: Path) -> None:
+    ledger = _ledger()
+    ledger["updated_utc"] = "2026-07-10T00:00:00Z"
+    path = tmp_path / "ledger.json"
+    path.write_text(json.dumps(ledger), encoding="utf-8")
+
+    assert validate_ledger_path(path, max_age_days=30, now=datetime(2026, 7, 10, 1, tzinfo=UTC)) == ()
+
+
+def test_validate_ledger_path_skips_age_math_for_invalid_timestamp(tmp_path: Path) -> None:
+    ledger = _ledger()
+    ledger["updated_utc"] = "invalid"
+    path = tmp_path / "ledger.json"
+    path.write_text(json.dumps(ledger), encoding="utf-8")
+
+    assert validate_ledger_path(path, max_age_days=30) == (
+        LedgerFinding("$", "'updated_utc' must be a second-resolution RFC 3339 UTC timestamp"),
     )
 
 

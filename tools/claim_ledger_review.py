@@ -27,7 +27,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, cast
 
-if not __package__:
+if not __package__:  # pragma: no cover - direct-script import bootstrap
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tools.validate_claim_evidence_ledger import (

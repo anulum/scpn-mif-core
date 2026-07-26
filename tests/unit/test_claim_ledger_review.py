@@ -14,6 +14,7 @@ from pathlib import Path
 
 import pytest
 
+from tools import claim_ledger_review
 from tools.claim_ledger_review import (
     RECEIPT_SCHEMA,
     build_review_receipt,
@@ -98,6 +99,10 @@ def test_validate_receipt_rejects_bad_shape() -> None:
     assert "claim_count must be a non-negative integer" in findings
 
 
+def test_validate_receipt_rejects_non_object_root() -> None:
+    assert validate_review_receipt([]) == ("receipt root must be an object",)
+
+
 def test_validate_receipt_rejects_inconsistent_counts(tmp_path: Path) -> None:
     receipt = build_review_receipt(_ledger(tmp_path), repo=tmp_path)
     receipt["public_claim_count"] = 2
@@ -129,3 +134,106 @@ def test_cli_emit_and_check_round_trip(tmp_path: Path) -> None:
         )
         == 0
     )
+
+
+def test_build_receipt_counts_public_unblocked_claim(tmp_path: Path) -> None:
+    ledger = _ledger(tmp_path)
+    document = json.loads(ledger.read_text(encoding="utf-8"))
+    document["claims"][0].update(
+        current_state="claim_gate_passed",
+        public_claim_allowed=True,
+        blockers=[],
+        evidence=[{"type": "formal_proof", "status": "passed", "reference": "evidence.json"}],
+    )
+    ledger.write_text(json.dumps(document), encoding="utf-8")
+
+    receipt = build_review_receipt(ledger, repo=tmp_path)
+    assert receipt["public_claim_count"] == 1
+    assert receipt["claims_with_blockers_count"] == 0
+
+
+@pytest.mark.parametrize(
+    ("ledger", "message"),
+    [
+        ({"claims": "bad"}, "claims must be a list"),
+        ({"claims": ["bad"]}, "claim must be an object"),
+        (
+            {"claims": [{"public_claim_allowed": False, "blockers": [], "evidence": "bad"}]},
+            "evidence must be a list",
+        ),
+        (
+            {"claims": [{"public_claim_allowed": False, "blockers": [], "evidence": ["bad"]}]},
+            "evidence entry must be an object",
+        ),
+    ],
+)
+def test_build_receipt_defensive_guards(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, ledger: dict[str, object], message: str
+) -> None:
+    path = tmp_path / "ledger.json"
+    path.write_text("{}\n", encoding="utf-8")
+    monkeypatch.setattr(claim_ledger_review, "validate_ledger_path", lambda *args, **kwargs: ())
+    monkeypatch.setattr(claim_ledger_review, "_load_object", lambda unused: ledger)
+    with pytest.raises(ValueError, match=message):
+        build_review_receipt(path, repo=tmp_path)
+
+
+def test_build_receipt_rejects_invalid_generated_receipt(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(claim_ledger_review, "validate_review_receipt", lambda receipt: ("bad",))
+    with pytest.raises(ValueError, match="generated review receipt is invalid: bad"):
+        build_review_receipt(_ledger(tmp_path), repo=tmp_path)
+
+
+def test_load_and_render_reject_non_objects(tmp_path: Path) -> None:
+    path = tmp_path / "array.json"
+    path.write_text("[]\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="expected a JSON object"):
+        claim_ledger_review._load_object(path)
+    with pytest.raises(ValueError, match="invalid review receipt"):
+        render_review_receipt({})
+
+
+def test_validate_receipt_reports_malformed_fields_and_future_time(tmp_path: Path) -> None:
+    receipt = build_review_receipt(_ledger(tmp_path), repo=tmp_path)
+    receipt.update(
+        reviewed_commit="ABC",
+        ledger_sha256="bad",
+        reviewed_utc="bad",
+        claim_count=True,
+    )
+    findings = validate_review_receipt(receipt)
+    assert "reviewed_commit must be a lowercase 40-hex Git commit" in findings
+    assert "ledger_sha256 must be lowercase 64-hex" in findings
+    assert "reviewed_utc must be a second-resolution RFC 3339 UTC timestamp" in findings
+    assert "claim_count must be a non-negative integer" in findings
+
+    receipt = build_review_receipt(_ledger(tmp_path), repo=tmp_path)
+    assert "reviewed_utc is more than five minutes in the future" in validate_review_receipt(
+        receipt, max_age_days=1, now=datetime(2026, 7, 25, 23, 54, tzinfo=UTC)
+    )
+
+
+def test_validate_receipt_rejects_age_configuration(tmp_path: Path) -> None:
+    receipt = build_review_receipt(_ledger(tmp_path), repo=tmp_path)
+    with pytest.raises(ValueError, match="max_age_days must be non-negative"):
+        validate_review_receipt(receipt, max_age_days=-1)
+    with pytest.raises(ValueError, match="now must be timezone-aware"):
+        validate_review_receipt(receipt, max_age_days=1, now=datetime(2026, 7, 26))
+
+
+def test_cli_reports_emit_load_and_validation_errors(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    missing = tmp_path / "missing.json"
+    assert main(["emit", str(missing), str(tmp_path / "out.json"), "--repo", str(tmp_path)]) == 1
+    assert capsys.readouterr().err
+
+    malformed = tmp_path / "malformed.json"
+    malformed.write_text("[]\n", encoding="utf-8")
+    assert main(["check", str(malformed)]) == 1
+    assert "expected a JSON object" in capsys.readouterr().err
+
+    receipt = tmp_path / "receipt.json"
+    receipt.write_text("{}\n", encoding="utf-8")
+    assert main(["check", str(receipt)]) == 1
+    captured = capsys.readouterr().err
+    assert "claim-ledger review receipt invalid" in captured
+    assert "schema must be" in captured

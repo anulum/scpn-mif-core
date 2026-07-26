@@ -106,6 +106,23 @@ def test_check_reports_missing_manifest(tmp_path: Path) -> None:
     assert "missing formal manifest" in errors[0]
 
 
+def test_check_reports_missing_and_stale_catalogue_document(tmp_path: Path) -> None:
+    manifest_path = tmp_path / "formal_manifest.json"
+    manifest_path.write_text("{}\n", encoding="utf-8")
+    catalogue_doc = tmp_path / "formal_property_catalogue.md"
+
+    assert check_manifest(manifest_path=manifest_path, catalogue_doc_path=catalogue_doc) == [
+        "missing formal property catalogue: formal_property_catalogue.md"
+    ]
+
+    manifest = build_manifest()
+    manifest_path.write_text(render(manifest), encoding="utf-8")
+    catalogue_doc.write_text("stale\n", encoding="utf-8")
+    assert check_manifest(manifest_path=manifest_path, catalogue_doc_path=catalogue_doc) == [
+        "stale formal property catalogue: formal_property_catalogue.md — run `python tools/formal_manifest.py`"
+    ]
+
+
 def test_catalogue_validation_fails_closed(tmp_path: Path) -> None:
     path = tmp_path / "property_catalogue.json"
     with pytest.raises(ValueError, match="missing formal property catalogue"):
@@ -141,11 +158,45 @@ def test_catalogue_validation_fails_closed(tmp_path: Path) -> None:
             },
             "invalid kind",
         ),
+        (
+            {
+                "schema_version": "1.0.0",
+                "tasks": {
+                    "demo": {
+                        "depth_rationale": "why",
+                        "properties": [
+                            {"id": "duplicate", "kind": "assertion", "statement": "one"},
+                            {"id": "duplicate", "kind": "assertion", "statement": "two"},
+                        ],
+                    }
+                },
+            },
+            "duplicate or invalid property id",
+        ),
+        (
+            {
+                "schema_version": "1.0.0",
+                "tasks": {
+                    "demo": {
+                        "depth_rationale": "why",
+                        "properties": [{"id": "demo", "kind": "assertion", "statement": ""}],
+                    }
+                },
+            },
+            "has no statement",
+        ),
     ]
     for document, match in invalid_catalogues:
         path.write_text(json.dumps(document), encoding="utf-8")
         with pytest.raises(ValueError, match=match):
             formal_manifest._load_catalogue(path, {"demo"})
+
+
+def test_parse_sby_requires_mode_and_depth(tmp_path: Path) -> None:
+    path = tmp_path / "bad.sby"
+    path.write_text("[options]\nmode prove\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="must declare mode and depth"):
+        formal_manifest._parse_sby(path)
 
 
 def test_catalogue_mode_mismatch_fails_closed(tmp_path: Path) -> None:
