@@ -15,13 +15,15 @@ sibling's live source version but does not assert it against those floors; this
 gate closes that gap.
 
 For every current-gate sibling in :data:`scpn_mif_core.ecosystem.SIBLINGS` it
-joins the declared floor to the sibling's live ``pyproject.toml`` version and
-classifies the pair. A current-gate sibling that is present but below its floor,
-a current-gate sibling with no declared floor, or a declared floor naming a
-package that is not a known sibling are violations. A sibling repository that is
-simply absent (e.g. when MIF is checked out alone) is reported as not-checkable
-here, not a violation — the gate runs where the sibling tree exists (the same
-place the compatibility matrix is generated), not in MIF-only CI.
+joins the declared floor to the sibling's live ``pyproject.toml`` distribution
+name and version, then classifies the pair. A current-gate sibling that is
+present but below its floor, a declared distribution name that differs from the
+live sibling metadata, a current-gate sibling with no declared floor, or a
+declared floor naming a package that is not a known sibling are violations. A
+sibling repository that is simply absent (e.g. when MIF is checked out alone) is
+reported as not-checkable here, not a violation — the gate runs where the
+sibling tree exists (the same place the compatibility matrix is generated), not
+in MIF-only CI.
 
 Version comparison is a plain dotted-integer tuple compare; the floors and live
 versions in this ecosystem are simple ``X.Y.Z`` releases. Anything that is not a
@@ -49,11 +51,14 @@ STATUS_BELOW_FLOOR = "below_floor"
 STATUS_SIBLING_ABSENT = "sibling_absent"
 STATUS_NO_DECLARED_FLOOR = "no_declared_floor"
 STATUS_VERSION_UNREADABLE = "version_unreadable"
+STATUS_DISTRIBUTION_MISMATCH = "distribution_mismatch"
 STATUS_ORPHAN_FLOOR = "orphan_floor"
 
 # Statuses that fail the gate. An absent sibling or an unreadable version is not a
 # violation: the gate cannot judge a tree that is not here.
-_VIOLATION_STATUSES = frozenset({STATUS_BELOW_FLOOR, STATUS_NO_DECLARED_FLOOR, STATUS_ORPHAN_FLOOR})
+_VIOLATION_STATUSES = frozenset(
+    {STATUS_BELOW_FLOOR, STATUS_DISTRIBUTION_MISMATCH, STATUS_NO_DECLARED_FLOOR, STATUS_ORPHAN_FLOOR}
+)
 
 
 @dataclass(frozen=True)
@@ -108,14 +113,23 @@ def meets_floor(live_version: str, floor_version: str) -> bool:
     return live >= floor
 
 
-def _sibling_source_version(repo_path: Path) -> str | None:
+def _normalise_distribution_name(name: str) -> str:
+    """Return the PEP 503 comparison form for a distribution name."""
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def _sibling_source_metadata(repo_path: Path) -> tuple[str, str] | None:
     pyproject = repo_path / "pyproject.toml"
     if not pyproject.exists():
         return None
     with pyproject.open("rb") as handle:
         data = tomllib.load(handle)
-    version = data.get("project", {}).get("version")
-    return version if isinstance(version, str) else None
+    project = data.get("project", {})
+    name = project.get("name")
+    version = project.get("version")
+    if not isinstance(name, str) or not isinstance(version, str):
+        return None
+    return name, version
 
 
 def verify_floors(
@@ -154,8 +168,8 @@ def verify_floors(
                 )
             )
             continue
-        live = _sibling_source_version(repo_path)
-        if live is None:
+        metadata = _sibling_source_metadata(repo_path)
+        if metadata is None:
             results.append(
                 FloorResult(
                     spec.package,
@@ -164,6 +178,19 @@ def verify_floors(
                     None,
                     STATUS_VERSION_UNREADABLE,
                     "sibling pyproject has no readable project.version",
+                )
+            )
+            continue
+        live_package, live = metadata
+        if _normalise_distribution_name(live_package) != _normalise_distribution_name(spec.package):
+            results.append(
+                FloorResult(
+                    spec.package,
+                    spec.current_gate,
+                    floor,
+                    live,
+                    STATUS_DISTRIBUTION_MISMATCH,
+                    f"declared package {spec.package!r} does not match sibling project.name {live_package!r}",
                 )
             )
             continue

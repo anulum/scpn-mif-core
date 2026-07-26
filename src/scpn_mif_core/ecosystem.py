@@ -144,7 +144,7 @@ class EcosystemReport:
 SIBLINGS: tuple[SiblingSpec, ...] = (
     SiblingSpec(
         key="sc-neurocore-engine",
-        package="sc-neurocore-engine",
+        package="sc-neurocore",
         module="sc_neurocore",
         repo_dir="SC-NEUROCORE",
         role="SNN to SystemVerilog, Q8.8 ingress, AER HDL, UltraScale+ target contract",
@@ -224,7 +224,7 @@ SIBLINGS: tuple[SiblingSpec, ...] = (
     ),
     SiblingSpec(
         key="scpn-fusion-core",
-        package="scpn-fusion-core",
+        package="scpn-fusion",
         module="scpn_fusion",
         repo_dir="SCPN-FUSION-CORE",
         role="Canonical FRC physics solver laboratory consumed by MIF",

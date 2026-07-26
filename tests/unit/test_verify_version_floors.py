@@ -17,6 +17,7 @@ from scpn_mif_core.ecosystem import SIBLINGS
 from tools import verify_version_floors
 from tools.verify_version_floors import (
     STATUS_BELOW_FLOOR,
+    STATUS_DISTRIBUTION_MISMATCH,
     STATUS_NO_DECLARED_FLOOR,
     STATUS_ORPHAN_FLOOR,
     STATUS_SATISFIED,
@@ -42,10 +43,18 @@ def _write_pyproject_floors(path: Path, floors: dict[str, str]) -> Path:
     return path
 
 
-def _write_sibling(code_root: Path, package: str, version: str | None) -> None:
+def _write_sibling(
+    code_root: Path,
+    package: str,
+    version: str | None,
+    *,
+    project_name: str | None = None,
+) -> None:
     repo = code_root / _REPO_DIR[package]
     repo.mkdir(parents=True, exist_ok=True)
-    body = '[project]\nname = "x"\n' + (f'version = "{version}"\n' if version is not None else "")
+    body = f'[project]\nname = "{project_name or package}"\n' + (
+        f'version = "{version}"\n' if version is not None else ""
+    )
     (repo / "pyproject.toml").write_text(body, encoding="utf-8")
 
 
@@ -54,8 +63,11 @@ def _write_sibling(code_root: Path, package: str, version: str | None) -> None:
 # --------------------------------------------------------------------------- #
 def test_parse_declared_floors_reads_committed_pyproject() -> None:
     floors = parse_declared_floors()
-    assert floors["sc-neurocore-engine"] == "3.15.25"
-    assert floors["scpn-fusion-core"] == "3.9.10"
+    assert floors["sc-neurocore"] == "3.16.0"
+    assert floors["scpn-phase-orchestrator"] == "1.0.0"
+    assert floors["scpn-control"] == "0.23.0"
+    assert floors["scpn-fusion"] == "4.0.0"
+    assert floors["scpn-quantum-control"] == "1.0.0"
     assert set(floors) == {spec.package for spec in SIBLINGS}
 
 
@@ -109,26 +121,26 @@ def test_all_floor_present_statuses(tmp_path: Path) -> None:
     # fusion repo present but with NO pyproject (unreadable); quantum floor present
     # but pyproject has no version key (also unreadable); plus an orphan floor.
     floors = {
-        "sc-neurocore-engine": "3.15.0",
+        "sc-neurocore": "3.15.0",
         "scpn-phase-orchestrator": "0.9.0",
         "scpn-control": "0.20.0",
-        "scpn-fusion-core": "3.9.10",
+        "scpn-fusion": "3.9.10",
         "scpn-quantum-control": "0.9.0",
         "extra-orphan-pkg": "1.0.0",
     }
     pyproject = _write_pyproject_floors(tmp_path / "pyproject.toml", floors)
-    _write_sibling(code_root, "sc-neurocore-engine", "3.15.34")
+    _write_sibling(code_root, "sc-neurocore", "3.15.34")
     _write_sibling(code_root, "scpn-phase-orchestrator", "0.8.0")
-    (code_root / _REPO_DIR["scpn-fusion-core"]).mkdir(parents=True)  # repo dir, no pyproject
+    (code_root / _REPO_DIR["scpn-fusion"]).mkdir(parents=True)  # repo dir, no pyproject
     _write_sibling(code_root, "scpn-quantum-control", None)  # pyproject present, no version
 
     results = verify_floors(code_root=code_root, pyproject_path=pyproject)
     by_package = {r.package: r for r in results}
 
-    assert by_package["sc-neurocore-engine"].status == STATUS_SATISFIED
+    assert by_package["sc-neurocore"].status == STATUS_SATISFIED
     assert by_package["scpn-phase-orchestrator"].status == STATUS_BELOW_FLOOR
     assert by_package["scpn-control"].status == STATUS_SIBLING_ABSENT
-    assert by_package["scpn-fusion-core"].status == STATUS_VERSION_UNREADABLE
+    assert by_package["scpn-fusion"].status == STATUS_VERSION_UNREADABLE
     assert by_package["scpn-quantum-control"].status == STATUS_VERSION_UNREADABLE
     assert by_package["extra-orphan-pkg"].status == STATUS_ORPHAN_FLOOR
 
@@ -140,10 +152,10 @@ def test_deferred_sibling_without_floor_is_absent_not_violation(tmp_path: Path) 
     # quantum is the only deferred sibling; with no floor it is reported absent.
     assert _CURRENT_GATE["scpn-quantum-control"] is False
     floors = {
-        "sc-neurocore-engine": "3.15.0",
+        "sc-neurocore": "3.15.0",
         "scpn-phase-orchestrator": "0.8.0",
         "scpn-control": "0.20.0",
-        "scpn-fusion-core": "3.9.10",
+        "scpn-fusion": "3.9.10",
     }
     pyproject = _write_pyproject_floors(tmp_path / "pyproject.toml", floors)
     results = verify_floors(code_root=tmp_path / "absent", pyproject_path=pyproject)
@@ -155,15 +167,15 @@ def test_deferred_sibling_without_floor_is_absent_not_violation(tmp_path: Path) 
 
 def test_current_gate_sibling_without_floor_is_violation(tmp_path: Path) -> None:
     # Omit a current-gate sibling's floor entirely.
-    assert _CURRENT_GATE["sc-neurocore-engine"] is True
+    assert _CURRENT_GATE["sc-neurocore"] is True
     floors = {
         "scpn-phase-orchestrator": "0.8.0",
         "scpn-control": "0.20.0",
-        "scpn-fusion-core": "3.9.10",
+        "scpn-fusion": "3.9.10",
     }
     pyproject = _write_pyproject_floors(tmp_path / "pyproject.toml", floors)
     results = verify_floors(code_root=tmp_path / "absent", pyproject_path=pyproject)
-    neurocore = next(r for r in results if r.package == "sc-neurocore-engine")
+    neurocore = next(r for r in results if r.package == "sc-neurocore")
     assert neurocore.status == STATUS_NO_DECLARED_FLOOR
     assert neurocore.is_violation is True
 
@@ -179,6 +191,19 @@ def test_floor_result_is_violation_flag() -> None:
     assert good.is_violation is False
     assert absent.is_violation is False
     assert violations([bad, good, absent]) == [bad]
+
+
+def test_distribution_name_mismatch_is_a_violation(tmp_path: Path) -> None:
+    floors = {spec.package: "1.0.0" for spec in SIBLINGS}
+    pyproject = _write_pyproject_floors(tmp_path / "pyproject.toml", floors)
+    _write_sibling(tmp_path / "code", "sc-neurocore", "3.16.0", project_name="retired-neurocore-name")
+
+    results = verify_floors(code_root=tmp_path / "code", pyproject_path=pyproject)
+    neurocore = next(result for result in results if result.package == "sc-neurocore")
+
+    assert neurocore.status == STATUS_DISTRIBUTION_MISMATCH
+    assert neurocore.is_violation is True
+    assert "retired-neurocore-name" in neurocore.detail
 
 
 # --------------------------------------------------------------------------- #

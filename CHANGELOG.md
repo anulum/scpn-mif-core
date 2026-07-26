@@ -10,6 +10,14 @@
 
 ## Unreleased
 
+### Changed
+
+- Aligned the `ecosystem` extra with the live canonical sibling distributions:
+  `sc-neurocore>=3.16.0`, `scpn-phase-orchestrator>=1.0.0`,
+  `scpn-control>=0.23.0`, `scpn-fusion>=4.0.0`, and
+  `scpn-quantum-control>=1.0.0`. The floor gate now also rejects a declared
+  distribution name that differs from the sibling's `project.name` metadata.
+
 ## [0.1.1] - 2026-07-03
 
 ### Added

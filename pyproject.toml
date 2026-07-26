@@ -63,11 +63,11 @@ Changelog = "https://github.com/anulum/scpn-mif-core/blob/main/CHANGELOG.md"
 # Sibling-repository install floor. The generated compatibility matrix is the
 # source of truth for live sibling readiness and blocker status.
 ecosystem = [
-    "sc-neurocore-engine>=3.15.25",
-    "scpn-phase-orchestrator>=0.8.0",
-    "scpn-control>=0.20.7",
-    "scpn-fusion-core>=3.9.10",
-    "scpn-quantum-control>=0.9.11",
+    "sc-neurocore>=3.16.0",
+    "scpn-phase-orchestrator>=1.0.0",
+    "scpn-control>=0.23.0",
+    "scpn-fusion>=4.0.0",
+    "scpn-quantum-control>=1.0.0",
 ]
 dev = [
     "ruff==0.15.20",

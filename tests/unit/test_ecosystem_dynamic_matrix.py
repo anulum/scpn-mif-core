@@ -62,7 +62,7 @@ def test_dynamic_ecosystem_report_reads_versions_and_surfaces(tmp_path: Path) ->
     json_text = compatibility_report_json(report)
 
     assert "Static equality pins are not the compatibility authority." in markdown
-    assert "`scpn-fusion-core` | `3.9.10`" in markdown
+    assert "`scpn-fusion` | `3.9.10`" in markdown
     assert '"generated_at_utc": "2026-06-14T00:00:00+00:00"' in json_text
 
 
@@ -83,7 +83,7 @@ def _write_init(repo: Path, package: str, version: str) -> Path:
 
 def _write_fake_neurocore(root: Path) -> None:
     repo = root / "SC-NEUROCORE"
-    _write_pyproject(repo, "sc-neurocore-engine", "3.15.25")
+    _write_pyproject(repo, "sc-neurocore", "3.15.25")
     _write_init(repo, "sc_neurocore", "3.15.25")
     hardware = repo / "docs" / "hardware"
     hardware.mkdir(parents=True, exist_ok=True)
@@ -127,7 +127,7 @@ def _write_fake_control(root: Path) -> None:
 
 def _write_fake_fusion(root: Path) -> None:
     repo = root / "SCPN-FUSION-CORE"
-    _write_pyproject(repo, "scpn-fusion-core", "3.9.10")
+    _write_pyproject(repo, "scpn-fusion", "3.9.10")
     _write_init(repo, "scpn_fusion", "3.9.10")
     repo.joinpath("src/scpn_fusion/core.py").write_text(
         "\n".join(
@@ -281,7 +281,7 @@ def test_control_module_import_error_blocks_runtime(tmp_path: Path) -> None:
 
 def test_fusion_contract_missing_symbols_blocks_surface(tmp_path: Path) -> None:
     repo = tmp_path / "SCPN-FUSION-CORE"
-    _write_pyproject(repo, "scpn-fusion-core", "3.9.10")
+    _write_pyproject(repo, "scpn-fusion", "3.9.10")
     _write_init(repo, "scpn_fusion", "3.9.10")
     repo.joinpath("src/scpn_fusion/core.py").write_text("# no FUS-C symbols\n", encoding="utf-8")
     row = generate_ecosystem_report(tmp_path).require("scpn-fusion-core")
@@ -489,7 +489,7 @@ def test_fusion_non_json_output_blocks_runtime(tmp_path: Path, monkeypatch: pyte
 
 def test_fusion_contract_ready_without_blockers_is_ready(tmp_path: Path) -> None:
     repo = tmp_path / "SCPN-FUSION-CORE"
-    _write_pyproject(repo, "scpn-fusion-core", "3.9.10")
+    _write_pyproject(repo, "scpn-fusion", "3.9.10")
     _write_init(repo, "scpn_fusion", "3.9.10")
     repo.joinpath("src/scpn_fusion/core.py").write_text(
         "\n".join(
