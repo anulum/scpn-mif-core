@@ -10,8 +10,8 @@ encoding before a long-running daemon is introduced.
 ## Layout
 
 ```
+go.mod                        module: github.com/anulum/scpn-mif-core/go
 go/
-├── go.mod                    (root: github.com/anulum/scpn-mif-core/go)
 ├── services/                 long-running daemons
 │   ├── telemetry_daemon/
 │   ├── aer_router_glue/

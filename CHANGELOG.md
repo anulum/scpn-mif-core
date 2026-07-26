@@ -22,11 +22,25 @@
 
 ### Changed
 
+- Consolidated the open patch/minor dependency backlog across Rust, Python,
+  Studio web, and GitHub Actions. The Studio graph now uses a TypeScript
+  6-compatible Module Federation DTS toolchain and retains no obsolete
+  release-age exceptions.
+- Grouped the CodeQL action family for atomic Dependabot updates and pinned all
+  CodeQL workflow components to the same v4.37.0 release commit.
 - Aligned the `ecosystem` extra with the live canonical sibling distributions:
   `sc-neurocore>=3.16.0`, `scpn-phase-orchestrator>=1.0.0`,
   `scpn-control>=0.23.0`, `scpn-fusion>=4.0.0`, and
   `scpn-quantum-control>=1.0.0`. The floor gate now also rejects a declared
   distribution name that differs from the sibling's `project.name` metadata.
+
+### Fixed
+
+- Corrected the Go Dependabot directory to the repository-root `go.mod` and
+  aligned the Go layout documentation with that module location.
+- Replaced fragile preinstalled-toolchain detection in Python-extension and
+  benchmark jobs with the pinned Rust toolchain installer used by the Rust CI
+  job, preventing unusable hosted-runner toolchains from bypassing setup.
 
 ## [0.1.1] - 2026-07-03
 
