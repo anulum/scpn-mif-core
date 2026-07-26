@@ -232,10 +232,17 @@ describe('isRawFeed', () => {
   it('rejects non-objects, null, and missing collections', () => {
     expect(isRawFeed(42)).toBe(false);
     expect(isRawFeed(null)).toBe(false);
-    expect(isRawFeed({ verbs: 'nope', claims: [] })).toBe(false);
-    expect(isRawFeed({ verbs: [], claims: 'nope' })).toBe(false);
-    expect(isRawFeed({ verbs: [], claims: [], backends: 'nope' })).toBe(false);
-    expect(isRawFeed({ verbs: [], claims: [], timing_evidence: 'nope' })).toBe(false);
+    expect(isRawFeed([])).toBe(false);
+    expect(isRawFeed({ ...VALID_FEED, verbs: 'nope' })).toBe(false);
+    expect(isRawFeed({ ...VALID_FEED, claims: 'nope' })).toBe(false);
+    expect(isRawFeed({ ...VALID_FEED, backends: 'nope' })).toBe(false);
+    expect(isRawFeed({ ...VALID_FEED, timing_evidence: 'nope' })).toBe(false);
+  });
+
+  it('accepts the additive collections when omitted', () => {
+    expect(isRawFeed({ ...VALID_FEED, backends: undefined, timing_evidence: undefined })).toBe(
+      true,
+    );
   });
 
   it('rejects drift in the schema identity and platform SDK generation', () => {
@@ -243,30 +250,69 @@ describe('isRawFeed', () => {
     expect(isRawFeed({ ...VALID_FEED, studio: 'another-studio' })).toBe(false);
     expect(isRawFeed({ ...VALID_FEED, platform_sdk: '>=0.12,<0.13' })).toBe(false);
     expect(isRawFeed({ ...VALID_FEED, studio_version: '' })).toBe(false);
+    expect(isRawFeed({ ...VALID_FEED, content_digest: '' })).toBe(false);
   });
 
   it('rejects malformed nested records instead of trusting their array containers', () => {
-    expect(
-      isRawFeed({
-        ...VALID_FEED,
-        verbs: [{ ...VALID_FEED.verbs[0], safety_tier: 'unrestricted' }],
-      }),
-    ).toBe(false);
-    expect(
-      isRawFeed({
-        ...VALID_FEED,
-        claims: [{ ...VALID_FEED.claims[0], status: 'future-unknown-status' }],
-      }),
-    ).toBe(false);
-    expect(
-      isRawFeed({ ...VALID_FEED, backends: [{ name: 'cuda', status: 'runtime-active' }] }),
-    ).toBe(false);
-    expect(
-      isRawFeed({
-        ...VALID_FEED,
-        timing_evidence: [{ ...VALID_FEED.timing_evidence[0], wall_clock_claim_allowed: 'no' }],
-      }),
-    ).toBe(false);
+    const verb = VALID_FEED.verbs[0];
+    const claim = VALID_FEED.claims[1];
+    const certificate = VALID_FEED.claims[0].certificate;
+    const backend = VALID_FEED.backends[0];
+    const timing = VALID_FEED.timing_evidence[0];
+    const invalidVerbs: readonly unknown[] = [
+      null,
+      { ...verb, name: '' },
+      { ...verb, safety_tier: 'unrestricted' },
+      { ...verb, side_effect: 'unrestricted' },
+      { ...verb, timing_class: 'instant' },
+      { ...verb, deadline_us: '50' },
+      { ...verb, deadline_us: Number.POSITIVE_INFINITY },
+      { ...verb, deadline_us: 0 },
+      { ...verb, domain_distinctive: 'yes' },
+    ];
+    const invalidClaims: readonly unknown[] = [
+      null,
+      { ...claim, schema: '' },
+      { ...claim, status: 'future-unknown-status' },
+      { ...claim, admission: 'maybe' },
+      { ...claim, kind: 'unknown-kind' },
+      { ...claim, exactness: 'approximate' },
+      { ...claim, substrate: 'browser' },
+      { ...claim, evidence_badge: 'cosim:unknown' },
+      { ...claim, hardware_gate: 'hil:claimed' },
+      { ...claim, freshness: 'future' },
+      { ...claim, certificate: null },
+      { ...claim, certificate: { ...certificate, checker: '' } },
+      { ...claim, certificate: { ...certificate, theorem: '' } },
+      { ...claim, certificate: { ...certificate, non_vacuous: 'yes' } },
+    ];
+    const invalidBackends: readonly unknown[] = [
+      null,
+      { ...backend, name: 'cuda' },
+      { ...backend, status: 'unknown' },
+    ];
+    const invalidTiming: readonly unknown[] = [
+      null,
+      { ...timing, id: '' },
+      { ...timing, badge: 'timing:unknown' },
+      { ...timing, status: 'unknown' },
+      { ...timing, claim_unit: 'seconds' },
+      { ...timing, wall_clock_claim_allowed: 'no' },
+      { ...timing, summary: '' },
+    ];
+
+    for (const candidate of invalidVerbs) {
+      expect(isRawFeed({ ...VALID_FEED, verbs: [candidate] })).toBe(false);
+    }
+    for (const candidate of invalidClaims) {
+      expect(isRawFeed({ ...VALID_FEED, claims: [candidate] })).toBe(false);
+    }
+    for (const candidate of invalidBackends) {
+      expect(isRawFeed({ ...VALID_FEED, backends: [candidate] })).toBe(false);
+    }
+    for (const candidate of invalidTiming) {
+      expect(isRawFeed({ ...VALID_FEED, timing_evidence: [candidate] })).toBe(false);
+    }
   });
 });
 

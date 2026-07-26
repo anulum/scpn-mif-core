@@ -10,7 +10,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import MifStudioPanel from '../src/MifStudioPanel.js';
-import type { Backend, ClaimSummary, MifVerb } from '../src/domain.js';
+import type { Backend, ClaimSummary, MifVerb, TimingEvidenceSummary } from '../src/domain.js';
 
 describe('MifStudioPanel', () => {
   it('renders the studio header', () => {
@@ -156,6 +156,23 @@ describe('MifStudioPanel', () => {
     expect(rows[1]).toHaveTextContent('timing:post-route-hardware-gated');
     expect(rows[2]).toHaveAttribute('data-status', 'blocked');
     expect(rows[2]).toHaveTextContent('timing:e2e-hil-hardware-gated');
+  });
+
+  it('renders an admitted wall-clock timing claim explicitly', () => {
+    const timingEvidence: readonly TimingEvidenceSummary[] = [
+      {
+        id: 'post_route_timing',
+        badge: 'timing:post-route-hardware-gated',
+        status: 'passed',
+        claimUnit: 'nanoseconds',
+        wallClockClaimAllowed: true,
+        summary: 'Named-device evidence supplied.',
+      },
+    ];
+    const { container } = render(<MifStudioPanel timingEvidence={timingEvidence} />);
+    const row = container.querySelector('.mif-studio__timing-evidence tbody tr');
+    expect(row).toHaveAttribute('data-wall-clock-claim', 'yes');
+    expect(row).toHaveTextContent('allowed');
   });
 
   it('shows a non-vacuous formal certificate without the vacuous tag', () => {
