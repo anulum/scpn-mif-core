@@ -22,6 +22,10 @@
 
 ### Changed
 
+- Split ecosystem compatibility rendering into `symbols_present`,
+  `integration_gated`, and `evidence_blocked` states, preserving the legacy
+  summary only for API compatibility. Delivered-but-deferred QUANTUM surfaces
+  now render explicitly as present and integration-gated.
 - Replaced raw assertion-token totals as the public HDL proof inventory with
   stable named semantic properties, and published the k-induction or bounded-
   cover depth rationale for every SymbiYosys task. Raw counts remain CI hygiene;

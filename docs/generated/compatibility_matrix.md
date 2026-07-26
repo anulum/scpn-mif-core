@@ -12,17 +12,17 @@ This file is generated from the live sibling repository check. It records
 source versions, optional runtime import status, and the contract surfaces
 that MIF consumes. Static equality pins are not the compatibility authority.
 
-- Generated UTC: `2026-07-26T00:41:14+00:00`
+- Generated UTC: `2026-07-26T04:36:10+00:00`
 - Code root: `/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE`
 - Regenerate: `python tools/generate_compatibility_matrix.py`
 
-| Sibling | Source | Runtime | Status | Current gate | Lane |
-|---|---:|---:|---|---|---|
-| `sc-neurocore` | `3.16.0` | `3.16.0` | `ready_with_hardware_gate` | yes | NEU-C.5 / MIF-007 hardware ingress |
-| `scpn-phase-orchestrator` | `1.0.0` | `1.0.0` | `ready` | yes | PHA-C / MIF-001..MIF-003 |
-| `scpn-control` | `0.23.0` | `0.23.0` | `ready` | yes | CON-C / MIF-004, MIF-005, MIF-012, MIF-018 |
-| `scpn-fusion` | `4.0.0` | `4.0.0` | `ready_with_external_blockers` | yes | FUS-C / B-lane FRC solver ownership |
-| `scpn-quantum-control` | `1.0.0` | `1.0.0` | `deferred_not_required_for_current_gate` | deferred | QUA-C deferred for current MIF gate |
+| Sibling | Source | Runtime | Symbols present | Integration gated | Evidence blocked | Lane |
+|---|---:|---:|---|---|---|---|
+| `sc-neurocore` | `3.16.0` | `3.16.0` | yes | no | yes | NEU-C.5 / MIF-007 hardware ingress |
+| `scpn-phase-orchestrator` | `1.0.0` | `1.0.0` | yes | no | no | PHA-C / MIF-001..MIF-003 |
+| `scpn-control` | `0.23.0` | `0.0.0.dev` | yes | no | no | CON-C / MIF-004, MIF-005, MIF-012, MIF-018 |
+| `scpn-fusion` | `4.0.0` | `4.0.0` | yes | no | yes | FUS-C / B-lane FRC solver ownership |
+| `scpn-quantum-control` | `1.0.0` | `0.9.6` | yes | yes | no | QUA-C deferred for current MIF gate |
 
 ## Surface Details
 
@@ -31,6 +31,8 @@ that MIF consumes. Static equality pins are not the compatibility authority.
 - Role: SNN to SystemVerilog, Q8.8 ingress, AER HDL, UltraScale+ target contract
 - Repository: `/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SC-NEUROCORE`
 - Import: `ok` — imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SC-NEUROCORE/src/sc_neurocore/__init__.py
+- Legacy summary: `ready_with_hardware_gate`
+- Compatibility state: symbols present = `yes`; integration gated = `no`; evidence blocked = `yes`
 
 | Surface | Status | Detail |
 |---|---|---|
@@ -45,6 +47,8 @@ Notes:
 - Role: Kuramoto, Doppler, moving-frame UPDE, merge-window monitor
 - Repository: `/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR`
 - Import: `ok` — imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR/src/scpn_phase_orchestrator/__init__.py
+- Legacy summary: `ready`
+- Compatibility state: symbols present = `yes`; integration gated = `no`; evidence blocked = `no`
 
 | Surface | Status | Detail |
 |---|---|---|
@@ -60,6 +64,8 @@ Notes:
 - Role: Pulsed-shot lifecycle, Petri-net runtime, capacitor bank, replay
 - Repository: `/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-CONTROL`
 - Import: `ok` — imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-CONTROL/src/scpn_control/__init__.py
+- Legacy summary: `ready`
+- Compatibility state: symbols present = `yes`; integration gated = `no`; evidence blocked = `no`
 
 | Surface | Status | Detail |
 |---|---|---|
@@ -67,12 +73,15 @@ Notes:
 
 Notes:
 - SCPN-CONTROL claims the pulsed-control lane completed at its current source version.
+- Runtime package metadata reports 0.0.0.dev; sibling source declares 0.23.0.
 
 ### `scpn-fusion`
 
 - Role: Canonical FRC physics solver laboratory consumed by MIF
 - Repository: `/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-FUSION-CORE`
 - Import: `ok` — imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-FUSION-CORE/src/scpn_fusion/__init__.py
+- Legacy summary: `ready_with_external_blockers`
+- Compatibility state: symbols present = `yes`; integration gated = `no`; evidence blocked = `yes`
 
 | Surface | Status | Detail |
 |---|---|---|
@@ -86,6 +95,8 @@ Notes:
 - Role: QAOA-MPC and future MIF-specific quantum-control bridge
 - Repository: `/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-QUANTUM-CONTROL`
 - Import: `ok` — imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-QUANTUM-CONTROL/src/scpn_quantum_control/__init__.py
+- Legacy summary: `deferred_not_required_for_current_gate`
+- Compatibility state: symbols present = `yes`; integration gated = `yes`; evidence blocked = `no`
 
 | Surface | Status | Detail |
 |---|---|---|
@@ -94,3 +105,4 @@ Notes:
 
 Notes:
 - MIF-lane crypto, entropy, QAOA-cost and HLS surfaces are owned by and delivered in scpn-quantum-control; MIF consumes them as its release gate advances.
+- Runtime package metadata reports 0.9.6; sibling source declares 1.0.0.

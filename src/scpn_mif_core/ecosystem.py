@@ -93,6 +93,28 @@ class SiblingReport:
         """Return required surfaces that were not found."""
         return tuple(surface for surface in self.surfaces if surface.status != STATUS_READY)
 
+    @property
+    def symbols_present(self) -> bool:
+        """Whether every prescribed source surface is present.
+
+        This is deliberately independent of integration scheduling and evidence
+        gates: a deferred sibling can have every symbol MIF expects.
+        """
+        present_statuses = {STATUS_READY, STATUS_READY_WITH_BLOCKERS, STATUS_READY_WITH_HARDWARE_GATE}
+        return bool(self.surfaces) and all(surface.status in present_statuses for surface in self.surfaces)
+
+    @property
+    def integration_gated(self) -> bool:
+        """Whether MIF integration is deferred or blocked despite source state."""
+        blocking_statuses = {STATUS_BLOCKED_RUNTIME, STATUS_BLOCKED_SURFACE, STATUS_MISSING_REPO}
+        return not self.current_gate or self.status in blocking_statuses
+
+    @property
+    def evidence_blocked(self) -> bool:
+        """Whether external or hardware evidence remains outstanding."""
+        evidence_statuses = {STATUS_READY_WITH_BLOCKERS, STATUS_READY_WITH_HARDWARE_GATE}
+        return self.status in evidence_statuses or any(surface.status in evidence_statuses for surface in self.surfaces)
+
     def to_dict(self) -> dict[str, Any]:
         """Return a JSON-serialisable representation."""
         return {
@@ -108,6 +130,9 @@ class SiblingReport:
             "import_status": self.import_status,
             "import_detail": self.import_detail,
             "status": self.status,
+            "symbols_present": self.symbols_present,
+            "integration_gated": self.integration_gated,
+            "evidence_blocked": self.evidence_blocked,
             "surfaces": [surface.to_dict() for surface in self.surfaces],
             "notes": list(self.notes),
         }
@@ -320,8 +345,8 @@ def render_compatibility_matrix(report: EcosystemReport) -> str:
         f"- Code root: `{report.code_root}`",
         "- Regenerate: `python tools/generate_compatibility_matrix.py`",
         "",
-        "| Sibling | Source | Runtime | Status | Current gate | Lane |",
-        "|---|---:|---:|---|---|---|",
+        "| Sibling | Source | Runtime | Symbols present | Integration gated | Evidence blocked | Lane |",
+        "|---|---:|---:|---|---|---|---|",
     ]
     for row in report.siblings:
         runtime = row.import_version or row.import_status
@@ -330,8 +355,9 @@ def render_compatibility_matrix(report: EcosystemReport) -> str:
             f"`{row.package}` | "
             f"`{row.source_version or 'unknown'}` | "
             f"`{runtime}` | "
-            f"`{row.status}` | "
-            f"{'yes' if row.current_gate else 'deferred'} | "
+            f"{'yes' if row.symbols_present else 'no'} | "
+            f"{'yes' if row.integration_gated else 'no'} | "
+            f"{'yes' if row.evidence_blocked else 'no'} | "
             f"{row.lane} |"
         )
 
@@ -344,6 +370,10 @@ def render_compatibility_matrix(report: EcosystemReport) -> str:
                 f"- Role: {row.role}",
                 f"- Repository: `{row.repo_path}`",
                 f"- Import: `{row.import_status}` — {row.import_detail}",
+                f"- Legacy summary: `{row.status}`",
+                f"- Compatibility state: symbols present = `{'yes' if row.symbols_present else 'no'}`; "
+                f"integration gated = `{'yes' if row.integration_gated else 'no'}`; "
+                f"evidence blocked = `{'yes' if row.evidence_blocked else 'no'}`",
                 "",
                 "| Surface | Status | Detail |",
                 "|---|---|---|",
@@ -595,15 +625,24 @@ def _run_python(repo_path: Path, script: str, extra_paths: Sequence[str] = ()) -
     if existing:
         paths.append(existing)
     env["PYTHONPATH"] = os.pathsep.join(paths)
-    return subprocess.run(  # noqa: S603  # nosec B603  # fixed sys.executable + internal script, shell=False
-        [sys.executable, "-c", script],
-        cwd=repo_path,
-        env=env,
-        text=True,
-        capture_output=True,
-        timeout=30.0,
-        check=False,
-    )
+    args = [sys.executable, "-c", script]
+    try:
+        return subprocess.run(  # noqa: S603  # nosec B603  # fixed interpreter + script, shell=False
+            args,
+            cwd=repo_path,
+            env=env,
+            text=True,
+            capture_output=True,
+            timeout=30.0,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return subprocess.CompletedProcess(
+            args=args,
+            returncode=124,
+            stdout="",
+            stderr="isolated sibling inspection timed out after 30 seconds",
+        )
 
 
 def _compact_error(text: str) -> str:

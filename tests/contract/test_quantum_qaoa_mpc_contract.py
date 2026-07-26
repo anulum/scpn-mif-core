@@ -32,3 +32,6 @@ def test_scpn_quantum_control_mif_lane_delivered_upstream(ecosystem_report) -> N
     assert row.current_gate is False
     assert row.surfaces[0].status == STATUS_READY
     assert row.surfaces[1].status == STATUS_READY
+    assert row.symbols_present is True
+    assert row.integration_gated is True
+    assert row.evidence_blocked is False

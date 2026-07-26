@@ -22,6 +22,18 @@ is a thin wrapper over it.
 - `render_compatibility_matrix(report)` — a human-readable matrix.
 - `compatibility_report_json(report)` — the machine-readable form.
 
+Every sibling row exposes three orthogonal compatibility fields:
+
+- `symbols_present` says whether every prescribed source surface exists.
+- `integration_gated` says whether MIF integration is deferred or blocked.
+- `evidence_blocked` says whether external-reference or hardware evidence is
+  still outstanding.
+
+The legacy aggregate `status` remains available for consumers, but renderers use
+the three fields. For example, the delivered QUANTUM surfaces can report
+`symbols_present=true`, `integration_gated=true`, and `evidence_blocked=false`
+without being collapsed into one ambiguous deferred label.
+
 Sibling inspection is read-only and import-isolated: a missing or unimportable
 sibling is reported as such, never fabricated. The report reflects whatever is
 actually present on the checkout, so it stays honest across environments.

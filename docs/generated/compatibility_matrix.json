@@ -1,12 +1,14 @@
 {
   "code_root": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE",
-  "generated_at_utc": "2026-07-26T00:41:14+00:00",
+  "generated_at_utc": "2026-07-26T04:36:10+00:00",
   "siblings": [
     {
       "current_gate": true,
+      "evidence_blocked": true,
       "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SC-NEUROCORE/src/sc_neurocore/__init__.py",
       "import_status": "ok",
       "import_version": "3.16.0",
+      "integration_gated": false,
       "key": "sc-neurocore-engine",
       "lane": "NEU-C.5 / MIF-007 hardware ingress",
       "module": "sc_neurocore",
@@ -29,13 +31,16 @@
           "name": "UltraScale+ target contract",
           "status": "ready"
         }
-      ]
+      ],
+      "symbols_present": true
     },
     {
       "current_gate": true,
+      "evidence_blocked": false,
       "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR/src/scpn_phase_orchestrator/__init__.py",
       "import_status": "ok",
       "import_version": "1.0.0",
+      "integration_gated": false,
       "key": "scpn-phase-orchestrator",
       "lane": "PHA-C / MIF-001..MIF-003",
       "module": "scpn_phase_orchestrator",
@@ -63,18 +68,22 @@
           "name": "Merge-window monitor",
           "status": "ready"
         }
-      ]
+      ],
+      "symbols_present": true
     },
     {
       "current_gate": true,
+      "evidence_blocked": false,
       "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-CONTROL/src/scpn_control/__init__.py",
       "import_status": "ok",
-      "import_version": "0.23.0",
+      "import_version": "0.0.0.dev",
+      "integration_gated": false,
       "key": "scpn-control",
       "lane": "CON-C / MIF-004, MIF-005, MIF-012, MIF-018",
       "module": "scpn_control",
       "notes": [
-        "SCPN-CONTROL claims the pulsed-control lane completed at its current source version."
+        "SCPN-CONTROL claims the pulsed-control lane completed at its current source version.",
+        "Runtime package metadata reports 0.0.0.dev; sibling source declares 0.23.0."
       ],
       "package": "scpn-control",
       "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-CONTROL",
@@ -87,13 +96,16 @@
           "name": "Capacitor-bank compatibility module",
           "status": "ready"
         }
-      ]
+      ],
+      "symbols_present": true
     },
     {
       "current_gate": true,
+      "evidence_blocked": true,
       "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-FUSION-CORE/src/scpn_fusion/__init__.py",
       "import_status": "ok",
       "import_version": "4.0.0",
+      "integration_gated": false,
       "key": "scpn-fusion-core",
       "lane": "FUS-C / B-lane FRC solver ownership",
       "module": "scpn_fusion",
@@ -111,18 +123,22 @@
           "name": "FUSION FRC public contract",
           "status": "ready_with_external_blockers"
         }
-      ]
+      ],
+      "symbols_present": true
     },
     {
       "current_gate": false,
+      "evidence_blocked": false,
       "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-QUANTUM-CONTROL/src/scpn_quantum_control/__init__.py",
       "import_status": "ok",
-      "import_version": "1.0.0",
+      "import_version": "0.9.6",
+      "integration_gated": true,
       "key": "scpn-quantum-control",
       "lane": "QUA-C deferred for current MIF gate",
       "module": "scpn_quantum_control",
       "notes": [
-        "MIF-lane crypto, entropy, QAOA-cost and HLS surfaces are owned by and delivered in scpn-quantum-control; MIF consumes them as its release gate advances."
+        "MIF-lane crypto, entropy, QAOA-cost and HLS surfaces are owned by and delivered in scpn-quantum-control; MIF consumes them as its release gate advances.",
+        "Runtime package metadata reports 0.9.6; sibling source declares 1.0.0."
       ],
       "package": "scpn-quantum-control",
       "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-QUANTUM-CONTROL",
@@ -140,7 +156,8 @@
           "name": "MIF-specific quantum-control names",
           "status": "ready"
         }
-      ]
+      ],
+      "symbols_present": true
     }
   ]
 }

@@ -57,13 +57,24 @@ def test_dynamic_ecosystem_report_reads_versions_and_surfaces(tmp_path: Path) ->
     assert rows["scpn-quantum-control"].status == STATUS_DEFERRED
     assert rows["scpn-quantum-control"].surfaces[0].status == STATUS_READY
     assert rows["scpn-quantum-control"].surfaces[1].status == STATUS_DEFERRED
+    assert rows["scpn-quantum-control"].symbols_present is False
+    assert rows["scpn-quantum-control"].integration_gated is True
+    assert rows["scpn-quantum-control"].evidence_blocked is False
+    assert rows["scpn-fusion-core"].symbols_present is True
+    assert rows["scpn-fusion-core"].integration_gated is False
+    assert rows["scpn-fusion-core"].evidence_blocked is True
+    assert rows["sc-neurocore-engine"].evidence_blocked is True
 
     markdown = render_compatibility_matrix(report)
     json_text = compatibility_report_json(report)
 
     assert "Static equality pins are not the compatibility authority." in markdown
+    assert "| Symbols present | Integration gated | Evidence blocked |" in markdown
     assert "`scpn-fusion` | `3.9.10`" in markdown
     assert '"generated_at_utc": "2026-06-14T00:00:00+00:00"' in json_text
+    assert '"symbols_present": false' in json_text
+    assert '"integration_gated": true' in json_text
+    assert '"evidence_blocked": true' in json_text
 
 
 def _write_pyproject(repo: Path, name: str, version: str) -> None:
@@ -210,6 +221,9 @@ def test_absent_sibling_repositories_are_reported_as_missing(tmp_path: Path) -> 
         assert row.source_version is None
         assert row.import_status == "missing"
         assert row.surfaces == ()
+        assert row.symbols_present is False
+        assert row.integration_gated is True
+        assert row.evidence_blocked is False
 
 
 def test_pyproject_absent_yields_no_source_version(tmp_path: Path) -> None:
@@ -328,6 +342,19 @@ def test_runtime_import_preserves_existing_pythonpath(tmp_path: Path, monkeypatc
     _write_fake_control(tmp_path)
     row = generate_ecosystem_report(tmp_path).require("scpn-control")
     assert row.import_status == "ok"
+
+
+def test_isolated_sibling_timeout_is_reported_instead_of_crashing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def timeout(*_args: object, **_kwargs: object) -> None:
+        raise subprocess.TimeoutExpired(cmd="python", timeout=30.0)
+
+    monkeypatch.setattr(subprocess, "run", timeout)
+    result = ecosystem_module._run_python(tmp_path, "print('never')")
+    assert result.returncode == 124
+    assert result.stdout == ""
+    assert "timed out after 30 seconds" in result.stderr
 
 
 def test_render_handles_rows_without_notes() -> None:
@@ -452,6 +479,9 @@ def test_quantum_all_future_symbols_present_marks_lane_surface_ready(tmp_path: P
     row = generate_ecosystem_report(tmp_path).require("scpn-quantum-control")
     assert row.surfaces[1].status == STATUS_READY
     assert row.status == STATUS_DEFERRED
+    assert row.symbols_present is True
+    assert row.integration_gated is True
+    assert row.evidence_blocked is False
 
 
 def test_runtime_import_non_json_output_is_recorded_as_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

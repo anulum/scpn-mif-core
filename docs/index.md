@@ -60,7 +60,9 @@ Sibling readiness is generated from the live source trees and optional runtime
 imports, not from a hand-maintained fixed-pin table. See the
 [dynamic compatibility matrix](generated/compatibility_matrix.md) for source
 versions, import status, consumed surfaces, explicit FUSION external-reference
-blockers, and the deferred QUANTUM MIF lane.
+blockers, and the deferred QUANTUM MIF lane. Surface presence, integration
+gating, and evidence blocking are reported as separate states, so a delivered
+but not-yet-admitted sibling surface is not rendered as missing.
 
 ## Status
 
