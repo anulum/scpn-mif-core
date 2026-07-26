@@ -41,7 +41,8 @@
 - Consolidated the open patch/minor dependency backlog across Rust, Python,
   Studio web, and GitHub Actions. The Studio graph now uses a TypeScript
   6-compatible Module Federation DTS toolchain and retains no obsolete
-  release-age exceptions.
+  release-age exceptions. The Binder floor includes JupyterLab 4.6.2 security
+  fixes, and the explicitly configured Python quality gate runs on Ruff 0.16.0.
 - Grouped the CodeQL action family for atomic Dependabot updates and pinned all
   CodeQL workflow components to the same v4.37.3 release commit.
 - Aligned the `ecosystem` extra with the live canonical sibling distributions:
