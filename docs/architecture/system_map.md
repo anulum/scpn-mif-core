@@ -43,6 +43,16 @@ consumes sibling physics as input; and a bit-true Python↔Verilator cosimulatio
 | Plasmoid relative speed at merging | ≥ Mach 1 (`v_z ≥ 300 km s⁻¹`) |
 | Compression peak field | 20 T |
 
+### Evidence-class boundary
+
+The delivered MIF-015 result is **`cosim:local-verilator`**: measured, bit-true
+Python-golden ↔ Verilator RTL parity produced on the **`simulator`** substrate. It
+does not establish FPGA waveform equivalence, post-route wall-clock timing, or the
+coil-driver/chamber path. Those physical-device claims remain
+**`hil:hardware-gated`** until named-device traces and a calibrated HIL replay exist
+and the Hub admits the live-hardware lane. Cycle-bounded formal evidence, post-route
+timing evidence, and end-to-end HIL timing remain separate classes.
+
 ## Inventory at a glance
 
 | Surface | Count | Source |
@@ -185,7 +195,7 @@ validated physics.
 
 | ID | Component | Inputs | Outputs | Processing model | Status |
 |---|---|---|---|---|---|
-| MIF-015 | Q8.8 cosimulation pipeline | Python reference, Q8.8 quantised, Verilator RTL trace | pairwise bit-equality verdict | bit-true Python ↔ Verilator across the sensor + trigger + AER-CDC RTL | SW (delivered cosim) |
+| MIF-015 | Q8.8 cosimulation pipeline | Python reference, Q8.8 quantised, local Verilator RTL trace | pairwise bit-equality verdict | bit-true Python ↔ Verilator across the sensor + trigger + AER-CDC RTL | SW (`cosim:local-verilator`, simulator substrate); HIL remains `hil:hardware-gated` |
 | MIF-014 | 1000-pulse UVM testbench | stochastic FRC merge stimulus (jitter σ=5 ns + Pareto tail) | per-shard functional + formal pass | Verilator 5 UVM-light, 10×100-pulse shards | roadmap (MIF-008/010-gated) |
 | MIF-013 | Vivado ZU3EG project + Tcl flow | RTL top-level, XDC constraints | bitstream + utilisation/timing reports | reproducible Vivado batch flow | skeleton; HW-gated (Vivado licence + FPGA SKU) |
 

@@ -9,7 +9,7 @@
 
 MIF is the verified chamber-side trigger lane of the SCPN ecosystem, so its
 distinctive verbs are a fire/abort/hold decision (``evaluate``), a machine-checked
-RTL proof (``prove``), and a bit-true hardware cosimulation (``cosimulate``); the
+RTL proof (``prove``), and a bit-true local Verilator cosimulation (``cosimulate``); the
 shared ``benchmark`` verb carries the recomputable performance artifacts. Each is a
 :class:`scpn_studio_platform.verbs.Verb` carrying the §2.3 attribute contract the
 Hub federates and gates against. None actuate hardware through the studio path —

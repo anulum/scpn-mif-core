@@ -24,9 +24,12 @@ import type {
   ClaimStatus,
   ClaimSummary,
   EvidenceKind,
+  EvidenceBadge,
+  EvidenceSubstrate,
   Exactness,
   FormalCertificate,
   Freshness,
+  HardwareGateBadge,
   MifVerb,
   SafetyTier,
   SideEffect,
@@ -58,6 +61,9 @@ interface RawClaim {
   readonly admission: AdmissionDecision;
   readonly kind: EvidenceKind;
   readonly exactness?: Exactness;
+  readonly substrate?: EvidenceSubstrate;
+  readonly evidence_badge?: EvidenceBadge;
+  readonly hardware_gate?: HardwareGateBadge;
   readonly certificate?: RawCertificate;
   readonly freshness?: Freshness;
 }
@@ -125,10 +131,20 @@ function toClaim(raw: RawClaim): ClaimSummary {
   };
   // exactOptionalPropertyTypes: only carry optional evidence detail when present.
   const withExactness = raw.exactness === undefined ? base : { ...base, exactness: raw.exactness };
+  const withSubstrate =
+    raw.substrate === undefined ? withExactness : { ...withExactness, substrate: raw.substrate };
+  const withEvidenceBadge =
+    raw.evidence_badge === undefined
+      ? withSubstrate
+      : { ...withSubstrate, evidenceBadge: raw.evidence_badge };
+  const withHardwareGate =
+    raw.hardware_gate === undefined
+      ? withEvidenceBadge
+      : { ...withEvidenceBadge, hardwareGate: raw.hardware_gate };
   const withCertificate =
     raw.certificate === undefined
-      ? withExactness
-      : { ...withExactness, certificate: toCertificate(raw.certificate) };
+      ? withHardwareGate
+      : { ...withHardwareGate, certificate: toCertificate(raw.certificate) };
   return raw.freshness === undefined
     ? withCertificate
     : { ...withCertificate, freshness: raw.freshness };

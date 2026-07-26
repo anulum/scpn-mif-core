@@ -138,11 +138,13 @@ def test_build_evidence_bundle_includes_optional_blocks() -> None:
         formal_certificate=[{"checker": "symbiyosys"}],
         verified_citations=[{"doi": "10.5281/zenodo.1"}],
         derived_from=[{"kind": "evidence", "entity_digest": "sha256:x", "studio": "scpn-fusion-core"}],
+        substrate="simulator",
     )
     assert bundle["numeric_provenance"]["exactness"] == "bit-exact"
     assert bundle["formal_certificate"][0]["checker"] == "symbiyosys"
     assert bundle["verified_citations"][0]["doi"] == "10.5281/zenodo.1"
     assert bundle["derived_from"][0]["studio"] == "scpn-fusion-core"
+    assert bundle["substrate"] == "simulator"
 
 
 def test_attestation_hmac_present_with_key_absent_without() -> None:
@@ -246,6 +248,7 @@ _MeasuredMutator = Callable[[dict], object]
         (lambda b: b["prov"]["agent"].pop("studio_version"), "studio_version is required"),
         (lambda b: b.update(scpn_evidence_level="9"), "scpn_evidence_level must be"),
         (lambda b: b.update(evidence_kind="guess"), "evidence_kind must be"),
+        (lambda b: b.update(substrate="wishful-hardware"), "substrate must be"),
         (lambda b: b.update(claim_boundary="x"), "claim_boundary must be an object"),
         (lambda b: b["claim_boundary"].update(status="bogus"), "status must be"),
         (lambda b: b["claim_boundary"].update(admission="maybe"), "admission must be"),
@@ -335,6 +338,8 @@ def test_cosim_evidence_bit_true_is_admitted_and_bit_exact() -> None:
     assert bundle["numeric_provenance"]["exactness"] == "bit-exact"
     assert bundle["numeric_provenance"]["parity"][0]["tolerance"] == 0
     assert bundle["numeric_provenance"]["parity"][0]["passed"] is True
+    assert bundle["substrate"] == "simulator"
+    assert bundle["evidence_kind"] == "measured"
     assert bundle["claim_boundary"]["status"] == "reference-validated"
     assert bundle["claim_boundary"]["admission"] == "admitted"
     validate_studio_bundle(bundle)

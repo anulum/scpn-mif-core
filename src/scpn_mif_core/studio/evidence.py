@@ -52,6 +52,7 @@ from scpn_studio_platform.evidence import (
     ProvActivity,
     ProvAgent,
     ProvEntity,
+    Substrate,
 )
 
 from scpn_mif_core.evidence import content_digest
@@ -216,11 +217,14 @@ def cosim_evidence(
     operator: str = "opaque-id:local",
     freshness: Freshness = Freshness.TRACEABLE_UNCHECKED,
 ) -> EvidenceBundle:
-    """Map a bit-true cosimulation result onto a ``studio.cosim.v1`` bundle.
+    """Map a local bit-true cosimulation result onto a ``studio.cosim.v1`` bundle.
 
     ``freshness`` defaults to ``traceable-unchecked``: the bit-true verdict is taken
     as an input here, not re-run, so a ``reference-validated`` pass floors to boundary
     until a caller that has just executed the cosimulation passes ``verified-at-source``.
+    The bundle always declares the ``simulator`` substrate.  Bit-exact agreement here
+    is Python-golden versus local Verilator RTL; it is not hardware equivalence or HIL
+    validation, both of which require a physical-hardware substrate and remain gated.
     """
     result = {"harness": harness, "bit_true": bit_true, "mismatch_count": mismatch_count}
     # A bit-exact comparison is exact-equality: max_error is always 0.0 (the SDK
@@ -241,6 +245,7 @@ def cosim_evidence(
         agent=ProvAgent(studio_version=studio_version, operator=operator),
         evidence_level=EvidenceLevel.SCIENTIFICALLY_CURATED,
         evidence_kind=EvidenceKind.MEASURED,
+        substrate=Substrate.SIMULATOR,
         claim_boundary=ClaimBoundary(
             status=(
                 ClaimStatus.REFERENCE_VALIDATED

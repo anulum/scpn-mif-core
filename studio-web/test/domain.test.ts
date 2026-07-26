@@ -137,6 +137,9 @@ describe('MIF_CLAIMS', () => {
   it('marks the cosimulation bit-exact and leaves it un-certificated', () => {
     const cosim = MIF_CLAIMS.find((c) => c.schema === 'studio.cosim.v1');
     expect(cosim?.exactness).toBe('bit-exact');
+    expect(cosim?.substrate).toBe('simulator');
+    expect(cosim?.evidenceBadge).toBe('cosim:local-verilator');
+    expect(cosim?.hardwareGate).toBe('hil:hardware-gated');
     expect(cosim?.certificate).toBeUndefined();
   });
 });

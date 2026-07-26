@@ -76,7 +76,11 @@ not yet delivered capabilities.
 > both by bounded cover, via SymbiYosys (Yosys + z3). MIF-015 now has local
 > cosimulation harnesses for the MIF-007 sensor path (ADC/Q8.8/RTL trace), the
 > MIF-008 trigger fabric, and the fast-veto lane (all bit-true
-> Python-versus-Verilator). MIF also detects the accepted SCPN-FUSION-CORE FRC
+> Python-versus-Verilator). This evidence is explicitly labelled
+> **`cosim:local-verilator`** on the **`simulator`** substrate; hardware waveform
+> equivalence and calibrated hardware-in-the-loop evidence remain
+> **`hil:hardware-gated`**. Neither badge establishes post-route wall-clock timing
+> or coil-driver/chamber-path safety. MIF also detects the accepted SCPN-FUSION-CORE FRC
 > contract surfaces without dispatching those FUSION-owned physics kernels
 > locally. Vivado ZU3EG timing, hardware waveform equivalence, full external
 > FUSION reference parity, and the P6 hardware trigger chain remain open

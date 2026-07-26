@@ -29,9 +29,12 @@
     {
       "admission": "admitted",
       "exactness": "bit-exact",
+      "evidence_badge": "cosim:local-verilator",
       "freshness": "verified-at-source",
+      "hardware_gate": "hil:hardware-gated",
       "kind": "measured",
       "schema": "studio.cosim.v1",
+      "substrate": "simulator",
       "status": "reference-validated"
     },
     {

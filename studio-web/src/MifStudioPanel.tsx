@@ -34,7 +34,8 @@ export interface MifStudioPanelProps {
  * boundary verbatim — marking a claim validated only when it is reference-validated,
  * admitted, AND its freshness permits it, and surfacing the evidence detail MIF
  * attaches (a measured claim's parity exactness, a formally-proven claim's certificate,
- * and each claim's freshness). The same honesty grading the Python vertical emits is
+ * each claim's execution substrate and freshness, plus the explicit local-cosim/HIL
+ * boundary badges). The same honesty grading the Python vertical emits is
  * shown here as UI: a reduced-order merge-trigger decision shows as bounded-model, and
  * a reference-validated claim that is only traceable-unchecked is floored to its
  * boundary, never validated.
@@ -116,6 +117,21 @@ export default function MifStudioPanel({
                 {claim.exactness !== undefined && (
                   <span className="mif-studio__exactness" data-exactness={claim.exactness}>
                     {` · ${claim.exactness}`}
+                  </span>
+                )}
+                {claim.substrate !== undefined && (
+                  <span className="mif-studio__substrate" data-substrate={claim.substrate}>
+                    {` · substrate:${claim.substrate}`}
+                  </span>
+                )}
+                {claim.evidenceBadge !== undefined && (
+                  <span className="mif-studio__evidence-badge" data-badge={claim.evidenceBadge}>
+                    {` · ${claim.evidenceBadge}`}
+                  </span>
+                )}
+                {claim.hardwareGate !== undefined && (
+                  <span className="mif-studio__hardware-gate" data-badge={claim.hardwareGate}>
+                    {` · ${claim.hardwareGate}`}
                   </span>
                 )}
                 {claim.certificate !== undefined && (

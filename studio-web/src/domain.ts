@@ -60,6 +60,21 @@ export interface Backend {
 /** Numeric agreement of a measured result against its reference. */
 export type Exactness = 'bit-exact' | 'tolerance-aware';
 
+/** Execution substrate: where the evidence was actually produced. */
+export type EvidenceSubstrate =
+  | 'classical-reference'
+  | 'numerical-model'
+  | 'simulator'
+  | 'realtime-embedded'
+  | 'hardware-unmitigated'
+  | 'hardware-mitigated'
+  | 'fpga'
+  | 'asic';
+
+/** Product labels that keep local cosimulation distinct from physical HIL evidence. */
+export type EvidenceBadge = 'cosim:local-verilator';
+export type HardwareGateBadge = 'hil:hardware-gated';
+
 /**
  * The orthogonal freshness axis — how recently a claim's evidence was re-checked at
  * source. It gates validation: only `verified-at-source` (or undeclared, since the
@@ -97,6 +112,9 @@ export interface ClaimSummary {
   readonly admission: AdmissionDecision;
   readonly kind: EvidenceKind;
   readonly exactness?: Exactness;
+  readonly substrate?: EvidenceSubstrate;
+  readonly evidenceBadge?: EvidenceBadge;
+  readonly hardwareGate?: HardwareGateBadge;
   readonly certificate?: FormalCertificate;
   readonly freshness?: Freshness;
 }
@@ -210,6 +228,9 @@ export const MIF_CLAIMS: readonly ClaimSummary[] = [
     admission: 'admitted',
     kind: 'measured',
     exactness: 'bit-exact',
+    substrate: 'simulator',
+    evidenceBadge: 'cosim:local-verilator',
+    hardwareGate: 'hil:hardware-gated',
     freshness: 'verified-at-source',
   },
   {

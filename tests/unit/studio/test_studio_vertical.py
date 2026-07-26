@@ -258,6 +258,8 @@ def test_cosim_evidence_bit_true_and_mismatch() -> None:
         harness="mif008", bit_true=True, mismatch_count=0, started="t0", ended="t1", host="ci", studio_version="0.1.0"
     ).to_dict()
     assert ok["numeric_provenance"]["parity"][0]["exactness"] == "bit-exact"
+    assert ok["substrate"] == "simulator"
+    assert ok["evidence_kind"] == "measured"
     assert ok["claim_boundary"]["status"] == "bounded-model"
 
     bad = cosim_evidence(
@@ -330,6 +332,8 @@ def test_a_caller_may_declare_verified_at_source_when_it_re_ran_the_source() -> 
         freshness=Freshness.VERIFIED_AT_SOURCE,
     ).to_dict()
     assert bundle["freshness"] == "verified-at-source"
+    assert bundle["substrate"] == "simulator"
+    assert bundle["evidence_kind"] != "hardware-validated"
     assert bundle["claim_boundary"]["status"] == "reference-validated"
 
 

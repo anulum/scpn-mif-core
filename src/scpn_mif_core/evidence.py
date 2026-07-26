@@ -56,6 +56,18 @@ CLAIM_STATUSES = frozenset(
     }
 )
 EXACTNESS_MODES = frozenset({"bit-exact", "tolerance-aware"})
+SUBSTRATES = frozenset(
+    {
+        "classical-reference",
+        "numerical-model",
+        "simulator",
+        "realtime-embedded",
+        "hardware-unmitigated",
+        "hardware-mitigated",
+        "fpga",
+        "asic",
+    }
+)
 PROOF_CHECKERS = frozenset({"lean", "prism", "tla+", "symbiyosys", "z3"})
 PROOF_MODES = frozenset({"prove", "cover"})
 
@@ -69,6 +81,7 @@ __all__ = [
     "PROOF_MODES",
     "RO_CRATE_PROFILE",
     "STUDIO",
+    "SUBSTRATES",
     "benchmark_evidence",
     "build_evidence_bundle",
     "content_digest",
@@ -126,6 +139,7 @@ def build_evidence_bundle(
     formal_certificate: Sequence[Mapping[str, Any]] | None = None,
     derived_from: Sequence[Mapping[str, Any]] | None = None,
     verified_citations: Sequence[Mapping[str, Any]] | None = None,
+    substrate: str | None = None,
     hmac_key: bytes | None = None,
 ) -> JsonDict:
     """Assemble a schema-B ``studio.*.v1`` evidence bundle from its parts.
@@ -134,7 +148,8 @@ def build_evidence_bundle(
     ``result`` and content-addressed — its digest becomes the PROV-O entity digest
     and the attestation hash chain, so the embedded summary cannot drift from its
     own attestation. Optional blocks
-    (``numeric_provenance``, ``formal_certificate``, ``verified_citations``) are
+    (``numeric_provenance``, ``formal_certificate``, ``verified_citations``, and
+    the execution ``substrate``) are
     included only when supplied, matching the contract's additive-field model.
     """
     entity_digest = content_digest(result)
@@ -166,6 +181,8 @@ def build_evidence_bundle(
         bundle["formal_certificate"] = [dict(cert) for cert in formal_certificate]
     if verified_citations is not None:
         bundle["verified_citations"] = [dict(cite) for cite in verified_citations]
+    if substrate is not None:
+        bundle["substrate"] = substrate
     return bundle
 
 
@@ -319,12 +336,14 @@ def cosim_evidence(
     operator: str = "opaque-id:local",
     hmac_key: bytes | None = None,
 ) -> JsonDict:
-    """Emit a bit-true cosimulation result as a ``studio.cosim.v1`` bundle.
+    """Emit a local bit-true cosimulation result as a ``studio.cosim.v1`` bundle.
 
     A cosimulation checks the Python golden reference against the Verilator RTL for
     exact (``bit-exact``) equality, so the parity tolerance is zero. A bit-true run
     is reference-validated and admitted; any mismatch is a validation gap and
-    rejected, with the mismatch count recorded as the parity error.
+    rejected, with the mismatch count recorded as the parity error.  The explicit
+    ``simulator`` substrate prevents this result from being read as hardware
+    equivalence or hardware-in-the-loop validation.
     """
     result = {"harness": harness, "bit_true": bit_true, "mismatch_count": mismatch_count}
     claim_boundary = {
@@ -360,6 +379,7 @@ def cosim_evidence(
         scpn_evidence_level="2",
         claim_boundary=claim_boundary,
         numeric_provenance=numeric_provenance,
+        substrate="simulator",
         hmac_key=hmac_key,
     )
 
@@ -451,6 +471,10 @@ def validate_studio_bundle(bundle: Mapping[str, Any]) -> None:
     evidence_kind = bundle.get("evidence_kind")
     if evidence_kind not in EVIDENCE_KINDS:
         issues.append(f"evidence_kind must be one of {sorted(EVIDENCE_KINDS)}")
+
+    substrate = bundle.get("substrate")
+    if substrate is not None and substrate not in SUBSTRATES:
+        issues.append(f"substrate must be one of {sorted(SUBSTRATES)}")
 
     claim_boundary = bundle.get("claim_boundary")
     if not isinstance(claim_boundary, Mapping):

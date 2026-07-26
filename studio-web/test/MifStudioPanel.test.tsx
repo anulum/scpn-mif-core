@@ -127,6 +127,20 @@ describe('MifStudioPanel', () => {
     expect(cosim.closest('li')).toHaveTextContent('bit-exact');
   });
 
+  it('labels local Verilator evidence separately from hardware-in-the-loop', () => {
+    render(<MifStudioPanel />);
+    const cosim = screen.getByText(/studio\.cosim\.v1/).closest('li');
+    const substrate = cosim?.querySelector('.mif-studio__substrate');
+    const localBadge = cosim?.querySelector('.mif-studio__evidence-badge');
+    const hilGate = cosim?.querySelector('.mif-studio__hardware-gate');
+
+    expect(substrate).toHaveAttribute('data-substrate', 'simulator');
+    expect(localBadge).toHaveAttribute('data-badge', 'cosim:local-verilator');
+    expect(hilGate).toHaveAttribute('data-badge', 'hil:hardware-gated');
+    expect(cosim).toHaveTextContent('cosim:local-verilator');
+    expect(cosim).toHaveTextContent('hil:hardware-gated');
+  });
+
   it('shows a non-vacuous formal certificate without the vacuous tag', () => {
     render(<MifStudioPanel />);
     const proof = screen.getByText(/studio\.formal-proof\.v1/);

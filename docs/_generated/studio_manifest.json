@@ -75,6 +75,7 @@
       "hardware_gated": [
         "sub-50 ns wall-clock timing closure (post-route STA, MIF-013)",
         "ZU3EG/ZU9EG Vivado synthesis",
+        "FPGA waveform equivalence and calibrated hardware-in-the-loop replay",
         "the full 70-property formal set",
         "live coil-fire actuation (owned by the Hub live-hardware gate)"
       ]
@@ -208,6 +209,31 @@
         "adapter": "deferred MIF-lane surfaces",
         "sibling": "scpn-quantum-control",
         "wire_format": "QRNG, PQC trigger signer, FRC QAOA cost, pulse-to-HLS owned by QUANTUM"
+      }
+    ],
+    "evidence_badges": [
+      {
+        "badge": "cosim:local-verilator",
+        "does_not_establish": [
+          "FPGA waveform equivalence",
+          "post-route wall-clock timing",
+          "coil-driver or chamber-path safety"
+        ],
+        "establishes": "bit-true Python-golden versus local Verilator RTL parity",
+        "evidence_kind": "measured",
+        "status": "available",
+        "substrate": "simulator"
+      },
+      {
+        "badge": "hil:hardware-gated",
+        "blocked_on": [
+          "named-device FPGA waveform trace",
+          "calibrated hardware-in-the-loop replay",
+          "live-hardware admission by the Hub"
+        ],
+        "evidence_kind": "hardware-validated",
+        "status": "hardware-gated",
+        "substrate": "fpga"
       }
     ],
     "interfaces": [

@@ -62,6 +62,9 @@ const VALID_FEED = {
       admission: 'admitted',
       kind: 'measured',
       exactness: 'bit-exact',
+      substrate: 'simulator',
+      evidence_badge: 'cosim:local-verilator',
+      hardware_gate: 'hil:hardware-gated',
       freshness: 'verified-at-source',
     },
     {
@@ -136,6 +139,19 @@ describe('narrowFeed', () => {
     expect(cosim?.freshness).toBe('verified-at-source');
     expect(bare?.freshness).toBeUndefined();
     expect(bare).not.toHaveProperty('freshness');
+  });
+
+  it('carries the simulator substrate and explicit cosim/HIL boundary badges', () => {
+    const claims = narrowFeed(VALID_FEED).claims;
+    const cosim = claims.find((c) => c.schema === 'studio.cosim.v1');
+    const bare = claims.find((c) => c.schema === 'studio.merge-trigger.v1');
+
+    expect(cosim?.substrate).toBe('simulator');
+    expect(cosim?.evidenceBadge).toBe('cosim:local-verilator');
+    expect(cosim?.hardwareGate).toBe('hil:hardware-gated');
+    expect(bare).not.toHaveProperty('substrate');
+    expect(bare).not.toHaveProperty('evidenceBadge');
+    expect(bare).not.toHaveProperty('hardwareGate');
   });
 
   it('narrows the wire backends', () => {

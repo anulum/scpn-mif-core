@@ -38,6 +38,12 @@ from .verbs import MIF_VERBS
 ARCHITECTURE_MAP_VERSION = "architecture-map.v2"
 """The fleet architecture-map extension schema version (peer-aligned with QUANTUM)."""
 
+LOCAL_COSIM_BADGE = "cosim:local-verilator"
+"""Product badge for Python-golden versus local Verilator RTL evidence."""
+
+HIL_GATED_BADGE = "hil:hardware-gated"
+"""Product badge for hardware-in-the-loop evidence that has not yet been established."""
+
 
 def _pipeline_stages() -> list[dict[str, Any]]:
     """Return the runnable merge-trigger decision pipeline with per-stage IO contracts.
@@ -232,6 +238,40 @@ def _verb_substrates() -> dict[str, list[str]]:
     return {verb.name: list(verb.backends) for verb in MIF_VERBS}
 
 
+def _evidence_badges() -> list[dict[str, Any]]:
+    """Return the product-visible cosim/HIL evidence-class boundary.
+
+    Bit-exactness is an agreement property, not a statement about where a result ran.
+    Keeping the SDK substrate and the product badge explicit prevents local Verilator
+    evidence from being promoted to device waveform, timing, or coil-driver evidence.
+    """
+    return [
+        {
+            "badge": LOCAL_COSIM_BADGE,
+            "status": "available",
+            "substrate": "simulator",
+            "evidence_kind": "measured",
+            "establishes": "bit-true Python-golden versus local Verilator RTL parity",
+            "does_not_establish": [
+                "FPGA waveform equivalence",
+                "post-route wall-clock timing",
+                "coil-driver or chamber-path safety",
+            ],
+        },
+        {
+            "badge": HIL_GATED_BADGE,
+            "status": "hardware-gated",
+            "substrate": "fpga",
+            "evidence_kind": "hardware-validated",
+            "blocked_on": [
+                "named-device FPGA waveform trace",
+                "calibrated hardware-in-the-loop replay",
+                "live-hardware admission by the Hub",
+            ],
+        },
+    ]
+
+
 def _cross_repo() -> list[dict[str, str]]:
     """Return the cross-repository sibling edges and the surfaces MIF consumes or defers.
 
@@ -287,6 +327,7 @@ def _boundaries() -> dict[str, list[str]]:
         "hardware_gated": [
             "sub-50 ns wall-clock timing closure (post-route STA, MIF-013)",
             "ZU3EG/ZU9EG Vivado synthesis",
+            "FPGA waveform equivalence and calibrated hardware-in-the-loop replay",
             "the full 70-property formal set",
             "live coil-fire actuation (owned by the Hub live-hardware gate)",
         ],
@@ -315,6 +356,7 @@ def build_architecture_map_extension() -> dict[str, Any]:
         "interfaces": _interfaces(),
         "wire_formats": _wire_formats(),
         "verb_substrates": _verb_substrates(),
+        "evidence_badges": _evidence_badges(),
         "cross_repo": _cross_repo(),
         "boundaries": _boundaries(),
     }

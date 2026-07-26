@@ -29,6 +29,7 @@ V2_KEYS = {
     "interfaces",
     "wire_formats",
     "verb_substrates",
+    "evidence_badges",
     "cross_repo",
     "boundaries",
 }
@@ -99,6 +100,24 @@ def test_verb_substrates_mirror_the_verb_contracts() -> None:
     assert substrates == {verb.name: list(verb.backends) for verb in MIF_VERBS}
     assert substrates["prove"] == ["symbiyosys"]
     assert substrates["evaluate"] == ["rust", "python"]
+
+
+def test_evidence_badges_separate_local_cosim_from_hil() -> None:
+    badges = build_architecture_map_extension()["evidence_badges"]
+    by_badge = {badge["badge"]: badge for badge in badges}
+
+    assert set(by_badge) == {"cosim:local-verilator", "hil:hardware-gated"}
+    local = by_badge["cosim:local-verilator"]
+    assert local["status"] == "available"
+    assert local["substrate"] == "simulator"
+    assert local["evidence_kind"] == "measured"
+    assert any("waveform equivalence" in boundary for boundary in local["does_not_establish"])
+
+    hil = by_badge["hil:hardware-gated"]
+    assert hil["status"] == "hardware-gated"
+    assert hil["substrate"] == "fpga"
+    assert hil["evidence_kind"] == "hardware-validated"
+    assert hil["blocked_on"]
 
 
 def test_cross_repo_declares_the_owning_siblings() -> None:

@@ -32,7 +32,8 @@ documentation build. This page is the navigable overview of the vertical's surfa
     renders **bounded-model**, never reference-validated — see the honesty rule below);
   - an MIF-010 formal proof → a `FormalCertificate` whose `subject_digest` binds it to
     the exact RTL, so the Hub voids the proof on drift;
-  - a cosimulation → a bit-exact `ParityCheck`;
+  - a local cosimulation → a bit-exact `ParityCheck` on the explicit `simulator`
+    substrate (never `hardware-validated`);
   - a benchmark → its recompute provenance.
 - **`manifest`** — `build_manifest()`, which authors the SDK `CapabilityManifest`
   (verbs, evidence schemas, the `>=0.11.2,<0.12` platform-SDK range, the UI panel module).
@@ -64,6 +65,12 @@ Platform contract era v2 also requires `verified-at-source` freshness on every a
 `reference-validated` claim. Mappers therefore default stale inputs to `bounded-model`;
 only a caller that actually reran the proof/cosimulation in the current session may pass
 `verified-at-source` and receive the validated boundary.
+
+Cosimulation validation is scoped to the reference named in the parity record:
+Python golden versus local Verilator RTL. The product feed and panel render that
+scope as **`cosim:local-verilator`** alongside **`hil:hardware-gated`**. A green
+bit-true result therefore cannot be mistaken for FPGA waveform equivalence, HIL
+validation, post-route timing closure, or coil-driver/chamber-path safety.
 
 ## Float-free formal claim
 
@@ -101,7 +108,7 @@ by its `--check`):
   tolerantly for the Tier-A architecture view: the decision pipeline, the capability
   inventory, the fastest-first backend chain, the interface surface (including the UI panel),
   the cross-boundary wire formats, the per-verb substrates, the cross-repository edges, and
-  the honest scope boundaries. Every field mirrors the [system map](../architecture/system_map.md)
+  the machine-readable evidence badges, and the honest scope boundaries. Every field mirrors the [system map](../architecture/system_map.md)
   and `bench/dispatch.toml`; a malformed map degrades the view, never blocks federation.
 
 The browser side is `studio-web/`, a Vite + Module Federation 2.x remote (federation

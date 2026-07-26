@@ -27,6 +27,13 @@ supported.
 |---|---|---|---|
 | Merge-trigger decision (`MergeTriggerReport`) | `evaluate` | `studio.merge-trigger.v1` | `claim_boundary.admission` from fire/abort/hold; `numeric_provenance.exactness = tolerance-aware` |
 | MIF-010 formal proof (`formal_manifest` entry) | `prove` | `studio.formal-proof.v1` | `evidence_kind = formally-proven`; `formal_certificate` with `checker = symbiyosys`, the `.sby` as `proof_digest`, the `hdl/src` RTL as `subject_digest` |
+| Local RTL cosimulation | `cosimulate` | `studio.cosim.v1` | `evidence_kind = measured`; `substrate = simulator`; Python-golden ↔ Verilator `bit-exact` parity |
+| Recomputable benchmark | `benchmark` | `studio.benchmark.v1` | caller-declared claim boundary plus command and host provenance |
+
+The cosimulation row is **`cosim:local-verilator`**, not hardware equivalence.
+Physical FPGA waveform/HIL evidence remains **`hil:hardware-gated`**; neither local
+bit-exact parity nor cycle-bounded formal proof establishes post-route wall-clock
+timing or the live coil-driver/chamber path.
 
 A formal proof renders as a distinct evidence *kind* (`formally-proven`), not a
 higher empirical level — the two axes are orthogonal. The `subject_digest` is the

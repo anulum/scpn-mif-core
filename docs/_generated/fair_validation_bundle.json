@@ -6,8 +6,8 @@
       "kind": "project-documentation",
       "media_type": "text/markdown",
       "path": "README.md",
-      "sha256": "sha256:8460e03ba24f06ac9ca6bb7a87b2237b609228e66cba5b7e4546f54c53968ba2",
-      "size_bytes": 24375
+      "sha256": "sha256:893a2801466535fc2a41dffcbb56d3e66ff4473492d70e92aa2b3bf556338231",
+      "size_bytes": 24681
     },
     {
       "kind": "license",
@@ -90,8 +90,8 @@
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/studio_manifest.json",
-      "sha256": "sha256:e87ea59f8831da7f917c1cb205c6be5efd48c26750c21bd18e492b3ca87a3b60",
-      "size_bytes": 12453
+      "sha256": "sha256:3226f78fe09cdde74be51ff891c357902700df18a9a20b1fade5bd8e3db703cf",
+      "size_bytes": 13325
     },
     {
       "kind": "generated-dashboard",

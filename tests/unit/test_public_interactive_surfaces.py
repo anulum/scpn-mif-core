@@ -21,7 +21,7 @@ NOTEBOOK_PATH = "notebooks/merge_trigger_quickstart.ipynb"
 COLAB_URL = f"https://colab.research.google.com/github/anulum/scpn-mif-core/blob/main/{NOTEBOOK_PATH}"
 BINDER_URL = "https://mybinder.org/v2/gh/anulum/scpn-mif-core/main?labpath=notebooks%2Fmerge_trigger_quickstart.ipynb"
 SPONSOR_URL = "https://github.com/sponsors/anulum"
-PLATFORM_SDK_RANGE = ">=0.10,<0.11"
+PLATFORM_SDK_RANGE = ">=0.11.2,<0.12"
 
 
 def _read(relative_path: str) -> str:
@@ -95,3 +95,17 @@ def test_mkdocs_excludes_internal_workstation_docs() -> None:
 
     assert "exclude_docs: |" in mkdocs
     assert "  internal/" in mkdocs
+
+
+def test_public_surfaces_keep_local_cosim_distinct_from_hil() -> None:
+    readme = _read("README.md")
+    system_map = _read("docs/architecture/system_map.md")
+    feed = _json("studio-web/public/studio-feed.json")
+    cosim = next(claim for claim in feed["claims"] if claim["schema"] == "studio.cosim.v1")
+
+    assert cosim["substrate"] == "simulator"
+    assert cosim["evidence_badge"] == "cosim:local-verilator"
+    assert cosim["hardware_gate"] == "hil:hardware-gated"
+    for surface in (readme, system_map):
+        assert "cosim:local-verilator" in surface
+        assert "hil:hardware-gated" in surface
