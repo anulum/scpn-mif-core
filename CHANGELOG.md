@@ -36,6 +36,8 @@
 
 ### Fixed
 
+- Reframed the security threat model around MIF-owned merge, bank, DAQ, AER,
+  and formal-input surfaces, with explicit FUSION/CONTROL ownership boundaries.
 - Corrected the Go Dependabot directory to the repository-root `go.mod` and
   aligned the Go layout documentation with that module location.
 - Replaced fragile preinstalled-toolchain detection in Python-extension and

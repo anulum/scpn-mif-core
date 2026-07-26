@@ -29,18 +29,28 @@ Reporters are credited in the published advisory unless they request anonymity.
 SCPN-MIF-CORE is a simulation, formal-verification, and FPGA synthesis
 library targeting pulsed magneto-inertial fusion control. It does not handle
 user authentication, financial data, or production network services in its
-default configuration. Security concerns are primarily:
+default configuration. MIF owns the merge-decision, kinematic, lifecycle,
+capacitor-bank, AER/DAQ, trigger-fabric, and formal-proof surfaces in this
+repository. Security concerns are primarily:
 
-- Malicious input files (JSON configurations, capacitor-bank specifications,
-  AER stimulus traces, SymbiYosys property files, Vivado constraint files).
-- Unsafe deserialisation (serde, pickle, NumPy `load`).
-- Numerical overflow or denial of service via pathological inputs to the
-  rigid-rotor BVP, Hall-MHD step, or NMPC adapter.
+- Malicious or oversized MIF inputs (merge-scenario JSON, predictor weights,
+  capacitor-bank specifications, DAQ frames, AER event streams, and tracked
+  SymbiYosys/Vivado proof or constraint files).
+- Unsafe parsing or deserialisation across the JSON, TOML, Pydantic, serde, and
+  stable binary-frame boundaries actually shipped by this repository.
+- Numerical overflow or denial of service via non-finite or oversized merge
+  traces, excessive campaign budgets, malformed DAQ replay sequences, AER event
+  floods, infeasible bank specifications, or adversarial formal inputs.
 - Native code memory safety in the Rust crates exposed via PyO3.
 - Supply-chain integrity for the multi-language acceleration chain
   (Cargo, pip, Julia Pkg, Go modules, Mojo via pixi).
 - Post-quantum signature validation on capacitor-bank trigger commands
   (FIPS 204 ML-DSA-65), once SCPN-QUANTUM-CONTROL ships `QUA-C.2`.
+
+FRC rigid-rotor and Hall-MHD solvers are owned by SCPN-FUSION-CORE, while the
+NMPC runtime is owned by SCPN-CONTROL. Vulnerabilities in those implementations
+should be reported to their owning repositories. Validation failures where MIF
+ingests their outputs remain in scope here.
 
 ## Hardening Measures
 
@@ -53,6 +63,9 @@ default configuration. Security concerns are primarily:
   parsing paths.
 - **RNG isolation:** All stochastic modules use scoped `numpy.random.Generator`
   instances; no use of the global module-level RNG.
+- **Fuzzing:** The bounded nightly libFuzzer lane exercises the DAQ frame
+  decoder, AER observation decoder, and diagnostic normaliser, retaining any
+  reproducing crash input as a workflow artifact.
 - **Pre-commit:** `ruff`, `ruff-format`, `typos`, merge-conflict detection,
   `tools/check_sync_tags.py`, and `tools/check_secrets.py` run through local
   hooks; CI also runs `tools/check_secrets.py --tree .` as a repository-wide

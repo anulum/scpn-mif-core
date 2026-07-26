@@ -47,3 +47,22 @@ def test_security_policy_supported_version_matches_current_release_line() -> Non
 
     assert "| 0.1.x" in security
     assert "0.0.x" not in security
+
+
+def test_security_policy_uses_mif_owned_threat_surfaces() -> None:
+    security = _read("SECURITY.md")
+
+    for owned_surface in (
+        "merge-scenario JSON",
+        "capacitor-bank specifications",
+        "DAQ frames",
+        "AER event streams",
+        "adversarial formal inputs",
+    ):
+        assert owned_surface in security
+
+    assert "rigid-rotor BVP" not in security
+    assert "Hall-MHD step" not in security
+    assert "NMPC adapter" not in security
+    assert "owned by SCPN-FUSION-CORE" in security
+    assert "owned by SCPN-CONTROL" in security
