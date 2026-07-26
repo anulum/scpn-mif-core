@@ -106,7 +106,7 @@ fn step_slack_is_envelope_minus_separation_exactly() {
         .expect("two samples give a step slack");
     assert!(
         (slack - 0.002).abs() < 1.0e-15,
-        "step slack must be 0.002, got {slack}"
+        "step slack must match the expected envelope difference"
     );
     assert_eq!(cert.max_step_violation_m, 0.0);
 }

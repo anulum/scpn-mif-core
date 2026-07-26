@@ -10,6 +10,16 @@
 
 ## Unreleased
 
+### Security
+
+- Pinned the Studio toolchain to patched transitive releases for the
+  `adm-zip` oversized-allocation, PostCSS previous-source-map path traversal,
+  and `brace-expansion` unbounded-expansion advisories. The scheduled Security
+  Audit now installs the frozen Studio graph, fails on any npm advisory level,
+  and retains its JSON audit report.
+- Removed a dynamic Rust assertion diagnostic that CodeQL classified as
+  cleartext logging while preserving the exact kinematic safety assertion.
+
 ### Changed
 
 - Aligned the `ecosystem` extra with the live canonical sibling distributions:
