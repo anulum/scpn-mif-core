@@ -63,6 +63,7 @@ CORE_ARTIFACTS = (
     "bench/dispatch.toml",
     "docs/_generated/benchmark_dashboard.json",
     "docs/_generated/capability_manifest.json",
+    "docs/_generated/claim_ledger_review.json",
     "docs/_generated/formal_manifest.json",
     "docs/_generated/studio_manifest.json",
     "docs/_generated/timing_evidence_package.json",
@@ -71,6 +72,7 @@ CORE_ARTIFACTS = (
     "docs/validation/fair_validation_bundle.md",
     "tools/belova_merge_parity.py",
     "tools/benchmark_dashboard.py",
+    "tools/claim_ledger_review.py",
     "tools/fair_validation_bundle.py",
     "tools/formal_manifest.py",
     "tools/timing_evidence_package.py",
@@ -78,6 +80,7 @@ CORE_ARTIFACTS = (
     "tools/validate_claim_evidence_ledger.py",
     "tests/unit/bench/test_benchmark_dashboard.py",
     "tests/unit/fpga/test_timing_evidence_package.py",
+    "tests/unit/test_claim_ledger_review.py",
     "tests/unit/test_fair_validation_bundle.py",
 )
 
@@ -89,6 +92,13 @@ REPRODUCTION_COMMANDS = (
             "docs/internal/claim_evidence_ledger.json --repo . --check-references"
         ),
         "purpose": "Fail closed until the private claim ledger has no unresolved blockers.",
+    },
+    {
+        "label": "claim-ledger-review-receipt",
+        "command": (
+            "python tools/claim_ledger_review.py check docs/_generated/claim_ledger_review.json --max-age-days 30"
+        ),
+        "purpose": "Verify the public receipt for the latest private claim-ledger review.",
     },
     {
         "label": "benchmark-dashboard-drift",

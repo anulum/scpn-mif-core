@@ -1,12 +1,12 @@
 {
   "SPDX-License-Identifier": "AGPL-3.0-or-later",
-  "artifact_count": 47,
+  "artifact_count": 50,
   "artifacts": [
     {
       "kind": "project-documentation",
       "media_type": "text/markdown",
       "path": "README.md",
-      "sha256": "sha256:008137780e1a5497b9580d9ecfaf14e5403da2aa58cf3da7aaabf492548d8b72",
+      "sha256": "sha256:8460e03ba24f06ac9ca6bb7a87b2237b609228e66cba5b7e4546f54c53968ba2",
       "size_bytes": 24375
     },
     {
@@ -41,8 +41,8 @@
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "pyproject.toml",
-      "sha256": "sha256:7de30feb5fbad5651fe94b0d2cb82160401990a1b74dbff0179f0ac68a28c7bc",
-      "size_bytes": 10913
+      "sha256": "sha256:f20b844aba46a26d14b2f519e862a778a38312ab70a01ef67fa570de748731e8",
+      "size_bytes": 10915
     },
     {
       "kind": "supporting-artifact",
@@ -69,8 +69,15 @@
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/capability_manifest.json",
-      "sha256": "sha256:32cd04d1493141a7d8ab7ae717ed37b7648d14fb67b47d7e21e88bf8de4c3bdf",
-      "size_bytes": 34405
+      "sha256": "sha256:84bd10aee18c072036b94bc2aa9708e3f9914b710def27b573e25f5e00e9dafd",
+      "size_bytes": 34494
+    },
+    {
+      "kind": "generated-dashboard",
+      "media_type": "application/json",
+      "path": "docs/_generated/claim_ledger_review.json",
+      "sha256": "sha256:80c629512a0d3c06e50971159e24bfc18732fbbf629a06ecbeeb095ab11c0dfe",
+      "size_bytes": 583
     },
     {
       "kind": "generated-dashboard",
@@ -83,8 +90,8 @@
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/studio_manifest.json",
-      "sha256": "sha256:6d39d2e031aff2bafae68502d2bce3eb97d67594faaacb0429659c916dd2b3e5",
-      "size_bytes": 12451
+      "sha256": "sha256:e87ea59f8831da7f917c1cb205c6be5efd48c26750c21bd18e492b3ca87a3b60",
+      "size_bytes": 12453
     },
     {
       "kind": "generated-dashboard",
@@ -111,8 +118,8 @@
       "kind": "validation-documentation",
       "media_type": "text/markdown",
       "path": "docs/validation/fair_validation_bundle.md",
-      "sha256": "sha256:0cdf29320476e76f18ae8b67f304ae7c81088a26fbf6f79aa9d8d713357065d6",
-      "size_bytes": 2284
+      "sha256": "sha256:17c85bf3696f0c9a0386414288315542048fe476a003466ad62d5ceef33d706e",
+      "size_bytes": 3242
     },
     {
       "kind": "reproduction-tool",
@@ -131,9 +138,16 @@
     {
       "kind": "reproduction-tool",
       "media_type": "text/x-python",
+      "path": "tools/claim_ledger_review.py",
+      "sha256": "sha256:318284840a8942de7c9a3ee9e4bb07df69e64cfe6907f34cbb76287fae8640fb",
+      "size_bytes": 10825
+    },
+    {
+      "kind": "reproduction-tool",
+      "media_type": "text/x-python",
       "path": "tools/fair_validation_bundle.py",
-      "sha256": "sha256:e473ac62513153c5cec5b870c382f9285293933ec999060123242b2c767f2637",
-      "size_bytes": 16648
+      "sha256": "sha256:ee666986938adf1338aa1cb57ba8542def6b43d8cb37d8ad6201f9b1aafa3e31",
+      "size_bytes": 17078
     },
     {
       "kind": "reproduction-tool",
@@ -160,8 +174,8 @@
       "kind": "reproduction-tool",
       "media_type": "text/x-python",
       "path": "tools/validate_claim_evidence_ledger.py",
-      "sha256": "sha256:ccb8bc498e779bf51291bf7566b80665389c198bfc0fd078782efe3d298d1a15",
-      "size_bytes": 10729
+      "sha256": "sha256:17361f786e6cc956fb2378e2821054fff13f4cda4b1dcf471f84d62e8cf2c0ae",
+      "size_bytes": 13182
     },
     {
       "kind": "verification-test",
@@ -180,9 +194,16 @@
     {
       "kind": "verification-test",
       "media_type": "text/x-python",
+      "path": "tests/unit/test_claim_ledger_review.py",
+      "sha256": "sha256:425125c9b0b6c0304382e80a9653152fe295c8d166bb01b35a4bfcdb89b9a4ab",
+      "size_bytes": 4437
+    },
+    {
+      "kind": "verification-test",
+      "media_type": "text/x-python",
       "path": "tests/unit/test_fair_validation_bundle.py",
-      "sha256": "sha256:db573d30aee0e983e5a175b19ae005e730e371ac04b406ee9a9bab43d829da7c",
-      "size_bytes": 9513
+      "sha256": "sha256:e02911d12dde38f8cec1573c074ec7ae18a5909447332861e951d87c935ebc04",
+      "size_bytes": 9718
     },
     {
       "kind": "benchmark-result",
@@ -509,6 +530,11 @@
         "command": "python tools/validate_claim_evidence_ledger.py docs/internal/claim_evidence_ledger.json --repo . --check-references",
         "label": "internal-claim-ledger-gate",
         "purpose": "Fail closed until the private claim ledger has no unresolved blockers."
+      },
+      {
+        "command": "python tools/claim_ledger_review.py check docs/_generated/claim_ledger_review.json --max-age-days 30",
+        "label": "claim-ledger-review-receipt",
+        "purpose": "Verify the public receipt for the latest private claim-ledger review."
       },
       {
         "command": "python tools/benchmark_dashboard.py --check",

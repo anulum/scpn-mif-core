@@ -550,7 +550,7 @@
     "python_capability_classes": 93,
     "python_capability_source_modules": 26,
     "rust_workspace_crates": 10,
-    "test_files": 111
+    "test_files": 113
   },
   "documentation": {
     "public_pages": [
@@ -958,6 +958,7 @@
       "tests/unit/test_check_readme_version_mentions.py",
       "tests/unit/test_check_samsung_workspace.py",
       "tests/unit/test_check_wheel_contents.py",
+      "tests/unit/test_claim_ledger_review.py",
       "tests/unit/test_cli.py",
       "tests/unit/test_dispatch.py",
       "tests/unit/test_dysco_documentation.py",
@@ -975,6 +976,7 @@
       "tests/unit/test_merge_trigger.py",
       "tests/unit/test_public_api_facade.py",
       "tests/unit/test_public_interactive_surfaces.py",
+      "tests/unit/test_sealed_claim.py",
       "tests/unit/test_security_documentation.py",
       "tests/unit/test_studio_manifest.py",
       "tests/unit/test_update_dispatch.py",

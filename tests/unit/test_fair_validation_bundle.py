@@ -73,6 +73,7 @@ def test_artifacts_are_public_and_checksummed() -> None:
     assert "CITATION.cff" in paths
     assert ".zenodo.json" in paths
     assert "docs/_generated/benchmark_dashboard.json" in paths
+    assert "docs/_generated/claim_ledger_review.json" in paths
     assert "bench/results/trigger_latency_budget.json" in paths
     assert "docs/internal/claim_evidence_ledger.json" not in paths
 
@@ -93,6 +94,9 @@ def test_reproduction_commands_cover_claim_and_generated_artifact_gates() -> Non
 
     assert "python tools/benchmark_dashboard.py --check" in commands
     assert "python tools/fair_validation_bundle.py --check" in commands
+    assert (
+        "python tools/claim_ledger_review.py check docs/_generated/claim_ledger_review.json --max-age-days 30"
+    ) in commands
     assert (
         "python tools/validate_claim_evidence_ledger.py "
         "docs/internal/claim_evidence_ledger.json --repo . --check-references"

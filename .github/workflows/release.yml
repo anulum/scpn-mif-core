@@ -10,8 +10,29 @@ permissions:
   contents: read
 
 jobs:
+  claim-ledger-review:
+    name: Verify private claim-ledger review receipt
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
+        with:
+          python-version: "3.12"
+      - name: Require a fresh review of the immediately preceding source commit
+        run: |
+          python tools/claim_ledger_review.py check \
+            docs/_generated/claim_ledger_review.json \
+            --expected-reviewed-commit "$(git rev-parse HEAD^)" \
+            --max-age-days 30
+
   build:
     name: Build sdist + wheel
+    needs: claim-ledger-review
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

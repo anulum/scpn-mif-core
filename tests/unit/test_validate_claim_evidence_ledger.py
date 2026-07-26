@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
 
@@ -52,8 +53,9 @@ def _claim(**overrides: object) -> dict[str, object]:
 
 def _ledger(*claims: object) -> dict[str, object]:
     return {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "updated_utc": "2026-06-29T00:00:00Z",
+        "reviewed_commit": "a" * 40,
         "claims": list(claims or (_claim(),)),
     }
 
@@ -120,18 +122,34 @@ def test_validate_ledger_document_rejects_non_string_mapping_keys() -> None:
 
 
 def test_validate_ledger_document_reports_root_field_errors() -> None:
-    findings = validate_ledger_document({"schema_version": "", "updated_utc": 7, "claims": []})
+    findings = validate_ledger_document({"schema_version": "", "updated_utc": 7, "reviewed_commit": 8, "claims": []})
 
     assert findings == (
         LedgerFinding("$", "'schema_version' must be a non-empty string"),
         LedgerFinding("$", "'updated_utc' must be a non-empty string"),
+        LedgerFinding("$", "'reviewed_commit' must be a non-empty string"),
         LedgerFinding("$.claims", "ledger must contain at least one claim"),
     )
 
 
 def test_validate_ledger_document_requires_claims_list() -> None:
-    assert validate_ledger_document({"schema_version": "1.0", "updated_utc": "now", "claims": "no"}) == (
+    findings = validate_ledger_document(
+        {"schema_version": "1.1", "updated_utc": "now", "reviewed_commit": "b" * 40, "claims": "no"}
+    )
+    assert findings == (
+        LedgerFinding("$", "'updated_utc' must be a second-resolution RFC 3339 UTC timestamp"),
         LedgerFinding("$", "'claims' must be a list"),
+    )
+
+
+def test_validate_ledger_document_requires_current_schema_and_reviewed_commit() -> None:
+    ledger = _ledger()
+    ledger["schema_version"] = "1.0"
+    ledger["reviewed_commit"] = "ABC"
+
+    assert validate_ledger_document(ledger)[:2] == (
+        LedgerFinding("$", "schema_version must be '1.1', got '1.0'"),
+        LedgerFinding("$", "'reviewed_commit' must be a lowercase 40-hex Git commit"),
     )
 
 
@@ -263,6 +281,27 @@ def test_validate_ledger_path_checks_references(tmp_path: Path) -> None:
 
     assert validate_ledger_path(path, repo=tmp_path, check_references=True) == (
         LedgerFinding("$.claims[0].evidence[0]", "reference 'no.md' does not resolve"),
+    )
+
+
+def test_validate_ledger_path_enforces_review_age(tmp_path: Path) -> None:
+    path = tmp_path / "ledger.json"
+    path.write_text(json.dumps(_ledger()), encoding="utf-8")
+    now = datetime(2026, 7, 10, tzinfo=UTC)
+
+    assert validate_ledger_path(path, max_age_days=10, now=now) == (
+        LedgerFinding("$", "ledger review is older than 10 day(s)"),
+    )
+
+
+def test_validate_ledger_path_rejects_materially_future_review(tmp_path: Path) -> None:
+    ledger = _ledger()
+    ledger["updated_utc"] = "2026-07-10T00:06:00Z"
+    path = tmp_path / "ledger.json"
+    path.write_text(json.dumps(ledger), encoding="utf-8")
+
+    assert validate_ledger_path(path, max_age_days=30, now=datetime(2026, 7, 10, tzinfo=UTC)) == (
+        LedgerFinding("$", "'updated_utc' is more than five minutes in the future"),
     )
 
 

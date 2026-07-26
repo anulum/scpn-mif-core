@@ -22,6 +22,27 @@ evidence ledger must pass before upload or claim promotion:
 python tools/validate_claim_evidence_ledger.py docs/internal/claim_evidence_ledger.json --repo . --check-references
 ```
 
+## Release-tag claim review
+
+The private ledger is never committed or uploaded to CI. Immediately before a
+release tag, review every blocker against the intended source commit, refresh the
+ledger's `updated_utc` and `reviewed_commit`, then emit the privacy-preserving
+receipt:
+
+```bash
+python tools/validate_claim_evidence_ledger.py \
+  docs/internal/claim_evidence_ledger.json --repo . --check-references --max-age-days 1
+python tools/claim_ledger_review.py emit \
+  docs/internal/claim_evidence_ledger.json \
+  docs/_generated/claim_ledger_review.json --repo .
+```
+
+The receipt contains only the private ledger digest, aggregate counts, the
+reviewed source commit, and the conservative public-claim count. It contains no
+claim text, blocker text, or private path inventory. The release workflow requires
+the receipt to be no older than 30 days and to review the parent of the tagged
+commit, so a later source change cannot silently reuse an older review.
+
 ## Regeneration
 
 Regenerate the public manifest with:

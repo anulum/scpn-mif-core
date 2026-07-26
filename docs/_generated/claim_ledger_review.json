@@ -1,0 +1,14 @@
+{
+  "claim_boundary": "This receipt records a private ledger review; it does not itself grant or promote a public claim.",
+  "claim_count": 11,
+  "claims_with_blockers_count": 11,
+  "evidence_entry_count": 51,
+  "ledger_schema_version": "1.1",
+  "ledger_sha256": "0027032e8cc261411f0f7472283716a4ab531548ff936d518abf3c1a504a829f",
+  "public_claim_count": 0,
+  "references_checked": true,
+  "reviewed_commit": "b56fa3bfe1902f0e351c2a21a3cdf9ad2759c5a2",
+  "reviewed_utc": "2026-07-25T23:58:15Z",
+  "schema": "scpn-mif-core/claim-ledger-review/1.0.0",
+  "unique_reference_count": 40
+}

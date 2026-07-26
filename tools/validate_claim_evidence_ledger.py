@@ -18,9 +18,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import cast
 
@@ -48,6 +50,8 @@ REQUIRED_CLAIM_FIELDS = (
     "blockers",
     "next_actions",
 )
+REVIEWED_COMMIT_RE = re.compile(r"[0-9a-f]{40}")
+CURRENT_SCHEMA_VERSION = "1.1"
 
 
 @dataclass(frozen=True)
@@ -218,6 +222,20 @@ def _reference_exists(reference: str, repo: Path | None) -> bool:
     return (root / reference).exists()
 
 
+def parse_utc_timestamp(value: str) -> datetime | None:
+    """Parse a canonical second-resolution UTC timestamp."""
+
+    if not value.endswith("Z"):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.removesuffix("Z") + "+00:00")
+    except ValueError:
+        return None
+    if parsed.microsecond or parsed.tzinfo is None or parsed.utcoffset() != timedelta(0):
+        return None
+    return parsed
+
+
 def validate_ledger_document(
     document: object,
     *,
@@ -231,8 +249,17 @@ def validate_ledger_document(
         return (LedgerFinding("$", "ledger root must be an object"),)
 
     findings: list[LedgerFinding] = []
-    _string_field(root, "schema_version", "$", findings)
-    _string_field(root, "updated_utc", "$", findings)
+    schema_version = _string_field(root, "schema_version", "$", findings)
+    updated_utc = _string_field(root, "updated_utc", "$", findings)
+    reviewed_commit = _string_field(root, "reviewed_commit", "$", findings)
+    if schema_version and schema_version != CURRENT_SCHEMA_VERSION:
+        findings.append(
+            LedgerFinding("$", f"schema_version must be {CURRENT_SCHEMA_VERSION!r}, got {schema_version!r}")
+        )
+    if updated_utc and parse_utc_timestamp(updated_utc) is None:
+        findings.append(LedgerFinding("$", "'updated_utc' must be a second-resolution RFC 3339 UTC timestamp"))
+    if reviewed_commit and REVIEWED_COMMIT_RE.fullmatch(reviewed_commit) is None:
+        findings.append(LedgerFinding("$", "'reviewed_commit' must be a lowercase 40-hex Git commit"))
     claims_value = root.get("claims")
     claims = _sequence(claims_value)
     if claims is None:
@@ -257,6 +284,8 @@ def validate_ledger_path(
     *,
     repo: Path | None = None,
     check_references: bool = False,
+    max_age_days: int | None = None,
+    now: datetime | None = None,
 ) -> tuple[LedgerFinding, ...]:
     """Load and validate a ledger JSON file."""
 
@@ -264,7 +293,23 @@ def validate_ledger_path(
         document: object = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         return (LedgerFinding(path.as_posix(), f"invalid JSON: {exc.msg}"),)
-    return validate_ledger_document(document, repo=repo, check_references=check_references)
+    findings = list(validate_ledger_document(document, repo=repo, check_references=check_references))
+    root = _mapping(document)
+    if max_age_days is not None and root is not None:
+        if max_age_days < 0:
+            raise ValueError("max_age_days must be non-negative")
+        updated = root.get("updated_utc")
+        parsed = parse_utc_timestamp(updated) if isinstance(updated, str) else None
+        if parsed is not None:
+            reference_now = now or datetime.now(UTC)
+            if reference_now.tzinfo is None:
+                raise ValueError("now must be timezone-aware")
+            age = reference_now.astimezone(UTC) - parsed
+            if age < -timedelta(minutes=5):
+                findings.append(LedgerFinding("$", "'updated_utc' is more than five minutes in the future"))
+            elif age > timedelta(days=max_age_days):
+                findings.append(LedgerFinding("$", f"ledger review is older than {max_age_days} day(s)"))
+    return tuple(findings)
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -283,6 +328,12 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         help="repository root used for --check-references",
     )
+    parser.add_argument(
+        "--max-age-days",
+        type=int,
+        default=None,
+        help="fail when updated_utc is older than this many days",
+    )
     return parser
 
 
@@ -290,7 +341,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Run the claim evidence-ledger validator."""
 
     args = _parser().parse_args(argv)
-    findings = validate_ledger_path(args.ledger, repo=args.repo.resolve(), check_references=args.check_references)
+    findings = validate_ledger_path(
+        args.ledger,
+        repo=args.repo.resolve(),
+        check_references=args.check_references,
+        max_age_days=args.max_age_days,
+    )
     if findings:
         print(f"claim evidence ledger invalid: {len(findings)} finding(s)", file=sys.stderr)
         for finding in findings:
