@@ -18,6 +18,9 @@ from typing import Any, cast
 import pytest
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
+
+pytest.importorskip("scpn_studio_platform")
+
 from scpn_studio_platform.evidence import render_claim
 
 from scpn_mif_core.studio.manifest import PLATFORM_SDK_RANGE
