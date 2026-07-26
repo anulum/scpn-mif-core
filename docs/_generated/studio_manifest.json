@@ -234,6 +234,46 @@
         "evidence_kind": "hardware-validated",
         "status": "hardware-gated",
         "substrate": "fpga"
+      },
+      {
+        "badge": "timing:cycle-budget-formal",
+        "claim_unit": "clock-cycles",
+        "does_not_establish": [
+          "post-route propagation delay or Fmax",
+          "sub-50 ns wall-clock timing",
+          "end-to-end sensor/link/driver timing"
+        ],
+        "establishes": "bounded RTL event latency in clock cycles",
+        "evidence_kind": "formally-proven",
+        "status": "available",
+        "substrate": "simulator",
+        "wall_clock_claim_allowed": false
+      },
+      {
+        "badge": "timing:post-route-hardware-gated",
+        "blocked_on": [
+          "named FPGA and constraints",
+          "post-route clock, slack, and PVT report",
+          "timing-report checksum"
+        ],
+        "claim_unit": "nanoseconds",
+        "evidence_kind": "hardware-validated",
+        "status": "hardware-gated",
+        "substrate": "fpga",
+        "wall_clock_claim_allowed": false
+      },
+      {
+        "badge": "timing:e2e-hil-hardware-gated",
+        "blocked_on": [
+          "measured ADC, sensor-link, and driver latency",
+          "calibrated measurement instrument and source",
+          "end-to-end measurement-trace checksum"
+        ],
+        "claim_unit": "nanoseconds",
+        "evidence_kind": "hardware-validated",
+        "status": "hardware-gated",
+        "substrate": "hardware-unmitigated",
+        "wall_clock_claim_allowed": false
       }
     ],
     "interfaces": [

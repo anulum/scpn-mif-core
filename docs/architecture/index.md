@@ -102,7 +102,7 @@ SC-NEUROCORE        canonical SNN → SystemVerilog emitter, Q8.8 quantiser, AER
 SCPN-PHASE-ORCH     canonical Kuramoto family, distance-coupling, Doppler, monitors
 SCPN-QUANTUM-CTRL   canonical QAOA-MPC, pulse shaping, QRNG, PQC trigger signer
 SCPN-MIF-CORE       canonical pulsed-FRC kinematic + RTL hot-path lab
-                    (sub-50-ns trigger fabric, timing-aware formal, AER bridge,
+                    (sub-50-ns-target trigger fabric, cycle-budget formal, AER bridge,
                      Doppler-Kuramoto, moving-frame UPDE, pulsed-shot lifecycle,
                      capacitor-bank model, Faraday recovery)
 ```

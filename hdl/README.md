@@ -15,6 +15,11 @@ suites (safety, liveness, and timing). The Vivado batch flow,
 the UltraScale+ targets, and the synthesis/timing reports remain roadmap items;
 the layout below marks each entry as present or planned.
 
+Product evidence names the delivered clock-cycle class
+`timing:cycle-budget-formal`. The nanosecond classes
+`timing:post-route-hardware-gated` and `timing:e2e-hil-hardware-gated` remain
+blocked; a passed formal task never admits a wall-clock claim.
+
 **What the open flow proves, and what it does not.** The `timing` suite proves, by
 k-induction, that the trigger fabric resolves a qualified lock — fires, the lock
 breaks, or the one-shot had already fired — within `LOCK_HOLD_CYCLES + 1` *clock

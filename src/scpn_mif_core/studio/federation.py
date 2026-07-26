@@ -44,6 +44,15 @@ LOCAL_COSIM_BADGE = "cosim:local-verilator"
 HIL_GATED_BADGE = "hil:hardware-gated"
 """Product badge for hardware-in-the-loop evidence that has not yet been established."""
 
+CYCLE_FORMAL_TIMING_BADGE = "timing:cycle-budget-formal"
+"""Product badge for clock-cycle bounds established by open-tool formal proof."""
+
+POST_ROUTE_TIMING_GATED_BADGE = "timing:post-route-hardware-gated"
+"""Product badge for absent named-device post-route wall-clock evidence."""
+
+END_TO_END_TIMING_GATED_BADGE = "timing:e2e-hil-hardware-gated"
+"""Product badge for absent measured end-to-end HIL timing evidence."""
+
 
 def _pipeline_stages() -> list[dict[str, Any]]:
     """Return the runnable merge-trigger decision pipeline with per-stage IO contracts.
@@ -239,7 +248,7 @@ def _verb_substrates() -> dict[str, list[str]]:
 
 
 def _evidence_badges() -> list[dict[str, Any]]:
-    """Return the product-visible cosim/HIL evidence-class boundary.
+    """Return product-visible cosim/HIL and timing evidence boundaries.
 
     Bit-exactness is an agreement property, not a statement about where a result ran.
     Keeping the SDK substrate and the product badge explicit prevents local Verilator
@@ -267,6 +276,46 @@ def _evidence_badges() -> list[dict[str, Any]]:
                 "named-device FPGA waveform trace",
                 "calibrated hardware-in-the-loop replay",
                 "live-hardware admission by the Hub",
+            ],
+        },
+        {
+            "badge": CYCLE_FORMAL_TIMING_BADGE,
+            "status": "available",
+            "substrate": "simulator",
+            "evidence_kind": "formally-proven",
+            "claim_unit": "clock-cycles",
+            "wall_clock_claim_allowed": False,
+            "establishes": "bounded RTL event latency in clock cycles",
+            "does_not_establish": [
+                "post-route propagation delay or Fmax",
+                "sub-50 ns wall-clock timing",
+                "end-to-end sensor/link/driver timing",
+            ],
+        },
+        {
+            "badge": POST_ROUTE_TIMING_GATED_BADGE,
+            "status": "hardware-gated",
+            "substrate": "fpga",
+            "evidence_kind": "hardware-validated",
+            "claim_unit": "nanoseconds",
+            "wall_clock_claim_allowed": False,
+            "blocked_on": [
+                "named FPGA and constraints",
+                "post-route clock, slack, and PVT report",
+                "timing-report checksum",
+            ],
+        },
+        {
+            "badge": END_TO_END_TIMING_GATED_BADGE,
+            "status": "hardware-gated",
+            "substrate": "hardware-unmitigated",
+            "evidence_kind": "hardware-validated",
+            "claim_unit": "nanoseconds",
+            "wall_clock_claim_allowed": False,
+            "blocked_on": [
+                "measured ADC, sensor-link, and driver latency",
+                "calibrated measurement instrument and source",
+                "end-to-end measurement-trace checksum",
             ],
         },
     ]

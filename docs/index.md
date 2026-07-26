@@ -22,9 +22,12 @@ confinement.
 
 If the control loop runs in the >1 microsecond CPU envelope, it loses. The
 plasmoid hits the wall before it can push electromagnetic energy back into
-the capacitor banks. SCPN-MIF-CORE moves the critical-path intervention
-from software to combinatorial logic on the FPGA fabric: a hard-bounded,
-sub-50-nanosecond sensor-to-actuator latency.
+the capacitor banks. SCPN-MIF-CORE moves the critical-path intervention from
+software toward combinatorial logic on FPGA fabric, with sub-50-nanosecond
+sensor-to-actuator latency as the engineering target. The delivered formal
+bound is expressed in clock cycles (`timing:cycle-budget-formal`); named-device
+post-route and measured end-to-end nanosecond evidence remain
+`timing:post-route-hardware-gated` and `timing:e2e-hil-hardware-gated`.
 
 ## What it is
 

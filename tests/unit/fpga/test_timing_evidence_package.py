@@ -16,8 +16,11 @@ import pytest
 
 from tools import timing_evidence_package
 from tools.timing_evidence_package import (
+    CYCLE_FORMAL_BADGE,
+    END_TO_END_HIL_GATED_BADGE,
     HIL_REQUIRED_FIELDS,
     PACKAGE_PATH,
+    POST_ROUTE_GATED_BADGE,
     POST_ROUTE_REQUIRED_FIELDS,
     build_package,
     check_package,
@@ -38,14 +41,25 @@ def test_package_splits_formal_timing_and_blocked_hardware_evidence() -> None:
     sections = _sections_by_id(package)
 
     assert package["public_timing_claim_allowed"] is False
+    assert package["public_sub_50ns_claim_allowed"] is False
+    assert package["target_ns"] == 50.0
     assert sections["open_tool_formal"]["status"] == "passed"
+    assert sections["open_tool_formal"]["badge"] == CYCLE_FORMAL_BADGE
     assert sections["open_tool_formal"]["evidence_class"] == "formal_proof"
+    assert sections["open_tool_formal"]["claim_unit"] == "clock-cycles"
+    assert sections["open_tool_formal"]["wall_clock_claim_allowed"] is False
     assert _metrics(sections["open_tool_formal"])["timing_task_count"] == 4
     assert sections["post_route_timing"]["status"] == "blocked"
+    assert sections["post_route_timing"]["badge"] == POST_ROUTE_GATED_BADGE
     assert sections["post_route_timing"]["evidence_class"] == "hardware_timing_report"
+    assert sections["post_route_timing"]["claim_unit"] == "nanoseconds"
+    assert sections["post_route_timing"]["wall_clock_claim_allowed"] is False
     assert _string_tuple(sections["post_route_timing"], "required_fields") == POST_ROUTE_REQUIRED_FIELDS
     assert sections["end_to_end_timing"]["status"] == "blocked"
+    assert sections["end_to_end_timing"]["badge"] == END_TO_END_HIL_GATED_BADGE
     assert sections["end_to_end_timing"]["evidence_class"] == "hil_replay"
+    assert sections["end_to_end_timing"]["claim_unit"] == "nanoseconds"
+    assert sections["end_to_end_timing"]["wall_clock_claim_allowed"] is False
     assert _metrics(sections["end_to_end_timing"])["hot_path_ns"] == 56.0
     assert _metrics(sections["end_to_end_timing"])["clock_basis"] == "stated-assumption"
 

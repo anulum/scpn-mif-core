@@ -8,7 +8,7 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { MIF_BACKENDS } from '../src/domain.js';
+import { MIF_BACKENDS, MIF_TIMING_EVIDENCE } from '../src/domain.js';
 import {
   DEFAULT_FEED_URL,
   FALLBACK_FEED,
@@ -78,6 +78,32 @@ const VALID_FEED = {
     { name: 'rust', status: 'runtime-active' },
     { name: 'mojo', status: 'build-available' },
   ],
+  timing_evidence: [
+    {
+      id: 'open_tool_formal',
+      badge: 'timing:cycle-budget-formal',
+      status: 'passed',
+      claim_unit: 'clock-cycles',
+      wall_clock_claim_allowed: false,
+      summary: 'Cycle bound only.',
+    },
+    {
+      id: 'post_route_timing',
+      badge: 'timing:post-route-hardware-gated',
+      status: 'blocked',
+      claim_unit: 'nanoseconds',
+      wall_clock_claim_allowed: false,
+      summary: 'Post-route report absent.',
+    },
+    {
+      id: 'end_to_end_timing',
+      badge: 'timing:e2e-hil-hardware-gated',
+      status: 'blocked',
+      claim_unit: 'nanoseconds',
+      wall_clock_claim_allowed: false,
+      summary: 'HIL trace absent.',
+    },
+  ],
 } as const;
 
 function mockFetch(impl: () => Promise<unknown>): void {
@@ -95,6 +121,7 @@ describe('narrowFeed', () => {
     expect(feed.contentDigest).toBe('sha256:abc');
     expect(feed.verbs).toHaveLength(2);
     expect(feed.claims).toHaveLength(3);
+    expect(feed.timingEvidence).toHaveLength(3);
   });
 
   it('carries deadlineUs only for a deadline-bearing verb', () => {
@@ -172,6 +199,24 @@ describe('narrowFeed', () => {
       claims: [],
     });
     expect(feed.backends).toBe(MIF_BACKENDS);
+    expect(feed.timingEvidence).toBe(MIF_TIMING_EVIDENCE);
+  });
+
+  it('keeps cycle-formal timing separate from both wall-clock classes', () => {
+    const timing = narrowFeed(VALID_FEED).timingEvidence;
+
+    expect(timing.map((entry) => entry.badge)).toEqual([
+      'timing:cycle-budget-formal',
+      'timing:post-route-hardware-gated',
+      'timing:e2e-hil-hardware-gated',
+    ]);
+    expect(timing[0]).toMatchObject({
+      status: 'passed',
+      claimUnit: 'clock-cycles',
+      wallClockClaimAllowed: false,
+    });
+    expect(timing.slice(1).every((entry) => entry.status === 'blocked')).toBe(true);
+    expect(timing.every((entry) => !entry.wallClockClaimAllowed)).toBe(true);
   });
 });
 
@@ -185,6 +230,8 @@ describe('isRawFeed', () => {
     expect(isRawFeed(null)).toBe(false);
     expect(isRawFeed({ verbs: 'nope', claims: [] })).toBe(false);
     expect(isRawFeed({ verbs: [], claims: 'nope' })).toBe(false);
+    expect(isRawFeed({ verbs: [], claims: [], backends: 'nope' })).toBe(false);
+    expect(isRawFeed({ verbs: [], claims: [], timing_evidence: 'nope' })).toBe(false);
   });
 });
 

@@ -10,8 +10,10 @@
 
 This guide runs the FRC merge-trigger pipeline from Python and from the command
 line, and walks the pulsed-shot lifecycle. It covers the software surfaces that
-ship today; the sub-50 ns trigger fabric, its formal proofs, and the FPGA
-timing-closure report are roadmap items (see [Architecture](../architecture/index.md)).
+ship today. The trigger RTL and cycle-budget formal proofs are delivered, but
+the sub-50 ns wall-clock claim is not: the named-device FPGA timing-closure
+report and measured end-to-end HIL trace remain hardware-gated (see
+[Architecture](../architecture/index.md)).
 
 ## One-command demo
 

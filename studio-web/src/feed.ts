@@ -34,8 +34,12 @@ import type {
   SafetyTier,
   SideEffect,
   TimingClass,
+  TimingClaimUnit,
+  TimingEvidenceBadge,
+  TimingEvidenceStatus,
+  TimingEvidenceSummary,
 } from './domain.js';
-import { MIF_BACKENDS, MIF_CLAIMS, MIF_VERBS } from './domain.js';
+import { MIF_BACKENDS, MIF_CLAIMS, MIF_TIMING_EVIDENCE, MIF_VERBS } from './domain.js';
 
 /** A verb as it appears on the wire (snake_case, from the Python feed). */
 interface RawVerb {
@@ -74,6 +78,16 @@ interface RawBackend {
   readonly status: BackendStatus;
 }
 
+/** One timing evidence class as it appears on the wire. */
+interface RawTimingEvidence {
+  readonly id: string;
+  readonly badge: TimingEvidenceBadge;
+  readonly status: TimingEvidenceStatus;
+  readonly claim_unit: TimingClaimUnit;
+  readonly wall_clock_claim_allowed: boolean;
+  readonly summary: string;
+}
+
 /** The studio feed document as it appears on the wire. */
 interface RawFeed {
   readonly feed_schema: string;
@@ -83,6 +97,7 @@ interface RawFeed {
   readonly verbs: readonly RawVerb[];
   readonly claims: readonly RawClaim[];
   readonly backends?: readonly RawBackend[];
+  readonly timing_evidence?: readonly RawTimingEvidence[];
 }
 
 /** The narrowed feed the panel consumes. */
@@ -92,6 +107,7 @@ export interface StudioFeed {
   readonly verbs: readonly MifVerb[];
   readonly claims: readonly ClaimSummary[];
   readonly backends: readonly Backend[];
+  readonly timingEvidence: readonly TimingEvidenceSummary[];
 }
 
 /** The bundled fallback feed — the domain sample, used when the live feed is absent. */
@@ -101,6 +117,7 @@ export const FALLBACK_FEED: StudioFeed = {
   verbs: MIF_VERBS,
   claims: MIF_CLAIMS,
   backends: MIF_BACKENDS,
+  timingEvidence: MIF_TIMING_EVIDENCE,
 };
 
 /** Default location the standalone remote fetches the live feed from. */
@@ -154,16 +171,38 @@ function toBackend(raw: RawBackend): Backend {
   return { name: raw.name, status: raw.status };
 }
 
+function toTimingEvidence(raw: RawTimingEvidence): TimingEvidenceSummary {
+  return {
+    id: raw.id,
+    badge: raw.badge,
+    status: raw.status,
+    claimUnit: raw.claim_unit,
+    wallClockClaimAllowed: raw.wall_clock_claim_allowed,
+    summary: raw.summary,
+  };
+}
+
 /** Structural type guard for the wire feed (validates the two required collections). */
 export function isRawFeed(value: unknown): value is RawFeed {
   if (typeof value !== 'object' || value === null) {
     return false;
   }
-  const candidate = value as { verbs?: unknown; claims?: unknown };
+  const candidate = value as {
+    verbs?: unknown;
+    claims?: unknown;
+    backends?: unknown;
+    timing_evidence?: unknown;
+  };
   if (!Array.isArray(candidate.verbs)) {
     return false;
   }
-  return Array.isArray(candidate.claims);
+  if (!Array.isArray(candidate.claims)) {
+    return false;
+  }
+  if (candidate.backends !== undefined && !Array.isArray(candidate.backends)) {
+    return false;
+  }
+  return candidate.timing_evidence === undefined || Array.isArray(candidate.timing_evidence);
 }
 
 /** Narrow a validated wire feed to the panel's camelCase domain types. */
@@ -176,6 +215,12 @@ export function narrowFeed(raw: RawFeed): StudioFeed {
     // backends are optional on the wire; a feed without them falls back to the sample
     // so an older producer still renders.
     backends: raw.backends === undefined ? MIF_BACKENDS : raw.backends.map(toBackend),
+    // Timing evidence was added to the feed additively; older producers get the
+    // conservative bundled split instead of losing the wall-clock gate.
+    timingEvidence:
+      raw.timing_evidence === undefined
+        ? MIF_TIMING_EVIDENCE
+        : raw.timing_evidence.map(toTimingEvidence),
   };
 }
 

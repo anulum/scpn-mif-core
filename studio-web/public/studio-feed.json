@@ -49,6 +49,32 @@
   "feed_schema": "studio.mif-feed.v1",
   "studio": "scpn-mif-core",
   "studio_version": "0.1.1",
+  "timing_evidence": [
+    {
+      "badge": "timing:cycle-budget-formal",
+      "claim_unit": "clock-cycles",
+      "id": "open_tool_formal",
+      "status": "passed",
+      "summary": "Bounded RTL event latency in clock cycles; no nanosecond result.",
+      "wall_clock_claim_allowed": false
+    },
+    {
+      "badge": "timing:post-route-hardware-gated",
+      "claim_unit": "nanoseconds",
+      "id": "post_route_timing",
+      "status": "blocked",
+      "summary": "Named-device post-route clock, slack, PVT, and checksum are absent.",
+      "wall_clock_claim_allowed": false
+    },
+    {
+      "badge": "timing:e2e-hil-hardware-gated",
+      "claim_unit": "nanoseconds",
+      "id": "end_to_end_timing",
+      "status": "blocked",
+      "summary": "Calibrated sensor/link/fabric/driver timing trace is absent.",
+      "wall_clock_claim_allowed": false
+    }
+  ],
   "verbs": [
     {
       "domain_distinctive": true,

@@ -55,7 +55,7 @@ Standards referenced:
 | Objective category | Standard(s) | MIF evidence present | Gap (not yet done) |
 |---|---|---|---|
 | Deterministic specification of safety function | 61508, 60880, DO-254 | Trigger fabric + fast-veto lane have a cycle-accurate reference and a typed decision contract; veto is the absolute interlock | No formal safety-requirements specification document or hazard analysis |
-| Verification by formal methods | 61508 (systematic capability), DO-254 (advanced V&V) | MIF-010 k-induction proofs of the load-bearing safety properties; proof-status manifest + drift gate | Timing-aware and CDC/metastability proofs (N2) are not yet present; proofs cover function, not post-route timing |
+| Verification by formal methods | 61508 (systematic capability), DO-254 (advanced V&V) | MIF-010 k-induction proofs of the load-bearing safety properties and bounded cycle latency; proof-status manifest + drift gate | Proofs cover function and clock-cycle bounds, not post-route propagation, Fmax, or physical metastability-resolution time |
 | Verification/design independence | DO-254, 60880 | Golden reference and RTL are independent; cosim compares them bit-true; proofs bind independently written properties | No organisationally independent assessor; single-author project |
 | Robustness to degraded/abnormal input | 61508, 60880 | MIF-017 stress injection + adversarial fault-injection cosim cases; fail-closed veto | No FMEDA, no random-hardware-fault metrics, no field-failure data |
 | Lifecycle and traceability | 60880, DO-254 | ADRs, changelog, capability + formal manifests, requirement-shaped property names | No full lifecycle plan (PHAC/PSAC-equivalent), no requirements-to-test trace matrix |

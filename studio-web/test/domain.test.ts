@@ -13,6 +13,7 @@ import {
   claimRendersAsValidated,
   MIF_BACKENDS,
   MIF_CLAIMS,
+  MIF_TIMING_EVIDENCE,
   MIF_VERBS,
   requiresLiveHardwareGate,
 } from '../src/domain.js';
@@ -157,5 +158,28 @@ describe('MIF_BACKENDS', () => {
 
   it('never advertises a declared-only backend (everything is at least build-available)', () => {
     expect(MIF_BACKENDS.every((b) => b.status !== 'declared')).toBe(true);
+  });
+});
+
+describe('MIF_TIMING_EVIDENCE', () => {
+  it('passes only the cycle-formal class and never promotes it to wall-clock timing', () => {
+    const byBadge = new Map(MIF_TIMING_EVIDENCE.map((entry) => [entry.badge, entry]));
+    const cycle = byBadge.get('timing:cycle-budget-formal');
+
+    expect(cycle).toMatchObject({
+      status: 'passed',
+      claimUnit: 'clock-cycles',
+      wallClockClaimAllowed: false,
+    });
+    expect(byBadge.get('timing:post-route-hardware-gated')).toMatchObject({
+      status: 'blocked',
+      claimUnit: 'nanoseconds',
+      wallClockClaimAllowed: false,
+    });
+    expect(byBadge.get('timing:e2e-hil-hardware-gated')).toMatchObject({
+      status: 'blocked',
+      claimUnit: 'nanoseconds',
+      wallClockClaimAllowed: false,
+    });
   });
 });

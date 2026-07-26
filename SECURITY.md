@@ -59,8 +59,10 @@ default configuration. Security concerns are primarily:
   secret-pattern scan. GitHub secret scanning and push protection are enabled
   on the public repository.
 - **Pre-push:** `tools/preflight.py` runs the full local quality gate.
-- **Formal verification:** Sub-50-nanosecond triggering surface is gated by
-  SymbiYosys, nuXmv, and Kind 2 proofs (see `hdl/formal/`).
+- **Formal verification:** SymbiYosys proves functional and bounded
+  cycle-latency properties (`timing:cycle-budget-formal`; see `hdl/formal/`).
+  Those proofs do not establish nanoseconds. Named-device post-route timing and
+  calibrated end-to-end HIL timing remain hardware-gated.
 - **SBOM:** CycloneDX package manifests are generated for Python and Rust and
   attached to GitHub releases.
 - **Post-quantum readiness:** Capacitor-bank trigger commands are signed

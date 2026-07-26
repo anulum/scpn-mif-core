@@ -37,7 +37,7 @@ maintenance and audit surface.
 MIF-CORE is scoped as the **pulsed-FRC kinematic and RTL hot-path laboratory**.
 It owns, and may only own: FRC kinematic merging, the chamber-fixed moving-frame
 layer, the merge-window monitor, the pulsed-shot lifecycle, the capacitor-bank
-model, the AER sensor bridge, the sub-50-nanosecond trigger fabric, the
+model, the AER sensor bridge, the sub-50-nanosecond-target trigger fabric, the
 timing-aware formal property set, the MIF Lean safety proofs, and the Faraday
 recovery carrier.
 

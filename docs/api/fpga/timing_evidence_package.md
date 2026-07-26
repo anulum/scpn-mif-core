@@ -11,11 +11,11 @@
 The timing evidence package is a generated JSON artefact that separates three
 different timing evidence classes:
 
-| Section | Evidence class | Current state |
-|---|---|---|
-| `open_tool_formal` | formal proof | passed |
-| `post_route_timing` | hardware timing report | blocked |
-| `end_to_end_timing` | HIL replay / measured timing | blocked |
+| Section | Product badge | Claim unit | Current state | Wall-clock claim |
+|---|---|---|---|---|
+| `open_tool_formal` | `timing:cycle-budget-formal` | clock cycles | passed | not allowed |
+| `post_route_timing` | `timing:post-route-hardware-gated` | nanoseconds | blocked | not allowed |
+| `end_to_end_timing` | `timing:e2e-hil-hardware-gated` | nanoseconds | blocked | not allowed |
 
 The committed artefact is `docs/_generated/timing_evidence_package.json`, and
 the drift gate is:
@@ -28,6 +28,10 @@ The package intentionally does not promote a wall-clock timing claim. It records
 that the open-tool formal manifest includes a timing-suite proof, while the
 named-device post-route timing report and end-to-end sensor/driver timing
 measurement remain absent.
+
+The package exposes `public_sub_50ns_claim_allowed: false`. Passing the formal
+row cannot change that value: cycle proof and wall-clock evidence have different
+units and different admission requirements.
 
 ## Required External Evidence
 

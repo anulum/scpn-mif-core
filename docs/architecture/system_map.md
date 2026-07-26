@@ -23,8 +23,8 @@ hardware-gated, this map says so — see [ADR 0005](../adr/0005-delivered-versus
 ## What MIF is
 
 MIF-CORE is **the verified, deterministic, chamber-side trigger lane for pulsed
-field-reversed-configuration (FRC) fusion** — a compiler from plasma kinematics to a
-sub-50-nanosecond hardware compression trigger, plus the integration hub across five
+field-reversed-configuration (FRC) fusion** — a compiler from plasma kinematics toward a
+sub-50-nanosecond hardware compression-trigger target, plus the integration hub across five
 sibling SCPN repositories. It is *not* a plasma-physics laboratory: the equilibrium,
 transport, and self-consistent compression physics are owned by SCPN-FUSION-CORE and
 consumed here as prescribed inputs ([ADR 0001](../adr/0001-repository-scope-and-ownership-boundaries.md)).
@@ -50,8 +50,11 @@ Python-golden ↔ Verilator RTL parity produced on the **`simulator`** substrate
 does not establish FPGA waveform equivalence, post-route wall-clock timing, or the
 coil-driver/chamber path. Those physical-device claims remain
 **`hil:hardware-gated`** until named-device traces and a calibrated HIL replay exist
-and the Hub admits the live-hardware lane. Cycle-bounded formal evidence, post-route
-timing evidence, and end-to-end HIL timing remain separate classes.
+and the Hub admits the live-hardware lane. Timing is independently rendered as
+**`timing:cycle-budget-formal`** (passed, clock cycles only),
+**`timing:post-route-hardware-gated`** (blocked, named-device nanoseconds), and
+**`timing:e2e-hil-hardware-gated`** (blocked, measured full-path nanoseconds).
+The passed cycle class has `wall_clock_claim_allowed = false`.
 
 ## Inventory at a glance
 
@@ -266,7 +269,7 @@ MIF stays strictly inside its lane ([ADR 0001](../adr/0001-repository-scope-and-
 | Reusable Swarmalator / coherence-monitor primitives | SCPN-PHASE-ORCHESTRATOR |
 
 MIF owns: FRC kinematic merging, the pulsed-shot lifecycle, the capacitor bank, the AER
-sensor bridge, the sub-50 ns trigger fabric, the timing-aware formal tier, the Lean
+sensor bridge, the sub-50 ns target trigger fabric, the timing-aware formal tier, the Lean
 kinematic-safety invariant, and Faraday recovery. Several kinematic surfaces are
 `SYNC-STATE: upstream-pending` — implemented locally until the reusable surface lands in
 the owning sibling.

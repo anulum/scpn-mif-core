@@ -29,7 +29,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 FORMAL_MANIFEST_PATH = REPO_ROOT / "docs" / "_generated" / "formal_manifest.json"
 LATENCY_BUDGET_PATH = REPO_ROOT / "bench" / "results" / "trigger_latency_budget.json"
 PACKAGE_PATH = REPO_ROOT / "docs" / "_generated" / "timing_evidence_package.json"
-SCHEMA = "scpn-mif-core/timing-evidence-package/1.0.0"
+SCHEMA = "scpn-mif-core/timing-evidence-package/1.1.0"
+
+CYCLE_FORMAL_BADGE = "timing:cycle-budget-formal"
+POST_ROUTE_GATED_BADGE = "timing:post-route-hardware-gated"
+END_TO_END_HIL_GATED_BADGE = "timing:e2e-hil-hardware-gated"
 
 EvidenceStatus = Literal["passed", "blocked"]
 JsonScalar = str | int | float | bool | None
@@ -64,8 +68,11 @@ class EvidenceSection:
     """One timing evidence class and its claim boundary."""
 
     section_id: str
+    badge: str
     evidence_class: str
     status: EvidenceStatus
+    claim_unit: Literal["clock-cycles", "nanoseconds"]
+    wall_clock_claim_allowed: bool
     summary: str
     references: tuple[str, ...]
     blockers: tuple[str, ...] = ()
@@ -76,8 +83,11 @@ class EvidenceSection:
         """Return this section as stable JSON data."""
         payload: dict[str, JsonValue] = {
             "id": self.section_id,
+            "badge": self.badge,
             "evidence_class": self.evidence_class,
             "status": self.status,
+            "claim_unit": self.claim_unit,
+            "wall_clock_claim_allowed": self.wall_clock_claim_allowed,
             "summary": self.summary,
             "references": list(self.references),
         }
@@ -129,9 +139,15 @@ def build_package(
     sections = (
         EvidenceSection(
             section_id="open_tool_formal",
+            badge=CYCLE_FORMAL_BADGE,
             evidence_class="formal_proof",
             status="passed",
-            summary="Open-tool SymbiYosys proof manifest is present and includes a timing-suite proof.",
+            claim_unit="clock-cycles",
+            wall_clock_claim_allowed=False,
+            summary=(
+                "Open-tool SymbiYosys proof manifest includes bounded cycle-latency proofs; "
+                "it establishes no nanosecond or silicon-timing result."
+            ),
             references=("docs/_generated/formal_manifest.json", "tools/run_formal.py"),
             metrics={
                 "task_count": _int_field(formal, "task_count", formal_path),
@@ -141,8 +157,11 @@ def build_package(
         ),
         EvidenceSection(
             section_id="post_route_timing",
+            badge=POST_ROUTE_GATED_BADGE,
             evidence_class="hardware_timing_report",
             status="blocked",
+            claim_unit="nanoseconds",
+            wall_clock_claim_allowed=False,
             summary="No named-device post-route timing report is present.",
             references=("docs/adr/0006-formal-verification-strategy.md", "docs/architecture/system_map.md"),
             blockers=(
@@ -153,8 +172,11 @@ def build_package(
         ),
         EvidenceSection(
             section_id="end_to_end_timing",
+            badge=END_TO_END_HIL_GATED_BADGE,
             evidence_class="hil_replay",
             status="blocked",
+            claim_unit="nanoseconds",
+            wall_clock_claim_allowed=False,
             summary="End-to-end sensor/link/fabric/driver timing still contains modelled assumption tiers.",
             references=("bench/results/trigger_latency_budget.json", "tools/trigger_latency_budget.py"),
             blockers=(
@@ -180,6 +202,8 @@ def build_package(
         "SPDX-License-Identifier": "AGPL-3.0-or-later",
         "schema": SCHEMA,
         "public_timing_claim_allowed": public_claim_allowed,
+        "public_sub_50ns_claim_allowed": False,
+        "target_ns": 50.0,
         "claim_boundary": (
             "Open-tool formal timing evidence is present; named-device post-route timing "
             "and end-to-end HIL timing remain blocked."

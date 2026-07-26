@@ -49,10 +49,11 @@ fast-veto lane is now present: a clock-free, stateless interlock whose zero-cycl
 veto dominance is proved on the same open-source flow, so the kinematic-safety
 veto suppresses a fire in the same cycle without waiting on the debounce. The two
 lanes are delimited in [ADR 0008](docs/adr/0008-combinational-fast-veto-lane.md).
-The timing-aware formal
-proofs and the UltraScale+ timing-closure report that would establish the
-sub-50-nanosecond budget on silicon remain roadmap items (see [Status](#status)),
-not yet delivered capabilities.
+The delivered cycle-budget proofs are labelled
+**`timing:cycle-budget-formal`** and establish clock-cycle relations only. The
+named-device report **`timing:post-route-hardware-gated`** and measured full-path
+evidence **`timing:e2e-hil-hardware-gated`** remain blocked; no current artefact
+establishes the sub-50-nanosecond budget on silicon (see [Status](#status)).
 
 > **Status:** pre-alpha with P1 local surfaces in progress. The current
 > upstream-pending API set includes MIF-001 Doppler-Kuramoto synchronisation,
@@ -233,7 +234,10 @@ period, while the analog tiers, not the logic, set the latency. The combinationa
 realised today by the registerless fast-veto lane, whose zero-cycle veto
 dominance is machine-checked; the debounced fabric remains the multi-cycle
 safety-qualified path that the lane gates ([ADR 0008](docs/adr/0008-combinational-fast-veto-lane.md)).
-The delivered hardware surface today is
+In product evidence this split is rendered as `timing:cycle-budget-formal`
+(passed, unit: clock cycles) versus `timing:post-route-hardware-gated` and
+`timing:e2e-hil-hardware-gated` (blocked, unit: nanoseconds). A passed cycle row
+never enables a wall-clock claim. The delivered hardware surface today is
 the MIF-007 B-dot ADC → Q8.8 spike-rate quantiser (`hdl/src/sensors/`) and the
 MIF-008 debounced trigger fabric with its registerless fast-veto lane
 (`hdl/src/triggers/`), each with a Verilator cosimulation harness; the MIF-008
@@ -310,8 +314,10 @@ capacitor banks.
 `scpn-mif-core` is engineered to preempt these macroscopic instabilities
 *before* they compromise the energy-recovery cycle. It discards steady-state
 tokamak logic entirely, isolating the `scpn-phase-orchestrator` Kuramoto
-models and compiling them via `sc-neurocore` into sub-50-nanosecond, purely
-combinatorial SystemVerilog triggers.
+models and compiling them via `sc-neurocore` toward a sub-50-nanosecond design
+target using purely combinatorial SystemVerilog trigger logic. The delivered
+formal evidence bounds clock cycles, not nanoseconds; named-device timing remains
+hardware-gated.
 
 ---
 
@@ -405,11 +411,12 @@ def direct_energy_recovery_emf(
 `scpn-mif-core` acts as an intermediate-representation compiler. It takes
 the differential equations above and translates them into an event-driven
 spiking neural network. Through the `sc-neurocore` back end, the SNN is
-synthesised into Q8.8 fixed-point SystemVerilog. The primary engineering
+synthesised into Q8.8 fixed-point SystemVerilog. The target engineering
 deliverable is a **formally verified FPGA bitstream** capable of reading
 Address-Event-Representation magnetic-probe spikes and firing the
 compression coils entirely within the sub-50-nanosecond hardware layer,
-bypassing the CPU completely.
+bypassing the CPU completely. Today, `timing:cycle-budget-formal` is delivered;
+`timing:post-route-hardware-gated` and `timing:e2e-hil-hardware-gated` are not.
 
 ---
 

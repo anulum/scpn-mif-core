@@ -75,6 +75,28 @@ export type EvidenceSubstrate =
 export type EvidenceBadge = 'cosim:local-verilator';
 export type HardwareGateBadge = 'hil:hardware-gated';
 
+/** Timing evidence labels: cycle proof is distinct from both hardware timing classes. */
+export type TimingEvidenceBadge =
+  | 'timing:cycle-budget-formal'
+  | 'timing:post-route-hardware-gated'
+  | 'timing:e2e-hil-hardware-gated';
+
+/** Whether one timing evidence class is established or blocked. */
+export type TimingEvidenceStatus = 'passed' | 'blocked';
+
+/** Unit domain of a timing claim; crossing this boundary requires new evidence. */
+export type TimingClaimUnit = 'clock-cycles' | 'nanoseconds';
+
+/** Product summary of one timing evidence class. */
+export interface TimingEvidenceSummary {
+  readonly id: string;
+  readonly badge: TimingEvidenceBadge;
+  readonly status: TimingEvidenceStatus;
+  readonly claimUnit: TimingClaimUnit;
+  readonly wallClockClaimAllowed: boolean;
+  readonly summary: string;
+}
+
 /**
  * The orthogonal freshness axis — how recently a claim's evidence was re-checked at
  * source. It gates validation: only `verified-at-source` (or undeclared, since the
@@ -191,6 +213,34 @@ export const MIF_BACKENDS: readonly Backend[] = [
   { name: 'mojo', status: 'build-available' },
   { name: 'julia', status: 'build-available' },
   { name: 'go', status: 'build-available' },
+];
+
+/** The three non-interchangeable timing evidence classes rendered by the Studio. */
+export const MIF_TIMING_EVIDENCE: readonly TimingEvidenceSummary[] = [
+  {
+    id: 'open_tool_formal',
+    badge: 'timing:cycle-budget-formal',
+    status: 'passed',
+    claimUnit: 'clock-cycles',
+    wallClockClaimAllowed: false,
+    summary: 'Bounded RTL event latency in clock cycles; no nanosecond result.',
+  },
+  {
+    id: 'post_route_timing',
+    badge: 'timing:post-route-hardware-gated',
+    status: 'blocked',
+    claimUnit: 'nanoseconds',
+    wallClockClaimAllowed: false,
+    summary: 'Named-device post-route clock, slack, PVT, and checksum are absent.',
+  },
+  {
+    id: 'end_to_end_timing',
+    badge: 'timing:e2e-hil-hardware-gated',
+    status: 'blocked',
+    claimUnit: 'nanoseconds',
+    wallClockClaimAllowed: false,
+    summary: 'Calibrated sensor/link/fabric/driver timing trace is absent.',
+  },
 ];
 
 /**

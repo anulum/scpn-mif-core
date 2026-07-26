@@ -109,3 +109,37 @@ def test_public_surfaces_keep_local_cosim_distinct_from_hil() -> None:
     for surface in (readme, system_map):
         assert "cosim:local-verilator" in surface
         assert "hil:hardware-gated" in surface
+
+
+def test_public_surfaces_keep_cycle_formal_distinct_from_wall_clock_timing() -> None:
+    timing_package = _json("docs/_generated/timing_evidence_package.json")
+    studio_feed = _json("studio-web/public/studio-feed.json")
+    studio_manifest = _json("docs/_generated/studio_manifest.json")
+    expected = {
+        "timing:cycle-budget-formal",
+        "timing:post-route-hardware-gated",
+        "timing:e2e-hil-hardware-gated",
+    }
+
+    package_by_badge = {section["badge"]: section for section in timing_package["sections"]}
+    feed_by_badge = {section["badge"]: section for section in studio_feed["timing_evidence"]}
+    manifest_by_badge = {
+        section["badge"]: section for section in studio_manifest["architecture_map"]["evidence_badges"]
+    }
+
+    assert timing_package["public_sub_50ns_claim_allowed"] is False
+    assert expected == set(package_by_badge) == set(feed_by_badge)
+    assert expected <= set(manifest_by_badge)
+    assert package_by_badge["timing:cycle-budget-formal"]["status"] == "passed"
+    assert package_by_badge["timing:cycle-budget-formal"]["claim_unit"] == "clock-cycles"
+    assert all(section["wall_clock_claim_allowed"] is False for section in package_by_badge.values())
+    assert all(section["wall_clock_claim_allowed"] is False for section in feed_by_badge.values())
+    assert all(manifest_by_badge[badge]["wall_clock_claim_allowed"] is False for badge in expected)
+
+    for path in ("README.md", "docs/index.md", "docs/architecture/system_map.md"):
+        surface = _read(path)
+        assert expected <= {badge for badge in expected if badge in surface}
+
+    security = _read("SECURITY.md")
+    assert "timing:cycle-budget-formal" in security
+    assert "Sub-50-nanosecond triggering surface is gated by" not in security

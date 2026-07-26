@@ -74,10 +74,11 @@ fire is dropped* with zero added latency.
 
 ## Consequences
 
-- The "combinational sub-50-ns interlock" objective is now true in RTL, not only
-  in prose: a registerless module exists and its zero-cycle veto dominance is
-  machine-checked. The debounce safety requirement is preserved because the lane
-  is subtractive.
+- The logical, registerless interlock required by the sub-50-ns objective is now
+  true in RTL, not only in prose: a registerless module exists and its zero-cycle
+  veto dominance is machine-checked. This is a cycle-domain statement, not a
+  post-route nanosecond result. The debounce safety requirement is preserved
+  because the lane is subtractive.
 - The sub-50-ns claim remains decomposed and partly gated: the *logical*
   zero-cycle relation is proved, but the *post-route nanosecond* number still
   needs Vivado timing closure on a chosen UltraScale+ part, which stays roadmap

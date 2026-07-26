@@ -106,7 +106,7 @@ def test_evidence_badges_separate_local_cosim_from_hil() -> None:
     badges = build_architecture_map_extension()["evidence_badges"]
     by_badge = {badge["badge"]: badge for badge in badges}
 
-    assert set(by_badge) == {"cosim:local-verilator", "hil:hardware-gated"}
+    assert {"cosim:local-verilator", "hil:hardware-gated"} <= set(by_badge)
     local = by_badge["cosim:local-verilator"]
     assert local["status"] == "available"
     assert local["substrate"] == "simulator"
@@ -118,6 +118,32 @@ def test_evidence_badges_separate_local_cosim_from_hil() -> None:
     assert hil["substrate"] == "fpga"
     assert hil["evidence_kind"] == "hardware-validated"
     assert hil["blocked_on"]
+
+
+def test_evidence_badges_separate_cycle_formal_from_wall_clock_timing() -> None:
+    badges = build_architecture_map_extension()["evidence_badges"]
+    by_badge = {badge["badge"]: badge for badge in badges}
+
+    expected = {
+        "timing:cycle-budget-formal",
+        "timing:post-route-hardware-gated",
+        "timing:e2e-hil-hardware-gated",
+    }
+    assert expected <= set(by_badge)
+
+    cycle = by_badge["timing:cycle-budget-formal"]
+    assert cycle["status"] == "available"
+    assert cycle["evidence_kind"] == "formally-proven"
+    assert cycle["claim_unit"] == "clock-cycles"
+    assert cycle["wall_clock_claim_allowed"] is False
+
+    for name in ("timing:post-route-hardware-gated", "timing:e2e-hil-hardware-gated"):
+        hardware = by_badge[name]
+        assert hardware["status"] == "hardware-gated"
+        assert hardware["evidence_kind"] == "hardware-validated"
+        assert hardware["claim_unit"] == "nanoseconds"
+        assert hardware["wall_clock_claim_allowed"] is False
+        assert hardware["blocked_on"]
 
 
 def test_cross_repo_declares_the_owning_siblings() -> None:

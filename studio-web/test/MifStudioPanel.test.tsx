@@ -19,9 +19,8 @@ describe('MifStudioPanel', () => {
   });
 
   it('lists every verb as a table row', () => {
-    render(<MifStudioPanel />);
-    // 4 verbs + 1 header row.
-    expect(screen.getAllByRole('row')).toHaveLength(5);
+    const { container } = render(<MifStudioPanel />);
+    expect(container.querySelectorAll('.mif-studio__verbs tbody tr')).toHaveLength(4);
   });
 
   it('renders a domain verb as batch software with no gate or deadline', () => {
@@ -99,9 +98,9 @@ describe('MifStudioPanel', () => {
         kind: 'measured',
       },
     ];
-    render(<MifStudioPanel verbs={verbs} claims={claims} />);
-    // Only the feed-supplied verb is rendered (1 verb + 1 header row), not the sample.
-    expect(screen.getAllByRole('row')).toHaveLength(2);
+    const { container } = render(<MifStudioPanel verbs={verbs} claims={claims} />);
+    // Only the feed-supplied verb is rendered, not the sample.
+    expect(container.querySelectorAll('.mif-studio__verbs tbody tr')).toHaveLength(1);
     expect(screen.queryByText('evaluate')).not.toBeInTheDocument();
     const fastVetoRow = screen.getByText('fast-veto').closest('tr');
     expect(fastVetoRow).toHaveTextContent('realtime (50 µs)');
@@ -139,6 +138,24 @@ describe('MifStudioPanel', () => {
     expect(hilGate).toHaveAttribute('data-badge', 'hil:hardware-gated');
     expect(cosim).toHaveTextContent('cosim:local-verilator');
     expect(cosim).toHaveTextContent('hil:hardware-gated');
+  });
+
+  it('renders cycle formal separately from blocked wall-clock timing classes', () => {
+    const { container } = render(<MifStudioPanel />);
+    expect(screen.getByRole('heading', { name: 'Timing evidence' })).toBeInTheDocument();
+
+    const rows = container.querySelectorAll('.mif-studio__timing-evidence tbody tr');
+    expect(rows).toHaveLength(3);
+    expect(rows[0]).toHaveAttribute('data-status', 'passed');
+    expect(rows[0]).toHaveAttribute('data-wall-clock-claim', 'no');
+    expect(rows[0]).toHaveTextContent('timing:cycle-budget-formal');
+    expect(rows[0]).toHaveTextContent('clock-cycles');
+    expect(rows[0]).toHaveTextContent('not established');
+
+    expect(rows[1]).toHaveAttribute('data-status', 'blocked');
+    expect(rows[1]).toHaveTextContent('timing:post-route-hardware-gated');
+    expect(rows[2]).toHaveAttribute('data-status', 'blocked');
+    expect(rows[2]).toHaveTextContent('timing:e2e-hil-hardware-gated');
   });
 
   it('shows a non-vacuous formal certificate without the vacuous tag', () => {

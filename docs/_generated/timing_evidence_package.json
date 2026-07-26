@@ -1,14 +1,19 @@
 {
   "SPDX-License-Identifier": "AGPL-3.0-or-later",
-  "schema": "scpn-mif-core/timing-evidence-package/1.0.0",
+  "schema": "scpn-mif-core/timing-evidence-package/1.1.0",
   "public_timing_claim_allowed": false,
+  "public_sub_50ns_claim_allowed": false,
+  "target_ns": 50.0,
   "claim_boundary": "Open-tool formal timing evidence is present; named-device post-route timing and end-to-end HIL timing remain blocked.",
   "sections": [
     {
       "id": "open_tool_formal",
+      "badge": "timing:cycle-budget-formal",
       "evidence_class": "formal_proof",
       "status": "passed",
-      "summary": "Open-tool SymbiYosys proof manifest is present and includes a timing-suite proof.",
+      "claim_unit": "clock-cycles",
+      "wall_clock_claim_allowed": false,
+      "summary": "Open-tool SymbiYosys proof manifest includes bounded cycle-latency proofs; it establishes no nanosecond or silicon-timing result.",
       "references": [
         "docs/_generated/formal_manifest.json",
         "tools/run_formal.py"
@@ -21,8 +26,11 @@
     },
     {
       "id": "post_route_timing",
+      "badge": "timing:post-route-hardware-gated",
       "evidence_class": "hardware_timing_report",
       "status": "blocked",
+      "claim_unit": "nanoseconds",
+      "wall_clock_claim_allowed": false,
       "summary": "No named-device post-route timing report is present.",
       "references": [
         "docs/adr/0006-formal-verification-strategy.md",
@@ -46,8 +54,11 @@
     },
     {
       "id": "end_to_end_timing",
+      "badge": "timing:e2e-hil-hardware-gated",
       "evidence_class": "hil_replay",
       "status": "blocked",
+      "claim_unit": "nanoseconds",
+      "wall_clock_claim_allowed": false,
       "summary": "End-to-end sensor/link/fabric/driver timing still contains modelled assumption tiers.",
       "references": [
         "bench/results/trigger_latency_budget.json",

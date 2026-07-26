@@ -8,11 +8,12 @@
 
 import type { ReactElement } from 'react';
 
-import type { Backend, ClaimSummary, MifVerb } from './domain.js';
+import type { Backend, ClaimSummary, MifVerb, TimingEvidenceSummary } from './domain.js';
 import {
   claimRendersAsValidated,
   MIF_BACKENDS,
   MIF_CLAIMS,
+  MIF_TIMING_EVIDENCE,
   MIF_VERBS,
   requiresLiveHardwareGate,
 } from './domain.js';
@@ -22,6 +23,7 @@ export interface MifStudioPanelProps {
   readonly verbs?: readonly MifVerb[];
   readonly claims?: readonly ClaimSummary[];
   readonly backends?: readonly Backend[];
+  readonly timingEvidence?: readonly TimingEvidenceSummary[];
 }
 
 /**
@@ -47,6 +49,7 @@ export default function MifStudioPanel({
   verbs = MIF_VERBS,
   claims = MIF_CLAIMS,
   backends = MIF_BACKENDS,
+  timingEvidence = MIF_TIMING_EVIDENCE,
 }: MifStudioPanelProps = {}): ReactElement {
   return (
     <section className="mif-studio">
@@ -93,6 +96,34 @@ export default function MifStudioPanel({
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="mif-studio__timing-evidence">
+        <h3>Timing evidence</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Evidence class</th>
+              <th>Status</th>
+              <th>Claim unit</th>
+              <th>Wall-clock claim</th>
+            </tr>
+          </thead>
+          <tbody>
+            {timingEvidence.map((evidence) => (
+              <tr
+                key={evidence.id}
+                data-status={evidence.status}
+                data-wall-clock-claim={evidence.wallClockClaimAllowed ? 'yes' : 'no'}
+              >
+                <td>{evidence.badge}</td>
+                <td>{evidence.status}</td>
+                <td>{evidence.claimUnit}</td>
+                <td>{evidence.wallClockClaimAllowed ? 'allowed' : 'not established'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       <div className="mif-studio__claims">
