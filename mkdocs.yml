@@ -129,6 +129,7 @@ nav:
       - Standards:
           - Functional-safety readiness mapping: standards/safety_readiness_mapping.md
       - Validation:
+          - Formal property catalogue: reference/formal_property_catalogue.md
           - Belova FRC-merge reproduction: validation/belova_merge_reproduction.md
           - Polyglot benchmark dashboard: validation/benchmark_dashboard.md
           - FAIR validation bundle: validation/fair_validation_bundle.md

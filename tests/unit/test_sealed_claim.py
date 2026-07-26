@@ -8,8 +8,10 @@
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -41,7 +43,8 @@ def _fixture(tmp_path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
             {"path": "hdl/formal/safety/proof.sby", "sha256": hashlib.sha256(proof.read_bytes()).hexdigest()},
             {"path": "hdl/src/triggers/trigger.sv", "sha256": hashlib.sha256(subject.read_bytes()).hexdigest()},
         ],
-        "properties": {"asserts": 13, "covers": 3, "assumes": 1},
+        "named_properties": [{"id": "mif.trigger.safe", "kind": "assertion", "statement": "The trigger stays safe."}],
+        "raw_statement_counts": {"asserts": 13, "covers": 3, "assumes": 1},
     }
     kwargs = {
         "repo_root": tmp_path,
@@ -63,7 +66,10 @@ def test_matching_pass_is_admitted_and_float_free(tmp_path: Path) -> None:
     assert payload["schema"] == SEALED_FORMAL_CLAIM_SCHEMA
     assert payload["claim"]["claim_status"] == "reference-validated"
     assert payload["claim"]["admission"] == "admitted"
-    assert payload["claim"]["non_vacuous"] is True
+    assert payload["claim"]["non_vacuous"] is False
+    assert payload["claim"]["property_ids"] == ["mif.trigger.safe"]
+    assert payload["claim"]["property_count"] == 1
+    assert payload["claim"]["raw_statement_counts"] == {"asserts": 13, "covers": 3, "assumes": 1}
     assert payload["provenance"]["proof_sha256"] == task["depends_on"][0]["sha256"]
     assert_jcs_safe(payload)
 
@@ -83,6 +89,45 @@ def test_failed_run_degrades_to_rejected(tmp_path: Path) -> None:
     payload = build_formal_proof_sealed_claim(task, **kwargs)
     assert payload["claim"]["claim_status"] == "validation-gap"
     assert payload["claim"]["admission"] == "rejected"
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (lambda task: task.update(named_properties=[]), "must be a non-empty list"),
+        (lambda task: task.update(named_properties=["bad"]), "entries must be objects"),
+        (
+            lambda task: task.update(named_properties=[{"id": "", "kind": "assertion", "statement": "bad"}]),
+            "id must be non-empty",
+        ),
+        (
+            lambda task: task.update(named_properties=[{"id": "bad", "kind": "cover", "statement": "bad"}]),
+            "must have kind 'assertion'",
+        ),
+        (
+            lambda task: task.update(
+                named_properties=[
+                    {"id": "duplicate", "kind": "assertion", "statement": "one"},
+                    {"id": "duplicate", "kind": "assertion", "statement": "two"},
+                ]
+            ),
+            "ids must be unique",
+        ),
+        (lambda task: task.update(raw_statement_counts=[]), "must be an object"),
+        (
+            lambda task: task.update(raw_statement_counts={"asserts": -1, "covers": 0, "assumes": 0}),
+            "must be a non-negative integer",
+        ),
+    ],
+)
+def test_property_inventory_validation_fails_closed(
+    tmp_path: Path, mutation: Callable[[dict[str, Any]], None], message: str
+) -> None:
+    task, kwargs = _fixture(tmp_path)
+    mutated = copy.deepcopy(task)
+    mutation(mutated)
+    with pytest.raises(ValueError, match=message):
+        build_formal_proof_sealed_claim(mutated, **kwargs)
 
 
 def test_jcs_guard_rejects_floats_unsafe_ints_and_non_json_types() -> None:

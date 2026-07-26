@@ -1,23 +1,48 @@
 {
   "SPDX-License-Identifier": "AGPL-3.0-or-later",
-  "schema_version": "1.1.0",
+  "schema_version": "2.0.0",
   "verifier": "tools/run_formal.py --suite all",
   "task_count": 11,
-  "property_progress": {
-    "basis": "assert/cover/assume statement count over each task's resolved SystemVerilog sources (including shared `include headers); a statement inside a generate loop counts once, so instantiated checks can exceed the statement count",
+  "proof_inventory": {
+    "basis": "curated semantic claims and non-vacuity witnesses from hdl/formal/property_catalogue.json; these stable IDs are the public proof inventory",
     "specification_target": {
       "safety": 30,
       "liveness": 25,
       "timing": 15,
       "total": 70
     },
-    "proven_asserts": {
-      "safety": 33,
-      "liveness": 28,
-      "timing": 16,
-      "total": 77
+    "catalogued_properties": {
+      "safety": 25,
+      "liveness": 8,
+      "timing": 7,
+      "total": 40
     },
-    "meets_specification_target": true
+    "meets_specification_target": false
+  },
+  "raw_statement_hygiene": {
+    "basis": "assert/cover/assume statement count over each task's resolved SystemVerilog sources (including shared `include headers); a statement inside a generate loop or macro definition counts once, and shared definitions can appear in multiple tasks; these counts detect drift but do not identify proof claims",
+    "per_suite": {
+      "safety": {
+        "asserts": 33,
+        "covers": 12,
+        "assumes": 3
+      },
+      "liveness": {
+        "asserts": 28,
+        "covers": 8,
+        "assumes": 2
+      },
+      "timing": {
+        "asserts": 16,
+        "covers": 16,
+        "assumes": 4
+      }
+    },
+    "total": {
+      "asserts": 77,
+      "covers": 36,
+      "assumes": 9
+    }
   },
   "tasks": [
     {
@@ -25,6 +50,9 @@
       "name": "mif_adc_to_spike_quantiser_safety",
       "sby": "hdl/formal/safety/mif_adc_to_spike_quantiser_safety.sby",
       "mode": "prove",
+      "depth": 12,
+      "depth_interpretation": "k-induction horizon",
+      "depth_rationale": "Prove mode uses k-induction. The properties need reset anchoring plus one defined $past cycle; depth 12 conservatively exceeds that two-cycle semantic horizon while exercising presentation, stall, acceptance, and queued-event state transitions.",
       "engines": [
         "smtbmc z3"
       ],
@@ -43,7 +71,34 @@
           "sha256": "46683cd4be84e1f5306f490f2cc3ce6b677492b46b34998e7f19c178513d66fa"
         }
       ],
-      "properties": {
+      "named_properties": [
+        {
+          "id": "mif.adc.backpressure.valid-held",
+          "kind": "assertion",
+          "statement": "A presented AER event remains valid while the sink is stalled."
+        },
+        {
+          "id": "mif.adc.backpressure.address-stable",
+          "kind": "assertion",
+          "statement": "The presented AER address remains stable while the sink is stalled."
+        },
+        {
+          "id": "mif.adc.address.legal",
+          "kind": "assertion",
+          "statement": "The AER address is always one of the configured positive or negative spike codes."
+        },
+        {
+          "id": "mif.adc.handshake.withdraw-requires-ready",
+          "kind": "assertion",
+          "statement": "A valid event can be withdrawn only after an accepting ready cycle."
+        },
+        {
+          "id": "mif.adc.handshake.address-change-requires-valid",
+          "kind": "assertion",
+          "statement": "The AER address changes only while a live event is presented."
+        }
+      ],
+      "raw_statement_counts": {
         "asserts": 5,
         "covers": 3,
         "assumes": 1
@@ -54,6 +109,9 @@
       "name": "mif_aer_cdc_synchroniser_safety",
       "sby": "hdl/formal/safety/mif_aer_cdc_synchroniser_safety.sby",
       "mode": "prove",
+      "depth": 8,
+      "depth_interpretation": "k-induction horizon",
+      "depth_rationale": "Prove mode uses k-induction. Depth 8 covers the reset edge, the two-destination-cycle reference-pipeline warm-up, and the one-cycle registered-stage history with additional induction margin.",
       "engines": [
         "smtbmc z3"
       ],
@@ -80,7 +138,24 @@
           "sha256": "bb8f70a177b4d8eac25a1412c86f97501bc932c80c688d341709b8159b9bb961"
         }
       ],
-      "properties": {
+      "named_properties": [
+        {
+          "id": "mif.aer-cdc.output.exact-two-stage-delay",
+          "kind": "assertion",
+          "statement": "The synchronised output equals the asynchronous input delayed by exactly two destination flops after warm-up."
+        },
+        {
+          "id": "mif.aer-cdc.output.registered-second-stage",
+          "kind": "assertion",
+          "statement": "The synchronised output is a pure registered copy of the first-stage sample, with no combinational bypass."
+        },
+        {
+          "id": "mif.aer-cdc.input.registered-first-stage",
+          "kind": "assertion",
+          "statement": "The first synchroniser stage is the asynchronous input sampled on the preceding destination edge."
+        }
+      ],
+      "raw_statement_counts": {
         "asserts": 5,
         "covers": 4,
         "assumes": 1
@@ -91,6 +166,9 @@
       "name": "mif_fast_veto_gate_safety",
       "sby": "hdl/formal/safety/mif_fast_veto_gate_safety.sby",
       "mode": "prove",
+      "depth": 2,
+      "depth_interpretation": "k-induction horizon",
+      "depth_rationale": "Prove mode uses k-induction, but the DUT and properties are combinational. Depth 2 supplies a solver scheduling edge and an induction step; no temporal state or $past history exists in this task.",
       "engines": [
         "smtbmc z3"
       ],
@@ -109,7 +187,39 @@
           "sha256": "8de67ed04240707ee6e7fca10ce44f74a32985b85f5c88722ee2507ae210cf7c"
         }
       ],
-      "properties": {
+      "named_properties": [
+        {
+          "id": "mif.fast-veto.veto-dominance",
+          "kind": "assertion",
+          "statement": "An asserted safety veto immediately blocks permit and fire and raises the veto surface."
+        },
+        {
+          "id": "mif.fast-veto.subtractive-origin",
+          "kind": "assertion",
+          "statement": "A fast fire can only pass through an existing qualified fire under a live permit."
+        },
+        {
+          "id": "mif.fast-veto.permit.exact-gating",
+          "kind": "assertion",
+          "statement": "The permit exactly equals the armed, bank-ready, unvetoed threshold predicate."
+        },
+        {
+          "id": "mif.fast-veto.interlock.exact-mirror",
+          "kind": "assertion",
+          "statement": "The exposed veto-active signal exactly mirrors the safety veto."
+        },
+        {
+          "id": "mif.fast-veto.disarm-blocks-output",
+          "kind": "assertion",
+          "statement": "A disarmed lane emits neither permit nor fire."
+        },
+        {
+          "id": "mif.fast-veto.bank-unready-blocks-permit",
+          "kind": "assertion",
+          "statement": "A bank that is not ready cannot receive a fast permit."
+        }
+      ],
+      "raw_statement_counts": {
         "asserts": 10,
         "covers": 2,
         "assumes": 0
@@ -120,6 +230,9 @@
       "name": "mif_trigger_fabric_safety",
       "sby": "hdl/formal/safety/mif_trigger_fabric_safety.sby",
       "mode": "prove",
+      "depth": 14,
+      "depth_interpretation": "k-induction horizon",
+      "depth_rationale": "Prove mode uses k-induction. With LOCK_HOLD_CYCLES=5, depth 14 spans reset, a complete five-cycle debounce, the following one-shot latch, disarm/reload, and another full debounce horizon, while all $past properties have defined history.",
       "engines": [
         "smtbmc z3"
       ],
@@ -138,7 +251,64 @@
           "sha256": "03c09f3a60b84af3eb993143943bef332af3d34cb9763a685318acae50d9811d"
         }
       ],
-      "properties": {
+      "named_properties": [
+        {
+          "id": "mif.trigger-fabric.veto-dominance",
+          "kind": "assertion",
+          "statement": "A safety veto prevents a trigger."
+        },
+        {
+          "id": "mif.trigger-fabric.fire.exact-final-step",
+          "kind": "assertion",
+          "statement": "A trigger occurs only on the final debounce step before the one-shot is latched."
+        },
+        {
+          "id": "mif.trigger-fabric.fire.full-gating",
+          "kind": "assertion",
+          "statement": "A trigger requires arm, bank readiness, no veto, and a current lock."
+        },
+        {
+          "id": "mif.trigger-fabric.one-shot.blocks-retrigger",
+          "kind": "assertion",
+          "statement": "A latched one-shot blocks concurrent retriggering."
+        },
+        {
+          "id": "mif.trigger-fabric.counter.legal-range",
+          "kind": "assertion",
+          "statement": "The debounce counter never exceeds its configured reload value."
+        },
+        {
+          "id": "mif.trigger-fabric.lock.bounded-resolution",
+          "kind": "assertion",
+          "statement": "A sustained armed lock cannot exceed the debounce bound without the one-shot firing."
+        },
+        {
+          "id": "mif.trigger-fabric.trigger.latches-one-shot",
+          "kind": "assertion",
+          "statement": "A trigger latches the fired state on the next cycle."
+        },
+        {
+          "id": "mif.trigger-fabric.one-shot.persists-while-armed",
+          "kind": "assertion",
+          "statement": "Once fired, the one-shot remains latched throughout continuous arming."
+        },
+        {
+          "id": "mif.trigger-fabric.disarm.reloads-and-clears",
+          "kind": "assertion",
+          "statement": "Disarming reloads the debounce counter and clears the one-shot on the next edge."
+        },
+        {
+          "id": "mif.trigger-fabric.broken-lock.reloads",
+          "kind": "assertion",
+          "statement": "A broken lock reloads the full debounce requirement."
+        },
+        {
+          "id": "mif.trigger-fabric.counter.monotone-countdown",
+          "kind": "assertion",
+          "statement": "A sustained armed lock decrements a nonzero debounce counter by exactly one per cycle."
+        }
+      ],
+      "raw_statement_counts": {
         "asserts": 13,
         "covers": 3,
         "assumes": 1
@@ -149,6 +319,9 @@
       "name": "mif_adc_to_spike_quantiser_liveness",
       "sby": "hdl/formal/liveness/mif_adc_to_spike_quantiser_liveness.sby",
       "mode": "cover",
+      "depth": 20,
+      "depth_interpretation": "bounded witness horizon",
+      "depth_rationale": "Cover mode uses bounded model checking. Depth 20 comfortably spans reset release, event accumulation and presentation, at least one stalled cycle, and the subsequent ready-cycle drain witness.",
       "engines": [
         "smtbmc z3"
       ],
@@ -167,7 +340,24 @@
           "sha256": "46683cd4be84e1f5306f490f2cc3ce6b677492b46b34998e7f19c178513d66fa"
         }
       ],
-      "properties": {
+      "named_properties": [
+        {
+          "id": "mif.adc.witness.event-presentable",
+          "kind": "cover",
+          "statement": "An AER event can be presented."
+        },
+        {
+          "id": "mif.adc.witness.backpressure-reachable",
+          "kind": "cover",
+          "statement": "A presented event can encounter sink back-pressure."
+        },
+        {
+          "id": "mif.adc.witness.stalled-event-drains",
+          "kind": "cover",
+          "statement": "A stalled event can be accepted when the sink returns ready."
+        }
+      ],
+      "raw_statement_counts": {
         "asserts": 5,
         "covers": 3,
         "assumes": 1
@@ -178,6 +368,9 @@
       "name": "mif_fast_veto_gate_liveness",
       "sby": "hdl/formal/liveness/mif_fast_veto_gate_liveness.sby",
       "mode": "cover",
+      "depth": 2,
+      "depth_interpretation": "bounded witness horizon",
+      "depth_rationale": "Cover mode uses bounded model checking. The DUT is combinational, so depth 2 is sufficient to schedule and witness both a permitted fire and a same-cycle veto suppression without temporal warm-up.",
       "engines": [
         "smtbmc z3"
       ],
@@ -196,7 +389,19 @@
           "sha256": "8de67ed04240707ee6e7fca10ce44f74a32985b85f5c88722ee2507ae210cf7c"
         }
       ],
-      "properties": {
+      "named_properties": [
+        {
+          "id": "mif.fast-veto.witness.fire-reachable",
+          "kind": "cover",
+          "statement": "A qualified and permitted fast fire is reachable."
+        },
+        {
+          "id": "mif.fast-veto.witness.veto-suppression-reachable",
+          "kind": "cover",
+          "statement": "A qualified fire suppressed by an asserted veto is reachable."
+        }
+      ],
+      "raw_statement_counts": {
         "asserts": 10,
         "covers": 2,
         "assumes": 0
@@ -207,6 +412,9 @@
       "name": "mif_trigger_fabric_liveness",
       "sby": "hdl/formal/liveness/mif_trigger_fabric_liveness.sby",
       "mode": "cover",
+      "depth": 20,
+      "depth_interpretation": "bounded witness horizon",
+      "depth_rationale": "Cover mode uses bounded model checking. Depth 20 exceeds reset plus the five-cycle debounce, trigger and one-shot latch, disarm clear, and a second arming horizon, so all three non-vacuity witnesses fit in one bound.",
       "engines": [
         "smtbmc z3"
       ],
@@ -225,7 +433,24 @@
           "sha256": "03c09f3a60b84af3eb993143943bef332af3d34cb9763a685318acae50d9811d"
         }
       ],
-      "properties": {
+      "named_properties": [
+        {
+          "id": "mif.trigger-fabric.witness.trigger-reachable",
+          "kind": "cover",
+          "statement": "A trigger is reachable."
+        },
+        {
+          "id": "mif.trigger-fabric.witness.fire-at-latency-bound",
+          "kind": "cover",
+          "statement": "The trigger can fire on the configured final debounce step."
+        },
+        {
+          "id": "mif.trigger-fabric.witness.one-shot-clear-reachable",
+          "kind": "cover",
+          "statement": "The fired one-shot can clear, permitting a later re-arm."
+        }
+      ],
+      "raw_statement_counts": {
         "asserts": 13,
         "covers": 3,
         "assumes": 1
@@ -236,6 +461,9 @@
       "name": "mif_aer_cdc_synchroniser_stage_timing",
       "sby": "hdl/formal/timing/mif_aer_cdc_synchroniser_stage_timing.sby",
       "mode": "prove",
+      "depth": 10,
+      "depth_interpretation": "k-induction horizon",
+      "depth_rationale": "Prove mode uses k-induction. Depth 10 exceeds reset, reference-history warm-up, both one-cycle stage deadlines, and their monitor-observation edges, leaving induction margin beyond the two-cycle end-to-end contract.",
       "engines": [
         "smtbmc z3"
       ],
@@ -262,7 +490,19 @@
           "sha256": "bb8f70a177b4d8eac25a1412c86f97501bc932c80c688d341709b8159b9bb961"
         }
       ],
-      "properties": {
+      "named_properties": [
+        {
+          "id": "mif.aer-cdc.timing.stage-one-within-one-cycle",
+          "kind": "assertion",
+          "statement": "An input/first-stage disagreement is captured within one destination cycle."
+        },
+        {
+          "id": "mif.aer-cdc.timing.stage-two-within-one-cycle",
+          "kind": "assertion",
+          "statement": "A first-stage/output disagreement advances into the second stage within one destination cycle."
+        }
+      ],
+      "raw_statement_counts": {
         "asserts": 4,
         "covers": 4,
         "assumes": 1
@@ -273,6 +513,9 @@
       "name": "mif_fast_veto_gate_timing",
       "sby": "hdl/formal/timing/mif_fast_veto_gate_timing.sby",
       "mode": "prove",
+      "depth": 10,
+      "depth_interpretation": "k-induction horizon",
+      "depth_rationale": "Prove mode uses k-induction. Both monitored bounds are zero added cycles; depth 10 conservatively covers reset release, activation, monitor observation, and induction despite the stateless combinational DUT.",
       "engines": [
         "smtbmc z3"
       ],
@@ -299,7 +542,19 @@
           "sha256": "8de67ed04240707ee6e7fca10ce44f74a32985b85f5c88722ee2507ae210cf7c"
         }
       ],
-      "properties": {
+      "named_properties": [
+        {
+          "id": "mif.fast-veto.timing.veto-zero-added-cycles",
+          "kind": "assertion",
+          "statement": "A veto suppresses a pending qualified fire with zero added cycles."
+        },
+        {
+          "id": "mif.fast-veto.timing.disarm-zero-added-cycles",
+          "kind": "assertion",
+          "statement": "A disarm suppresses a pending qualified fire with zero added cycles."
+        }
+      ],
+      "raw_statement_counts": {
         "asserts": 4,
         "covers": 4,
         "assumes": 1
@@ -310,6 +565,9 @@
       "name": "mif_trigger_fabric_response_timing",
       "sby": "hdl/formal/timing/mif_trigger_fabric_response_timing.sby",
       "mode": "prove",
+      "depth": 20,
+      "depth_interpretation": "k-induction horizon",
+      "depth_rationale": "Prove mode uses k-induction. Depth 20 spans reset, arbitrary reachable debounce/one-shot state, each one-cycle control-response deadline, and more than two complete five-cycle debounce horizons.",
       "engines": [
         "smtbmc z3"
       ],
@@ -336,7 +594,19 @@
           "sha256": "03c09f3a60b84af3eb993143943bef332af3d34cb9763a685318acae50d9811d"
         }
       ],
-      "properties": {
+      "named_properties": [
+        {
+          "id": "mif.trigger-fabric.timing.disarm-response-within-one-cycle",
+          "kind": "assertion",
+          "statement": "A disarm reloads the debounce and clears the one-shot within one cycle."
+        },
+        {
+          "id": "mif.trigger-fabric.timing.veto-reload-within-one-cycle",
+          "kind": "assertion",
+          "statement": "An armed veto reloads the debounce within one cycle."
+        }
+      ],
+      "raw_statement_counts": {
         "asserts": 4,
         "covers": 4,
         "assumes": 1
@@ -347,6 +617,9 @@
       "name": "mif_trigger_fabric_timing",
       "sby": "hdl/formal/timing/mif_trigger_fabric_timing.sby",
       "mode": "prove",
+      "depth": 20,
+      "depth_interpretation": "k-induction horizon",
+      "depth_rationale": "Prove mode uses k-induction. The monitor bound is LOCK_HOLD_CYCLES+1 (six cycles at the harness default); depth 20 exceeds reset, one complete monitored resolution window, and a second full window for induction closure.",
       "engines": [
         "smtbmc z3"
       ],
@@ -373,7 +646,14 @@
           "sha256": "03c09f3a60b84af3eb993143943bef332af3d34cb9763a685318acae50d9811d"
         }
       ],
-      "properties": {
+      "named_properties": [
+        {
+          "id": "mif.trigger-fabric.timing.lock-resolution-within-six-cycles",
+          "kind": "assertion",
+          "statement": "A qualified lock resolves by trigger, lock loss, or an existing one-shot within LOCK_HOLD_CYCLES+1 cycles."
+        }
+      ],
+      "raw_statement_counts": {
         "asserts": 4,
         "covers": 4,
         "assumes": 1

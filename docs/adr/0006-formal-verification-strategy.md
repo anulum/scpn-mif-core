@@ -39,6 +39,12 @@ A two-tier strategy:
    formal property set and the bit-true cosimulation, so the hardware proofs run
    in continuous integration without a vendor licence.
 
+The public [formal property catalogue](../reference/formal_property_catalogue.md)
+assigns a stable semantic ID to every asserted claim and non-vacuity witness. It
+also records the rationale for each task's k-induction or bounded-cover depth.
+Raw assertion-token counts remain machine-visible drift hygiene; shared macro
+definitions mean those counts are not proof identities or coverage evidence.
+
 Vendor timing closure (Vivado UltraScale+ synthesis and the timing report) is
 **explicitly gated**: it needs a Vivado licence, a self-hosted runner, and a
 chosen FPGA part, and it is treated as roadmap under

@@ -22,6 +22,11 @@
 
 ### Changed
 
+- Replaced raw assertion-token totals as the public HDL proof inventory with
+  stable named semantic properties, and published the k-induction or bounded-
+  cover depth rationale for every SymbiYosys task. Raw counts remain CI hygiene;
+  sealed Studio claims now carry named IDs and no longer infer non-vacuity from
+  cover tokens that a `prove` run does not execute.
 - Published stable core/formal release-gate contexts, made the tag workflow
   verify both on its source commit, implemented the local `--formal` preflight,
   and separated Julia/Go/Mojo parity into an advisory workflow contract.

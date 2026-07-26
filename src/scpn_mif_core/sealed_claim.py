@@ -21,7 +21,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, Final
 
-SEALED_FORMAL_CLAIM_SCHEMA: Final[str] = "scpn-mif-core.sealed-formal-proof-claim.v1"
+SEALED_FORMAL_CLAIM_SCHEMA: Final[str] = "scpn-mif-core.sealed-formal-proof-claim.v2"
 _STUDIO_ID: Final[str] = "scpn-mif-core"
 _JCS_MAX_SAFE_INT: Final[int] = 2**53 - 1
 
@@ -64,7 +64,7 @@ def _safe_dependency_path(repo_root: Path, relative: str) -> Path:
 def _property_count(properties: Mapping[str, Any], name: str) -> int:
     value = properties[name]
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
-        raise ValueError(f"formal task properties.{name} must be a non-negative integer")
+        raise ValueError(f"formal task raw_statement_counts.{name} must be a non-negative integer")
     return value
 
 
@@ -124,13 +124,30 @@ def build_formal_proof_sealed_claim(
         (item for item in dependency_records if str(item["path"]).startswith("hdl/src/")),
         proof_record,
     )
-    properties = task["properties"]
-    if not isinstance(properties, Mapping):
-        raise ValueError("formal task properties must be an object")
-    property_counts = {
-        "asserts": _property_count(properties, "asserts"),
-        "covers": _property_count(properties, "covers"),
-        "assumes": _property_count(properties, "assumes"),
+    named_properties = task["named_properties"]
+    if not isinstance(named_properties, list) or not named_properties:
+        raise ValueError("formal task named_properties must be a non-empty list")
+    expected_kind = "cover" if mode == "cover" else "assertion"
+    property_ids: list[str] = []
+    for prop in named_properties:
+        if not isinstance(prop, Mapping):
+            raise ValueError("formal task named_properties entries must be objects")
+        prop_id = prop.get("id")
+        if not isinstance(prop_id, str) or not prop_id.strip():
+            raise ValueError("formal task named property id must be non-empty")
+        if prop.get("kind") != expected_kind:
+            raise ValueError(f"formal task named property {prop_id!r} must have kind {expected_kind!r}")
+        property_ids.append(prop_id)
+    if len(property_ids) != len(set(property_ids)):
+        raise ValueError("formal task named property ids must be unique")
+
+    raw_counts = task["raw_statement_counts"]
+    if not isinstance(raw_counts, Mapping):
+        raise ValueError("formal task raw_statement_counts must be an object")
+    raw_statement_counts = {
+        "asserts": _property_count(raw_counts, "asserts"),
+        "covers": _property_count(raw_counts, "covers"),
+        "assumes": _property_count(raw_counts, "assumes"),
     }
 
     expected_status = str(task["expected_status"]).lower()
@@ -156,8 +173,10 @@ def build_formal_proof_sealed_claim(
             "checker_version": checker_version,
             "expected_status": expected_status,
             "observed_status": observed,
-            "properties": property_counts,
-            "non_vacuous": property_counts["covers"] > 0,
+            "property_ids": property_ids,
+            "property_count": len(property_ids),
+            "raw_statement_counts": raw_statement_counts,
+            "non_vacuous": expected_kind == "cover",
             "dependencies_match": dependencies_match,
             "claim_status": "reference-validated" if established else "validation-gap",
             "admission": "admitted" if established else "rejected",

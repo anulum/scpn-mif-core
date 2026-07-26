@@ -9,7 +9,10 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
+
+import pytest
 
 from tools import formal_manifest
 from tools.formal_manifest import (
@@ -18,6 +21,7 @@ from tools.formal_manifest import (
     build_manifest,
     check_manifest,
     render,
+    render_catalogue_markdown,
     write_manifest,
 )
 
@@ -33,12 +37,15 @@ def test_manifest_covers_every_discovered_sby() -> None:
     assert manifest["task_count"] == len(discovered)
 
 
-def test_manifest_records_mode_engines_and_input_digests() -> None:
+def test_manifest_records_mode_depth_catalogue_and_input_digests() -> None:
     manifest = build_manifest()
     by_name = {task["name"]: task for task in manifest["tasks"]}
 
     safety = by_name["mif_trigger_fabric_safety"]
     assert safety["mode"] == "prove"
+    assert safety["depth"] == 14
+    assert safety["depth_interpretation"] == "k-induction horizon"
+    assert "LOCK_HOLD_CYCLES=5" in safety["depth_rationale"]
     assert safety["engines"] == ["smtbmc z3"]
     assert safety["expected_status"] == "pass"
     # The proof must depend on the RTL it binds, the harness, and the task file.
@@ -50,6 +57,8 @@ def test_manifest_records_mode_engines_and_input_digests() -> None:
 
     liveness = by_name["mif_trigger_fabric_liveness"]
     assert liveness["mode"] == "cover"
+    assert liveness["depth_interpretation"] == "bounded witness horizon"
+    assert {prop["kind"] for prop in liveness["named_properties"]} == {"cover"}
 
 
 def test_check_detects_input_drift(tmp_path: Path) -> None:
@@ -63,6 +72,20 @@ def test_check_detects_input_drift(tmp_path: Path) -> None:
     sby = formal_root / "safety" / "demo.sby"
     sby.write_text(
         "[options]\nmode prove\ndepth 4\n\n[engines]\nsmtbmc z3\n\n[script]\nread_verilog -sv fabric.sv\n\n[files]\n../../src/triggers/fabric.sv\n",
+        encoding="utf-8",
+    )
+    (formal_root / "property_catalogue.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "1.0.0",
+                "tasks": {
+                    "demo": {
+                        "depth_rationale": "Depth four spans reset, observation, and induction closure.",
+                        "properties": [{"id": "demo.safety", "kind": "assertion", "statement": "The demo stays safe."}],
+                    }
+                },
+            }
+        ),
         encoding="utf-8",
     )
     manifest_path = tmp_path / "docs" / "_generated" / "formal_manifest.json"
@@ -83,6 +106,57 @@ def test_check_reports_missing_manifest(tmp_path: Path) -> None:
     assert "missing formal manifest" in errors[0]
 
 
+def test_catalogue_validation_fails_closed(tmp_path: Path) -> None:
+    path = tmp_path / "property_catalogue.json"
+    with pytest.raises(ValueError, match="missing formal property catalogue"):
+        formal_manifest._load_catalogue(path, {"demo"})
+
+    invalid_catalogues = [
+        ({"schema_version": "0", "tasks": {}}, "expected catalogue schema_version"),
+        ({"schema_version": "1.0.0", "tasks": {}}, "task mismatch"),
+        (
+            {"schema_version": "1.0.0", "tasks": {"demo": {"depth_rationale": "", "properties": []}}},
+            "has no depth_rationale",
+        ),
+        (
+            {"schema_version": "1.0.0", "tasks": {"demo": {"depth_rationale": "why", "properties": []}}},
+            "has no named properties",
+        ),
+        (
+            {
+                "schema_version": "1.0.0",
+                "tasks": {"demo": {"depth_rationale": "why", "properties": [{"id": "demo"}]}},
+            },
+            "malformed property entry",
+        ),
+        (
+            {
+                "schema_version": "1.0.0",
+                "tasks": {
+                    "demo": {
+                        "depth_rationale": "why",
+                        "properties": [{"id": "demo", "kind": "unknown", "statement": "claim"}],
+                    }
+                },
+            },
+            "invalid kind",
+        ),
+    ]
+    for document, match in invalid_catalogues:
+        path.write_text(json.dumps(document), encoding="utf-8")
+        with pytest.raises(ValueError, match=match):
+            formal_manifest._load_catalogue(path, {"demo"})
+
+
+def test_catalogue_mode_mismatch_fails_closed(tmp_path: Path) -> None:
+    catalogue = json.loads(formal_manifest.CATALOGUE_PATH.read_text(encoding="utf-8"))
+    catalogue["tasks"]["mif_trigger_fabric_safety"]["properties"][0]["kind"] = "cover"
+    path = tmp_path / "catalogue.json"
+    path.write_text(json.dumps(catalogue), encoding="utf-8")
+    with pytest.raises(ValueError, match="mode 'prove' requires 'assertion'"):
+        build_manifest(catalogue_path=path)
+
+
 def test_render_is_stable_and_newline_terminated() -> None:
     manifest = build_manifest()
     text = render(manifest)
@@ -92,6 +166,7 @@ def test_render_is_stable_and_newline_terminated() -> None:
 
 def test_committed_manifest_matches_disk() -> None:
     assert MANIFEST_PATH.read_text(encoding="utf-8") == render(build_manifest())
+    assert formal_manifest.CATALOGUE_DOC_PATH.read_text(encoding="utf-8") == render_catalogue_markdown(build_manifest())
 
 
 def test_main_check_passes_when_clean(monkeypatch, capsys) -> None:
@@ -112,30 +187,33 @@ def test_main_writes_manifest(monkeypatch, capsys) -> None:
     assert written["done"]
 
 
-def test_property_progress_is_measured_and_fail_closed() -> None:
+def test_named_property_progress_is_measured_and_fail_closed() -> None:
     manifest = build_manifest()
-    progress = manifest["property_progress"]
+    progress = manifest["proof_inventory"]
     target = progress["specification_target"]
-    proven = progress["proven_asserts"]
-    # The specification target is the development-plan P6 figure, published as
-    # data so the "70+ properties" claim is a measured number, never prose.
+    catalogued = progress["catalogued_properties"]
     assert target == {"safety": 30, "liveness": 25, "timing": 15, "total": 70}
-    # Per-suite counts are non-negative and total consistently.
-    assert proven["total"] == proven["safety"] + proven["liveness"] + proven["timing"]
-    assert all(count >= 0 for count in proven.values())
-    # Fail-closed: the flag may only be true when the measured total reaches
-    # the specification target.
-    assert progress["meets_specification_target"] == (proven["total"] >= target["total"])
-    assert "statement count" in progress["basis"]
+    assert catalogued["total"] == catalogued["safety"] + catalogued["liveness"] + catalogued["timing"]
+    assert all(count >= 0 for count in catalogued.values())
+    assert progress["meets_specification_target"] == (catalogued["total"] >= target["total"])
+    assert "stable IDs" in progress["basis"]
 
 
-def test_every_task_carries_property_counts() -> None:
+def test_every_task_carries_named_properties_and_raw_hygiene_counts() -> None:
     manifest = build_manifest()
+    property_ids: list[str] = []
     for task in manifest["tasks"]:
-        properties = task["properties"]
-        assert set(properties) == {"asserts", "covers", "assumes"}
-        assert all(isinstance(count, int) and count >= 0 for count in properties.values())
-    # The trigger-fabric safety task provably carries assertions today; a
-    # zero here would mean the counter regressed to prose.
+        assert task["depth"] > 0
+        assert task["depth_rationale"]
+        expected_kind = "cover" if task["mode"] == "cover" else "assertion"
+        assert {prop["kind"] for prop in task["named_properties"]} == {expected_kind}
+        property_ids.extend(prop["id"] for prop in task["named_properties"])
+        raw_counts = task["raw_statement_counts"]
+        assert set(raw_counts) == {"asserts", "covers", "assumes"}
+        assert all(isinstance(count, int) and count >= 0 for count in raw_counts.values())
+    assert len(property_ids) == len(set(property_ids))
+    assert len(property_ids) == manifest["proof_inventory"]["catalogued_properties"]["total"]
+
     fabric_safety = next(t for t in manifest["tasks"] if t["name"] == "mif_trigger_fabric_safety")
-    assert fabric_safety["properties"]["asserts"] > 0
+    assert fabric_safety["raw_statement_counts"]["asserts"] > 0
+    assert "statement count" in manifest["raw_statement_hygiene"]["basis"]

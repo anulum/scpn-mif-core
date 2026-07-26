@@ -57,6 +57,7 @@
       "docs/papers/dysco.md",
       "docs/papers/index.md",
       "docs/papers/us12567738b1.md",
+      "docs/reference/formal_property_catalogue.md",
       "docs/standards/safety_readiness_mapping.md",
       "docs/validation/belova_merge_reproduction.md",
       "docs/validation/benchmark_dashboard.md",
@@ -539,7 +540,7 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 59,
+    "capability_documentation_pages": 60,
     "github_workflows": 18,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
@@ -547,7 +548,7 @@
     "lean_proof_modules": 8,
     "optional_extras": 7,
     "public_api_exports": 191,
-    "public_documentation_pages": 59,
+    "public_documentation_pages": 60,
     "python_capability_classes": 93,
     "python_capability_source_modules": 26,
     "rust_workspace_crates": 10,
@@ -610,6 +611,7 @@
       "docs/papers/dysco.md",
       "docs/papers/index.md",
       "docs/papers/us12567738b1.md",
+      "docs/reference/formal_property_catalogue.md",
       "docs/standards/safety_readiness_mapping.md",
       "docs/validation/belova_merge_reproduction.md",
       "docs/validation/benchmark_dashboard.md",
