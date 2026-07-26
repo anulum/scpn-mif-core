@@ -22,6 +22,13 @@ COLAB_URL = f"https://colab.research.google.com/github/anulum/scpn-mif-core/blob
 BINDER_URL = "https://mybinder.org/v2/gh/anulum/scpn-mif-core/main?labpath=notebooks%2Fmerge_trigger_quickstart.ipynb"
 SPONSOR_URL = "https://github.com/sponsors/anulum"
 PLATFORM_SDK_RANGE = ">=0.11.2,<0.12"
+FUNDING_PAYLOAD = '''github: anulum
+buy_me_a_coffee: anulum
+custom:
+  - "https://buy.stripe.com/4gM00kbiMdjAberaYz5J601"
+  - "https://www.paypal.com/donate?hosted_button_id=4X5F6DNT934HY"
+  - "https://go.twint.ch/1/e/tw?tw=acq.lJTAypb8SL2s8vPg7fL0ubi2C220ajOH0BEQn1aKfEJIiIakLpt8jlEv8XdQ9tCp."
+  - "https://anulum.li/contact.html"'''
 
 
 def _read(relative_path: str) -> str:
@@ -35,8 +42,9 @@ def _json(relative_path: str) -> dict[str, Any]:
 def test_readme_exposes_configured_sponsor_and_notebook_badges() -> None:
     readme = _read("README.md")
     funding = _read(".github/FUNDING.yml")
+    funding_payload = "\n".join(line for line in funding.splitlines() if line and not line.startswith("#"))
 
-    assert "github: anulum" in funding
+    assert funding_payload == FUNDING_PAYLOAD
     assert SPONSOR_URL in readme
     assert "GitHub%20Sponsors" in readme
     assert COLAB_URL in readme
