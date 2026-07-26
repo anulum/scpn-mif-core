@@ -10,6 +10,28 @@ permissions:
   contents: read
 
 jobs:
+  source-gates:
+    name: Require green source gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      checks: read
+      contents: read
+    steps:
+      - name: Require successful core and formal checks on the tag commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for required in "Required core gate" "Required formal gate"; do
+            conclusion=$(gh api \
+              "/repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs?per_page=100" \
+              --jq ".check_runs | map(select(.name == \"$required\")) | sort_by(.completed_at) | last | .conclusion")
+            if [ "$conclusion" != success ]; then
+              echo "required source check '$required' is '$conclusion', not success"
+              exit 1
+            fi
+          done
+
   claim-ledger-review:
     name: Verify private claim-ledger review receipt
     runs-on: ubuntu-latest
@@ -32,7 +54,7 @@ jobs:
 
   build:
     name: Build sdist + wheel
-    needs: claim-ledger-review
+    needs: [source-gates, claim-ledger-review]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:

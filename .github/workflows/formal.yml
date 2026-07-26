@@ -4,15 +4,7 @@ name: Formal verification
 on:
   push:
     branches: [main]
-    paths:
-      - "hdl/**"
-      - "lean/**"
-      - ".github/workflows/formal.yml"
   pull_request:
-    paths:
-      - "hdl/**"
-      - "lean/**"
-      - ".github/workflows/formal.yml"
   workflow_dispatch:
 
 permissions:
@@ -35,15 +27,29 @@ jobs:
   lean:
     name: Lean 4 + mathlib4
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.changed_files, 'lean/')
+    timeout-minutes: 45
     env:
       MIF_LEAN_CI: "1"
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
       - uses: leanprover/lean-action@38fbc41a8c28c4cbaec22d7f7de508ec2e7c0dd9  # v1
         with:
-          lake-version: latest
-      - name: lake build
-        working-directory: lean
-        run: lake update && lake build
+          auto-config: false
+          build: true
+          build-args: "+SCPNMIF:olean"
+          use-mathlib-cache: true
+
+  required-formal:
+    name: Required formal gate
+    if: always()
+    needs: [symbiyosys, lean]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require HDL and Lean proof jobs
+        env:
+          SYMBIYOSYS_RESULT: ${{ needs.symbiyosys.result }}
+          LEAN_RESULT: ${{ needs.lean.result }}
+        run: |
+          test "$SYMBIYOSYS_RESULT" = success
+          test "$LEAN_RESULT" = success

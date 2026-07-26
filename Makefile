@@ -98,7 +98,7 @@ test-julia:
 	julia --project=julia/SCPNMIFCore -e 'using Pkg; Pkg.test()'
 
 test-lean:
-	cd lean && lake build
+	lake build +SCPNMIF:olean
 
 test-go:
 	cd go && go test ./...

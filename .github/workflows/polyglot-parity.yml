@@ -1,0 +1,84 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Polyglot parity (advisory)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "julia/**"
+      - "go/**"
+      - "go.mod"
+      - "go.sum"
+      - "src/scpn_mif_core/accel/mojo/**"
+      - "pixi.toml"
+      - "pixi.lock"
+      - ".github/workflows/polyglot-parity.yml"
+  pull_request:
+    paths:
+      - "julia/**"
+      - "go/**"
+      - "go.mod"
+      - "go.sum"
+      - "src/scpn_mif_core/accel/mojo/**"
+      - "pixi.toml"
+      - "pixi.lock"
+      - ".github/workflows/polyglot-parity.yml"
+  schedule:
+    - cron: "23 4 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: polyglot-parity-${{ github.ref }}
+  cancel-in-progress: true
+
+# These jobs are evidence-bearing but deliberately advisory. Python, Rust, and
+# formal verification are the release-blocking implementation/proof contract.
+jobs:
+  julia:
+    name: Advisory Julia parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - uses: julia-actions/setup-julia@fa02766e078afaaf09b14210362cee14137e6a32  # v3.0.2
+        with:
+          version: "1.11"
+      - name: Run Julia reference tests
+        run: julia --project=julia/SCPNMIFCore -e 'using Pkg; Pkg.instantiate(); Pkg.test()'
+
+  go:
+    name: Advisory Go parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e  # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Run Go transport-parity tests
+        run: go test ./...
+
+  mojo:
+    name: Advisory Mojo parity status
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - name: Detect a shipped Mojo surface
+        id: mojo-surface
+        run: |
+          if find src/scpn_mif_core/accel/mojo -type f -name '*.mojo' -print -quit 2>/dev/null | grep -q .; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No Mojo parity source is shipped; this advisory lane is not applicable."
+          fi
+      - uses: prefix-dev/setup-pixi@a09b6247153796b190642a2b53fac4241043cf6f  # v0.10.0
+        if: steps.mojo-surface.outputs.present == 'true'
+      - name: Run the declared Mojo parity task
+        if: steps.mojo-surface.outputs.present == 'true'
+        run: pixi run test-mojo

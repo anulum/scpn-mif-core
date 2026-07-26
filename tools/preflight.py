@@ -20,7 +20,8 @@ Gates (in order):
  8. `cargo fmt --check` and `cargo clippy -- -D warnings` (if Rust available).
  9. `cargo test --workspace` (if Rust available).
 10. `mkdocs build --strict` (if MkDocs available).
-11. Authorship-line presence in the last commit message.
+11. SymbiYosys manifest/suites and Lean build (with `--formal`).
+12. Authorship-line presence in the last commit message.
 
 Usage:
     python tools/preflight.py            # full
@@ -119,6 +120,22 @@ def gate_mkdocs_build() -> GateResult:
     return _run("mkdocs", ["mkdocs", "build", "--strict"])
 
 
+def gate_formal_manifest() -> GateResult:
+    return _run("formal-manifest", [sys.executable, str(REPO / "tools" / "formal_manifest.py"), "--check"])
+
+
+def gate_symbiyosys() -> GateResult:
+    return _run("symbiyosys", [sys.executable, str(REPO / "tools" / "run_formal.py"), "--suite", "all"])
+
+
+def gate_lean() -> GateResult:
+    return _run("lean", ["lake", "build", "+SCPNMIF:olean"])
+
+
+def gate_missing_tool(name: str, executable: str) -> GateResult:
+    return GateResult(name=name, ok=False, duration_s=0.0, output=f"required executable not found: {executable}\n")
+
+
 def gate_authorship() -> GateResult:
     import time
 
@@ -166,9 +183,9 @@ def main(argv: list[str] | None = None) -> int:
         gates.append(gate_mkdocs_build())
 
     if args.formal:
-        # Hook for SymbiYosys + nuXmv + Kind 2 + Lean. Implementation lands
-        # in P6 of the development plan; placeholder skipped here.
-        pass
+        gates.append(gate_formal_manifest())
+        gates.append(gate_symbiyosys() if shutil.which("sby") is not None else gate_missing_tool("symbiyosys", "sby"))
+        gates.append(gate_lean() if shutil.which("lake") is not None else gate_missing_tool("lean", "lake"))
 
     gates.append(gate_authorship())
 

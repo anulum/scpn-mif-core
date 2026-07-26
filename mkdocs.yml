@@ -109,6 +109,7 @@ nav:
   - Home: index.md
   - Guides:
       - Getting started: guides/getting_started.md
+      - Quality gates: guides/quality_gates.md
   - Architecture:
       - architecture/index.md
       - System architecture map: architecture/system_map.md

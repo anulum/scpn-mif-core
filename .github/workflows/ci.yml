@@ -150,3 +150,24 @@ jobs:
         run: pnpm exec vitest run --coverage
       - name: Build (Module Federation remote)
         run: pnpm build
+
+  required-core:
+    name: Required core gate
+    if: always()
+    needs: [python, rust, sync-tags, secrets, studio-web]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require every core job
+        env:
+          PYTHON_RESULT: ${{ needs.python.result }}
+          RUST_RESULT: ${{ needs.rust.result }}
+          SYNC_TAGS_RESULT: ${{ needs.sync-tags.result }}
+          SECRETS_RESULT: ${{ needs.secrets.result }}
+          STUDIO_RESULT: ${{ needs.studio-web.result }}
+        run: |
+          test "$PYTHON_RESULT" = success
+          test "$RUST_RESULT" = success
+          test "$SYNC_TAGS_RESULT" = success
+          test "$SECRETS_RESULT" = success
+          test "$STUDIO_RESULT" = success

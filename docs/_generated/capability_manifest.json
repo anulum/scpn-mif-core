@@ -52,6 +52,7 @@
       "docs/assets/README.md",
       "docs/generated/compatibility_matrix.md",
       "docs/guides/getting_started.md",
+      "docs/guides/quality_gates.md",
       "docs/index.md",
       "docs/papers/dysco.md",
       "docs/papers/index.md",
@@ -538,19 +539,19 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 58,
-    "github_workflows": 17,
+    "capability_documentation_pages": 59,
+    "github_workflows": 18,
     "go_parity_sources": 2,
     "hdl_rtl_modules": 4,
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,
     "optional_extras": 7,
     "public_api_exports": 191,
-    "public_documentation_pages": 58,
+    "public_documentation_pages": 59,
     "python_capability_classes": 93,
     "python_capability_source_modules": 26,
     "rust_workspace_crates": 10,
-    "test_files": 113
+    "test_files": 114
   },
   "documentation": {
     "public_pages": [
@@ -604,6 +605,7 @@
       "docs/assets/README.md",
       "docs/generated/compatibility_matrix.md",
       "docs/guides/getting_started.md",
+      "docs/guides/quality_gates.md",
       "docs/index.md",
       "docs/papers/dysco.md",
       "docs/papers/index.md",
@@ -860,6 +862,7 @@
       ".github/workflows/fuzz-nightly.yml",
       ".github/workflows/mutation-nightly.yml",
       ".github/workflows/paper.yml",
+      ".github/workflows/polyglot-parity.yml",
       ".github/workflows/pre-commit.yml",
       ".github/workflows/release.yml",
       ".github/workflows/sbom.yml",
@@ -976,6 +979,7 @@
       "tests/unit/test_merge_trigger.py",
       "tests/unit/test_public_api_facade.py",
       "tests/unit/test_public_interactive_surfaces.py",
+      "tests/unit/test_quality_gate_contract.py",
       "tests/unit/test_sealed_claim.py",
       "tests/unit/test_security_documentation.py",
       "tests/unit/test_studio_manifest.py",

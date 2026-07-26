@@ -22,6 +22,9 @@
 
 ### Changed
 
+- Published stable core/formal release-gate contexts, made the tag workflow
+  verify both on its source commit, implemented the local `--formal` preflight,
+  and separated Julia/Go/Mojo parity into an advisory workflow contract.
 - Consolidated the open patch/minor dependency backlog across Rust, Python,
   Studio web, and GitHub Actions. The Studio graph now uses a TypeScript
   6-compatible Module Federation DTS toolchain and retains no obsolete

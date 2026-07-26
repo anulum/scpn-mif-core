@@ -40,19 +40,23 @@ cd scpn-mif-rs/crates/mif-ffi
 maturin develop --release
 ```
 
-Optional tool-chains (gate the related accelerators and proof obligations):
+The release-blocking formal toolchains are SymbiYosys/Yosys/Z3 and Lean 4 with
+mathlib. Julia, Go, and Mojo are advisory parity toolchains: a failure is a
+quality finding for the affected mirror, not permission to weaken the required
+Python/Rust/formal contract or block an otherwise valid core release. See the
+[quality-gate contract](docs/guides/quality_gates.md).
 
 ```bash
-# Julia 1.11+
-julia --project=julia/SCPNMIFCore -e 'using Pkg; Pkg.instantiate()'
+# Required formal proofs
+python tools/formal_manifest.py --check
+python tools/run_formal.py --suite all
+lake build +SCPNMIF:olean
 
-# Lean 4 + mathlib4
-cd lean && lake update && lake build
+# Advisory parity: Julia 1.11+, Go 1.23+, Mojo 0.26+
+julia --project=julia/SCPNMIFCore -e 'using Pkg; Pkg.instantiate(); Pkg.test()'
+go test ./...
 
-# Go 1.23+
-cd go && go mod download
-
-# Mojo 0.26+ (via pixi)
+# Mojo is not applicable until a source surface and `test-mojo` task exist.
 pixi install
 ```
 
@@ -71,7 +75,7 @@ is the primary local quality gate. To run manually:
 python tools/preflight.py            # full (lint + test + Rust + secrets + sync tags)
 python tools/preflight.py --no-tests # lint-only (~10 sec)
 python tools/preflight.py --no-rust  # skip cargo gates
-python tools/preflight.py --formal   # include SymbiYosys + Lean
+python tools/preflight.py --formal   # required before release: SymbiYosys + Lean
 ```
 
 Do not bypass `--no-verify` unless you have a tracked issue link in the commit
