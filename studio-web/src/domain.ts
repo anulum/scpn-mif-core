@@ -97,6 +97,59 @@ export interface TimingEvidenceSummary {
   readonly summary: string;
 }
 
+/** Decision values emitted by the causal streaming merge-trigger engine. */
+export type StreamingDecisionOutcome =
+  'hold_no_lock' | 'fire' | 'abort_unsafe' | 'abort_bank_infeasible';
+
+/** Non-success verdicts the Hub verifier may attach to a rejected seal. */
+export type RejectedSealVerdict = 'stripped' | 'forged' | 'ungraded';
+
+/**
+ * A Hub-owned seal adjudication. MIF deliberately does not verify signatures or
+ * load the trusted keyring; the composing Hub supplies this value after applying
+ * its seal gate.
+ */
+export type DecisionSealStatus =
+  | { readonly state: 'verified' }
+  | { readonly state: 'unsealed' }
+  | { readonly state: 'keyring-unavailable' }
+  | { readonly state: 'rejected'; readonly verdict: RejectedSealVerdict };
+
+/** Hub adjudications indexed by the stable decision id. */
+export type DecisionSealStatuses = Readonly<Record<string, DecisionSealStatus>>;
+
+/**
+ * Presentation-safe summary of one sealed streaming decision.
+ *
+ * The summary binds the visible outcome to its envelope digest and key id, but it
+ * intentionally excludes any self-asserted verification result. Only the separate
+ * Hub-owned {@link DecisionSealStatuses} input may promote its seal to verified.
+ */
+export interface SealedStreamingDecision {
+  readonly id: string;
+  readonly schema: 'studio.merge-trigger.v1';
+  readonly outcome: StreamingDecisionOutcome;
+  readonly sampleIndex: number;
+  readonly safetySlackM: number;
+  readonly claimStatus: 'bounded-model';
+  readonly admission: AdmissionDecision;
+  readonly contentDigest: string;
+  readonly keyId: string;
+}
+
+/**
+ * Read a Hub seal adjudication, failing closed when the Hub supplied none.
+ *
+ * A sealed summary without a Hub result means the trust root is unavailable at
+ * this rendering boundary. It must never silently become verified.
+ */
+export function sealStatusForDecision(
+  statuses: DecisionSealStatuses,
+  decisionId: string,
+): DecisionSealStatus {
+  return statuses[decisionId] ?? { state: 'keyring-unavailable' };
+}
+
 /**
  * The orthogonal freshness axis — how recently a claim's evidence was re-checked at
  * source. It gates validation: only `verified-at-source` (or undeclared, since the

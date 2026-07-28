@@ -16,7 +16,22 @@ import {
   MIF_TIMING_EVIDENCE,
   MIF_VERBS,
   requiresLiveHardwareGate,
+  sealStatusForDecision,
 } from '../src/domain.js';
+
+describe('sealStatusForDecision', () => {
+  it('returns the Hub adjudication for the exact decision id', () => {
+    expect(sealStatusForDecision({ 'decision-7': { state: 'verified' } }, 'decision-7')).toEqual({
+      state: 'verified',
+    });
+  });
+
+  it('fails closed when the Hub supplied no adjudication', () => {
+    expect(sealStatusForDecision({}, 'decision-7')).toEqual({
+      state: 'keyring-unavailable',
+    });
+  });
+});
 
 describe('requiresLiveHardwareGate', () => {
   it("gates a live-hardware verb and passes MIF's software verbs", () => {

@@ -8,6 +8,20 @@
 
 # Studio Web Release Notes
 
+## Unreleased — sealed streaming-decision rendering
+
+- `MifStudioPanel` now renders signed-envelope summaries for streaming merge-trigger
+  decisions: exact outcome, sample index, safety slack, bounded claim/admission,
+  evidence schema, content digest, and key id.
+- Seal trust remains fail-closed and Hub-owned. The MIF feed cannot provide a trusted
+  verdict; a separate `hubSealStatuses` prop carries the Hub seal gate's adjudication.
+  Missing adjudication renders `Seal not checked — Hub trust root unavailable`, and
+  rejected, stripped, and unsealed states never receive verified styling.
+- `sealed_streaming_decisions` is an additive optional collection in
+  `studio.mif-feed.v1`. Its runtime guard rejects malformed digests, non-finite or
+  fractional sample data, unknown outcomes, and outcome/admission contradictions.
+  The committed feed contains no fabricated decision envelope.
+
 ## 0.1.1 — platform contract refresh
 
 - The browser feed remains `studio.mif-feed.v1` and now declares its compatible

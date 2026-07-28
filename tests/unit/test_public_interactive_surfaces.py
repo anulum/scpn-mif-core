@@ -125,6 +125,18 @@ def test_public_surfaces_keep_local_cosim_distinct_from_hil() -> None:
         assert "hil:hardware-gated" in surface
 
 
+def test_studio_feed_keeps_seal_adjudication_hub_owned() -> None:
+    feed = _json("studio-web/public/studio-feed.json")
+    release_notes = _read("studio-web/RELEASE_NOTES.md")
+    studio_docs = _read("docs/api/studio_vertical.md")
+
+    assert feed["sealed_streaming_decisions"] == []
+    assert "hubSealStatuses" in release_notes
+    assert "hubSealStatuses" in studio_docs
+    assert "no seal-verdict field" in studio_docs
+    assert "key custody" in studio_docs
+
+
 def test_public_surfaces_keep_cycle_formal_distinct_from_wall_clock_timing() -> None:
     timing_package = _json("docs/_generated/timing_evidence_package.json")
     studio_feed = _json("studio-web/public/studio-feed.json")

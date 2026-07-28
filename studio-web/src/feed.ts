@@ -32,7 +32,9 @@ import type {
   HardwareGateBadge,
   MifVerb,
   SafetyTier,
+  SealedStreamingDecision,
   SideEffect,
+  StreamingDecisionOutcome,
   TimingClass,
   TimingClaimUnit,
   TimingEvidenceBadge,
@@ -88,6 +90,25 @@ interface RawTimingEvidence {
   readonly summary: string;
 }
 
+/**
+ * One sealed streaming-decision summary on the wire.
+ *
+ * Seal adjudication is intentionally absent: the MIF feed is not a trust root and
+ * cannot declare its own signature verified. The Hub supplies adjudications to the
+ * panel through a separate prop after applying its trusted-keyring gate.
+ */
+interface RawSealedStreamingDecision {
+  readonly id: string;
+  readonly schema: 'studio.merge-trigger.v1';
+  readonly outcome: StreamingDecisionOutcome;
+  readonly sample_index: number;
+  readonly safety_slack_m: number;
+  readonly claim_status: 'bounded-model';
+  readonly admission: AdmissionDecision;
+  readonly content_digest: string;
+  readonly key_id: string;
+}
+
 /** The studio feed document as it appears on the wire. */
 interface RawFeed {
   readonly feed_schema: string;
@@ -99,6 +120,7 @@ interface RawFeed {
   readonly claims: readonly RawClaim[];
   readonly backends?: readonly RawBackend[];
   readonly timing_evidence?: readonly RawTimingEvidence[];
+  readonly sealed_streaming_decisions?: readonly RawSealedStreamingDecision[];
 }
 
 /** The narrowed feed the panel consumes. */
@@ -110,6 +132,7 @@ export interface StudioFeed {
   readonly claims: readonly ClaimSummary[];
   readonly backends: readonly Backend[];
   readonly timingEvidence: readonly TimingEvidenceSummary[];
+  readonly sealedStreamingDecisions: readonly SealedStreamingDecision[];
 }
 
 /** Exact browser wire contract and compatible platform-SDK generation. */
@@ -125,6 +148,7 @@ export const FALLBACK_FEED: StudioFeed = {
   claims: MIF_CLAIMS,
   backends: MIF_BACKENDS,
   timingEvidence: MIF_TIMING_EVIDENCE,
+  sealedStreamingDecisions: [],
 };
 
 /** Default location the standalone remote fetches the live feed from. */
@@ -175,6 +199,13 @@ const TIMING_EVIDENCE_BADGES: readonly TimingEvidenceBadge[] = [
 ];
 const TIMING_EVIDENCE_STATUSES: readonly TimingEvidenceStatus[] = ['passed', 'blocked'];
 const TIMING_CLAIM_UNITS: readonly TimingClaimUnit[] = ['clock-cycles', 'nanoseconds'];
+const STREAMING_DECISION_OUTCOMES: readonly StreamingDecisionOutcome[] = [
+  'hold_no_lock',
+  'fire',
+  'abort_unsafe',
+  'abort_bank_infeasible',
+];
+const SHA256_DIGEST = /^sha256:[0-9a-f]{64}$/u;
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -259,6 +290,42 @@ function isRawTimingEvidence(value: unknown): value is RawTimingEvidence {
   );
 }
 
+function isRawSealedStreamingDecision(value: unknown): value is RawSealedStreamingDecision {
+  if (!isRecord(value)) {
+    return false;
+  }
+  const outcomeAndAdmissionAgree =
+    (value.outcome === 'fire' && value.admission === 'admitted') ||
+    (value.outcome !== 'fire' && value.admission === 'rejected');
+  return (
+    isNonEmptyString(value.id) &&
+    value.id.trim().length > 0 &&
+    value.schema === 'studio.merge-trigger.v1' &&
+    isOneOf(value.outcome, STREAMING_DECISION_OUTCOMES) &&
+    typeof value.sample_index === 'number' &&
+    Number.isSafeInteger(value.sample_index) &&
+    value.sample_index >= 0 &&
+    typeof value.safety_slack_m === 'number' &&
+    Number.isFinite(value.safety_slack_m) &&
+    value.claim_status === 'bounded-model' &&
+    isOneOf(value.admission, ADMISSION_DECISIONS) &&
+    outcomeAndAdmissionAgree &&
+    typeof value.content_digest === 'string' &&
+    SHA256_DIGEST.test(value.content_digest) &&
+    isNonEmptyString(value.key_id) &&
+    value.key_id.trim().length > 0
+  );
+}
+
+function isRawSealedStreamingDecisionCollection(
+  value: unknown,
+): value is readonly RawSealedStreamingDecision[] {
+  if (!Array.isArray(value) || !value.every(isRawSealedStreamingDecision)) {
+    return false;
+  }
+  return new Set(value.map((decision) => decision.id)).size === value.length;
+}
+
 function toVerb(raw: RawVerb): MifVerb {
   const base = {
     name: raw.name,
@@ -318,6 +385,20 @@ function toTimingEvidence(raw: RawTimingEvidence): TimingEvidenceSummary {
   };
 }
 
+function toSealedStreamingDecision(raw: RawSealedStreamingDecision): SealedStreamingDecision {
+  return {
+    id: raw.id,
+    schema: raw.schema,
+    outcome: raw.outcome,
+    sampleIndex: raw.sample_index,
+    safetySlackM: raw.safety_slack_m,
+    claimStatus: raw.claim_status,
+    admission: raw.admission,
+    contentDigest: raw.content_digest,
+    keyId: raw.key_id,
+  };
+}
+
 /** Fail-closed runtime type guard for the complete browser wire contract. */
 export function isRawFeed(value: unknown): value is RawFeed {
   if (!isRecord(value)) {
@@ -336,7 +417,9 @@ export function isRawFeed(value: unknown): value is RawFeed {
     (value.backends === undefined ||
       (Array.isArray(value.backends) && value.backends.every(isRawBackend))) &&
     (value.timing_evidence === undefined ||
-      (Array.isArray(value.timing_evidence) && value.timing_evidence.every(isRawTimingEvidence)))
+      (Array.isArray(value.timing_evidence) && value.timing_evidence.every(isRawTimingEvidence))) &&
+    (value.sealed_streaming_decisions === undefined ||
+      isRawSealedStreamingDecisionCollection(value.sealed_streaming_decisions))
   );
 }
 
@@ -357,6 +440,12 @@ export function narrowFeed(raw: RawFeed): StudioFeed {
       raw.timing_evidence === undefined
         ? MIF_TIMING_EVIDENCE
         : raw.timing_evidence.map(toTimingEvidence),
+    // The feed carries envelope summaries, never trusted seal adjudications. The Hub
+    // injects those separately when composing the panel.
+    sealedStreamingDecisions:
+      raw.sealed_streaming_decisions === undefined
+        ? []
+        : raw.sealed_streaming_decisions.map(toSealedStreamingDecision),
   };
 }
 

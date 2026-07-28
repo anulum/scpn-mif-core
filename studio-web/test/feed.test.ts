@@ -106,6 +106,30 @@ const VALID_FEED = {
       summary: 'HIL trace absent.',
     },
   ],
+  sealed_streaming_decisions: [
+    {
+      id: 'decision-fire-12',
+      schema: 'studio.merge-trigger.v1',
+      outcome: 'fire',
+      sample_index: 12,
+      safety_slack_m: 0.00025,
+      claim_status: 'bounded-model',
+      admission: 'admitted',
+      content_digest: `sha256:${'a'.repeat(64)}`,
+      key_id: 'mif-production-2026-01',
+    },
+    {
+      id: 'decision-abort-13',
+      schema: 'studio.merge-trigger.v1',
+      outcome: 'abort_unsafe',
+      sample_index: 13,
+      safety_slack_m: -0.00001,
+      claim_status: 'bounded-model',
+      admission: 'rejected',
+      content_digest: `sha256:${'b'.repeat(64)}`,
+      key_id: 'mif-production-2026-01',
+    },
+  ],
 } as const;
 
 function mockFetch(impl: () => Promise<unknown>): void {
@@ -125,6 +149,30 @@ describe('narrowFeed', () => {
     expect(feed.verbs).toHaveLength(2);
     expect(feed.claims).toHaveLength(3);
     expect(feed.timingEvidence).toHaveLength(3);
+    expect(feed.sealedStreamingDecisions).toEqual([
+      {
+        id: 'decision-fire-12',
+        schema: 'studio.merge-trigger.v1',
+        outcome: 'fire',
+        sampleIndex: 12,
+        safetySlackM: 0.00025,
+        claimStatus: 'bounded-model',
+        admission: 'admitted',
+        contentDigest: `sha256:${'a'.repeat(64)}`,
+        keyId: 'mif-production-2026-01',
+      },
+      {
+        id: 'decision-abort-13',
+        schema: 'studio.merge-trigger.v1',
+        outcome: 'abort_unsafe',
+        sampleIndex: 13,
+        safetySlackM: -0.00001,
+        claimStatus: 'bounded-model',
+        admission: 'rejected',
+        contentDigest: `sha256:${'b'.repeat(64)}`,
+        keyId: 'mif-production-2026-01',
+      },
+    ]);
   });
 
   it('carries deadlineUs only for a deadline-bearing verb', () => {
@@ -204,6 +252,15 @@ describe('narrowFeed', () => {
     });
     expect(feed.backends).toBe(MIF_BACKENDS);
     expect(feed.timingEvidence).toBe(MIF_TIMING_EVIDENCE);
+    expect(feed.sealedStreamingDecisions).toEqual([]);
+  });
+
+  it('never accepts a self-asserted seal verdict from the MIF feed', () => {
+    const decision = { ...VALID_FEED.sealed_streaming_decisions[0], seal_status: 'verified' };
+    const feed = narrowFeed({ ...VALID_FEED, sealed_streaming_decisions: [decision] });
+
+    expect(feed.sealedStreamingDecisions[0]).not.toHaveProperty('sealStatus');
+    expect(feed.sealedStreamingDecisions[0]).not.toHaveProperty('seal_status');
   });
 
   it('keeps cycle-formal timing separate from both wall-clock classes', () => {
@@ -237,12 +294,18 @@ describe('isRawFeed', () => {
     expect(isRawFeed({ ...VALID_FEED, claims: 'nope' })).toBe(false);
     expect(isRawFeed({ ...VALID_FEED, backends: 'nope' })).toBe(false);
     expect(isRawFeed({ ...VALID_FEED, timing_evidence: 'nope' })).toBe(false);
+    expect(isRawFeed({ ...VALID_FEED, sealed_streaming_decisions: 'nope' })).toBe(false);
   });
 
   it('accepts the additive collections when omitted', () => {
-    expect(isRawFeed({ ...VALID_FEED, backends: undefined, timing_evidence: undefined })).toBe(
-      true,
-    );
+    expect(
+      isRawFeed({
+        ...VALID_FEED,
+        backends: undefined,
+        timing_evidence: undefined,
+        sealed_streaming_decisions: undefined,
+      }),
+    ).toBe(true);
   });
 
   it('rejects drift in the schema identity and platform SDK generation', () => {
@@ -259,6 +322,7 @@ describe('isRawFeed', () => {
     const certificate = VALID_FEED.claims[0].certificate;
     const backend = VALID_FEED.backends[0];
     const timing = VALID_FEED.timing_evidence[0];
+    const decision = VALID_FEED.sealed_streaming_decisions[0];
     const invalidVerbs: readonly unknown[] = [
       null,
       { ...verb, name: '' },
@@ -300,6 +364,25 @@ describe('isRawFeed', () => {
       { ...timing, wall_clock_claim_allowed: 'no' },
       { ...timing, summary: '' },
     ];
+    const invalidDecisions: readonly unknown[] = [
+      null,
+      { ...decision, id: '' },
+      { ...decision, id: '   ' },
+      { ...decision, schema: 'studio.other.v1' },
+      { ...decision, outcome: 'launch' },
+      { ...decision, sample_index: '12' },
+      { ...decision, sample_index: 1.5 },
+      { ...decision, sample_index: -1 },
+      { ...decision, safety_slack_m: '0.1' },
+      { ...decision, safety_slack_m: Number.POSITIVE_INFINITY },
+      { ...decision, claim_status: 'reference-validated' },
+      { ...decision, admission: 'maybe' },
+      { ...decision, admission: 'rejected' },
+      { ...decision, outcome: 'abort_unsafe', admission: 'admitted' },
+      { ...decision, content_digest: 'sha256:not-a-digest' },
+      { ...decision, key_id: '' },
+      { ...decision, key_id: '   ' },
+    ];
 
     for (const candidate of invalidVerbs) {
       expect(isRawFeed({ ...VALID_FEED, verbs: [candidate] })).toBe(false);
@@ -313,6 +396,18 @@ describe('isRawFeed', () => {
     for (const candidate of invalidTiming) {
       expect(isRawFeed({ ...VALID_FEED, timing_evidence: [candidate] })).toBe(false);
     }
+    for (const candidate of invalidDecisions) {
+      expect(
+        isRawFeed({ ...VALID_FEED, sealed_streaming_decisions: [candidate] }),
+        JSON.stringify(candidate),
+      ).toBe(false);
+    }
+    expect(
+      isRawFeed({
+        ...VALID_FEED,
+        sealed_streaming_decisions: [decision, { ...decision }],
+      }),
+    ).toBe(false);
   });
 });
 
