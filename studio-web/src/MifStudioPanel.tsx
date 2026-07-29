@@ -29,10 +29,15 @@ import {
 
 /** The verbs, claims, and backends the panel renders — from the live feed, or sampled. */
 export interface MifStudioPanelProps {
+  /** Verbs advertised by the MIF capability surface. */
   readonly verbs?: readonly MifVerb[];
+  /** Honesty-graded evidence claims to render. */
   readonly claims?: readonly ClaimSummary[];
+  /** Compute backends and their actual availability tiers. */
   readonly backends?: readonly Backend[];
+  /** Distinct formal-cycle and hardware timing evidence classes. */
   readonly timingEvidence?: readonly TimingEvidenceSummary[];
+  /** Signed-envelope summaries supplied by the MIF feed. */
   readonly sealedStreamingDecisions?: readonly SealedStreamingDecision[];
   /** Trusted seal results supplied by the composing Hub, never by the MIF feed. */
   readonly hubSealStatuses?: DecisionSealStatuses;

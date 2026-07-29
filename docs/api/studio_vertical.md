@@ -128,3 +128,8 @@ The browser feed declares `studio.mif-feed.v1` and the same
 Studio web release notes in `studio-web/RELEASE_NOTES.md`. A contract smoke runs
 every committed feed claim through the installed SDK consumer so schema and honesty
 enum drift cannot pass the release gate silently.
+
+The remote's source API reference is generated with strict TypeDoc from
+`MifStudioPanel.tsx`, `domain.ts`, and `feed.ts` via `pnpm docs:api`. Required
+export and property comments, links, and rendering are checked by required CI and
+local preflight; generated HTML under `studio-web/docs/api/` is ephemeral.

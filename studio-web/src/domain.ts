@@ -53,7 +53,9 @@ export type BackendStatus = 'runtime-active' | 'build-available' | 'declared';
 
 /** A MIF compute backend with its availability status. */
 export interface Backend {
+  /** Stable backend identifier. */
   readonly name: BackendName;
+  /** Highest availability tier established for this backend. */
   readonly status: BackendStatus;
 }
 
@@ -71,8 +73,9 @@ export type EvidenceSubstrate =
   | 'fpga'
   | 'asic';
 
-/** Product labels that keep local cosimulation distinct from physical HIL evidence. */
+/** Product label for evidence produced by local RTL cosimulation. */
 export type EvidenceBadge = 'cosim:local-verilator';
+/** Product label for evidence that still requires physical HIL. */
 export type HardwareGateBadge = 'hil:hardware-gated';
 
 /** Timing evidence labels: cycle proof is distinct from both hardware timing classes. */
@@ -89,11 +92,17 @@ export type TimingClaimUnit = 'clock-cycles' | 'nanoseconds';
 
 /** Product summary of one timing evidence class. */
 export interface TimingEvidenceSummary {
+  /** Stable identifier for the evidence class. */
   readonly id: string;
+  /** User-facing evidence boundary badge. */
   readonly badge: TimingEvidenceBadge;
+  /** Whether the evidence class passed or remains blocked. */
   readonly status: TimingEvidenceStatus;
+  /** Unit domain in which the claim is valid. */
   readonly claimUnit: TimingClaimUnit;
+  /** Whether this evidence permits a wall-clock timing claim. */
   readonly wallClockClaimAllowed: boolean;
+  /** Concise evidence or blocker description. */
   readonly summary: string;
 }
 
@@ -110,10 +119,24 @@ export type RejectedSealVerdict = 'stripped' | 'forged' | 'ungraded';
  * its seal gate.
  */
 export type DecisionSealStatus =
-  | { readonly state: 'verified' }
-  | { readonly state: 'unsealed' }
-  | { readonly state: 'keyring-unavailable' }
-  | { readonly state: 'rejected'; readonly verdict: RejectedSealVerdict };
+  | {
+      /** Hub verification succeeded against the trusted keyring. */
+      readonly state: 'verified';
+    }
+  | {
+      /** The decision did not carry a signature envelope. */
+      readonly state: 'unsealed';
+    }
+  | {
+      /** The Hub could not access an applicable trusted keyring. */
+      readonly state: 'keyring-unavailable';
+    }
+  | {
+      /** Hub verification rejected the supplied envelope. */
+      readonly state: 'rejected';
+      /** Specific fail-closed rejection classification. */
+      readonly verdict: RejectedSealVerdict;
+    };
 
 /** Hub adjudications indexed by the stable decision id. */
 export type DecisionSealStatuses = Readonly<Record<string, DecisionSealStatus>>;
@@ -126,14 +149,23 @@ export type DecisionSealStatuses = Readonly<Record<string, DecisionSealStatus>>;
  * Hub-owned {@link DecisionSealStatuses} input may promote its seal to verified.
  */
 export interface SealedStreamingDecision {
+  /** Stable decision identifier used to join Hub adjudication. */
   readonly id: string;
+  /** Fixed merge-trigger feed schema. */
   readonly schema: 'studio.merge-trigger.v1';
+  /** Causal decision emitted for the evaluated sample. */
   readonly outcome: StreamingDecisionOutcome;
+  /** Zero-based sample index of the decision. */
   readonly sampleIndex: number;
+  /** Signed kinematic safety slack in metres. */
   readonly safetySlackM: number;
+  /** Honest reduced-order claim boundary. */
   readonly claimStatus: 'bounded-model';
+  /** Runtime admission associated with the outcome. */
   readonly admission: AdmissionDecision;
+  /** SHA-256 digest binding the decision envelope content. */
   readonly contentDigest: string;
+  /** Identifier of the signing key named by the envelope. */
   readonly keyId: string;
 }
 
@@ -160,18 +192,27 @@ export type Freshness = 'verified-at-source' | 'traceable-unchecked' | 'untracea
 
 /** A machine-checked formal certificate attached to a formally-proven claim. */
 export interface FormalCertificate {
+  /** Machine checker that established the theorem. */
   readonly checker: string;
+  /** Stable theorem or property identifier. */
   readonly theorem: string;
+  /** Whether the proof includes a non-vacuity witness. */
   readonly nonVacuous: boolean;
 }
 
 /** A MIF verb with the attribute contract the Hub federates against. */
 export interface MifVerb {
+  /** Capability verb name. */
   readonly name: string;
+  /** Safety tier required to invoke the verb. */
   readonly safetyTier: SafetyTier;
+  /** Side-effect class enforced by the Hub. */
   readonly sideEffect: SideEffect;
+  /** Scheduling class of the operation. */
   readonly timingClass: TimingClass;
+  /** Optional execution deadline in microseconds. */
   readonly deadlineUs?: number;
+  /** Whether the verb is distinctive to the MIF domain. */
   readonly domainDistinctive: boolean;
 }
 
@@ -182,15 +223,25 @@ export interface MifVerb {
  * claim may carry its `freshness` (how recently its evidence was re-checked).
  */
 export interface ClaimSummary {
+  /** Evidence envelope schema identifier. */
   readonly schema: string;
+  /** Scientific validation boundary of the claim. */
   readonly status: ClaimStatus;
+  /** Runtime admission decision applied to the claim. */
   readonly admission: AdmissionDecision;
+  /** Evidence production modality. */
   readonly kind: EvidenceKind;
+  /** Optional numeric parity classification. */
   readonly exactness?: Exactness;
+  /** Substrate on which the evidence was produced. */
   readonly substrate?: EvidenceSubstrate;
+  /** Product-safe local evidence badge. */
   readonly evidenceBadge?: EvidenceBadge;
+  /** Product-safe physical-evidence blocker. */
   readonly hardwareGate?: HardwareGateBadge;
+  /** Optional formal proof certificate. */
   readonly certificate?: FormalCertificate;
+  /** Source-verification freshness of the evidence. */
   readonly freshness?: Freshness;
 }
 

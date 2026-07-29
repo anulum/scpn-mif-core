@@ -1,0 +1,19 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/MifStudioPanel.tsx", "src/domain.ts", "src/feed.ts"],
+  "entryPointStrategy": "resolve",
+  "tsconfig": "tsconfig.json",
+  "out": "docs/api",
+  "readme": "none",
+  "cleanOutputDir": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "requiredToBeDocumented": ["Interface", "Function", "Variable", "TypeAlias", "Property"],
+  "validation": {
+    "invalidLink": true,
+    "notDocumented": true,
+    "notExported": true
+  },
+  "treatWarningsAsErrors": true,
+  "treatValidationWarningsAsErrors": true
+}

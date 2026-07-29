@@ -21,9 +21,10 @@ Gates (in order):
  9. `cargo test --workspace` (if Rust available).
 10. Go documentation coverage and native `go doc` rendering (if Go available).
 11. Strict Julia `Documenter.jl` API build (if Julia is available).
-12. `mkdocs build --strict` (if MkDocs available).
-13. SymbiYosys manifest/suites and Lean build (with `--formal`).
-14. Authorship-line presence in the last commit message.
+12. Strict Studio TypeDoc API build (if pnpm is available).
+13. `mkdocs build --strict` (if MkDocs available).
+14. SymbiYosys manifest/suites and Lean build (with `--formal`).
+15. Authorship-line presence in the last commit message.
 
 Usage:
     python tools/preflight.py            # full
@@ -196,6 +197,10 @@ def gate_julia_doc() -> GateResult:
     )
 
 
+def gate_studio_doc() -> GateResult:
+    return _run("studio-doc", ["pnpm", "docs:api"], cwd=REPO / "studio-web")
+
+
 def gate_mkdocs_build() -> GateResult:
     return _run("mkdocs", ["mkdocs", "build", "--strict"])
 
@@ -265,6 +270,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if shutil.which("julia") is not None:
         gates.append(gate_julia_doc())
+
+    if shutil.which("pnpm") is not None:
+        gates.append(gate_studio_doc())
 
     if shutil.which("mkdocs") is not None:
         gates.append(gate_mkdocs_build())
