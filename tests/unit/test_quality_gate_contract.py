@@ -38,6 +38,19 @@ def test_release_requires_green_source_gate_contexts() -> None:
     assert "needs: [source-gates, claim-ledger-review]" in release
 
 
+def test_ci_python_dependencies_are_hash_locked() -> None:
+    ci = _read(".github/workflows/ci.yml")
+    lock = _read("requirements/ci.txt")
+
+    assert "python -m pip install --require-hashes -r requirements/ci.txt" in ci
+    assert "pip install --upgrade pip" not in ci
+    assert 'pip install -e ".[dev]"' not in ci
+    assert 'pip install -e ".[studio]"' not in ci
+    assert lock.count("--hash=sha256:") >= 52
+    assert "scpn-studio-platform==0.11.2" in lock
+    assert "maturin==1.14.1" in lock
+
+
 def test_parity_workflow_is_advisory_and_documents_absent_mojo() -> None:
     parity = _read(".github/workflows/polyglot-parity.yml")
     contract = _read("docs/guides/quality_gates.md")
