@@ -65,6 +65,8 @@
     ],
     "go_parity_sources": [
       "go/cmd/daqmock_probe/main.go",
+      "go/cmd/doccheck/main.go",
+      "go/daqmock/doc.go",
       "go/daqmock/frame.go"
     ],
     "hdl_rtl_modules": [
@@ -542,7 +544,7 @@
   "counts": {
     "capability_documentation_pages": 60,
     "github_workflows": 18,
-    "go_parity_sources": 2,
+    "go_parity_sources": 4,
     "hdl_rtl_modules": 4,
     "julia_reference_modules": 9,
     "lean_proof_modules": 8,

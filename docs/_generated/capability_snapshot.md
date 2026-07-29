@@ -11,7 +11,7 @@
 | Python capability classes | 93 |
 | Rust workspace crates | 10 |
 | Julia reference modules | 9 |
-| Go parity sources | 2 |
+| Go parity sources | 4 |
 | Lean 4 proof modules | 8 |
 | Synthesisable HDL RTL modules | 4 |
 | Capability documentation pages | 60 |
