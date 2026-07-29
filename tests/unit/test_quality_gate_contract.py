@@ -49,7 +49,7 @@ def test_ci_python_dependencies_are_hash_locked() -> None:
     assert lock.count("--hash=sha256:") >= 52
     assert "scpn-studio-platform==0.11.2" in lock
     assert "maturin==1.14.1" in lock
-    assert "setuptools==81.0.0" in lock
+    assert "setuptools==83.0.0" in lock
     assert "wheel==0.46.3" in lock
 
 
