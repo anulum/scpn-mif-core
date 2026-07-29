@@ -29,10 +29,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
-      - name: Install Rust 1.85
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8  # stable
-        with:
-          toolchain: 1.85.0
+      - name: Ensure Rust 1.85
+        shell: bash
+        run: |
+          if ! rustc +1.85.0 --version; then
+            rustup toolchain uninstall 1.85.0 || true
+            rustup toolchain install 1.85.0 --profile minimal --no-self-update
+          fi
+          rustc +1.85.0 --version
+          cargo +1.85.0 --version
       - name: Build Rust extension
         env:
           RUSTUP_TOOLCHAIN: "1.85.0"
