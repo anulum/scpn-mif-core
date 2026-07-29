@@ -22,6 +22,9 @@
 
 ### Changed
 
+- Added a warning-denied, missing-doc-denied workspace `cargo doc` gate to
+  both hosted Rust CI and the repository preflight, covering all nine native
+  crates without building dependency documentation.
 - Bound the Studio browser feed explicitly to `studio.mif-feed.v1` and
   `scpn-studio-platform>=0.11.2,<0.12`, added complete fail-closed nested runtime
   validation, and smoke-tested every committed feed claim against the installed

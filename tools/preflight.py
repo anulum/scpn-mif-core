@@ -17,7 +17,7 @@ Gates (in order):
  5. `mypy` (strict).
  6. `pytest tests/unit/ tests/contract/` (full coverage gate).
  7. `bandit` security lint.
- 8. `cargo fmt --check` and `cargo clippy -- -D warnings` (if Rust available).
+ 8. `cargo fmt`, warning-denied Clippy, and strict `cargo doc` (if Rust available).
  9. `cargo test --workspace` (if Rust available).
 10. `mkdocs build --strict` (if MkDocs available).
 11. SymbiYosys manifest/suites and Lean build (with `--formal`).
@@ -33,6 +33,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -50,11 +51,26 @@ class GateResult:
     output: str
 
 
-def _run(name: str, cmd: list[str], cwd: Path | None = None) -> GateResult:
+def _run(
+    name: str,
+    cmd: list[str],
+    cwd: Path | None = None,
+    env: dict[str, str] | None = None,
+) -> GateResult:
     import time
 
     t0 = time.monotonic()
-    proc = subprocess.run(cmd, check=False, capture_output=True, text=True, cwd=cwd or REPO)
+    process_env = os.environ.copy()
+    if env is not None:
+        process_env.update(env)
+    proc = subprocess.run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
+        cwd=cwd or REPO,
+        env=process_env,
+    )
     duration = time.monotonic() - t0
     return GateResult(
         name=name,
@@ -109,6 +125,21 @@ def gate_cargo_clippy() -> GateResult:
         "cargo-clippy",
         ["cargo", "clippy", "--workspace", "--all-targets", "--", "-D", "warnings"],
         cwd=REPO / "scpn-mif-rs",
+    )
+
+
+def gate_cargo_doc() -> GateResult:
+    return _run(
+        "cargo-doc",
+        [
+            "cargo",
+            "doc",
+            "--workspace",
+            "--no-deps",
+            "--all-features",
+        ],
+        cwd=REPO / "scpn-mif-rs",
+        env={"RUSTDOCFLAGS": "-D warnings -D missing_docs"},
     )
 
 
@@ -176,6 +207,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.no_rust and shutil.which("cargo") is not None:
         gates.append(gate_cargo_fmt())
         gates.append(gate_cargo_clippy())
+        gates.append(gate_cargo_doc())
         if not args.no_tests:
             gates.append(gate_cargo_test())
 

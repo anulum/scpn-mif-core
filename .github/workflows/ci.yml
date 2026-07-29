@@ -79,7 +79,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   rust:
-    name: Rust (fmt + clippy + test)
+    name: Rust (fmt + clippy + docs + test)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -99,6 +99,10 @@ jobs:
         run: cargo fmt --all -- --check
       - name: cargo clippy
         run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: cargo doc
+        env:
+          RUSTDOCFLAGS: -D warnings -D missing_docs
+        run: cargo doc --workspace --no-deps --all-features
       - name: cargo test
         run: cargo test --workspace --all-features
 
