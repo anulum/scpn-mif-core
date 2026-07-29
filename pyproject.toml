@@ -70,6 +70,8 @@ ecosystem = [
     "scpn-quantum-control>=1.0.0",
 ]
 dev = [
+    "setuptools==81.0.0",
+    "wheel==0.46.3",
     "ruff==0.16.0",
     "mypy==2.3.0",
     "bandit==1.9.4",
