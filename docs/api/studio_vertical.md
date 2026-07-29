@@ -116,8 +116,20 @@ name `scpn_mif_core`, exposing `./MifStudioPanel`). The SCPN Studio Hub loads it
 runtime and renders MIF's verbs and honesty-graded claims; the panel mirrors the
 Python honesty rule and falls back, fail-closed, to a bundled honesty-graded sample
 when the live feed is unreachable or violates the complete nested runtime contract.
+The panel also renders additive `sealed_streaming_decisions` summaries: decision
+outcome, sample index, safety slack, bounded claim/admission, envelope digest, and key
+id. These fields identify the signed unit but do **not** adjudicate it. The MIF feed
+has no seal-verdict field; the composing Hub passes its trusted-keyring result through
+the separate `hubSealStatuses` panel prop. Without that result a decision renders
+`Seal not checked — Hub trust root unavailable`, never verified. This keeps signature
+verification, key custody, and signed-keyring deployment entirely on the Hub side.
 The browser feed declares `studio.mif-feed.v1` and the same
 `scpn-studio-platform>=0.11.2,<0.12` generation as the Python manifest; see the
 Studio web release notes in `studio-web/RELEASE_NOTES.md`. A contract smoke runs
 every committed feed claim through the installed SDK consumer so schema and honesty
 enum drift cannot pass the release gate silently.
+
+The remote's source API reference is generated with strict TypeDoc from
+`MifStudioPanel.tsx`, `domain.ts`, and `feed.ts` via `pnpm docs:api`. Required
+export and property comments, links, and rendering are checked by required CI and
+local preflight; generated HTML under `studio-web/docs/api/` is ephemeral.

@@ -1,0 +1,31 @@
+{
+  "schema": "studio.project-card.v1",
+  "tagline": "Evidence-bounded merge-trigger engineering for pulsed FRC fusion — causal software, bit-true RTL, and machine-checked safety.",
+  "summary": "SCPN-MIF-CORE is a pre-alpha research-to-hardware stack for deterministic phase synchronisation and pulsed field-reversed-configuration merge-trigger decisions. It joins Python and Rust kinematic and lifecycle models with Q8.8 SystemVerilog trigger fabrics, local Verilator cosimulation, SymbiYosys properties, and a federated Studio evidence surface. Published evidence establishes software behaviour, bit-true local-simulator parity, and formal clock-cycle relations; named-device post-route timing, calibrated hardware-in-the-loop evidence, full FUSION reference parity, and facility-grade actuation remain explicitly gated.",
+  "highlights": [
+    "Causal streaming and retrospective batch merge-trigger engines expose fire, unsafe-abort, bank-infeasible, and hold outcomes with veto dominance, debounce, arm, and bank-readiness semantics pinned by tests.",
+    "Synthesisable MIF-007 sensor quantisation and MIF-008 trigger/fast-veto RTL are paired with open-tool safety, liveness, reachability, and timing-property suites.",
+    "Python-versus-Verilator cosimulation is reported as cosim:local-verilator on the simulator substrate, never as FPGA waveform equivalence or hardware-in-the-loop validation.",
+    "Measured hot paths dispatch across available Rust and polyglot backends over a pure-Python reference floor, with parity and benchmark provenance kept explicit.",
+    "The federated Studio surface exposes evaluate, prove, cosimulate, and benchmark verbs with recompute-verifiable evidence sealing and fail-closed claim boundaries.",
+    "Timing evidence distinguishes proved clock-cycle relations from still-gated named-device nanosecond closure and calibrated end-to-end sensor/driver/chamber measurements."
+  ],
+  "links": [
+    {
+      "label": "Merge-trigger quickstart",
+      "url": "https://colab.research.google.com/github/anulum/scpn-mif-core/blob/main/notebooks/merge_trigger_quickstart.ipynb"
+    },
+    {
+      "label": "Formal property catalogue",
+      "url": "https://anulum.github.io/scpn-mif-core/reference/formal_property_catalogue/"
+    },
+    {
+      "label": "Studio evidence surface",
+      "url": "https://anulum.github.io/scpn-mif-core/api/studio_vertical/"
+    },
+    {
+      "label": "Zenodo DOI",
+      "url": "https://doi.org/10.5281/zenodo.20768029"
+    }
+  ]
+}

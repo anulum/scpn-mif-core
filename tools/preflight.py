@@ -17,11 +17,14 @@ Gates (in order):
  5. `mypy` (strict).
  6. `pytest tests/unit/ tests/contract/` (full coverage gate).
  7. `bandit` security lint.
- 8. `cargo fmt --check` and `cargo clippy -- -D warnings` (if Rust available).
+ 8. `cargo fmt`, warning-denied Clippy, and strict `cargo doc` (if Rust available).
  9. `cargo test --workspace` (if Rust available).
-10. `mkdocs build --strict` (if MkDocs available).
-11. SymbiYosys manifest/suites and Lean build (with `--formal`).
-12. Authorship-line presence in the last commit message.
+10. Go documentation coverage and native `go doc` rendering (if Go available).
+11. Strict Julia `Documenter.jl` API build (if Julia is available).
+12. Strict Studio TypeDoc API build (if pnpm is available).
+13. `mkdocs build --strict` (if MkDocs available).
+14. SymbiYosys manifest/suites and Lean build (with `--formal`).
+15. Authorship-line presence in the last commit message.
 
 Usage:
     python tools/preflight.py            # full
@@ -33,6 +36,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -50,11 +54,26 @@ class GateResult:
     output: str
 
 
-def _run(name: str, cmd: list[str], cwd: Path | None = None) -> GateResult:
+def _run(
+    name: str,
+    cmd: list[str],
+    cwd: Path | None = None,
+    env: dict[str, str] | None = None,
+) -> GateResult:
     import time
 
     t0 = time.monotonic()
-    proc = subprocess.run(cmd, check=False, capture_output=True, text=True, cwd=cwd or REPO)
+    process_env = os.environ.copy()
+    if env is not None:
+        process_env.update(env)
+    proc = subprocess.run(
+        cmd,
+        check=False,
+        capture_output=True,
+        text=True,
+        cwd=cwd or REPO,
+        env=process_env,
+    )
     duration = time.monotonic() - t0
     return GateResult(
         name=name,
@@ -112,8 +131,74 @@ def gate_cargo_clippy() -> GateResult:
     )
 
 
+def gate_cargo_doc() -> GateResult:
+    return _run(
+        "cargo-doc",
+        [
+            "cargo",
+            "doc",
+            "--workspace",
+            "--no-deps",
+            "--all-features",
+        ],
+        cwd=REPO / "scpn-mif-rs",
+        env={"RUSTDOCFLAGS": "-D warnings -D missing_docs"},
+    )
+
+
 def gate_cargo_test() -> GateResult:
     return _run("cargo-test", ["cargo", "test", "--workspace", "--all-features"], cwd=REPO / "scpn-mif-rs")
+
+
+def gate_go_doc() -> GateResult:
+    import time
+
+    t0 = time.monotonic()
+    outputs: list[str] = []
+    commands = [
+        ["go", "run", "./go/cmd/doccheck", "./go/..."],
+        ["go", "list", "./go/..."],
+    ]
+    packages: list[str] = []
+    for cmd in commands:
+        proc = subprocess.run(cmd, check=False, capture_output=True, text=True, cwd=REPO)
+        outputs.append(proc.stdout + proc.stderr)
+        if proc.returncode != 0:
+            return GateResult("go-doc", False, time.monotonic() - t0, "".join(outputs))
+        if cmd[1] == "list":
+            packages = [line for line in proc.stdout.splitlines() if line]
+    if not packages:
+        return GateResult("go-doc", False, time.monotonic() - t0, "go list returned no packages\n")
+    for package in packages:
+        proc = subprocess.run(
+            ["go", "doc", "-all", package],
+            check=False,
+            capture_output=True,
+            text=True,
+            cwd=REPO,
+        )
+        outputs.append(proc.stderr)
+        if proc.returncode != 0:
+            return GateResult("go-doc", False, time.monotonic() - t0, "".join(outputs))
+    return GateResult("go-doc", True, time.monotonic() - t0, "".join(outputs))
+
+
+def gate_julia_doc() -> GateResult:
+    package = REPO / "julia" / "SCPNMIFCore"
+    return _run(
+        "julia-doc",
+        [
+            "julia",
+            f"--project={package / 'docs'}",
+            "-e",
+            'using Pkg; Pkg.instantiate(); include("docs/make.jl")',
+        ],
+        cwd=package,
+    )
+
+
+def gate_studio_doc() -> GateResult:
+    return _run("studio-doc", ["pnpm", "docs:api"], cwd=REPO / "studio-web")
 
 
 def gate_mkdocs_build() -> GateResult:
@@ -176,8 +261,18 @@ def main(argv: list[str] | None = None) -> int:
     if not args.no_rust and shutil.which("cargo") is not None:
         gates.append(gate_cargo_fmt())
         gates.append(gate_cargo_clippy())
+        gates.append(gate_cargo_doc())
         if not args.no_tests:
             gates.append(gate_cargo_test())
+
+    if shutil.which("go") is not None:
+        gates.append(gate_go_doc())
+
+    if shutil.which("julia") is not None:
+        gates.append(gate_julia_doc())
+
+    if shutil.which("pnpm") is not None:
+        gates.append(gate_studio_doc())
 
     if shutil.which("mkdocs") is not None:
         gates.append(gate_mkdocs_build())

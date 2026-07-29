@@ -26,6 +26,7 @@ createRoot(container).render(
       claims={feed.claims}
       backends={feed.backends}
       timingEvidence={feed.timingEvidence}
+      sealedStreamingDecisions={feed.sealedStreamingDecisions}
     />
   </StrictMode>,
 );

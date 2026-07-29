@@ -10,12 +10,116 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import MifStudioPanel from '../src/MifStudioPanel.js';
-import type { Backend, ClaimSummary, MifVerb, TimingEvidenceSummary } from '../src/domain.js';
+import type {
+  Backend,
+  ClaimSummary,
+  DecisionSealStatuses,
+  MifVerb,
+  SealedStreamingDecision,
+  TimingEvidenceSummary,
+} from '../src/domain.js';
+
+const SEALED_DECISIONS: readonly SealedStreamingDecision[] = [
+  {
+    id: 'decision-verified',
+    schema: 'studio.merge-trigger.v1',
+    outcome: 'fire',
+    sampleIndex: 12,
+    safetySlackM: 0.00025,
+    claimStatus: 'bounded-model',
+    admission: 'admitted',
+    contentDigest: `sha256:${'a'.repeat(64)}`,
+    keyId: 'mif-production-2026-01',
+  },
+  {
+    id: 'decision-unsealed',
+    schema: 'studio.merge-trigger.v1',
+    outcome: 'hold_no_lock',
+    sampleIndex: 4,
+    safetySlackM: 0.001,
+    claimStatus: 'bounded-model',
+    admission: 'rejected',
+    contentDigest: `sha256:${'b'.repeat(64)}`,
+    keyId: 'mif-production-2026-01',
+  },
+  {
+    id: 'decision-unavailable',
+    schema: 'studio.merge-trigger.v1',
+    outcome: 'abort_bank_infeasible',
+    sampleIndex: 8,
+    safetySlackM: 0.0005,
+    claimStatus: 'bounded-model',
+    admission: 'rejected',
+    contentDigest: `sha256:${'c'.repeat(64)}`,
+    keyId: 'mif-production-2026-01',
+  },
+  {
+    id: 'decision-rejected',
+    schema: 'studio.merge-trigger.v1',
+    outcome: 'abort_unsafe',
+    sampleIndex: 9,
+    safetySlackM: -0.00001,
+    claimStatus: 'bounded-model',
+    admission: 'rejected',
+    contentDigest: `sha256:${'d'.repeat(64)}`,
+    keyId: 'mif-production-2026-01',
+  },
+];
 
 describe('MifStudioPanel', () => {
   it('renders the studio header', () => {
     render(<MifStudioPanel />);
     expect(screen.getByRole('heading', { name: 'SCPN-MIF-CORE — MIF Studio' })).toBeInTheDocument();
+  });
+
+  it('shows the Hub-owned trust boundary and an honest empty decision state', () => {
+    render(<MifStudioPanel />);
+    expect(screen.getByRole('heading', { name: 'Sealed streaming decisions' })).toBeInTheDocument();
+    expect(screen.getByText(/does not hold keys or verify its own feed/)).toBeInTheDocument();
+    expect(screen.getByText('No sealed streaming decisions supplied.')).toBeInTheDocument();
+  });
+
+  it('renders every Hub seal state without promoting the bounded decision claim', () => {
+    const hubSealStatuses: DecisionSealStatuses = {
+      'decision-verified': { state: 'verified' },
+      'decision-unsealed': { state: 'unsealed' },
+      'decision-unavailable': { state: 'keyring-unavailable' },
+      'decision-rejected': { state: 'rejected', verdict: 'forged' },
+    };
+    const { container } = render(
+      <MifStudioPanel
+        sealedStreamingDecisions={SEALED_DECISIONS}
+        hubSealStatuses={hubSealStatuses}
+      />,
+    );
+    const cards = container.querySelectorAll('.mif-studio__sealed-decision');
+
+    expect(cards).toHaveLength(4);
+    expect(cards[0]).toHaveAttribute('data-decision', 'fire');
+    expect(cards[0]).toHaveAttribute('data-seal', 'verified');
+    expect(cards[0]).toHaveTextContent('Seal verified by Hub');
+    expect(cards[0]).toHaveTextContent('bounded-model / admitted');
+    expect(cards[0]).toHaveTextContent('2.500e-4 m');
+    expect(cards[0]).toHaveTextContent(`sha256:${'a'.repeat(64)}`);
+    expect(cards[0]).toHaveTextContent('mif-production-2026-01');
+
+    expect(cards[1]).toHaveAttribute('data-seal', 'unsealed');
+    expect(cards[1]).toHaveTextContent('Unsealed — not verified');
+    expect(cards[2]).toHaveAttribute('data-seal', 'keyring-unavailable');
+    expect(cards[2]).toHaveTextContent('Seal not checked — Hub trust root unavailable');
+    expect(cards[3]).toHaveAttribute('data-seal', 'rejected');
+    expect(cards[3]).toHaveTextContent('Seal REJECTED (forged)');
+  });
+
+  it('fails closed when a sealed summary has no Hub adjudication', () => {
+    const { container } = render(
+      <MifStudioPanel sealedStreamingDecisions={SEALED_DECISIONS.slice(0, 1)} />,
+    );
+    const card = container.querySelector('.mif-studio__sealed-decision');
+
+    expect(card).toHaveAttribute('data-seal', 'keyring-unavailable');
+    expect(card).toHaveTextContent('Seal not checked — Hub trust root unavailable');
+    expect(card).not.toHaveTextContent('Seal verified by Hub');
   });
 
   it('lists every verb as a table row', () => {

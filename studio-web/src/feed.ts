@@ -32,7 +32,9 @@ import type {
   HardwareGateBadge,
   MifVerb,
   SafetyTier,
+  SealedStreamingDecision,
   SideEffect,
+  StreamingDecisionOutcome,
   TimingClass,
   TimingClaimUnit,
   TimingEvidenceBadge,
@@ -42,78 +44,154 @@ import type {
 import { MIF_BACKENDS, MIF_CLAIMS, MIF_TIMING_EVIDENCE, MIF_VERBS } from './domain.js';
 
 /** A verb as it appears on the wire (snake_case, from the Python feed). */
-interface RawVerb {
+export interface RawVerb {
+  /** Capability verb name. */
   readonly name: string;
+  /** Safety tier encoded by the producer. */
   readonly safety_tier: SafetyTier;
+  /** Side-effect class encoded by the producer. */
   readonly side_effect: SideEffect;
+  /** Scheduling class encoded by the producer. */
   readonly timing_class: TimingClass;
+  /** Optional execution deadline in microseconds. */
   readonly deadline_us?: number;
+  /** Whether the verb is MIF-domain-distinctive. */
   readonly domain_distinctive: boolean;
 }
 
 /** A formal certificate as it appears on the wire. */
-interface RawCertificate {
+export interface RawCertificate {
+  /** Machine checker identifier. */
   readonly checker: string;
+  /** Stable theorem or property identifier. */
   readonly theorem: string;
+  /** Whether a non-vacuity witness accompanies the proof. */
   readonly non_vacuous: boolean;
 }
 
 /** A claim as it appears on the wire (snake_case, from the Python feed). */
-interface RawClaim {
+export interface RawClaim {
+  /** Evidence envelope schema identifier. */
   readonly schema: string;
+  /** Scientific validation boundary. */
   readonly status: ClaimStatus;
+  /** Runtime admission decision. */
   readonly admission: AdmissionDecision;
+  /** Evidence production modality. */
   readonly kind: EvidenceKind;
+  /** Optional numeric parity classification. */
   readonly exactness?: Exactness;
+  /** Evidence execution substrate. */
   readonly substrate?: EvidenceSubstrate;
+  /** Product-safe local evidence label. */
   readonly evidence_badge?: EvidenceBadge;
+  /** Product-safe physical-evidence blocker. */
   readonly hardware_gate?: HardwareGateBadge;
+  /** Optional formal proof certificate. */
   readonly certificate?: RawCertificate;
+  /** Source-verification freshness. */
   readonly freshness?: Freshness;
 }
 
 /** A backend record as it appears on the wire. */
-interface RawBackend {
+export interface RawBackend {
+  /** Stable backend identifier. */
   readonly name: BackendName;
+  /** Highest established availability tier. */
   readonly status: BackendStatus;
 }
 
 /** One timing evidence class as it appears on the wire. */
-interface RawTimingEvidence {
+export interface RawTimingEvidence {
+  /** Stable evidence-class identifier. */
   readonly id: string;
+  /** User-facing evidence boundary badge. */
   readonly badge: TimingEvidenceBadge;
+  /** Passed or blocked evidence state. */
   readonly status: TimingEvidenceStatus;
+  /** Unit domain of the timing claim. */
   readonly claim_unit: TimingClaimUnit;
+  /** Whether wall-clock promotion is allowed. */
   readonly wall_clock_claim_allowed: boolean;
+  /** Concise evidence or blocker description. */
   readonly summary: string;
 }
 
-/** The studio feed document as it appears on the wire. */
-interface RawFeed {
-  readonly feed_schema: string;
-  readonly studio: string;
-  readonly studio_version: string;
-  readonly platform_sdk: string;
+/**
+ * One sealed streaming-decision summary on the wire.
+ *
+ * Seal adjudication is intentionally absent: the MIF feed is not a trust root and
+ * cannot declare its own signature verified. The Hub supplies adjudications to the
+ * panel through a separate prop after applying its trusted-keyring gate.
+ */
+export interface RawSealedStreamingDecision {
+  /** Stable decision identifier. */
+  readonly id: string;
+  /** Fixed merge-trigger wire schema. */
+  readonly schema: 'studio.merge-trigger.v1';
+  /** Causal decision emitted for the sample. */
+  readonly outcome: StreamingDecisionOutcome;
+  /** Zero-based sample index. */
+  readonly sample_index: number;
+  /** Signed kinematic safety slack in metres. */
+  readonly safety_slack_m: number;
+  /** Honest reduced-order claim boundary. */
+  readonly claim_status: 'bounded-model';
+  /** Runtime admission associated with the outcome. */
+  readonly admission: AdmissionDecision;
+  /** SHA-256 content digest of the signed unit. */
   readonly content_digest: string;
+  /** Signing-key identifier named by the envelope. */
+  readonly key_id: string;
+}
+
+/** The studio feed document as it appears on the wire. */
+export interface RawFeed {
+  /** Exact browser feed schema identifier. */
+  readonly feed_schema: string;
+  /** Stable producing Studio identifier. */
+  readonly studio: string;
+  /** Producer package version. */
+  readonly studio_version: string;
+  /** Compatible SCPN Studio platform SDK range. */
+  readonly platform_sdk: string;
+  /** Digest binding the emitted feed content. */
+  readonly content_digest: string;
+  /** Capability verbs in manifest order. */
   readonly verbs: readonly RawVerb[];
+  /** Honesty-graded evidence claims. */
   readonly claims: readonly RawClaim[];
+  /** Optional compute-backend availability records. */
   readonly backends?: readonly RawBackend[];
+  /** Optional split timing-evidence records. */
   readonly timing_evidence?: readonly RawTimingEvidence[];
+  /** Optional signed decision-envelope summaries. */
+  readonly sealed_streaming_decisions?: readonly RawSealedStreamingDecision[];
 }
 
 /** The narrowed feed the panel consumes. */
 export interface StudioFeed {
+  /** Producer package version. */
   readonly studioVersion: string;
+  /** Compatible SCPN Studio platform SDK range. */
   readonly platformSdk: string;
+  /** Digest binding the source feed content. */
   readonly contentDigest: string;
+  /** Narrowed capability verbs. */
   readonly verbs: readonly MifVerb[];
+  /** Narrowed honesty-graded claims. */
   readonly claims: readonly ClaimSummary[];
+  /** Narrowed compute-backend availability records. */
   readonly backends: readonly Backend[];
+  /** Narrowed timing-evidence records. */
   readonly timingEvidence: readonly TimingEvidenceSummary[];
+  /** Narrowed signed decision-envelope summaries. */
+  readonly sealedStreamingDecisions: readonly SealedStreamingDecision[];
 }
 
-/** Exact browser wire contract and compatible platform-SDK generation. */
+/** Exact browser wire-contract schema. */
 export const STUDIO_FEED_SCHEMA = 'studio.mif-feed.v1';
+/** Compatible SCPN Studio platform-SDK generation. */
 export const SUPPORTED_PLATFORM_SDK = '>=0.11.2,<0.12';
 
 /** The bundled fallback feed — the domain sample, used when the live feed is absent. */
@@ -125,6 +203,7 @@ export const FALLBACK_FEED: StudioFeed = {
   claims: MIF_CLAIMS,
   backends: MIF_BACKENDS,
   timingEvidence: MIF_TIMING_EVIDENCE,
+  sealedStreamingDecisions: [],
 };
 
 /** Default location the standalone remote fetches the live feed from. */
@@ -175,6 +254,13 @@ const TIMING_EVIDENCE_BADGES: readonly TimingEvidenceBadge[] = [
 ];
 const TIMING_EVIDENCE_STATUSES: readonly TimingEvidenceStatus[] = ['passed', 'blocked'];
 const TIMING_CLAIM_UNITS: readonly TimingClaimUnit[] = ['clock-cycles', 'nanoseconds'];
+const STREAMING_DECISION_OUTCOMES: readonly StreamingDecisionOutcome[] = [
+  'hold_no_lock',
+  'fire',
+  'abort_unsafe',
+  'abort_bank_infeasible',
+];
+const SHA256_DIGEST = /^sha256:[0-9a-f]{64}$/u;
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -259,6 +345,42 @@ function isRawTimingEvidence(value: unknown): value is RawTimingEvidence {
   );
 }
 
+function isRawSealedStreamingDecision(value: unknown): value is RawSealedStreamingDecision {
+  if (!isRecord(value)) {
+    return false;
+  }
+  const outcomeAndAdmissionAgree =
+    (value.outcome === 'fire' && value.admission === 'admitted') ||
+    (value.outcome !== 'fire' && value.admission === 'rejected');
+  return (
+    isNonEmptyString(value.id) &&
+    value.id.trim().length > 0 &&
+    value.schema === 'studio.merge-trigger.v1' &&
+    isOneOf(value.outcome, STREAMING_DECISION_OUTCOMES) &&
+    typeof value.sample_index === 'number' &&
+    Number.isSafeInteger(value.sample_index) &&
+    value.sample_index >= 0 &&
+    typeof value.safety_slack_m === 'number' &&
+    Number.isFinite(value.safety_slack_m) &&
+    value.claim_status === 'bounded-model' &&
+    isOneOf(value.admission, ADMISSION_DECISIONS) &&
+    outcomeAndAdmissionAgree &&
+    typeof value.content_digest === 'string' &&
+    SHA256_DIGEST.test(value.content_digest) &&
+    isNonEmptyString(value.key_id) &&
+    value.key_id.trim().length > 0
+  );
+}
+
+function isRawSealedStreamingDecisionCollection(
+  value: unknown,
+): value is readonly RawSealedStreamingDecision[] {
+  if (!Array.isArray(value) || !value.every(isRawSealedStreamingDecision)) {
+    return false;
+  }
+  return new Set(value.map((decision) => decision.id)).size === value.length;
+}
+
 function toVerb(raw: RawVerb): MifVerb {
   const base = {
     name: raw.name,
@@ -318,6 +440,20 @@ function toTimingEvidence(raw: RawTimingEvidence): TimingEvidenceSummary {
   };
 }
 
+function toSealedStreamingDecision(raw: RawSealedStreamingDecision): SealedStreamingDecision {
+  return {
+    id: raw.id,
+    schema: raw.schema,
+    outcome: raw.outcome,
+    sampleIndex: raw.sample_index,
+    safetySlackM: raw.safety_slack_m,
+    claimStatus: raw.claim_status,
+    admission: raw.admission,
+    contentDigest: raw.content_digest,
+    keyId: raw.key_id,
+  };
+}
+
 /** Fail-closed runtime type guard for the complete browser wire contract. */
 export function isRawFeed(value: unknown): value is RawFeed {
   if (!isRecord(value)) {
@@ -336,7 +472,9 @@ export function isRawFeed(value: unknown): value is RawFeed {
     (value.backends === undefined ||
       (Array.isArray(value.backends) && value.backends.every(isRawBackend))) &&
     (value.timing_evidence === undefined ||
-      (Array.isArray(value.timing_evidence) && value.timing_evidence.every(isRawTimingEvidence)))
+      (Array.isArray(value.timing_evidence) && value.timing_evidence.every(isRawTimingEvidence))) &&
+    (value.sealed_streaming_decisions === undefined ||
+      isRawSealedStreamingDecisionCollection(value.sealed_streaming_decisions))
   );
 }
 
@@ -357,6 +495,12 @@ export function narrowFeed(raw: RawFeed): StudioFeed {
       raw.timing_evidence === undefined
         ? MIF_TIMING_EVIDENCE
         : raw.timing_evidence.map(toTimingEvidence),
+    // The feed carries envelope summaries, never trusted seal adjudications. The Hub
+    // injects those separately when composing the panel.
+    sealedStreamingDecisions:
+      raw.sealed_streaming_decisions === undefined
+        ? []
+        : raw.sealed_streaming_decisions.map(toSealedStreamingDecision),
   };
 }
 

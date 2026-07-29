@@ -48,6 +48,7 @@
   "content_digest": "fallback",
   "feed_schema": "studio.mif-feed.v1",
   "platform_sdk": ">=0.11.2,<0.12",
+  "sealed_streaming_decisions": [],
   "studio": "scpn-mif-core",
   "studio_version": "0.1.1",
   "timing_evidence": [

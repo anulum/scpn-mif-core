@@ -8,7 +8,15 @@
 
 import type { ReactElement } from 'react';
 
-import type { Backend, ClaimSummary, MifVerb, TimingEvidenceSummary } from './domain.js';
+import type {
+  Backend,
+  ClaimSummary,
+  DecisionSealStatus,
+  DecisionSealStatuses,
+  MifVerb,
+  SealedStreamingDecision,
+  TimingEvidenceSummary,
+} from './domain.js';
 import {
   claimRendersAsValidated,
   MIF_BACKENDS,
@@ -16,14 +24,23 @@ import {
   MIF_TIMING_EVIDENCE,
   MIF_VERBS,
   requiresLiveHardwareGate,
+  sealStatusForDecision,
 } from './domain.js';
 
 /** The verbs, claims, and backends the panel renders — from the live feed, or sampled. */
 export interface MifStudioPanelProps {
+  /** Verbs advertised by the MIF capability surface. */
   readonly verbs?: readonly MifVerb[];
+  /** Honesty-graded evidence claims to render. */
   readonly claims?: readonly ClaimSummary[];
+  /** Compute backends and their actual availability tiers. */
   readonly backends?: readonly Backend[];
+  /** Distinct formal-cycle and hardware timing evidence classes. */
   readonly timingEvidence?: readonly TimingEvidenceSummary[];
+  /** Signed-envelope summaries supplied by the MIF feed. */
+  readonly sealedStreamingDecisions?: readonly SealedStreamingDecision[];
+  /** Trusted seal results supplied by the composing Hub, never by the MIF feed. */
+  readonly hubSealStatuses?: DecisionSealStatuses;
 }
 
 /**
@@ -40,7 +57,9 @@ export interface MifStudioPanelProps {
  * boundary badges). The same honesty grading the Python vertical emits is
  * shown here as UI: a reduced-order merge-trigger decision shows as bounded-model, and
  * a reference-validated claim that is only traceable-unchecked is floored to its
- * boundary, never validated.
+ * boundary, never validated. Sealed streaming-decision summaries are rendered with
+ * their envelope digest and key id, but only a separate Hub-owned seal adjudication
+ * can label one verified. A missing adjudication is visibly fail-closed.
  *
  * The data comes from the live studio feed (see ``feed.ts``); the bundled domain sample
  * is the default so the remote also renders standalone.
@@ -50,6 +69,8 @@ export default function MifStudioPanel({
   claims = MIF_CLAIMS,
   backends = MIF_BACKENDS,
   timingEvidence = MIF_TIMING_EVIDENCE,
+  sealedStreamingDecisions = [],
+  hubSealStatuses = {},
 }: MifStudioPanelProps = {}): ReactElement {
   return (
     <section className="mif-studio">
@@ -126,6 +147,29 @@ export default function MifStudioPanel({
         </table>
       </div>
 
+      <div className="mif-studio__sealed-decisions">
+        <h3>Sealed streaming decisions</h3>
+        <p className="mif-studio__seal-boundary">
+          Signature adjudication is supplied by the Studio Hub trust root; this MIF panel does not
+          hold keys or verify its own feed.
+        </p>
+        {sealedStreamingDecisions.length === 0 ? (
+          <p className="mif-studio__sealed-decisions-empty">
+            No sealed streaming decisions supplied.
+          </p>
+        ) : (
+          <ul>
+            {sealedStreamingDecisions.map((decision) => (
+              <SealedDecisionCard
+                key={decision.id}
+                decision={decision}
+                sealStatus={sealStatusForDecision(hubSealStatuses, decision.id)}
+              />
+            ))}
+          </ul>
+        )}
+      </div>
+
       <div className="mif-studio__claims">
         <h3>Claims</h3>
         <ul>
@@ -187,4 +231,66 @@ export default function MifStudioPanel({
       </div>
     </section>
   );
+}
+
+function SealedDecisionCard({
+  decision,
+  sealStatus,
+}: {
+  decision: SealedStreamingDecision;
+  sealStatus: DecisionSealStatus;
+}): ReactElement {
+  return (
+    <li
+      className={`mif-studio__sealed-decision mif-studio__sealed-decision--${sealStatus.state}`}
+      data-decision={decision.outcome}
+      data-seal={sealStatus.state}
+    >
+      <h4>{decision.outcome}</h4>
+      <p className="mif-studio__decision-seal" data-seal-status>
+        {sealStatusLabel(sealStatus)}
+      </p>
+      <dl>
+        <div>
+          <dt>Sample</dt>
+          <dd>{decision.sampleIndex}</dd>
+        </div>
+        <div>
+          <dt>Safety slack</dt>
+          <dd>{decision.safetySlackM.toExponential(3)} m</dd>
+        </div>
+        <div>
+          <dt>Claim boundary</dt>
+          <dd>
+            {decision.claimStatus} / {decision.admission}
+          </dd>
+        </div>
+        <div>
+          <dt>Evidence schema</dt>
+          <dd>{decision.schema}</dd>
+        </div>
+        <div>
+          <dt>Content digest</dt>
+          <dd>{decision.contentDigest}</dd>
+        </div>
+        <div>
+          <dt>Key id</dt>
+          <dd>{decision.keyId}</dd>
+        </div>
+      </dl>
+    </li>
+  );
+}
+
+function sealStatusLabel(status: DecisionSealStatus): string {
+  switch (status.state) {
+    case 'verified':
+      return 'Seal verified by Hub';
+    case 'unsealed':
+      return 'Unsealed — not verified';
+    case 'keyring-unavailable':
+      return 'Seal not checked — Hub trust root unavailable';
+    case 'rejected':
+      return `Seal REJECTED (${status.verdict})`;
+  }
 }

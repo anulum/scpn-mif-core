@@ -42,32 +42,40 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: julia-actions/setup-julia@fa02766e078afaaf09b14210362cee14137e6a32  # v3.0.2
         with:
           version: "1.11"
       - name: Run Julia reference tests
         run: julia --project=julia/SCPNMIFCore -e 'using Pkg; Pkg.instantiate(); Pkg.test()'
+      - name: Build strict Julia API documentation
+        run: julia --project=julia/SCPNMIFCore/docs -e 'using Pkg; Pkg.instantiate(); include("julia/SCPNMIFCore/docs/make.jl")'
 
   go:
     name: Advisory Go parity
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e  # v7.0.0
         with:
           go-version-file: go.mod
           cache: false
       - name: Run Go transport-parity tests
         run: go test ./...
+      - name: Verify and render native Go API documentation
+        run: |
+          go run ./go/cmd/doccheck ./go/...
+          while IFS= read -r package; do
+            go doc -all "$package" >/dev/null
+          done < <(go list ./go/...)
 
   mojo:
     name: Advisory Mojo parity status
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - name: Detect a shipped Mojo surface
         id: mojo-surface
         run: |

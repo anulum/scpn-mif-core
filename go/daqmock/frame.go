@@ -13,12 +13,13 @@ import (
 	"math"
 )
 
-// Frame contract constants.
+// Magic is the fixed eight-byte prefix for every MIF-018 frame.
 var (
 	Magic = [8]byte{'M', 'I', 'F', 'D', 'A', 'Q', '1', 0}
 )
 
 const (
+	// FrameVersion identifies the byte-level MIF-018 frame schema.
 	FrameVersion  uint16 = 1
 	headerLen            = 40
 	maxValueCount        = 1<<16 - 1
@@ -46,20 +47,30 @@ const (
 
 // DescriptorProfile describes a vendor-style frame layout.
 type DescriptorProfile struct {
-	ProfileID      ProfileID
+	// ProfileID selects the known diagnostic channel layout.
+	ProfileID ProfileID
+	// SamplePeriodNS is the nominal interval between samples in nanoseconds.
 	SamplePeriodNS uint64
-	Channels       []string
-	Units          []string
-	AERAddresses   []uint
+	// Channels lists stable diagnostic signal names in wire order.
+	Channels []string
+	// Units lists the unit for each channel at the matching index.
+	Units []string
+	// AERAddresses lists the event-router address for each channel.
+	AERAddresses []uint
 }
 
 // RawFrame is one byte-stable DAQ frame.
 type RawFrame struct {
-	Mode     DeliveryMode
-	Profile  DescriptorProfile
+	// Mode identifies the mock transport represented by the frame.
+	Mode DeliveryMode
+	// Profile is the descriptor used to validate and interpret Values.
+	Profile DescriptorProfile
+	// Sequence is the strictly increasing replay packet number.
 	Sequence uint64
-	TNS      uint64
-	Values   []float64
+	// TNS is the monotone acquisition timestamp in nanoseconds.
+	TNS uint64
+	// Values contains one finite sample per profile channel.
+	Values []float64
 }
 
 // HelionProfile returns the Helion-style descriptor.

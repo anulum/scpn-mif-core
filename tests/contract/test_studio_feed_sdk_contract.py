@@ -49,6 +49,9 @@ def test_browser_feed_matches_installed_platform_sdk_generation() -> None:
     assert {claim["schema"] for claim in feed["claims"]} == set(manifest["evidence_types"])
     assert FEED_SCHEMA in release_notes
     assert PLATFORM_SDK_RANGE in release_notes
+    assert feed["sealed_streaming_decisions"] == []
+    assert "hubSealStatuses" in release_notes
+    assert "no fabricated decision envelope" in release_notes
 
     rendered = [
         render_claim(
