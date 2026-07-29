@@ -19,9 +19,10 @@ Gates (in order):
  7. `bandit` security lint.
  8. `cargo fmt`, warning-denied Clippy, and strict `cargo doc` (if Rust available).
  9. `cargo test --workspace` (if Rust available).
-10. `mkdocs build --strict` (if MkDocs available).
-11. SymbiYosys manifest/suites and Lean build (with `--formal`).
-12. Authorship-line presence in the last commit message.
+10. Go documentation coverage and native `go doc` rendering (if Go available).
+11. `mkdocs build --strict` (if MkDocs available).
+12. SymbiYosys manifest/suites and Lean build (with `--formal`).
+13. Authorship-line presence in the last commit message.
 
 Usage:
     python tools/preflight.py            # full
@@ -147,6 +148,39 @@ def gate_cargo_test() -> GateResult:
     return _run("cargo-test", ["cargo", "test", "--workspace", "--all-features"], cwd=REPO / "scpn-mif-rs")
 
 
+def gate_go_doc() -> GateResult:
+    import time
+
+    t0 = time.monotonic()
+    outputs: list[str] = []
+    commands = [
+        ["go", "run", "./go/cmd/doccheck", "./go/..."],
+        ["go", "list", "./go/..."],
+    ]
+    packages: list[str] = []
+    for cmd in commands:
+        proc = subprocess.run(cmd, check=False, capture_output=True, text=True, cwd=REPO)
+        outputs.append(proc.stdout + proc.stderr)
+        if proc.returncode != 0:
+            return GateResult("go-doc", False, time.monotonic() - t0, "".join(outputs))
+        if cmd[1] == "list":
+            packages = [line for line in proc.stdout.splitlines() if line]
+    if not packages:
+        return GateResult("go-doc", False, time.monotonic() - t0, "go list returned no packages\n")
+    for package in packages:
+        proc = subprocess.run(
+            ["go", "doc", "-all", package],
+            check=False,
+            capture_output=True,
+            text=True,
+            cwd=REPO,
+        )
+        outputs.append(proc.stderr)
+        if proc.returncode != 0:
+            return GateResult("go-doc", False, time.monotonic() - t0, "".join(outputs))
+    return GateResult("go-doc", True, time.monotonic() - t0, "".join(outputs))
+
+
 def gate_mkdocs_build() -> GateResult:
     return _run("mkdocs", ["mkdocs", "build", "--strict"])
 
@@ -210,6 +244,9 @@ def main(argv: list[str] | None = None) -> int:
         gates.append(gate_cargo_doc())
         if not args.no_tests:
             gates.append(gate_cargo_test())
+
+    if shutil.which("go") is not None:
+        gates.append(gate_go_doc())
 
     if shutil.which("mkdocs") is not None:
         gates.append(gate_mkdocs_build())

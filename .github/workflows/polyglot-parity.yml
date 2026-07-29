@@ -61,6 +61,12 @@ jobs:
           cache: false
       - name: Run Go transport-parity tests
         run: go test ./...
+      - name: Verify and render native Go API documentation
+        run: |
+          go run ./go/cmd/doccheck ./go/...
+          while IFS= read -r package; do
+            go doc -all "$package" >/dev/null
+          done < <(go list ./go/...)
 
   mojo:
     name: Advisory Mojo parity status

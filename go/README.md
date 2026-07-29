@@ -29,4 +29,18 @@ go build ./...
 go test ./...
 ```
 
+## API documentation
+
+From the repository root, enforce package and exported-declaration comments and
+render every package through the native Go documentation tool:
+
+```bash
+go run ./go/cmd/doccheck ./go/...
+for package in $(go list ./go/...); do go doc -all "$package" >/dev/null; done
+```
+
+The advisory polyglot workflow and the local preflight run both checks. The
+generated output is intentionally ephemeral; the documented Go source remains
+the canonical API contract.
+
 Implementation lands in P4 (CON-C.6 multi-shot campaign) and P5 (telemetry).
