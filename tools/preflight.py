@@ -20,9 +20,10 @@ Gates (in order):
  8. `cargo fmt`, warning-denied Clippy, and strict `cargo doc` (if Rust available).
  9. `cargo test --workspace` (if Rust available).
 10. Go documentation coverage and native `go doc` rendering (if Go available).
-11. `mkdocs build --strict` (if MkDocs available).
-12. SymbiYosys manifest/suites and Lean build (with `--formal`).
-13. Authorship-line presence in the last commit message.
+11. Strict Julia `Documenter.jl` API build (if Julia is available).
+12. `mkdocs build --strict` (if MkDocs available).
+13. SymbiYosys manifest/suites and Lean build (with `--formal`).
+14. Authorship-line presence in the last commit message.
 
 Usage:
     python tools/preflight.py            # full
@@ -181,6 +182,20 @@ def gate_go_doc() -> GateResult:
     return GateResult("go-doc", True, time.monotonic() - t0, "".join(outputs))
 
 
+def gate_julia_doc() -> GateResult:
+    package = REPO / "julia" / "SCPNMIFCore"
+    return _run(
+        "julia-doc",
+        [
+            "julia",
+            f"--project={package / 'docs'}",
+            "-e",
+            'using Pkg; Pkg.instantiate(); include("docs/make.jl")',
+        ],
+        cwd=package,
+    )
+
+
 def gate_mkdocs_build() -> GateResult:
     return _run("mkdocs", ["mkdocs", "build", "--strict"])
 
@@ -247,6 +262,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if shutil.which("go") is not None:
         gates.append(gate_go_doc())
+
+    if shutil.which("julia") is not None:
+        gates.append(gate_julia_doc())
 
     if shutil.which("mkdocs") is not None:
         gates.append(gate_mkdocs_build())

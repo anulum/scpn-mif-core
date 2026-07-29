@@ -28,6 +28,9 @@
 - Added a zero-dependency Go documentation checker, package and exported API
   comments, native `go doc -all` rendering, and matching advisory-CI/local
   preflight gates.
+- Added a strict Documenter.jl site for the exported Julia API, with doctests,
+  broken-reference and missing-exported-doc failures wired into advisory CI and
+  local preflight.
 - Bound the Studio browser feed explicitly to `studio.mif-feed.v1` and
   `scpn-studio-platform>=0.11.2,<0.12`, added complete fail-closed nested runtime
   validation, and smoke-tested every committed feed claim against the installed
