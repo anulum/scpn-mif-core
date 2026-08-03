@@ -71,7 +71,7 @@ ecosystem = [
 ]
 dev = [
     "setuptools==83.0.0",
-    "wheel==0.46.3",
+    "wheel==0.47.0",
     "ruff==0.16.0",
     "mypy==2.3.0",
     "bandit==1.9.4",
