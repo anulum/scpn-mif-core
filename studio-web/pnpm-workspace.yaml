@@ -3,15 +3,17 @@
 # Force patched transitive dependencies across the Studio tooling tree. pnpm 11
 # reads overrides here, not in package.json.
 overrides:
-  # Security floor for the TLS-bypass/WebSocket-DoS advisories (<7.28.0).
-  undici: '>=7.28.0'
-  # jsdom 29.1.1 requires undici 7.x internals directly
+  # Security floor for the current request-smuggling, cache and CRLF advisories.
+  undici: '>=7.29.0'
+  # jsdom requires undici 7.x internals directly
   # (lib/handler/wrap-handler.js, removed in undici 8); keep its subtree on
   # the secured 7.x line instead of letting the blanket override force 8.x.
-  jsdom>undici: '>=7.28.0 <8.0.0'
+  jsdom>undici: '>=7.29.0 <8.0.0'
   # GHSA-xcpc-8h2w-3j85: reject oversized declared ZIP entries.
   adm-zip: 0.6.0
-  # GHSA-mh99-v99m-4gvg: bound brace expansion memory use.
-  brace-expansion: 5.0.8
-  # GHSA-r28c-9q8g-f849: prevent previous-source-map path traversal.
-  postcss: 8.5.18
+  # GHSA-rgw5-rvv9-x895: bound brace expansion memory use.
+  brace-expansion: 5.0.9
+  # GHSA-fxqj-rqcc-2cmp: prevent sourceMappingURL file disclosure.
+  postcss: 8.5.23
+  # GHSA-2v37-7h3g-55p8: prevent zero-size custom-generator loops.
+  nanoid: 3.3.18
