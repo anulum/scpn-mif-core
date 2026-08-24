@@ -404,9 +404,9 @@ iniconfig==2.3.0 \
     --hash=sha256:c76315c77db068650d49c5b56314774a7804df16fee4402c1f19d6d15d8c4730 \
     --hash=sha256:f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12
     # via pytest
-jax==0.11.0 \
-    --hash=sha256:a2feb7cfa48bb35d36b8ecec16a4ec24044dec01935f779b28b017213697b195 \
-    --hash=sha256:b31ed66c4321d5c9e48b861f51a72ed5f7960c93514296202d2041cbb9ac45bf
+jax==0.11.1 \
+    --hash=sha256:43e0d45b1dac002eca04c2de73298395225dd0d4651e3f573a540eaa18abfd80 \
+    --hash=sha256:72ed60bf85a0b53d0f5b5cd61e37a8b25f369f6f88481feb98ab489894861a82
     # via scpn-mif-core (pyproject.toml)
 jaxlib==0.11.0 \
     --hash=sha256:005ae3a663193d3a89eafadc073880c67d6b829e0ad989690275d02b5adc810a \
