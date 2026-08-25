@@ -79,6 +79,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def _build_parser() -> argparse.ArgumentParser:
+    from scpn_mif_core.full_chain.cli import run_full_chain_command
+
     parser = argparse.ArgumentParser(prog="scpn-mif", description="SCPN-MIF-CORE command-line interface.")
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -117,7 +119,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     full_chain.add_argument("--verilator", type=Path, default=None, help="explicit Verilator executable")
     full_chain.add_argument("--json", action="store_true", help="print the emitted manifest as JSON")
-    full_chain.set_defaults(handler=_cmd_full_chain)
+    full_chain.set_defaults(handler=run_full_chain_command)
 
     return parser
 
@@ -183,25 +185,6 @@ def _cmd_demo(args: argparse.Namespace) -> int:
     else:
         print("Built-in two-plasmoid FRC merge-trigger scenario:\n")
         print(_format_report(report))
-    return 0
-
-
-def _cmd_full_chain(args: argparse.Namespace) -> int:
-    """Run the source-bound causal chain and report its evidence directory."""
-    from scpn_mif_core.full_chain import run_full_chain_demo
-
-    result = run_full_chain_demo(
-        args.output,
-        code_root=args.code_root,
-        verilator=args.verilator,
-    )
-    if args.json:
-        print(json.dumps(result.manifest, indent=2, sort_keys=True))
-    else:
-        print("Fusion-to-Fire full chain passed:")
-        print("  nominal: one RTL trigger, Fusion actuator invoked")
-        print("  safety_veto: zero RTL triggers, Fusion actuator not invoked")
-        print(f"  evidence: {result.output_dir}")
     return 0
 
 

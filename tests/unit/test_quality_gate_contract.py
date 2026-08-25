@@ -23,7 +23,7 @@ def test_required_workflows_expose_stable_aggregate_contexts() -> None:
     formal = _read(".github/workflows/formal.yml")
 
     assert "name: Required core gate" in ci
-    assert "needs: [python, rust, sync-tags, secrets, studio-web]" in ci
+    assert "needs: [python, full-chain, rust, sync-tags, secrets, studio-web]" in ci
     assert "name: Required formal gate" in formal
     assert "needs: [symbiyosys, lean]" in formal
     assert 'build-args: "+SCPNMIF:olean"' in formal
