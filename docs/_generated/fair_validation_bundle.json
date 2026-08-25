@@ -6,8 +6,8 @@
       "kind": "project-documentation",
       "media_type": "text/markdown",
       "path": "README.md",
-      "sha256": "sha256:70993d765d2afebd968156ba16a991b49c079dffd25f021d3bdfcab5fe86d69a",
-      "size_bytes": 25369
+      "sha256": "sha256:64c7bd5169f83ce6ab563c9bdc742973f1bdcf5a314f0ae594d80ef3eea1b953",
+      "size_bytes": 26160
     },
     {
       "kind": "license",
@@ -41,8 +41,8 @@
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "pyproject.toml",
-      "sha256": "sha256:ad45250855dde0e9043d8a928619acff79d959a03f00c9353f44ba3cf106ebb1",
-      "size_bytes": 10946
+      "sha256": "sha256:dece09dfeceda7a6219211c467a624254b5af085ffa61029f572139aa5cb403d",
+      "size_bytes": 11849
     },
     {
       "kind": "supporting-artifact",
@@ -69,8 +69,8 @@
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/capability_manifest.json",
-      "sha256": "sha256:1d3d7b8a02d50fff843d19145d4f853170e926b5abc2dd59eb0fa1f01268ae6b",
-      "size_bytes": 34943
+      "sha256": "sha256:c249df485c165a940dea3623b86bad6693470df57b22e4d1e76b9773bb3ce0e5",
+      "size_bytes": 35207
     },
     {
       "kind": "generated-dashboard",

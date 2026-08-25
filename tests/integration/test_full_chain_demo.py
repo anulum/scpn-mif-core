@@ -30,6 +30,8 @@ from scpn_mif_core.full_chain import (
 from scpn_mif_core.full_chain.rtl import build_trigger_fabric
 from scpn_mif_core.merge_trigger import evaluate_merge_trigger
 
+pytestmark = pytest.mark.full_chain
+
 
 @pytest.fixture(scope="module")
 def evidence(tmp_path_factory: pytest.TempPathFactory) -> Path:

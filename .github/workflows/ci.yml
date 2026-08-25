@@ -51,7 +51,7 @@ jobs:
       - name: bandit
         run: bandit -r src/scpn_mif_core/ -c pyproject.toml -q
       - name: pytest (full tree under the 100% coverage gate)
-        run: pytest tests/ --cov=scpn_mif_core --cov=tools --cov-report=xml --cov-report=term
+        run: pytest tests/ -m "not full_chain" --cov=scpn_mif_core --cov=tools --cov-report=xml --cov-report=term
       - name: Install Verilator for cosimulation
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends verilator
       - name: cosim (bit-true Python vs Verilator, 100% harness coverage gate)
@@ -74,6 +74,61 @@ jobs:
           fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  full-chain:
+    name: Fusion-to-Fire (siblings + Rust + Verilator)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: ecosystem/SCPN-MIF-CORE
+    steps:
+      - name: Checkout MIF
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          path: ecosystem/SCPN-MIF-CORE
+      - name: Checkout CONTROL integration anchor
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          repository: anulum/scpn-control
+          ref: 856adaf10f247bc77943f0c034fdc3a0e997eaa6
+          path: ecosystem/SCPN-CONTROL
+      - name: Checkout Fusion integration anchor
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          repository: anulum/scpn-fusion-core
+          ref: c22ebd7a4c487abcc98e4767a984404163a5e474
+          path: ecosystem/SCPN-FUSION-CORE
+      - name: Checkout SC-NeuroCore integration anchor
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          repository: anulum/sc-neurocore
+          ref: e633d1c15f8429d0538b7ab778dc7f83194d3f1d
+          path: ecosystem/SC-NEUROCORE
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ecosystem/SCPN-MIF-CORE/requirements/full-chain-ci.txt
+      - name: Install hash-locked cross-repository runtime
+        run: |
+          python -m pip install --require-hashes -r requirements/full-chain-ci.txt
+          python -m pip install --no-deps --no-build-isolation -e .
+          python -m pip install --no-deps --no-build-isolation -e ../SCPN-CONTROL
+          python -m pip install --no-deps --no-build-isolation -e ../SCPN-FUSION-CORE
+          python -m pip install --no-deps --no-build-isolation -e ../SC-NEUROCORE
+          python -m pip check
+      - name: Install Verilator
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends verilator
+      - name: Run the real causal chain
+        run: >
+          pytest tests/unit/full_chain/test_contracts.py
+          tests/integration/test_full_chain_demo.py
+          -o "addopts=-ra --strict-markers --strict-config -p no:nengo -p no:randomly"
+          --cov=src/scpn_mif_core/full_chain
+          --cov-config=coverage.full-chain.toml
+          --cov-report=term-missing
+          --cov-fail-under=95
 
   rust:
     name: Rust (fmt + clippy + docs + test)
@@ -157,19 +212,21 @@ jobs:
   required-core:
     name: Required core gate
     if: always()
-    needs: [python, rust, sync-tags, secrets, studio-web]
+    needs: [python, full-chain, rust, sync-tags, secrets, studio-web]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
       - name: Require every core job
         env:
           PYTHON_RESULT: ${{ needs.python.result }}
+          FULL_CHAIN_RESULT: ${{ needs.full-chain.result }}
           RUST_RESULT: ${{ needs.rust.result }}
           SYNC_TAGS_RESULT: ${{ needs.sync-tags.result }}
           SECRETS_RESULT: ${{ needs.secrets.result }}
           STUDIO_RESULT: ${{ needs.studio-web.result }}
         run: |
           test "$PYTHON_RESULT" = success
+          test "$FULL_CHAIN_RESULT" = success
           test "$RUST_RESULT" = success
           test "$SYNC_TAGS_RESULT" = success
           test "$SECRETS_RESULT" = success

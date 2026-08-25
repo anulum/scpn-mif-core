@@ -1,0 +1,24 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# SCPN-MIF-CORE — pinned dependencies for the Fusion-to-Fire integration gate.
+
+click==8.4.2
+defusedxml==0.7.1
+jax==0.7.1
+jaxlib==0.7.1
+matplotlib==3.11.1
+numpy==1.26.4
+osqp==1.1.3
+pandas==3.0.5
+pydantic==2.13.4
+pytest==9.1.1
+pytest-cov==7.1.0
+requests==2.34.2
+sc-neurocore-engine==3.16.0
+scipy==1.17.1
+setuptools==84.0.0
+wheel==0.47.0

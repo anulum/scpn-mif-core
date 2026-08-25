@@ -26,6 +26,7 @@
       "docs/api/formal/pulsed_shot.md",
       "docs/api/fpga/adc_to_spike_quantiser.md",
       "docs/api/fpga/timing_evidence_package.md",
+      "docs/api/full_chain.md",
       "docs/api/index.md",
       "docs/api/interop/imas_mapping.md",
       "docs/api/interop/trigger_io.md",
@@ -51,6 +52,7 @@
       "docs/architecture/system_map.md",
       "docs/assets/README.md",
       "docs/generated/compatibility_matrix.md",
+      "docs/guides/fusion_to_fire_full_chain.md",
       "docs/guides/getting_started.md",
       "docs/guides/quality_gates.md",
       "docs/index.md",
@@ -542,7 +544,7 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 60,
+    "capability_documentation_pages": 62,
     "github_workflows": 18,
     "go_parity_sources": 4,
     "hdl_rtl_modules": 4,
@@ -550,11 +552,11 @@
     "lean_proof_modules": 8,
     "optional_extras": 7,
     "public_api_exports": 191,
-    "public_documentation_pages": 60,
+    "public_documentation_pages": 62,
     "python_capability_classes": 93,
     "python_capability_source_modules": 26,
     "rust_workspace_crates": 10,
-    "test_files": 116
+    "test_files": 118
   },
   "documentation": {
     "public_pages": [
@@ -582,6 +584,7 @@
       "docs/api/formal/pulsed_shot.md",
       "docs/api/fpga/adc_to_spike_quantiser.md",
       "docs/api/fpga/timing_evidence_package.md",
+      "docs/api/full_chain.md",
       "docs/api/index.md",
       "docs/api/interop/imas_mapping.md",
       "docs/api/interop/trigger_io.md",
@@ -607,6 +610,7 @@
       "docs/architecture/system_map.md",
       "docs/assets/README.md",
       "docs/generated/compatibility_matrix.md",
+      "docs/guides/fusion_to_fire_full_chain.md",
       "docs/guides/getting_started.md",
       "docs/guides/quality_gates.md",
       "docs/index.md",
@@ -891,6 +895,7 @@
       "tests/contract/test_studio_feed_sdk_contract.py",
       "tests/integration/__init__.py",
       "tests/integration/test_examples.py",
+      "tests/integration/test_full_chain_demo.py",
       "tests/integration/test_fusion_coupled_merge_trigger.py",
       "tests/integration/test_merge_preemption_campaign.py",
       "tests/physics_parity/__init__.py",
@@ -920,6 +925,7 @@
       "tests/unit/fpga/test_timing_evidence_package.py",
       "tests/unit/fpga/test_trigger_fabric_reference.py",
       "tests/unit/fpga/test_trigger_latency_budget.py",
+      "tests/unit/full_chain/test_contracts.py",
       "tests/unit/interop/__init__.py",
       "tests/unit/interop/test_bridge.py",
       "tests/unit/interop/test_imas_mapping.py",

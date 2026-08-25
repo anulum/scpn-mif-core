@@ -244,6 +244,7 @@ addopts = [
 ]
 markers = [
     "slow: marks tests as slow (deselect with -m 'not slow')",
+    "full_chain: requires the pinned Fusion, CONTROL and SC-NeuroCore source checkouts plus Verilator",
     "formal: requires SymbiYosys, nuXmv, or Kind 2",
     "vivado: requires Vivado 2024.2 (MIF_VIVADO_CI=1)",
     "lean: requires Lean 4 lake (MIF_LEAN_CI=1)",
@@ -275,6 +276,9 @@ omit = [
     "*/bench/*",
     "*/examples/*",
     "*/campaigns/*",
+    # The source-bound Fusion-to-Fire modules are exercised in the dedicated
+    # cross-repository CI job with real sibling checkouts and Verilator.
+    "*/scpn_mif_core/full_chain/*",
     # Operational / environment entry-point scripts: their bodies are subprocess,
     # filesystem, and git orchestration (a CI/preflight harness, a workspace-mount
     # check, a secret scanner, a sync-tag check). Their logic is the orchestration
