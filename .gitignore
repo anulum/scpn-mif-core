@@ -103,6 +103,7 @@ hdl/formal/build/
 hdl/formal/local/
 *.sby.work/
 *.smt2.tmp
+.z3-trace
 
 # ── Documentation build ────────────────────────────────────────────────
 site/

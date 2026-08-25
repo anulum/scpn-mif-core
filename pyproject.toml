@@ -225,7 +225,11 @@ addopts = [
     # the error filter promotes to a collection failure). No-op when absent (CI).
     "-p",
     "no:nengo",
-    "--cov=scpn_mif_core",
+    # Point coverage at the source tree instead of importing the package merely
+    # to resolve its location. The import-style target can load NumPy before
+    # pytest collection and then reload it under instrumentation, which the
+    # warning-as-error policy correctly rejects.
+    "--cov=src/scpn_mif_core",
     "--cov=tools",
     "--cov-report=term-missing",
     "--cov-report=xml",

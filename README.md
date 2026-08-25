@@ -144,6 +144,22 @@ For an interactive version of the same first decision, open
 [`notebooks/merge_trigger_quickstart.ipynb`](notebooks/merge_trigger_quickstart.ipynb)
 locally, in Colab, or through Binder.
 
+### Run the cross-repository Fusion-to-Fire chain
+
+With the sibling Fusion, Control and SC-NeuroCore checkouts installed, one
+command now executes the causal path through CONTROL's stochastic Petri net,
+the real Verilator trigger fabric and the Fusion compression actuator:
+
+```bash
+scpn-mif full-chain --output /tmp/fusion-to-fire
+```
+
+It must produce one nominal trigger and suppress an injected unsafe shot before
+actuation. The output includes exact repository provenance, float-free JSON,
+source/artifact SHA-256 digests and a pickle-free Fusion trajectory. See the
+[Fusion-to-Fire guide](docs/guides/fusion_to_fire_full_chain.md) for the exact
+environment, evidence contract and hardware-claim boundary.
+
 ## How-to guides
 
 ### Install the Rust-accelerated path
@@ -164,6 +180,7 @@ Installing the package provides the `scpn-mif` command:
 scpn-mif version                      # installed package version
 scpn-mif ecosystem [--json]           # sibling-repository compatibility report
 scpn-mif run scenario.json [--json]   # run an FRC merge-trigger decision
+scpn-mif full-chain --output PATH      # causal ecosystem + real Verilator demo
 ```
 
 The `run` scenario file mirrors `MergeTriggerScenario`: each nested object maps

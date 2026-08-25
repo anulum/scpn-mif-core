@@ -21,6 +21,9 @@ Subcommands
     Run a built-in two-plasmoid merge-trigger scenario with no input file, so a
     fresh ``pip install`` yields a useful result immediately. ``--emit-scenario``
     prints the scenario as JSON (ready to save and feed to ``run``).
+``full-chain``
+    Run the source-bound Fusion-to-Fire demonstration through CONTROL,
+    SC-NeuroCore and real Verilator RTL, then emit a digest-bound evidence bundle.
 
 The ``run`` scenario file mirrors :class:`scpn_mif_core.merge_trigger.MergeTriggerScenario`:
 each nested object maps to the matching spec dataclass. ``recovery`` and
@@ -70,7 +73,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         return int(args.handler(args))
-    except (OSError, ValueError, json.JSONDecodeError) as error:
+    except (ImportError, OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:
         print(f"scpn-mif: error: {error}", file=sys.stderr)
         return 2
 
@@ -100,6 +103,21 @@ def _build_parser() -> argparse.ArgumentParser:
         help="print the built-in scenario as JSON (save it and feed it to `run`) instead of running it",
     )
     demo.set_defaults(handler=_cmd_demo)
+
+    full_chain = sub.add_parser(
+        "full-chain",
+        help="run the causal Fusion -> CONTROL -> Verilator -> Fusion demonstration",
+    )
+    full_chain.add_argument("--output", type=Path, required=True, help="new or empty evidence output directory")
+    full_chain.add_argument(
+        "--code-root",
+        type=Path,
+        default=None,
+        help="directory holding SCPN-MIF-CORE, SCPN-CONTROL, SCPN-FUSION-CORE and SC-NEUROCORE",
+    )
+    full_chain.add_argument("--verilator", type=Path, default=None, help="explicit Verilator executable")
+    full_chain.add_argument("--json", action="store_true", help="print the emitted manifest as JSON")
+    full_chain.set_defaults(handler=_cmd_full_chain)
 
     return parser
 
@@ -165,6 +183,25 @@ def _cmd_demo(args: argparse.Namespace) -> int:
     else:
         print("Built-in two-plasmoid FRC merge-trigger scenario:\n")
         print(_format_report(report))
+    return 0
+
+
+def _cmd_full_chain(args: argparse.Namespace) -> int:
+    """Run the source-bound causal chain and report its evidence directory."""
+    from scpn_mif_core.full_chain import run_full_chain_demo
+
+    result = run_full_chain_demo(
+        args.output,
+        code_root=args.code_root,
+        verilator=args.verilator,
+    )
+    if args.json:
+        print(json.dumps(result.manifest, indent=2, sort_keys=True))
+    else:
+        print("Fusion-to-Fire full chain passed:")
+        print("  nominal: one RTL trigger, Fusion actuator invoked")
+        print("  safety_veto: zero RTL triggers, Fusion actuator not invoked")
+        print(f"  evidence: {result.output_dir}")
     return 0
 
 

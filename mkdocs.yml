@@ -109,6 +109,7 @@ nav:
   - Home: index.md
   - Guides:
       - Getting started: guides/getting_started.md
+      - Fusion-to-Fire full chain: guides/fusion_to_fire_full_chain.md
       - Quality gates: guides/quality_gates.md
   - Architecture:
       - architecture/index.md
@@ -136,6 +137,7 @@ nav:
   - API:
       - api/index.md
       - Merge-trigger orchestrator: api/merge_trigger.md
+      - Fusion-to-Fire full chain: api/full_chain.md
       - Ecosystem compatibility: api/ecosystem.md
       - STUDIO evidence emitter: api/evidence.md
       - STUDIO capability manifest: api/studio_manifest.md

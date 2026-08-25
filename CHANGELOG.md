@@ -10,6 +10,15 @@
 
 ## Unreleased
 
+### Added
+
+- Added the source-bound Fusion-to-Fire demo: a causal nominal and safety-veto
+  replay through MIF merge/safety/bank evaluation, CONTROL Petri-net compilation
+  and Rust stochastic inference, CONTROL's pulsed scheduler, bit-true Verilator
+  trigger RTL, Fusion pulsed compression, and MIF Faraday recovery. The CLI emits
+  float-free, SHA-256-bound evidence and a deterministic pickle-free trajectory
+  without claiming hardware or post-route timing.
+
 ### Security
 
 - Pinned the Studio toolchain to patched transitive releases for the
