@@ -202,6 +202,13 @@ module = [
     # erroring; the CI gate job installs it for full type checking.
     "scpn_studio_platform",
     "scpn_studio_platform.*",
+    # The full-chain demo uses sibling source checkouts at runtime. Core CI does
+    # not install the optional ecosystem extra, so their typed imports must stay
+    # optional here; the integration gate exercises the installed real siblings.
+    "sc_neurocore",
+    "sc_neurocore.*",
+    "scpn_control",
+    "scpn_control.*",
     # The M3 demonstration's optional sibling: when scpn-fusion is not importable
     # (CI, local dev without the FUSION source on the path) mypy treats it as Any
     # instead of erroring; the live coupling is exercised only where it is present.
