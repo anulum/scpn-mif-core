@@ -1,0 +1,36 @@
+{
+  "SPDX-License-Identifier": "AGPL-3.0-or-later",
+  "commercialLicense": "available",
+  "conceptsCopyright": "1996-2026 Miroslav Sotek. All rights reserved.",
+  "codeCopyright": "2020-2026 Miroslav Sotek. All rights reserved.",
+  "orcid": "0009-0009-3560-0851",
+  "contact": "www.anulum.li | protoscience@anulum.li",
+  "projectDescription": "SCPN-MIF-CORE review-package metadata.",
+  "schema_version": "1.0",
+  "catalogue_id": "001",
+  "status": "review_draft_not_submitted",
+  "title": "SCPN-MIF-CORE: an open, formally verified deterministic trigger and interlock lane for pulsed field-reversed-configuration magneto-inertial fusion",
+  "author": {
+    "name": "Miroslav Sotek",
+    "orcid": "0009-0009-3560-0851"
+  },
+  "evidence_revision": "219f544dfc14a9ff61a461e44b20d959176bd93d",
+  "source_date_epoch": 1787785462,
+  "pdf_trailer_id": "219f544dfc14a9ff61a461e44b20d959",
+  "doi": null,
+  "manuscript_content_license": null,
+  "artifacts": {
+    "manuscript.md": {
+      "sha256": "880b601f0dfb2b4caedf9812e951f39fee7dafbaf6b9d0ddeacead94fe2a834c",
+      "bytes": 5291
+    },
+    "references.bib": {
+      "sha256": "271a276c28e81b483c9dc15e9bb9635d4e06896ee5ba0391a7fe06656235bc4a",
+      "bytes": 1616
+    },
+    "manuscript.pdf": {
+      "sha256": "aa3cc643243a66971df946c2574c1d0583f8dbf425012bf063a44bd3a379368f",
+      "bytes": 32398
+    }
+  }
+}

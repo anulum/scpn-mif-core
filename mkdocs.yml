@@ -18,10 +18,9 @@ edit_uri: edit/main/docs/
 docs_dir: docs
 site_dir: site
 
-# Tracked artefacts, not rendered site pages: our submissions (JOSS paper, with
-# its own bibliography/citeproc) and the external-source register.
+# Tracked artefacts not rendered as site pages: the external-source register.
+# Manuscript review packages live outside docs/ under papers/submissions/.
 exclude_docs: |
-  submissions/
   external_sources/
   internal/
 

@@ -42,9 +42,9 @@ def test_uspto_source_note_records_verified_source_facts_and_boundaries() -> Non
     assert "UNVERIFIED" not in page
 
 
-def test_uspto_source_register_and_joss_bibliography_stay_consistent() -> None:
+def test_uspto_source_register_and_paper_bibliography_stay_consistent() -> None:
     register = _read("docs/external_sources/README.md")
-    bibliography = _read("docs/submissions/joss/paper.bib")
+    bibliography = _read("papers/submissions/001_formally_verified_deterministic_trigger_interlock/references.bib")
 
     assert PATENT_PAGE in register
     for text in (register, bibliography):

@@ -1,0 +1,25 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# SCPN-MIF-CORE — citation metadata for the review package.
+cff-version: 1.2.0
+message: "If you use this review draft and its software artefacts, use the preferred citation."
+type: software
+title: "Supporting materials for the SCPN-MIF-CORE trigger/interlock review draft"
+authors:
+  - family-names: "Šotek"
+    given-names: "Miroslav"
+    orcid: "https://orcid.org/0009-0009-3560-0851"
+repository-code: "https://github.com/anulum/scpn-mif-core"
+url: "https://www.anulum.li"
+preferred-citation:
+  type: article
+  title: "SCPN-MIF-CORE: an open, formally verified deterministic trigger and interlock lane for pulsed field-reversed-configuration magneto-inertial fusion"
+  authors:
+    - family-names: "Šotek"
+      given-names: "Miroslav"
+      orcid: "https://orcid.org/0009-0009-3560-0851"
+  year: 2026
