@@ -1,10 +1,10 @@
-# SPDX-License-Identifier: AGPL-3.0-or-later | Commercial license available
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
 # © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
 # © Code 2020–2026 Miroslav Šotek. All rights reserved.
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
-# Project: SCPN-MIF-CORE
-# Description: Python project metadata.
+# SCPN-MIF-CORE — Python project metadata.
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]
@@ -73,7 +73,7 @@ dev = [
     "setuptools==83.0.0",
     "wheel==0.47.0",
     "ruff==0.16.1",
-    "mypy==2.3.0",
+    "mypy==2.3.1",
     "bandit==1.9.4",
     "pytest>=8.0",
     "pytest-cov>=5.0",

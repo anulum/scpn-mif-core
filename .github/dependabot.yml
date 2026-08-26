@@ -1,4 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# SCPN-MIF-CORE — automated dependency update policy.
 version: 2
 updates:
   - package-ecosystem: pip
@@ -17,6 +23,16 @@ updates:
       - dependency-name: "scpn-control"
       - dependency-name: "scpn-fusion-core"
       - dependency-name: "scpn-quantum-control"
+      # The dedicated full-chain lane pins JAX/JAXLIB as one validated pair.
+      # Do not let a lock-only refresh split that pair across CI surfaces.
+      - dependency-name: "jax"
+        versions: [">=0.11.1"]
+      - dependency-name: "jaxlib"
+        versions: [">=0.11.1"]
+      # NumPy 2 for the full-chain scientific stack requires its own parity
+      # migration; patch updates within the validated 1.x line remain enabled.
+      - dependency-name: "numpy"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: cargo
     directory: "/scpn-mif-rs"
