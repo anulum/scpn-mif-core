@@ -21,4 +21,4 @@ requests==2.34.2
 sc-neurocore-engine==3.16.0
 scipy==1.17.1
 setuptools==84.0.0
-wheel==0.47.0
+wheel==0.48.0
