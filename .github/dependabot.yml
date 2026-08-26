@@ -31,6 +31,14 @@ updates:
       # Do not let a lock-only refresh split that pair across CI surfaces.
       - dependency-name: "jax"
       - dependency-name: "jaxlib"
+      # Dependabot cannot rewrite these broad development ranges into the
+      # generated uv hash lock and otherwise reports `No files have changed`.
+      # They advance through the deterministic lock-refresh procedure.
+      - dependency-name: "hypothesis"
+      - dependency-name: "pytest-benchmark"
+      - dependency-name: "pre-commit"
+      # SciPy is coupled to the NumPy/JAX full-chain validation matrix.
+      - dependency-name: "scipy"
       # NumPy 2 for the full-chain scientific stack requires its own parity
       # migration; patch updates within the validated 1.x line remain enabled.
       - dependency-name: "numpy"
