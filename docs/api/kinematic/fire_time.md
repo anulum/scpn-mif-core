@@ -30,7 +30,7 @@ decision = select_fire_time(
     window,
     certificate,
     bank_feasible=True,
-    policy=FireTimePolicy.MAX_WINDOW_MARGIN,   # opt-in; FIRST_LOCK is the default
+    policy=FireTimePolicy.MAX_WINDOW_MARGIN,  # opt-in; FIRST_LOCK is the default
 )
 ```
 

@@ -27,7 +27,7 @@ from scpn_mif_core import (
 )
 
 noise = MeasurementNoiseSpec(
-    phase_lock_error_sigma_rad=2.0e-3,   # MIF-017 phase_lock_error_rad channel
+    phase_lock_error_sigma_rad=2.0e-3,  # MIF-017 phase_lock_error_rad channel
     reference_error_sigma_m=4.0e-4,
     separation_sigma_m=3.0e-4,
 )
@@ -35,7 +35,7 @@ trace = dispatched_trigger_probabilities(
     MergeWindowSpec(phase_tolerance_rad=0.05, spatial_tolerance_m=0.01),
     KinematicSafetySpec(tolerance_m=0.02),
     noise,
-    phase_lock_errors_rad,   # nominal per-sample observables
+    phase_lock_errors_rad,  # nominal per-sample observables
     reference_errors_m,
     separations_m,
 )

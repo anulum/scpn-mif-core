@@ -41,7 +41,7 @@
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "pyproject.toml",
-      "sha256": "sha256:8f4c4d8c0819c4fd802e3dbf0cd1d608977ee9337b94dabff5555147082a2ebc",
+      "sha256": "sha256:c6eba67ff6d84a748d447958899523db2c7f69fdac59cb85099e33c62afcf539",
       "size_bytes": 11829
     },
     {

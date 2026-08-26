@@ -30,7 +30,7 @@ engine = dispatched_streaming_merge_trigger(
     StreamingTriggerSpec(
         merge_window=MergeWindowSpec(phase_tolerance_rad=0.05, spatial_tolerance_m=0.01),
         safety=KinematicSafetySpec(tolerance_m=0.02),
-        bank_feasible=True,   # the MIF-005 verdict, latched at arm time
+        bank_feasible=True,  # the MIF-005 verdict, latched at arm time
     )
 )
 for t_s, phases, positions in sensor_stream:

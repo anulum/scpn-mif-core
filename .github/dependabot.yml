@@ -14,6 +14,10 @@ updates:
       day: monday
       time: "04:00"
     open-pull-requests-limit: 10
+    # Keep broad runtime compatibility floors stable. Exact validation pins and
+    # generated lock files still advance when the current constraint excludes a
+    # newer release.
+    versioning-strategy: increase-if-necessary
     labels: ["dependencies", "python"]
     reviewers:
       - "anulum/maintainers"
@@ -26,9 +30,7 @@ updates:
       # The dedicated full-chain lane pins JAX/JAXLIB as one validated pair.
       # Do not let a lock-only refresh split that pair across CI surfaces.
       - dependency-name: "jax"
-        versions: [">=0.11.1"]
       - dependency-name: "jaxlib"
-        versions: [">=0.11.1"]
       # NumPy 2 for the full-chain scientific stack requires its own parity
       # migration; patch updates within the validated 1.x line remain enabled.
       - dependency-name: "numpy"
