@@ -110,6 +110,28 @@ def test_readme_snapshot_matches_generated_markdown() -> None:
     assert block == expected
 
 
+def test_system_map_inventory_matches_manifest() -> None:
+    manifest = TOOL.build_capability_manifest(_repo_root())
+    counts = manifest["counts"]
+    system_map = (_repo_root() / "docs" / "architecture" / "system_map.md").read_text(encoding="utf-8")
+    expected_rows = {
+        "Public API exports (facade)": counts["public_api_exports"],
+        "Python capability modules / classes": (
+            f"{counts['python_capability_source_modules']} / {counts['python_capability_classes']}"
+        ),
+        "Rust workspace crates": counts["rust_workspace_crates"],
+        "Julia reference modules": counts["julia_reference_modules"],
+        "Go parity sources": counts["go_parity_sources"],
+        "Lean 4 proof modules": counts["lean_proof_modules"],
+        "HDL RTL modules": counts["hdl_rtl_modules"],
+        "Capability documentation pages": counts["capability_documentation_pages"],
+        "GitHub workflows": counts["github_workflows"],
+        "Optional install extras": counts["optional_extras"],
+    }
+    for label, value in expected_rows.items():
+        assert f"| {label} | {value} |" in system_map
+
+
 def test_manifest_declares_committed_json_schema_contract() -> None:
     manifest = TOOL.build_capability_manifest(_repo_root())
     schema_path = _repo_root() / "schemas" / "capability_manifest.schema.json"

@@ -545,7 +545,7 @@
   },
   "counts": {
     "capability_documentation_pages": 62,
-    "github_workflows": 18,
+    "github_workflows": 19,
     "go_parity_sources": 4,
     "hdl_rtl_modules": 4,
     "julia_reference_modules": 9,
@@ -556,7 +556,7 @@
     "python_capability_classes": 93,
     "python_capability_source_modules": 26,
     "rust_workspace_crates": 10,
-    "test_files": 119
+    "test_files": 120
   },
   "documentation": {
     "public_pages": [
@@ -872,6 +872,7 @@
       ".github/workflows/paper.yml",
       ".github/workflows/polyglot-parity.yml",
       ".github/workflows/pre-commit.yml",
+      ".github/workflows/pypi-downloads.yml",
       ".github/workflows/release.yml",
       ".github/workflows/sbom.yml",
       ".github/workflows/scorecard.yml",
@@ -992,6 +993,7 @@
       "tests/unit/test_paper_package.py",
       "tests/unit/test_public_api_facade.py",
       "tests/unit/test_public_interactive_surfaces.py",
+      "tests/unit/test_pypi_downloads.py",
       "tests/unit/test_quality_gate_contract.py",
       "tests/unit/test_sealed_claim.py",
       "tests/unit/test_security_documentation.py",
