@@ -60,17 +60,17 @@ The passed cycle class has `wall_clock_claim_allowed = false`.
 
 | Surface | Count | Source |
 |---|---:|---|
-| Public API exports (facade) | 167 | `package_exports` |
-| Python capability modules / classes | 20 / 78 | `python_*` |
+| Public API exports (facade) | 191 | `package_exports` |
+| Python capability modules / classes | 26 / 93 | `python_*` |
 | Rust workspace crates | 10 | `rust_workspace_crates` |
 | Julia reference modules | 9 | `julia_reference_modules` |
 | Mojo compiled kernels | 3 | `mojo/` |
-| Go parity sources | 2 | `go_parity_sources` |
+| Go parity sources | 4 | `go_parity_sources` |
 | Lean 4 proof modules | 8 | `lean_proof_modules` |
 | HDL RTL modules | 4 | `hdl_rtl_modules` |
 | Dispatch kernels (multi-backend) | 15 | `bench/dispatch.toml` |
-| Capability documentation pages | 47 | `documentation_pages` |
-| GitHub workflows | 16 | `quality_gates` |
+| Capability documentation pages | 62 | `documentation_pages` |
+| GitHub workflows | 19 | `quality_gates` |
 | Optional install extras | 7 | `accelerated, demo, dev, docs, ecosystem, formal, studio` |
 
 ## Layer model
