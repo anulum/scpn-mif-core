@@ -15,7 +15,7 @@ Gates (in order):
  3. `tools/check_samsung_workspace.py` — Samsung GOTM workspace validation.
  4. `ruff check` and `ruff format --check`.
  5. `mypy` (strict).
- 6. `pytest tests/unit/ tests/contract/` (full coverage gate).
+ 6. `pytest tests/` (full coverage gate).
  7. `bandit` security lint.
  8. `cargo fmt`, warning-denied Clippy, and strict `cargo doc` (if Rust available).
  9. `cargo test --workspace` (if Rust available).
@@ -108,8 +108,8 @@ def gate_bandit() -> GateResult:
 
 
 def gate_pytest() -> GateResult:
-    """Run unit and contract layers in one pytest invocation so coverage covers both."""
-    return _run("pytest", ["pytest", "tests/unit/", "tests/contract/", "-q"])
+    """Run the complete Python test tree under the repository coverage gate."""
+    return _run("pytest", ["pytest", "tests/", "-q"])
 
 
 def gate_samsung_workspace() -> GateResult:

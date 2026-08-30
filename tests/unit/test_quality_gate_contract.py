@@ -103,3 +103,10 @@ def test_formal_preflight_is_implemented_not_a_placeholder() -> None:
     assert "gates.append(gate_formal_manifest())" in preflight
     assert 'gate_missing_tool("symbiyosys", "sby")' in preflight
     assert 'gate_missing_tool("lean", "lake")' in preflight
+
+
+def test_local_preflight_runs_the_complete_python_test_tree() -> None:
+    preflight = _read("tools/preflight.py")
+
+    assert '["pytest", "tests/", "-q"]' in preflight
+    assert '"tests/unit/", "tests/contract/"' not in preflight
