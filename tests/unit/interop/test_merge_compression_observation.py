@@ -44,7 +44,9 @@ FIXTURE = Path(__file__).resolve().parents[2] / "fixtures/observability/mif_merg
 FIXTURE_SHA256 = "c780706abd5a0b185a95e85767e623248388664da61126d196fcb3d528b0c0ca"
 
 
-def _carriers(*, timestamp_ns: int = 0) -> tuple[
+def _carriers(
+    *, timestamp_ns: int = 0
+) -> tuple[
     MovingFrameUPDEState,
     StreamingTriggerSample,
     StreamingTriggerSpec,
@@ -381,7 +383,9 @@ def test_public_evidence_accepts_explicit_degradation() -> None:
     assert evidence.quality == "degraded"
 
 
-@pytest.mark.parametrize("case", ["calibration", "validity", "state_time", "phase_error", "candidate", "lock", "nonfinite"])
+@pytest.mark.parametrize(
+    "case", ["calibration", "validity", "state_time", "phase_error", "candidate", "lock", "nonfinite"]
+)
 def test_public_producer_refuses_carrier_crosslink_drift(case: str) -> None:
     state, sample, spec, identity, clock, evidence = _carriers(timestamp_ns=1_000_000)
     if case == "calibration":

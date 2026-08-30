@@ -64,14 +64,10 @@ def test_fusion_nightly_uses_the_full_chain_runtime_lock() -> None:
     siblings = contract_trial["strategy"]["matrix"]["sibling"]
     fusion = next(item for item in siblings if item["repo"] == "scpn-fusion-core")
     standard_install = next(
-        step
-        for step in contract_trial["steps"]
-        if step.get("name") == "Install MIF with dev tooling"
+        step for step in contract_trial["steps"] if step.get("name") == "Install MIF with dev tooling"
     )
     locked_install = next(
-        step
-        for step in contract_trial["steps"]
-        if step.get("name") == "Install hash-locked MIF/FUSION runtime"
+        step for step in contract_trial["steps"] if step.get("name") == "Install hash-locked MIF/FUSION runtime"
     )
 
     assert fusion == {
@@ -81,10 +77,7 @@ def test_fusion_nightly_uses_the_full_chain_runtime_lock() -> None:
         "runtime": "full-chain",
     }
     assert standard_install["if"] == "matrix.sibling.runtime == 'standard'"
-    assert locked_install["if"] == (
-        "steps.sibling.outcome == 'success' && "
-        "matrix.sibling.runtime == 'full-chain'"
-    )
+    assert locked_install["if"] == ("steps.sibling.outcome == 'success' && matrix.sibling.runtime == 'full-chain'")
     assert "--require-hashes -r requirements/full-chain-ci.txt" in locked_install["run"]
     assert locked_install["run"].count("--no-deps --no-build-isolation") == 2
     assert "python -m pip check" in locked_install["run"]

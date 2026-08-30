@@ -221,8 +221,12 @@ def merge_compression_observation_to_bytes(
             "armed": trigger_spec.armed,
             "bank_feasible": trigger_spec.bank_feasible,
             "decision": trigger_sample.decision.value,
-            "first_fire_timestamp_ns": clock.timestamp_ns if trigger_sample.decision is StreamingTriggerDecision.FIRE else None,
-            "first_violation_index": trigger_sample.sample_index if trigger_sample.decision is StreamingTriggerDecision.ABORT_UNSAFE else None,
+            "first_fire_timestamp_ns": clock.timestamp_ns
+            if trigger_sample.decision is StreamingTriggerDecision.FIRE
+            else None,
+            "first_violation_index": trigger_sample.sample_index
+            if trigger_sample.decision is StreamingTriggerDecision.ABORT_UNSAFE
+            else None,
             "safety_slack_m": _decimal(trigger_sample.safety_slack_m),
             "sample_index": trigger_sample.sample_index,
         },
@@ -253,10 +257,21 @@ def merge_compression_observation_from_bytes(payload: bytes) -> dict[str, object
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValueError("observation payload must be strict UTF-8 JSON") from exc
     record = _object(raw, "observation")
-    _exact_keys(record, {"event_id", "payload", "payload_sha256", "schema", "schema_version", "source_project", "source_revision"}, "observation")
-    if record["schema"] != MIF_MERGE_COMPRESSION_OBSERVATION_SCHEMA or record["schema_version"] != MIF_MERGE_COMPRESSION_OBSERVATION_VERSION:
+    _exact_keys(
+        record,
+        {"event_id", "payload", "payload_sha256", "schema", "schema_version", "source_project", "source_revision"},
+        "observation",
+    )
+    if (
+        record["schema"] != MIF_MERGE_COMPRESSION_OBSERVATION_SCHEMA
+        or record["schema_version"] != MIF_MERGE_COMPRESSION_OBSERVATION_VERSION
+    ):
         raise ValueError("unsupported merge-compression observation schema")
-    if record["source_project"] != _PROJECT or not isinstance(record["source_revision"], str) or _HEX_40.fullmatch(record["source_revision"]) is None:
+    if (
+        record["source_project"] != _PROJECT
+        or not isinstance(record["source_revision"], str)
+        or _HEX_40.fullmatch(record["source_revision"]) is None
+    ):
         raise ValueError("invalid producer identity")
     _identifier(record["event_id"], "event_id")
     body = _object(record["payload"], "payload")
@@ -276,7 +291,12 @@ def merge_compression_observation_digest(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def _validate_carrier_crosslinks(state: MovingFrameUPDEState, sample: StreamingTriggerSample, spec: MergeWindowSpec, clock: MergeCompressionObservationClock) -> None:
+def _validate_carrier_crosslinks(
+    state: MovingFrameUPDEState,
+    sample: StreamingTriggerSample,
+    spec: MergeWindowSpec,
+    clock: MergeCompressionObservationClock,
+) -> None:
     window = sample.window
     expected_ns = Decimal(str(window.t_s if window.t_s is not None else state.t_s)) * Decimal(1_000_000_000)
     if expected_ns != expected_ns.to_integral_value() or int(expected_ns) != clock.timestamp_ns:
@@ -291,7 +311,9 @@ def _validate_carrier_crosslinks(state: MovingFrameUPDEState, sample: StreamingT
     for left, right, label in checks:
         if not math.isclose(left, right, rel_tol=1e-12, abs_tol=1e-15):
             raise ValueError(f"state and merge-window {label} differ")
-    candidate = state.phase_lock_error_rad <= spec.phase_tolerance_rad and state.reference_error_m <= spec.spatial_tolerance_m
+    candidate = (
+        state.phase_lock_error_rad <= spec.phase_tolerance_rad and state.reference_error_m <= spec.spatial_tolerance_m
+    )
     if window.candidate_lock is not candidate:
         raise ValueError("merge-window candidate predicate is inconsistent")
     if window.lock_achieved != (window.streak >= spec.consecutive_samples):
@@ -304,7 +326,11 @@ def _validate_decoded_payload(body: Mapping[str, object]) -> None:
     if authority != {"actionable": False, "review_only": True}:
         raise ValueError("observation authority must be review-only and non-actionable")
     reactor = _object(body["reactor"], "reactor")
-    _exact_keys(reactor, {"cadence", "configuration", "conversion", "coordinate_frame", "drivers", "facility", "reaction"}, "reactor")
+    _exact_keys(
+        reactor,
+        {"cadence", "configuration", "conversion", "coordinate_frame", "drivers", "facility", "reaction"},
+        "reactor",
+    )
     if reactor["configuration"] != "frc_compression_mif" or reactor["cadence"] != "pulsed_shot":
         raise ValueError("observation is not the FRC compression MIF profile")
     _identifier(reactor["facility"], "facility")
@@ -321,7 +347,21 @@ def _validate_decoded_payload(body: Mapping[str, object]) -> None:
     ):
         raise ValueError("reactor drivers must be sorted, unique, and supported")
     clock = _object(body["clock"], "clock")
-    _exact_keys(clock, {"domain", "epoch", "kind", "latency_s", "picosecond_offset", "sample_period_ns", "sample_rate_hz", "synchronized_to", "timestamp_ns"}, "clock")
+    _exact_keys(
+        clock,
+        {
+            "domain",
+            "epoch",
+            "kind",
+            "latency_s",
+            "picosecond_offset",
+            "sample_period_ns",
+            "sample_rate_hz",
+            "synchronized_to",
+            "timestamp_ns",
+        },
+        "clock",
+    )
     if clock["kind"] != "simulation_monotonic" or clock["synchronized_to"] is not None:
         raise ValueError("v1 requires an unsynchronized simulation-monotonic clock")
     _identifier(clock["domain"], "clock domain")
@@ -360,7 +400,10 @@ def _validate_decoded_payload(body: Mapping[str, object]) -> None:
         _identifier(evidence[name], name)
     if not isinstance(evidence["backend_version"], str) or _SEMVER.fullmatch(evidence["backend_version"]) is None:
         raise ValueError("backend_version must be a semantic version")
-    if evidence["calibration_id"] != "mif.merge_compression.model_declared_units.v1" or evidence["transfer_function_id"] != "mif.merge_compression.identity_projection.v1":
+    if (
+        evidence["calibration_id"] != "mif.merge_compression.model_declared_units.v1"
+        or evidence["transfer_function_id"] != "mif.merge_compression.identity_projection.v1"
+    ):
         raise ValueError("model calibration or transfer identity drifted")
     calibrated_at = _safe_integer(evidence["calibrated_at_ns"], "calibrated_at_ns", minimum=0)
     valid_from = _safe_integer(evidence["valid_from_ns"], "valid_from_ns", minimum=0)
@@ -369,7 +412,12 @@ def _validate_decoded_payload(body: Mapping[str, object]) -> None:
     if calibrated_at > timestamp or not valid_from <= timestamp <= valid_until:
         raise ValueError("sample calibration or validity interval is unusable")
     digests = evidence["input_sha256"]
-    if not isinstance(digests, list) or not digests or digests != sorted(set(digests)) or any(not isinstance(item, str) or _HEX_64.fullmatch(item) is None for item in digests):
+    if (
+        not isinstance(digests, list)
+        or not digests
+        or digests != sorted(set(digests))
+        or any(not isinstance(item, str) or _HEX_64.fullmatch(item) is None for item in digests)
+    ):
         raise ValueError("input_sha256 must be sorted, unique, and valid")
     quality = evidence["quality"]
     flags = evidence["quality_flags"]
@@ -383,7 +431,21 @@ def _validate_decoded_payload(body: Mapping[str, object]) -> None:
     if (quality == "valid") != (not flags):
         raise ValueError("quality flags do not match quality state")
     kinematics = _object(body["kinematics"], "kinematics")
-    _exact_keys(kinematics, {"local_error_estimate", "order_parameter", "phase_lock_error_rad", "phases_rad", "positions_m", "reference_error_m", "reference_point_m", "separation_m", "velocities_m_s"}, "kinematics")
+    _exact_keys(
+        kinematics,
+        {
+            "local_error_estimate",
+            "order_parameter",
+            "phase_lock_error_rad",
+            "phases_rad",
+            "positions_m",
+            "reference_error_m",
+            "reference_point_m",
+            "separation_m",
+            "velocities_m_s",
+        },
+        "kinematics",
+    )
     phases = _decimal_list(kinematics.get("phases_rad"), "phases_rad")
     positions = _decimal_list(kinematics.get("positions_m"), "positions_m")
     velocities = _decimal_list(kinematics.get("velocities_m_s"), "velocities_m_s")
@@ -391,7 +453,14 @@ def _validate_decoded_payload(body: Mapping[str, object]) -> None:
         raise ValueError("kinematic vectors must have one shared length of at least two")
     if any(value < 0 or value >= Decimal(str(2.0 * math.pi)) for value in phases):
         raise ValueError("phases_rad must use the [0, 2*pi) convention")
-    for field in ("local_error_estimate", "order_parameter", "phase_lock_error_rad", "reference_error_m", "reference_point_m", "separation_m"):
+    for field in (
+        "local_error_estimate",
+        "order_parameter",
+        "phase_lock_error_rad",
+        "reference_error_m",
+        "reference_point_m",
+        "separation_m",
+    ):
         _finite_decimal(kinematics[field], field)
     order = _finite_decimal(kinematics["order_parameter"], "order_parameter")
     if not Decimal(0) <= order <= Decimal(1):
@@ -408,25 +477,50 @@ def _validate_decoded_payload(body: Mapping[str, object]) -> None:
     if any(kinematics[field] != expected for field, expected in derived.items()):
         raise ValueError("kinematic derived values do not recompute exactly")
     merge = _object(body["merge_window"], "merge_window")
-    _exact_keys(merge, {"candidate_lock", "consecutive_samples", "lock_achieved", "phase_tolerance_rad", "spatial_tolerance_m", "streak"}, "merge_window")
+    _exact_keys(
+        merge,
+        {
+            "candidate_lock",
+            "consecutive_samples",
+            "lock_achieved",
+            "phase_tolerance_rad",
+            "spatial_tolerance_m",
+            "streak",
+        },
+        "merge_window",
+    )
     consecutive = _safe_integer(merge["consecutive_samples"], "consecutive_samples", minimum=1)
     streak = _safe_integer(merge["streak"], "streak", minimum=0)
     if not isinstance(merge["candidate_lock"], bool) or not isinstance(merge["lock_achieved"], bool):
         raise ValueError("merge-window decisions must be boolean")
     if merge["lock_achieved"] != (streak >= consecutive):
         raise ValueError("merge-window lock predicate is inconsistent")
-    if _finite_decimal(merge["phase_tolerance_rad"], "phase_tolerance_rad") <= 0 or _finite_decimal(merge["spatial_tolerance_m"], "spatial_tolerance_m") <= 0:
+    if (
+        _finite_decimal(merge["phase_tolerance_rad"], "phase_tolerance_rad") <= 0
+        or _finite_decimal(merge["spatial_tolerance_m"], "spatial_tolerance_m") <= 0
+    ):
         raise ValueError("merge-window tolerances must be positive")
-    candidate = (
-        _finite_decimal(kinematics["phase_lock_error_rad"], "phase_lock_error_rad")
-        <= _finite_decimal(merge["phase_tolerance_rad"], "phase_tolerance_rad")
-        and _finite_decimal(kinematics["reference_error_m"], "reference_error_m")
-        <= _finite_decimal(merge["spatial_tolerance_m"], "spatial_tolerance_m")
+    candidate = _finite_decimal(kinematics["phase_lock_error_rad"], "phase_lock_error_rad") <= _finite_decimal(
+        merge["phase_tolerance_rad"], "phase_tolerance_rad"
+    ) and _finite_decimal(kinematics["reference_error_m"], "reference_error_m") <= _finite_decimal(
+        merge["spatial_tolerance_m"], "spatial_tolerance_m"
     )
     if merge["candidate_lock"] is not candidate:
         raise ValueError("merge-window candidate predicate is inconsistent")
     trigger = _object(body["trigger"], "trigger")
-    _exact_keys(trigger, {"armed", "bank_feasible", "decision", "first_fire_timestamp_ns", "first_violation_index", "safety_slack_m", "sample_index"}, "trigger")
+    _exact_keys(
+        trigger,
+        {
+            "armed",
+            "bank_feasible",
+            "decision",
+            "first_fire_timestamp_ns",
+            "first_violation_index",
+            "safety_slack_m",
+            "sample_index",
+        },
+        "trigger",
+    )
     if trigger.get("decision") not in {item.value for item in StreamingTriggerDecision}:
         raise ValueError("unknown streaming trigger decision")
     if not isinstance(trigger["armed"], bool) or not isinstance(trigger["bank_feasible"], bool):
@@ -434,7 +528,12 @@ def _validate_decoded_payload(body: Mapping[str, object]) -> None:
     _safe_integer(trigger["sample_index"], "sample_index", minimum=0)
     _finite_decimal(trigger["safety_slack_m"], "safety_slack_m")
     if trigger["decision"] == StreamingTriggerDecision.FIRE.value:
-        if trigger["first_fire_timestamp_ns"] != timestamp or not trigger["armed"] or not trigger["bank_feasible"] or not merge["lock_achieved"]:
+        if (
+            trigger["first_fire_timestamp_ns"] != timestamp
+            or not trigger["armed"]
+            or not trigger["bank_feasible"]
+            or not merge["lock_achieved"]
+        ):
             raise ValueError("fire decision lacks its declared prerequisites")
     elif trigger["first_fire_timestamp_ns"] is not None:
         raise ValueError("non-fire decision cannot carry a fire timestamp")
@@ -496,7 +595,9 @@ def _assert_jcs_safe(value: object, *, path: str = "$") -> None:
         _assert_jcs_safe(item, path=f"{path}.{key}")
 
 
-def _safe_integer(value: object, field: str, *, minimum: int = -_MAX_SAFE_INTEGER, maximum: int = _MAX_SAFE_INTEGER) -> int:
+def _safe_integer(
+    value: object, field: str, *, minimum: int = -_MAX_SAFE_INTEGER, maximum: int = _MAX_SAFE_INTEGER
+) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or not minimum <= value <= maximum:
         raise ValueError(f"{field} must be a JCS-safe integer in [{minimum}, {maximum}]")
     return value
@@ -516,7 +617,9 @@ def _object(value: object, field: str) -> Mapping[str, object]:
 
 def _exact_keys(value: Mapping[str, object], expected: set[str], field: str) -> None:
     if set(value) != expected:
-        raise ValueError(f"{field} fields differ; missing={sorted(expected - set(value))}, unknown={sorted(set(value) - expected)}")
+        raise ValueError(
+            f"{field} fields differ; missing={sorted(expected - set(value))}, unknown={sorted(set(value) - expected)}"
+        )
 
 
 def _unique_object(pairs: Iterable[tuple[str, object]]) -> dict[str, object]:
