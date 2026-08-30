@@ -60,7 +60,7 @@ The passed cycle class has `wall_clock_claim_allowed = false`.
 
 | Surface | Count | Source |
 |---|---:|---|
-| Public API exports (facade) | 191 | `package_exports` |
+| Public API exports (facade) | 200 | `package_exports` |
 | Python capability modules / classes | 26 / 93 | `python_*` |
 | Rust workspace crates | 10 | `rust_workspace_crates` |
 | Julia reference modules | 9 | `julia_reference_modules` |
