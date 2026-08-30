@@ -215,10 +215,28 @@ from scpn_mif_core.interop import (
     IMAS_COMMON_SUBSTRUCTURES as IMAS_COMMON_SUBSTRUCTURES,
 )
 from scpn_mif_core.interop import (
+    MAX_MIF_MERGE_COMPRESSION_OBSERVATION_BYTES as MAX_MIF_MERGE_COMPRESSION_OBSERVATION_BYTES,
+)
+from scpn_mif_core.interop import (
     MIF_IMAS_INPUT_MAP as MIF_IMAS_INPUT_MAP,
 )
 from scpn_mif_core.interop import (
+    MIF_MERGE_COMPRESSION_OBSERVATION_SCHEMA as MIF_MERGE_COMPRESSION_OBSERVATION_SCHEMA,
+)
+from scpn_mif_core.interop import (
+    MIF_MERGE_COMPRESSION_OBSERVATION_VERSION as MIF_MERGE_COMPRESSION_OBSERVATION_VERSION,
+)
+from scpn_mif_core.interop import (
     ImasInputMapping as ImasInputMapping,
+)
+from scpn_mif_core.interop import (
+    MergeCompressionObservationClock as MergeCompressionObservationClock,
+)
+from scpn_mif_core.interop import (
+    MergeCompressionObservationEvidence as MergeCompressionObservationEvidence,
+)
+from scpn_mif_core.interop import (
+    MergeCompressionObservationIdentity as MergeCompressionObservationIdentity,
 )
 from scpn_mif_core.interop import (
     TriggerEgress as TriggerEgress,
@@ -246,6 +264,15 @@ from scpn_mif_core.interop import (
 )
 from scpn_mif_core.interop import (
     mapping_for as mapping_for,
+)
+from scpn_mif_core.interop import (
+    merge_compression_observation_digest as merge_compression_observation_digest,
+)
+from scpn_mif_core.interop import (
+    merge_compression_observation_from_bytes as merge_compression_observation_from_bytes,
+)
+from scpn_mif_core.interop import (
+    merge_compression_observation_to_bytes as merge_compression_observation_to_bytes,
 )
 from scpn_mif_core.kinematic import (
     KINEMATIC_SAFETY_TOLERANCE_M as KINEMATIC_SAFETY_TOLERANCE_M,
@@ -608,8 +635,11 @@ __all__ = [
     "FUSION_FRC_SURFACES",
     "IMAS_COMMON_SUBSTRUCTURES",
     "KINEMATIC_SAFETY_TOLERANCE_M",
+    "MAX_MIF_MERGE_COMPRESSION_OBSERVATION_BYTES",
     "MERGE_WINDOW_FEATURE_KEYS",
     "MIF_IMAS_INPUT_MAP",
+    "MIF_MERGE_COMPRESSION_OBSERVATION_SCHEMA",
+    "MIF_MERGE_COMPRESSION_OBSERVATION_VERSION",
     "SIBLINGS",
     "AERControlObservation",
     "AERDecodeSpec",
@@ -649,6 +679,9 @@ __all__ = [
     "KinematicSafetyCertificate",
     "KinematicSafetySpec",
     "MeasurementNoiseSpec",
+    "MergeCompressionObservationClock",
+    "MergeCompressionObservationEvidence",
+    "MergeCompressionObservationIdentity",
     "MergeTriggerOutcome",
     "MergeTriggerReport",
     "MergeTriggerScenario",
@@ -773,6 +806,9 @@ __all__ = [
     "load_merge_window_predictor_weights",
     "magnetic_flux",
     "mapping_for",
+    "merge_compression_observation_digest",
+    "merge_compression_observation_from_bytes",
+    "merge_compression_observation_to_bytes",
     "merge_trigger",
     "merge_window_feature_vector",
     "moving_frame_derivatives",

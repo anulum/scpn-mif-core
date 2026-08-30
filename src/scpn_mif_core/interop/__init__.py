@@ -13,6 +13,8 @@ These are interface contracts and mappings, not runtimes or certified compliance
   ingress/egress contract with EPICS channel naming.
 - :mod:`scpn_mif_core.interop.imas_mapping` — mapping of MIF-consumed inputs onto
   ITER IMAS Interface Data Structures.
+- :mod:`scpn_mif_core.interop.merge_compression_observation` — canonical,
+  non-actuating numerical evidence for one FRC merge-compression sample.
 
 The IEC 61508 / IEC 60880 / DO-254 readiness mapping is a documentation deliverable
 under ``docs/standards/safety_readiness_mapping.md``.
@@ -28,6 +30,17 @@ from scpn_mif_core.interop.imas_mapping import (
     ids_names,
     mapping_for,
 )
+from scpn_mif_core.interop.merge_compression_observation import (
+    MAX_MIF_MERGE_COMPRESSION_OBSERVATION_BYTES,
+    MIF_MERGE_COMPRESSION_OBSERVATION_SCHEMA,
+    MIF_MERGE_COMPRESSION_OBSERVATION_VERSION,
+    MergeCompressionObservationClock,
+    MergeCompressionObservationEvidence,
+    MergeCompressionObservationIdentity,
+    merge_compression_observation_digest,
+    merge_compression_observation_from_bytes,
+    merge_compression_observation_to_bytes,
+)
 from scpn_mif_core.interop.trigger_io import (
     EPICS_PREFIX,
     TriggerEgress,
@@ -41,8 +54,14 @@ from scpn_mif_core.interop.trigger_io import (
 __all__ = [
     "EPICS_PREFIX",
     "IMAS_COMMON_SUBSTRUCTURES",
+    "MAX_MIF_MERGE_COMPRESSION_OBSERVATION_BYTES",
     "MIF_IMAS_INPUT_MAP",
+    "MIF_MERGE_COMPRESSION_OBSERVATION_SCHEMA",
+    "MIF_MERGE_COMPRESSION_OBSERVATION_VERSION",
     "ImasInputMapping",
+    "MergeCompressionObservationClock",
+    "MergeCompressionObservationEvidence",
+    "MergeCompressionObservationIdentity",
     "TriggerEgress",
     "TriggerIngress",
     "WhiteRabbitTimestamp",
@@ -52,4 +71,7 @@ __all__ = [
     "extract_mif_inputs",
     "ids_names",
     "mapping_for",
+    "merge_compression_observation_digest",
+    "merge_compression_observation_from_bytes",
+    "merge_compression_observation_to_bytes",
 ]
