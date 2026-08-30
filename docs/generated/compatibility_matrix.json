@@ -1,6 +1,6 @@
 {
   "code_root": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE",
-  "generated_at_utc": "2026-07-26T04:36:10+00:00",
+  "generated_at_utc": "2026-08-30T21:25:45+00:00",
   "siblings": [
     {
       "current_gate": true,
@@ -39,7 +39,7 @@
       "evidence_blocked": false,
       "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR/src/scpn_phase_orchestrator/__init__.py",
       "import_status": "ok",
-      "import_version": "1.0.0",
+      "import_version": "1.3.1",
       "integration_gated": false,
       "key": "scpn-phase-orchestrator",
       "lane": "PHA-C / MIF-001..MIF-003",
@@ -50,7 +50,7 @@
       "package": "scpn-phase-orchestrator",
       "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-PHASE-ORCHESTRATOR",
       "role": "Kuramoto, Doppler, moving-frame UPDE, merge-window monitor",
-      "source_version": "1.0.0",
+      "source_version": "1.3.1",
       "status": "ready",
       "surfaces": [
         {
@@ -76,14 +76,13 @@
       "evidence_blocked": false,
       "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-CONTROL/src/scpn_control/__init__.py",
       "import_status": "ok",
-      "import_version": "0.0.0.dev",
+      "import_version": "0.23.0",
       "integration_gated": false,
       "key": "scpn-control",
       "lane": "CON-C / MIF-004, MIF-005, MIF-012, MIF-018",
       "module": "scpn_control",
       "notes": [
-        "SCPN-CONTROL claims the pulsed-control lane completed at its current source version.",
-        "Runtime package metadata reports 0.0.0.dev; sibling source declares 0.23.0."
+        "SCPN-CONTROL claims the pulsed-control lane completed at its current source version."
       ],
       "package": "scpn-control",
       "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-CONTROL",
@@ -129,21 +128,21 @@
     {
       "current_gate": false,
       "evidence_blocked": false,
-      "import_detail": "imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-QUANTUM-CONTROL/src/scpn_quantum_control/__init__.py",
-      "import_status": "ok",
-      "import_version": "0.9.6",
+      "import_detail": "File \"/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-QUANTUM-CONTROL/src/scpn_quantum_control/bridge/knm_hamiltonian.py\", line 22, in <module> | from qiskit.circuit import ParameterVector, QuantumCircuit | ModuleNotFoundError: No module named 'qiskit'",
+      "import_status": "error",
+      "import_version": null,
       "integration_gated": true,
       "key": "scpn-quantum-control",
       "lane": "QUA-C deferred for current MIF gate",
       "module": "scpn_quantum_control",
       "notes": [
         "MIF-lane crypto, entropy, QAOA-cost and HLS surfaces are owned by and delivered in scpn-quantum-control; MIF consumes them as its release gate advances.",
-        "Runtime package metadata reports 0.9.6; sibling source declares 1.0.0."
+        "Runtime import is non-authoritative for this row and currently reports: File \"/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-QUANTUM-CONTROL/src/scpn_quantum_control/bridge/knm_hamiltonian.py\", line 22, in <module> | from qiskit.circuit import ParameterVector, QuantumCircuit | ModuleNotFoundError: No module named 'qiskit'."
       ],
       "package": "scpn-quantum-control",
       "repo_path": "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-QUANTUM-CONTROL",
       "role": "QAOA-MPC and future MIF-specific quantum-control bridge",
-      "source_version": "1.0.0",
+      "source_version": "1.1.0",
       "status": "deferred_not_required_for_current_gate",
       "surfaces": [
         {

@@ -12,17 +12,17 @@ This file is generated from the live sibling repository check. It records
 source versions, optional runtime import status, and the contract surfaces
 that MIF consumes. Static equality pins are not the compatibility authority.
 
-- Generated UTC: `2026-07-26T04:36:10+00:00`
+- Generated UTC: `2026-08-30T21:25:45+00:00`
 - Code root: `/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE`
 - Regenerate: `python tools/generate_compatibility_matrix.py`
 
 | Sibling | Source | Runtime | Symbols present | Integration gated | Evidence blocked | Lane |
 |---|---:|---:|---|---|---|---|
 | `sc-neurocore` | `3.16.0` | `3.16.0` | yes | no | yes | NEU-C.5 / MIF-007 hardware ingress |
-| `scpn-phase-orchestrator` | `1.0.0` | `1.0.0` | yes | no | no | PHA-C / MIF-001..MIF-003 |
-| `scpn-control` | `0.23.0` | `0.0.0.dev` | yes | no | no | CON-C / MIF-004, MIF-005, MIF-012, MIF-018 |
+| `scpn-phase-orchestrator` | `1.3.1` | `1.3.1` | yes | no | no | PHA-C / MIF-001..MIF-003 |
+| `scpn-control` | `0.23.0` | `0.23.0` | yes | no | no | CON-C / MIF-004, MIF-005, MIF-012, MIF-018 |
 | `scpn-fusion` | `4.0.0` | `4.0.0` | yes | no | yes | FUS-C / B-lane FRC solver ownership |
-| `scpn-quantum-control` | `1.0.0` | `0.9.6` | yes | yes | no | QUA-C deferred for current MIF gate |
+| `scpn-quantum-control` | `1.1.0` | `error` | yes | yes | no | QUA-C deferred for current MIF gate |
 
 ## Surface Details
 
@@ -73,7 +73,6 @@ Notes:
 
 Notes:
 - SCPN-CONTROL claims the pulsed-control lane completed at its current source version.
-- Runtime package metadata reports 0.0.0.dev; sibling source declares 0.23.0.
 
 ### `scpn-fusion`
 
@@ -94,7 +93,7 @@ Notes:
 
 - Role: QAOA-MPC and future MIF-specific quantum-control bridge
 - Repository: `/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-QUANTUM-CONTROL`
-- Import: `ok` — imported from /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-QUANTUM-CONTROL/src/scpn_quantum_control/__init__.py
+- Import: `error` — File "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-QUANTUM-CONTROL/src/scpn_quantum_control/bridge/knm_hamiltonian.py", line 22, in <module> | from qiskit.circuit import ParameterVector, QuantumCircuit | ModuleNotFoundError: No module named 'qiskit'
 - Legacy summary: `deferred_not_required_for_current_gate`
 - Compatibility state: symbols present = `yes`; integration gated = `yes`; evidence blocked = `no`
 
@@ -105,4 +104,4 @@ Notes:
 
 Notes:
 - MIF-lane crypto, entropy, QAOA-cost and HLS surfaces are owned by and delivered in scpn-quantum-control; MIF consumes them as its release gate advances.
-- Runtime package metadata reports 0.9.6; sibling source declares 1.0.0.
+- Runtime import is non-authoritative for this row and currently reports: File "/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-QUANTUM-CONTROL/src/scpn_quantum_control/bridge/knm_hamiltonian.py", line 22, in <module> | from qiskit.circuit import ParameterVector, QuantumCircuit | ModuleNotFoundError: No module named 'qiskit'.
