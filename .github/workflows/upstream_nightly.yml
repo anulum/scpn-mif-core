@@ -9,7 +9,10 @@ name: Upstream nightly compatibility
 # checked out there and installed from that `main` checkout for the
 # runtime-import surfaces. Selection is by a per-sibling marker (test names use
 # underscores, repository names use hyphens, so a hyphenated `-k` filter matches
-# nothing). A sibling that cannot be checked out — for example after a
+# nothing). FUSION's differentiable transport surfaces share MIF's JAX runtime,
+# so that lane uses the same hash-locked profile as the full-chain gate instead
+# of letting two independent pip resolutions replace each other's dependencies.
+# A sibling that cannot be checked out — for example after a
 # visibility change without a `SIBLING_CHECKOUT_TOKEN` — is skipped, not failed;
 # a genuine contract regression fails the job and opens a drift issue.
 # See `docs/internal/bidirectional_sync_protocol.md`.
@@ -32,11 +35,11 @@ jobs:
       fail-fast: false
       matrix:
         sibling:
-          - { repo: sc-neurocore,            dir: SC-NEUROCORE,            marker: sc_neurocore }
-          - { repo: scpn-phase-orchestrator, dir: SCPN-PHASE-ORCHESTRATOR, marker: scpn_phase_orchestrator }
-          - { repo: scpn-control,            dir: SCPN-CONTROL,            marker: scpn_control }
-          - { repo: scpn-fusion-core,        dir: SCPN-FUSION-CORE,        marker: scpn_fusion_core }
-          - { repo: scpn-quantum-control,    dir: SCPN-QUANTUM-CONTROL,    marker: scpn_quantum_control }
+          - { repo: sc-neurocore,            dir: SC-NEUROCORE,            marker: sc_neurocore,            runtime: standard }
+          - { repo: scpn-phase-orchestrator, dir: SCPN-PHASE-ORCHESTRATOR, marker: scpn_phase_orchestrator, runtime: standard }
+          - { repo: scpn-control,            dir: SCPN-CONTROL,            marker: scpn_control,            runtime: standard }
+          - { repo: scpn-fusion-core,        dir: SCPN-FUSION-CORE,        marker: scpn_fusion_core,        runtime: full-chain }
+          - { repo: scpn-quantum-control,    dir: SCPN-QUANTUM-CONTROL,    marker: scpn_quantum_control,    runtime: standard }
     steps:
       - name: Checkout MIF
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -46,9 +49,10 @@ jobs:
           python-version: "3.12"
 
       - name: Install MIF with dev tooling
+        if: matrix.sibling.runtime == 'standard'
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          python -m pip install -e ".[dev]"
 
       - name: Checkout ${{ matrix.sibling.repo }}@main source tree
         id: sibling
@@ -66,10 +70,18 @@ jobs:
           echo "::notice title=Sibling unavailable::${{ matrix.sibling.repo }}@main could not be checked out; contract test skipped (infrastructure, not contract drift)."
 
       - name: Install ${{ matrix.sibling.repo }}@main for runtime-import surfaces
-        if: steps.sibling.outcome == 'success'
+        if: steps.sibling.outcome == 'success' && matrix.sibling.runtime == 'standard'
         run: |
-          pip install "./_siblings/${{ matrix.sibling.dir }}" \
+          python -m pip install "./_siblings/${{ matrix.sibling.dir }}" \
             || echo "::warning title=Sibling not installable::${{ matrix.sibling.repo }}@main is not pip-installable; only source-tree contract surfaces are checked."
+
+      - name: Install hash-locked MIF/FUSION runtime
+        if: steps.sibling.outcome == 'success' && matrix.sibling.runtime == 'full-chain'
+        run: |
+          python -m pip install --require-hashes -r requirements/full-chain-ci.txt
+          python -m pip install --no-deps --no-build-isolation -e .
+          python -m pip install --no-deps --no-build-isolation -e "./_siblings/${{ matrix.sibling.dir }}"
+          python -m pip check
 
       - name: Run ${{ matrix.sibling.repo }} contract tests
         if: steps.sibling.outcome == 'success'

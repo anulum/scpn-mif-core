@@ -11,6 +11,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import yaml
+
 REPO = Path(__file__).resolve().parents[2]
 
 
@@ -51,6 +53,41 @@ def test_ci_python_dependencies_are_hash_locked() -> None:
     assert "maturin==1.14.1" in lock
     assert "setuptools==84.0.0" in lock
     assert "wheel==0.48.0" in lock
+
+
+def test_fusion_nightly_uses_the_full_chain_runtime_lock() -> None:
+    workflow = yaml.load(
+        _read(".github/workflows/upstream_nightly.yml"),
+        Loader=yaml.BaseLoader,
+    )
+    contract_trial = workflow["jobs"]["contract-trial"]
+    siblings = contract_trial["strategy"]["matrix"]["sibling"]
+    fusion = next(item for item in siblings if item["repo"] == "scpn-fusion-core")
+    standard_install = next(
+        step
+        for step in contract_trial["steps"]
+        if step.get("name") == "Install MIF with dev tooling"
+    )
+    locked_install = next(
+        step
+        for step in contract_trial["steps"]
+        if step.get("name") == "Install hash-locked MIF/FUSION runtime"
+    )
+
+    assert fusion == {
+        "repo": "scpn-fusion-core",
+        "dir": "SCPN-FUSION-CORE",
+        "marker": "scpn_fusion_core",
+        "runtime": "full-chain",
+    }
+    assert standard_install["if"] == "matrix.sibling.runtime == 'standard'"
+    assert locked_install["if"] == (
+        "steps.sibling.outcome == 'success' && "
+        "matrix.sibling.runtime == 'full-chain'"
+    )
+    assert "--require-hashes -r requirements/full-chain-ci.txt" in locked_install["run"]
+    assert locked_install["run"].count("--no-deps --no-build-isolation") == 2
+    assert "python -m pip check" in locked_install["run"]
 
 
 def test_parity_workflow_is_advisory_and_documents_absent_mojo() -> None:
