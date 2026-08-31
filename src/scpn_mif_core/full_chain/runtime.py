@@ -21,7 +21,7 @@ import sys
 import tempfile
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import Any, Final, Literal, cast
 
 import numpy as np
 
@@ -53,7 +53,10 @@ from .evidence import (
 )
 from .rtl import TriggerFabricBuild, build_trigger_fabric
 
-_SCHEMA = "scpn-mif-core/fusion-control-mif-full-chain/1.0.0"
+_SCHEMA = "scpn-mif-core/fusion-control-mif-full-chain/1.1.0"
+_NEURO_EXECUTION_MODE: Final = "stateless_transition_gate"
+_NEURO_STATE_LIFECYCLE: Final = "reset_before_single_transition_evaluation"
+_NEURO_FIDELITY_BOUNDARY: Final = "threshold permit only; no temporal LIF-dynamics claim"
 _SEED = 20_260_825
 _BITSTREAM_LENGTH = 4096
 _ADC_WINDOW = 16
@@ -114,13 +117,19 @@ def evaluate_neuro_symbolic_admission(
     *,
     backend_name: str = "auto",
 ) -> dict[str, JsonValue]:
-    """Compile and execute the real CONTROL Petri/stochastic permit gate."""
+    """Compile and execute CONTROL's stateless Petri/stochastic permit gate.
+
+    CONTROL retains the cross-repository ``lif_fire`` API name, but its current
+    transition contract resets the optional neuron before one threshold step.
+    This path therefore carries no membrane state between evaluations and is not
+    evidence of temporal LIF dynamics.
+    """
     from sc_neurocore.accel.backend import get_backend
     from scpn_control.scpn import FormalPetriNetVerifier, FusionCompiler, StochasticPetriNet
 
     backend = get_backend(backend_name)
     if backend.name != "rust":
-        raise FullChainError("full-chain stochastic inference requires the SC-NeuroCore Rust backend")
+        raise FullChainError("full-chain stochastic dense permit path requires the SC-NeuroCore Rust backend")
 
     marking = {
         "merge_lock": report.lock_achieved,
@@ -161,6 +170,10 @@ def evaluate_neuro_symbolic_admission(
 
     return {
         "backend": backend.name,
+        "execution_mode": _NEURO_EXECUTION_MODE,
+        "state_lifecycle": _NEURO_STATE_LIFECYCLE,
+        "temporal_state_preserved": False,
+        "fidelity_boundary": _NEURO_FIDELITY_BOUNDARY,
         "bitstream_length": _BITSTREAM_LENGTH,
         "seed": _SEED,
         "input_marking": {name: bool(value) for name, value in marking.items()},

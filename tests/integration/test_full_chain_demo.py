@@ -63,6 +63,12 @@ def test_nominal_case_causes_exactly_one_rtl_trigger_then_fusion_actuation(evide
     nominal = _load(evidence / "nominal.json")
     assert nominal["mif_outcome"] == "fire"
     assert nominal["control_neuro_symbolic"]["backend"] == "rust"
+    assert nominal["control_neuro_symbolic"]["execution_mode"] == "stateless_transition_gate"
+    assert nominal["control_neuro_symbolic"]["state_lifecycle"] == ("reset_before_single_transition_evaluation")
+    assert nominal["control_neuro_symbolic"]["temporal_state_preserved"] is False
+    assert nominal["control_neuro_symbolic"]["fidelity_boundary"] == (
+        "threshold permit only; no temporal LIF-dynamics claim"
+    )
     assert nominal["control_neuro_symbolic"]["formal_fire_reachable"] is True
     assert nominal["control_scheduler"]["permit"] is True
     assert nominal["control_permit"] is True
@@ -77,6 +83,8 @@ def test_safety_fault_vetoes_every_rtl_cycle_and_never_invokes_fusion(evidence: 
     veto = _load(evidence / "safety_veto.json")
     assert veto["mif_outcome"] == "abort_unsafe"
     assert veto["mif_safety_passed"] is False
+    assert veto["control_neuro_symbolic"]["execution_mode"] == "stateless_transition_gate"
+    assert veto["control_neuro_symbolic"]["temporal_state_preserved"] is False
     assert veto["control_neuro_symbolic"]["formal_marking_bounds_hold"] is True
     assert veto["control_neuro_symbolic"]["formal_fire_reachable"] is False
     assert veto["control_scheduler"]["permit"] is True
@@ -160,9 +168,27 @@ def test_public_control_admissions_fail_closed_on_a_real_no_lock_report() -> Non
     assert scheduler["permit"] is False
 
 
+def test_control_transition_gate_does_not_accumulate_membrane_state_between_calls() -> None:
+    """Bind the current CONTROL API to its documented stateless gate semantics."""
+    from scpn_control.scpn import FusionCompiler, StochasticPetriNet
+
+    net = StochasticPetriNet()
+    net.add_place("input", initial_tokens=0.5)
+    net.add_place("output", initial_tokens=0.0)
+    net.add_transition("gate", threshold=0.8)
+    net.add_arc("input", "gate", weight=1.0)
+    net.add_arc("gate", "output", weight=1.0)
+    compiled = FusionCompiler(bitstream_length=64, seed=1).compile(net)
+    subthreshold_current = np.asarray([0.5], dtype=np.float64)
+
+    observed = [float(compiled.lif_fire(subthreshold_current)[0]) for _ in range(3)]
+
+    assert observed == [0.0, 0.0, 0.0]
+
+
 def test_public_neuro_symbolic_admission_rejects_non_rust_execution() -> None:
     report = evaluate_merge_trigger(scenario_from_mapping(DEMO_SCENARIO))
-    with pytest.raises(FullChainError, match="requires the SC-NeuroCore Rust backend"):
+    with pytest.raises(FullChainError, match="dense permit path requires the SC-NeuroCore Rust backend"):
         evaluate_neuro_symbolic_admission(report, backend_name="numpy")
 
 

@@ -425,14 +425,20 @@ def direct_energy_recovery_emf(
 
 ### Hardware-synthesis target
 
-`scpn-mif-core` acts as an intermediate-representation compiler. It takes
-the differential equations above and translates them into an event-driven
-spiking neural network. Through the `sc-neurocore` back end, the SNN is
-synthesised into Q8.8 fixed-point SystemVerilog. The target engineering
-deliverable is a **formally verified FPGA bitstream** capable of reading
-Address-Event-Representation magnetic-probe spikes and firing the
+The target architecture uses `sc-neurocore` as the sibling-owned
+intermediate-representation, neuron-model, and SystemVerilog back end. The
+target engineering deliverable is a **formally verified FPGA bitstream** capable
+of reading Address-Event-Representation magnetic-probe spikes and firing the
 compression coils entirely within the sub-50-nanosecond hardware layer,
-bypassing the CPU completely. Today, `timing:cycle-budget-formal` is delivered;
+bypassing the CPU completely.
+
+That complete equation-to-stateful-SNN-to-neuron-RTL path is not delivered by
+the current MIF full-chain demo. The demo compiles a CONTROL Petri permit into a
+single `stateless_transition_gate`: CONTROL retains the cross-repository
+`lif_fire` API name, but resets the optional neuron before one threshold
+evaluation. SC-NeuroCore's Rust backend executes the stochastic dense permit
+calculation; the receipt makes no temporal LIF, membrane-state, refractory, or
+generated-neuron-RTL claim. Today, `timing:cycle-budget-formal` is delivered;
 `timing:post-route-hardware-gated` and `timing:e2e-hil-hardware-gated` are not.
 
 ---

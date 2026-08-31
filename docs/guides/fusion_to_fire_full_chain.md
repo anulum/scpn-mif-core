@@ -20,6 +20,14 @@ MIF approach + safety
   -> MIF Faraday recovery
 ```
 
+The CONTROL permit in this shipped chain is explicitly a
+`stateless_transition_gate`: CONTROL retains its cross-repository `lif_fire` API
+name, but resets the optional neuron before one threshold evaluation. The Rust
+SC-NeuroCore backend accelerates the stochastic dense permit calculation; this
+receipt does not claim a stateful Rust LIF simulation. A temporal LIF lane must
+preserve membrane state across multiple timestamped events under a separately
+versioned SC-NeuroCore/CONTROL model contract.
+
 It runs a nominal shot and a safety-fault injection. The nominal case must emit
 exactly one RTL trigger before Fusion is called. The fault case violates the MIF
 kinematic envelope while retaining otherwise sufficient lock evidence; the
@@ -85,12 +93,15 @@ identical. The manifest binds every other output artifact by SHA-256.
 ## What this establishes
 
 - measured execution of the Python physics/control orchestration;
-- real CONTROL Petri-net compilation and Rust stochastic inference;
+- real CONTROL Petri-net compilation and Rust stochastic dense-permit execution;
+- an explicit stateless transition-gate fidelity boundary with no temporal LIF
+  claim;
 - bounded explicit-state CONTROL marking and fire-reachability checks;
 - bit-true local Verilator cosimulation against the cycle reference;
 - a causal boundary where only the observed RTL pulse invokes Fusion; and
 - deterministic local replay with exact repository provenance.
 
-It does **not** establish hardware-in-the-loop operation, post-route FPGA timing,
-facility readiness, or a sub-50 ns physical trigger. Those remain explicitly
-hardware-gated claims.
+It does **not** establish temporal membrane integration, leak, refractory
+behavior, generated neuron RTL, hardware-in-the-loop operation, post-route FPGA
+timing, facility readiness, or a sub-50 ns physical trigger. Those remain
+separate model or hardware-gated claims.
