@@ -31,6 +31,11 @@
 
 ### Changed
 
+- Split the required CI GodFile into six responsibility-owned reusable
+  workflows behind the unchanged `Required core gate`. A versioned inventory,
+  byte/line budgets, immutable-action checks, legacy-job digests, Actionlint,
+  and a fail-closed modularity audit now prevent duplicate, bypassed, or
+  silently altered job ownership.
 - Added a warning-denied, missing-doc-denied workspace `cargo doc` gate to
   both hosted Rust CI and the repository preflight, covering all nine native
   crates without building dependency documentation.

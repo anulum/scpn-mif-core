@@ -545,7 +545,7 @@
   },
   "counts": {
     "capability_documentation_pages": 62,
-    "github_workflows": 19,
+    "github_workflows": 25,
     "go_parity_sources": 4,
     "hdl_rtl_modules": 4,
     "julia_reference_modules": 9,
@@ -556,7 +556,7 @@
     "python_capability_classes": 93,
     "python_capability_source_modules": 26,
     "rust_workspace_crates": 10,
-    "test_files": 121
+    "test_files": 122
   },
   "documentation": {
     "public_pages": [
@@ -872,6 +872,12 @@
   "quality_gates": {
     "github_workflows": [
       ".github/workflows/benchmark-nightly.yml",
+      ".github/workflows/ci-full-chain-validation.yml",
+      ".github/workflows/ci-python-quality.yml",
+      ".github/workflows/ci-repository-governance.yml",
+      ".github/workflows/ci-rust-quality.yml",
+      ".github/workflows/ci-secret-assurance.yml",
+      ".github/workflows/ci-studio-product.yml",
       ".github/workflows/ci.yml",
       ".github/workflows/codeql.yml",
       ".github/workflows/docs.yml",
@@ -983,6 +989,7 @@
       "tests/unit/test_check_readme_version_mentions.py",
       "tests/unit/test_check_samsung_workspace.py",
       "tests/unit/test_check_wheel_contents.py",
+      "tests/unit/test_ci_workflow_modularity.py",
       "tests/unit/test_claim_ledger_review.py",
       "tests/unit/test_cli.py",
       "tests/unit/test_dispatch.py",

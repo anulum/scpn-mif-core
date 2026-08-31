@@ -1,0 +1,59 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# SCPN-MIF-CORE — Repository policy and workflow-governance validation
+name: CI / Repository governance
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  sync-tags:
+    name: Cross-repo sync-tag linter
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+      - run: python tools/check_sync_tags.py --root .
+
+  workflow-modularity:
+    name: CI workflow ownership and modularity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5  # v6.2.0
+        with:
+          go-version: "1.26.2"
+      - name: Install hash-locked audit dependencies
+        run: python -m pip install --require-hashes -r requirements/ci.txt
+      - name: Install pinned Actionlint
+        env:
+          ACTIONLINT_COMMIT: 914e7df21a07ef503a81201c76d2b11c789d3fca
+        run: |
+          mkdir -p "$RUNNER_TEMP/actionlint-bin"
+          GOBIN="$RUNNER_TEMP/actionlint-bin" go install github.com/rhysd/actionlint/cmd/actionlint@"$ACTIONLINT_COMMIT"
+          "$RUNNER_TEMP/actionlint-bin/actionlint" -version
+      - name: Verify distributed CI ownership
+        run: |
+          mypy tools/ci_workflow_inventory.py tools/audit_ci_workflow_modularity.py tests/unit/test_ci_workflow_modularity.py
+          ruff check tools/ci_workflow_inventory.py tools/audit_ci_workflow_modularity.py tests/unit/test_ci_workflow_modularity.py
+          ruff format --check tools/ci_workflow_inventory.py tools/audit_ci_workflow_modularity.py tests/unit/test_ci_workflow_modularity.py
+          bandit -q tools/ci_workflow_inventory.py tools/audit_ci_workflow_modularity.py
+          coverage run --rcfile=/dev/null --data-file=.coverage.ci-workflow-modularity --branch -m pytest -q -o addopts= tests/unit/test_ci_workflow_modularity.py
+          coverage report --rcfile=/dev/null --data-file=.coverage.ci-workflow-modularity --precision=2 --fail-under=100 --include='*/ci_workflow_inventory.py,*/audit_ci_workflow_modularity.py'
+          python tools/audit_ci_workflow_modularity.py
+          "$RUNNER_TEMP/actionlint-bin/actionlint" -color

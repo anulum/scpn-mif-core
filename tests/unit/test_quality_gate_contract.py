@@ -15,6 +15,8 @@ from pathlib import Path
 
 import yaml
 
+from tools.ci_workflow_inventory import read_ci_workflow_source
+
 REPO = Path(__file__).resolve().parents[2]
 
 
@@ -23,11 +25,14 @@ def _read(relative_path: str) -> str:
 
 
 def test_required_workflows_expose_stable_aggregate_contexts() -> None:
-    ci = _read(".github/workflows/ci.yml")
+    ci = read_ci_workflow_source()
     formal = _read(".github/workflows/formal.yml")
 
     assert "name: Required core gate" in ci
-    assert "needs: [python, full-chain, rust, sync-tags, secrets, studio-web]" in ci
+    assert (
+        "needs: [python-quality, full-chain-validation, rust-quality, "
+        "repository-governance, secret-assurance, studio-product]" in ci
+    )
     assert "name: Required formal gate" in formal
     assert "needs: [symbiyosys, lean]" in formal
     assert 'build-args: "+SCPNMIF:olean"' in formal
@@ -43,7 +48,7 @@ def test_release_requires_green_source_gate_contexts() -> None:
 
 
 def test_ci_python_dependencies_are_hash_locked() -> None:
-    ci = _read(".github/workflows/ci.yml")
+    ci = read_ci_workflow_source()
     lock = _read("requirements/ci.txt")
 
     assert "python -m pip install --require-hashes -r requirements/ci.txt" in ci
@@ -156,3 +161,11 @@ def test_local_preflight_runs_the_complete_python_test_tree() -> None:
 
     assert '["pytest", "tests/", "-q"]' in preflight
     assert '"tests/unit/", "tests/contract/"' not in preflight
+
+
+def test_local_preflight_enforces_ci_workflow_modularity() -> None:
+    preflight = _read("tools/preflight.py")
+
+    assert "gates.append(gate_ci_workflow_modularity())" in preflight
+    assert "gate_actionlint()" in preflight
+    assert 'gate_missing_tool("actionlint", "actionlint")' in preflight

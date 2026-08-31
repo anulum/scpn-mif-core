@@ -13,18 +13,20 @@ Gates (in order):
  1. `tools/check_sync_tags.py` — cross-repository sync-state validation.
  2. `tools/check_secrets.py` — basic secret-pattern scan.
  3. `tools/check_samsung_workspace.py` — Samsung GOTM workspace validation.
- 4. `ruff check` and `ruff format --check`.
- 5. `mypy` (strict).
- 6. `pytest tests/` (full coverage gate).
- 7. `bandit` security lint.
- 8. `cargo fmt`, warning-denied Clippy, and strict `cargo doc` (if Rust available).
- 9. `cargo test --workspace` (if Rust available).
-10. Go documentation coverage and native `go doc` rendering (if Go available).
-11. Strict Julia `Documenter.jl` API build (if Julia is available).
-12. Strict Studio TypeDoc API build (if pnpm is available).
-13. `mkdocs build --strict` (if MkDocs available).
-14. SymbiYosys manifest/suites and Lean build (with `--formal`).
-15. Authorship-line presence in the last commit message.
+ 4. CI workflow ownership, size, parity, and fail-closed aggregation audit.
+ 5. Actionlint validation of every GitHub Actions workflow.
+ 6. `ruff check` and `ruff format --check`.
+ 7. `mypy` (strict).
+ 8. `pytest tests/` (full coverage gate).
+ 9. `bandit` security lint.
+10. `cargo fmt`, warning-denied Clippy, and strict `cargo doc` (if Rust available).
+11. `cargo test --workspace` (if Rust available).
+12. Go documentation coverage and native `go doc` rendering (if Go available).
+13. Strict Julia `Documenter.jl` API build (if Julia is available).
+14. Strict Studio TypeDoc API build (if pnpm is available).
+15. `mkdocs build --strict` (if MkDocs available).
+16. SymbiYosys manifest/suites and Lean build (with `--formal`).
+17. Authorship-line presence in the last commit message.
 
 Usage:
     python tools/preflight.py            # full
@@ -117,6 +119,17 @@ def gate_samsung_workspace() -> GateResult:
         "samsung-workspace",
         [sys.executable, str(REPO / "tools" / "check_samsung_workspace.py")],
     )
+
+
+def gate_ci_workflow_modularity() -> GateResult:
+    return _run(
+        "ci-workflow-modularity",
+        [sys.executable, str(REPO / "tools" / "audit_ci_workflow_modularity.py")],
+    )
+
+
+def gate_actionlint() -> GateResult:
+    return _run("actionlint", ["actionlint", "-color"])
 
 
 def gate_cargo_fmt() -> GateResult:
@@ -248,6 +261,10 @@ def main(argv: list[str] | None = None) -> int:
     gates.append(gate_sync_tags())
     gates.append(gate_secrets())
     gates.append(gate_samsung_workspace())
+    gates.append(gate_ci_workflow_modularity())
+    gates.append(
+        gate_actionlint() if shutil.which("actionlint") is not None else gate_missing_tool("actionlint", "actionlint")
+    )
     gates.append(gate_ruff())
     gates.append(gate_ruff_format())
     if shutil.which("mypy") is not None:

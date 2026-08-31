@@ -70,7 +70,7 @@ The passed cycle class has `wall_clock_claim_allowed = false`.
 | HDL RTL modules | 4 | `hdl_rtl_modules` |
 | Dispatch kernels (multi-backend) | 15 | `bench/dispatch.toml` |
 | Capability documentation pages | 62 | `documentation_pages` |
-| GitHub workflows | 19 | `quality_gates` |
+| GitHub workflows | 25 | `quality_gates` |
 | Optional install extras | 7 | `accelerated, demo, dev, docs, ecosystem, formal, studio` |
 
 ## Layer model

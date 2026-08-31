@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "coordinator": ".github/workflows/ci.yml",
+  "required_gate": "required-core",
+  "limits": {
+    "coordinator_max_lines": 100,
+    "coordinator_max_bytes": 12288,
+    "reusable_max_lines": 180,
+    "reusable_max_bytes": 16384,
+    "max_reusable_workflows": 8
+  },
+  "categories": [
+    {
+      "id": "python-quality",
+      "workflow": ".github/workflows/ci-python-quality.yml",
+      "caller_needs": [],
+      "caller_secrets": ["CODECOV_TOKEN"],
+      "jobs": ["python"]
+    },
+    {
+      "id": "full-chain-validation",
+      "workflow": ".github/workflows/ci-full-chain-validation.yml",
+      "caller_needs": [],
+      "caller_secrets": [],
+      "jobs": ["full-chain"]
+    },
+    {
+      "id": "rust-quality",
+      "workflow": ".github/workflows/ci-rust-quality.yml",
+      "caller_needs": [],
+      "caller_secrets": [],
+      "jobs": ["rust"]
+    },
+    {
+      "id": "repository-governance",
+      "workflow": ".github/workflows/ci-repository-governance.yml",
+      "caller_needs": [],
+      "caller_secrets": [],
+      "jobs": ["sync-tags", "workflow-modularity"]
+    },
+    {
+      "id": "secret-assurance",
+      "workflow": ".github/workflows/ci-secret-assurance.yml",
+      "caller_needs": [],
+      "caller_secrets": [],
+      "jobs": ["secrets"]
+    },
+    {
+      "id": "studio-product",
+      "workflow": ".github/workflows/ci-studio-product.yml",
+      "caller_needs": [],
+      "caller_secrets": [],
+      "jobs": ["studio-web"]
+    }
+  ],
+  "job_order": [
+    "python",
+    "full-chain",
+    "rust",
+    "sync-tags",
+    "workflow-modularity",
+    "secrets",
+    "studio-web"
+  ],
+  "optional_jobs": [],
+  "legacy_job_sha256": {
+    "python": "957fbb9137b03d3f690a01eaea680654ae6361e270ea32788515234ae596fe6f",
+    "full-chain": "83b64abb65b0dc25995494221a64a648fc5e2ad1e1fd6ea876f315f240c7957e",
+    "rust": "88e9e35cbd7a64aac6bacc4434e1e7dd38f9ae1b5d53b6709a0f19167287a423",
+    "sync-tags": "08347487803e42e6d5ab582f661c2cdab8c3d0bf5a73fdd735342231c864de06",
+    "secrets": "bf6b289551ade8e26b2e6ef8af35569d993c5ea1274ad447ee3b71d41ad8c409",
+    "studio-web": "e690589ca2934b6ab2d2dca721edf9153723ba7f261b2e90c72b9e38c18ee1d4"
+  }
+}

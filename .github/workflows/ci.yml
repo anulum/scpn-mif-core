@@ -1,4 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# SCPN-MIF-CORE — CI coordinator and stable required gate
 name: CI
 
 on:
@@ -15,219 +21,43 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  python:
-    name: Python (lint + type + test)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
-        with:
-          python-version: "3.12"
-          cache: pip
-      - name: Install hash-locked dependencies
-        run: |
-          python -m pip install --require-hashes -r requirements/ci.txt
-          python -m pip install --no-deps --no-build-isolation -e .
-      - name: Ensure Rust 1.85
-        shell: bash
-        run: |
-          if ! rustc +1.85.0 --version; then
-            rustup toolchain uninstall 1.85.0 || true
-            rustup toolchain install 1.85.0 --profile minimal --no-self-update
-          fi
-          rustc +1.85.0 --version
-          cargo +1.85.0 --version
-      - name: Build Rust extension
-        env:
-          RUSTUP_TOOLCHAIN: "1.85.0"
-        run: python -m pip install --no-deps --no-build-isolation ./scpn-mif-rs/crates/mif-ffi
-      - name: ruff check
-        run: ruff check src/ tests/ bench/ tools/
-      - name: ruff format
-        run: ruff format --check src/ tests/ bench/ tools/
-      - name: mypy
-        run: mypy src/scpn_mif_core/ tools/ cosim/ examples/
-      - name: bandit
-        run: bandit -r src/scpn_mif_core/ -c pyproject.toml -q
-      - name: pytest (full tree under the 100% coverage gate)
-        run: pytest tests/ -m "not full_chain" --cov=scpn_mif_core --cov=tools --cov-report=xml --cov-report=term
-      - name: Install Verilator for cosimulation
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends verilator
-      - name: cosim (bit-true Python vs Verilator, 100% harness coverage gate)
-        run: >
-          pytest cosim/ -o addopts=""
-          --cov=cosim --cov-report=term-missing --cov-fail-under=100
-          -p no:nengo -p no:randomly
-      - name: Upload coverage
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
-        with:
-          name: coverage-${{ github.sha }}
-          path: coverage.xml
-      - name: Upload coverage to Codecov
-        if: always()
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v7.0.0
-        with:
-          files: coverage.xml
-          flags: python
-          fail_ci_if_error: false
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  full-chain:
-    name: Fusion-to-Fire (siblings + Rust + Verilator)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    defaults:
-      run:
-        working-directory: ecosystem/SCPN-MIF-CORE
-    steps:
-      - name: Checkout MIF
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          path: ecosystem/SCPN-MIF-CORE
-      - name: Checkout CONTROL integration anchor
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          repository: anulum/scpn-control
-          ref: 856adaf10f247bc77943f0c034fdc3a0e997eaa6
-          path: ecosystem/SCPN-CONTROL
-      - name: Checkout Fusion integration anchor
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          repository: anulum/scpn-fusion-core
-          ref: c22ebd7a4c487abcc98e4767a984404163a5e474
-          path: ecosystem/SCPN-FUSION-CORE
-      - name: Checkout SC-NeuroCore integration anchor
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          repository: anulum/sc-neurocore
-          ref: e633d1c15f8429d0538b7ab778dc7f83194d3f1d
-          path: ecosystem/SC-NEUROCORE
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: ecosystem/SCPN-MIF-CORE/requirements/full-chain-ci.txt
-      - name: Install hash-locked cross-repository runtime
-        run: |
-          python -m pip install --require-hashes -r requirements/full-chain-ci.txt
-          python -m pip install --no-deps --no-build-isolation -e .
-          python -m pip install --no-deps --no-build-isolation -e ../SCPN-CONTROL
-          python -m pip install --no-deps --no-build-isolation -e ../SCPN-FUSION-CORE
-          python -m pip install --no-deps --no-build-isolation -e ../SC-NEUROCORE
-          python -m pip check
-      - name: Install Verilator
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends verilator
-      - name: Run the real causal chain
-        run: >
-          pytest tests/unit/full_chain/test_contracts.py
-          tests/integration/test_full_chain_demo.py
-          -o "addopts=-ra --strict-markers --strict-config -p no:nengo -p no:randomly"
-          --cov=src/scpn_mif_core/full_chain
-          --cov-config=coverage.full-chain.toml
-          --cov-report=term-missing
-          --cov-fail-under=95
-
-  rust:
-    name: Rust (fmt + clippy + docs + test)
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    defaults:
-      run:
-        working-directory: scpn-mif-rs
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      - name: Install Rust 1.85
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8  # stable
-        with:
-          toolchain: 1.85.0
-          components: rustfmt, clippy
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6  # v2
-        with:
-          workspaces: scpn-mif-rs
-      - name: cargo fmt
-        run: cargo fmt --all -- --check
-      - name: cargo clippy
-        run: cargo clippy --workspace --all-targets -- -D warnings
-      - name: cargo doc
-        env:
-          RUSTDOCFLAGS: -D warnings -D missing_docs
-        run: cargo doc --workspace --no-deps --all-features
-      - name: cargo test
-        run: cargo test --workspace --all-features
-
-  sync-tags:
-    name: Cross-repo sync-tag linter
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
-        with:
-          python-version: "3.12"
-      - run: python tools/check_sync_tags.py --root .
-
-  secrets:
-    name: Secret-pattern scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
-        with:
-          python-version: "3.12"
-      - run: python tools/check_secrets.py --tree .
-
-  studio-web:
-    name: Studio web (Module Federation remote)
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: studio-web
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
-        with:
-          node-version: "22"
-      - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@11.2.2 --activate
-      - name: Install
-        run: pnpm install --frozen-lockfile
-      - name: Typecheck
-        run: pnpm typecheck
-      - name: Build strict TypeDoc API reference
-        run: pnpm docs:api
-      - name: Lint
-        run: pnpm lint
-      - name: Format check
-        run: pnpm format:check
-      - name: Tests + 100% coverage gate
-        run: pnpm exec vitest run --coverage
-      - name: Build (Module Federation remote)
-        run: pnpm build
+  python-quality:
+    uses: ./.github/workflows/ci-python-quality.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  full-chain-validation:
+    uses: ./.github/workflows/ci-full-chain-validation.yml
+  rust-quality:
+    uses: ./.github/workflows/ci-rust-quality.yml
+  repository-governance:
+    uses: ./.github/workflows/ci-repository-governance.yml
+  secret-assurance:
+    uses: ./.github/workflows/ci-secret-assurance.yml
+  studio-product:
+    uses: ./.github/workflows/ci-studio-product.yml
 
   required-core:
     name: Required core gate
-    if: always()
-    needs: [python, full-chain, rust, sync-tags, secrets, studio-web]
+    needs: [python-quality, full-chain-validation, rust-quality, repository-governance, secret-assurance, studio-product]
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    if: always()
     steps:
-      - name: Require every core job
+      - name: Require every core category
         env:
-          PYTHON_RESULT: ${{ needs.python.result }}
-          FULL_CHAIN_RESULT: ${{ needs.full-chain.result }}
-          RUST_RESULT: ${{ needs.rust.result }}
-          SYNC_TAGS_RESULT: ${{ needs.sync-tags.result }}
-          SECRETS_RESULT: ${{ needs.secrets.result }}
-          STUDIO_RESULT: ${{ needs.studio-web.result }}
+          CATEGORY_RESULTS: ${{ toJSON(needs) }}
         run: |
-          test "$PYTHON_RESULT" = success
-          test "$FULL_CHAIN_RESULT" = success
-          test "$RUST_RESULT" = success
-          test "$SYNC_TAGS_RESULT" = success
-          test "$SECRETS_RESULT" = success
-          test "$STUDIO_RESULT" = success
+          python - <<'PY'
+          import json
+          import os
+
+          results = json.loads(os.environ["CATEGORY_RESULTS"])
+          failures = {
+              name: value["result"]
+              for name, value in results.items()
+              if value["result"] != "success"
+          }
+          if failures:
+              raise SystemExit(f"Required core category failure: {failures}")
+          print("Required core categories passed")
+          PY

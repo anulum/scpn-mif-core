@@ -11,6 +11,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from tools.ci_workflow_inventory import read_ci_workflow_source
+
 REPO = Path(__file__).resolve().parents[2]
 
 
@@ -31,7 +33,7 @@ def test_public_security_docs_do_not_claim_gitleaks_is_installed() -> None:
 
 def test_public_security_docs_match_actual_secret_scan_wiring() -> None:
     security = _read("SECURITY.md")
-    ci = _read(".github/workflows/ci.yml")
+    ci = read_ci_workflow_source()
     pre_commit = _read(".pre-commit-config.yaml")
     tool = _read("tools/check_secrets.py")
 

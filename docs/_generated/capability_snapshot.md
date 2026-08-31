@@ -16,8 +16,8 @@
 | Synthesisable HDL RTL modules | 4 |
 | Capability documentation pages | 62 |
 | Optional extras | 7 |
-| Python test files | 121 |
+| Python test files | 122 |
 | Public documentation pages | 62 |
-| GitHub Actions workflows | 19 |
+| GitHub Actions workflows | 25 |
 
 Evidence boundary: this snapshot is a static inventory. Performance, coverage, hardware, and scientific-fidelity claims require their own committed evidence artifacts.
