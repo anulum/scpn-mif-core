@@ -68,6 +68,15 @@ def test_full_chain_input_pins_match_the_hash_lock() -> None:
         assert f"{pin} \\" in lock
 
 
+def test_generated_dependency_locks_preserve_license_headers() -> None:
+    for path in (
+        "requirements/ci.txt",
+        "requirements/full-chain-ci.txt",
+        "studio-web/pnpm-lock.yaml",
+    ):
+        assert _read(path).startswith("# SPDX-License-Identifier: AGPL-3.0-or-later\n")
+
+
 def test_dependabot_routes_broad_dev_ranges_to_manual_lock_refresh() -> None:
     project = tomllib.loads(_read("pyproject.toml"))["project"]
     broad_dev_dependencies = {
