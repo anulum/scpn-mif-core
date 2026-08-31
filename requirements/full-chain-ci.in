@@ -6,7 +6,7 @@
 # Contact: www.anulum.li | protoscience@anulum.li
 # SCPN-MIF-CORE — pinned dependencies for the Fusion-to-Fire integration gate.
 
-click==8.4.2
+click==8.5.0
 defusedxml==0.7.1
 jax==0.7.1
 jaxlib==0.7.1
