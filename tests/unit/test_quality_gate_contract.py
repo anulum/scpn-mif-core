@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import re
 import tomllib
 from pathlib import Path
 
@@ -65,6 +66,20 @@ def test_full_chain_input_pins_match_the_hash_lock() -> None:
     exact_pins = (line for line in source.splitlines() if line and not line.startswith("#"))
     for pin in exact_pins:
         assert f"{pin} \\" in lock
+
+
+def test_dependabot_routes_broad_dev_ranges_to_manual_lock_refresh() -> None:
+    project = tomllib.loads(_read("pyproject.toml"))["project"]
+    broad_dev_dependencies = {
+        re.split(r"[<>=!~ ]", dependency, maxsplit=1)[0]
+        for dependency in project["optional-dependencies"]["dev"]
+        if "==" not in dependency
+    }
+    dependabot = yaml.safe_load(_read(".github/dependabot.yml"))
+    pip_updates = next(update for update in dependabot["updates"] if update["package-ecosystem"] == "pip")
+    ignored = {entry["dependency-name"] for entry in pip_updates["ignore"]}
+
+    assert broad_dev_dependencies <= ignored
 
 
 def test_fusion_nightly_uses_the_full_chain_runtime_lock() -> None:
