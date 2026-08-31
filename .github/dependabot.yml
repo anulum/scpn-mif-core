@@ -14,9 +14,9 @@ updates:
       day: monday
       time: "04:00"
     open-pull-requests-limit: 10
-    # Keep broad runtime compatibility floors stable. Exact validation pins and
-    # generated lock files still advance when the current constraint excludes a
-    # newer release.
+    # Keep broad runtime compatibility floors stable. Dependabot may propose an
+    # exact validation-pin bump, but the generated uv locks are refreshed on
+    # main; contract tests fail closed until every exact pin matches its lock.
     versioning-strategy: increase-if-necessary
     labels: ["dependencies", "python"]
     reviewers:

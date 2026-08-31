@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import tomllib
 from pathlib import Path
 
 import yaml
@@ -50,9 +51,20 @@ def test_ci_python_dependencies_are_hash_locked() -> None:
     assert 'pip install -e ".[studio]"' not in ci
     assert lock.count("--hash=sha256:") >= 52
     assert "scpn-studio-platform==0.11.2" in lock
-    assert "maturin==1.14.1" in lock
-    assert "setuptools==84.0.0" in lock
-    assert "wheel==0.48.0" in lock
+
+    project = tomllib.loads(_read("pyproject.toml"))["project"]
+    exact_dev_pins = (dependency for dependency in project["optional-dependencies"]["dev"] if "==" in dependency)
+    for pin in exact_dev_pins:
+        assert f"{pin} \\" in lock
+
+
+def test_full_chain_input_pins_match_the_hash_lock() -> None:
+    source = _read("requirements/full-chain-ci.in")
+    lock = _read("requirements/full-chain-ci.txt")
+
+    exact_pins = (line for line in source.splitlines() if line and not line.startswith("#"))
+    for pin in exact_pins:
+        assert f"{pin} \\" in lock
 
 
 def test_fusion_nightly_uses_the_full_chain_runtime_lock() -> None:

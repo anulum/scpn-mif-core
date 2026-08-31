@@ -63,9 +63,13 @@
   Studio web, and GitHub Actions. The Studio graph now uses a TypeScript
   6-compatible Module Federation DTS toolchain and retains no obsolete
   release-age exceptions. The Binder floor includes JupyterLab 4.6.2 security
-  fixes, and the explicitly configured Python quality gate runs on Ruff 0.16.0.
+  fixes; the Python quality gate now pins Ruff 0.16.5 and Maturin 1.15.0, and
+  the Fusion-to-Fire runtime lock pins Click 8.5.0.
 - Grouped the CodeQL action family for atomic Dependabot updates and pinned all
-  CodeQL workflow components to the same v4.37.3 release commit.
+  CodeQL workflow components to the same v4.37.9 release commit. The advisory
+  polyglot workflow now pins `prefix-dev/setup-pixi` 0.10.2, while the Studio
+  graph advances ESLint 10.9.1, Vite 8.2.2, TypeScript ESLint 8.68.0,
+  `@vitejs/plugin-react` 6.1.1, and `@testing-library/react` 16.3.3 together.
 - Aligned the `ecosystem` extra with the live canonical sibling distributions:
   `sc-neurocore>=3.16.0`, `scpn-phase-orchestrator>=1.0.0`,
   `scpn-control>=0.23.0`, `scpn-fusion>=4.0.0`, and

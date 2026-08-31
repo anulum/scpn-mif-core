@@ -6,8 +6,8 @@
       "kind": "project-documentation",
       "media_type": "text/markdown",
       "path": "README.md",
-      "sha256": "sha256:86ad005c47339fd50d856373846f257c1dc973844fee0160de372f7d6c5a5d5e",
-      "size_bytes": 26160
+      "sha256": "sha256:154a116ea4eef4e69d0c1fc753682c27acd91bd92dfb39b690437f947fa747c0",
+      "size_bytes": 26517
     },
     {
       "kind": "license",
@@ -41,7 +41,7 @@
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "pyproject.toml",
-      "sha256": "sha256:c6eba67ff6d84a748d447958899523db2c7f69fdac59cb85099e33c62afcf539",
+      "sha256": "sha256:544c22175bc83adfed4a33acb6d5e780275c484e5efc2dd1b100b7250a9f4a9d",
       "size_bytes": 11829
     },
     {
