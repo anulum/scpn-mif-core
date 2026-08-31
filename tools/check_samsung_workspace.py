@@ -20,7 +20,7 @@ from typing import Literal
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 GOTM_ROOT = Path("/media/anulum/GOTM/aaa_God_of_the_Math_Collection")
-EXPECTED_REPO_ROOT = GOTM_ROOT / "03_CODE" / "SCPN-MIF-CORE"
+EXPECTED_REPO_ROOT = GOTM_ROOT / "03_CODE" / "SCPN-REACTOR-SYSTEMS" / "repositories" / "SCPN-MIF-CORE"
 EXPECTED_MOUNT = Path("/media/anulum/GOTM")
 FORBIDDEN_ROOTS = (
     Path("/media/anulum/724AA8E84AA8AA75/aaa_God_of_the_Math_Collection"),
@@ -350,7 +350,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         print("workspace locality check failed", flush=True)
         print(exc, flush=True)
         print(
-            "Hint: expected /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-MIF-CORE on ext4.",
+            "Hint: expected /media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/"
+            "SCPN-REACTOR-SYSTEMS/repositories/SCPN-MIF-CORE on ext4.",
             flush=True,
         )
         return 1

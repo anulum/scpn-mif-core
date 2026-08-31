@@ -25,6 +25,7 @@ from typing import Any, Final, Literal, cast
 
 import numpy as np
 
+from scpn_mif_core.ecosystem import default_code_root
 from scpn_mif_core.kinematic import KinematicSafetySpec, MergeWindowSpec, MovingFrameUPDESpec
 from scpn_mif_core.lifecycle import CapacitorBankSpec, PulseSpec
 from scpn_mif_core.merge_trigger import (
@@ -526,9 +527,11 @@ def run_full_chain_demo(
             raise ValueError("full-chain output directory must be empty")
 
     mif_repo = Path(__file__).resolve().parents[3]
-    selected_code_root = mif_repo.parent if code_root is None else Path(code_root).expanduser().resolve()
+    selected_code_root = default_code_root() if code_root is None else Path(code_root).expanduser().resolve()
+    conventional_mif_checkout = selected_code_root / "SCPN-MIF-CORE"
+    mif_checkout = conventional_mif_checkout if conventional_mif_checkout.is_dir() else mif_repo
     repositories = {
-        "scpn-mif-core": selected_code_root / "SCPN-MIF-CORE",
+        "scpn-mif-core": mif_checkout,
         "scpn-control": selected_code_root / "SCPN-CONTROL",
         "scpn-fusion-core": selected_code_root / "SCPN-FUSION-CORE",
         "sc-neurocore": selected_code_root / "SC-NEUROCORE",

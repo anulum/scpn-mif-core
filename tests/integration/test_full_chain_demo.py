@@ -19,6 +19,7 @@ import numpy as np
 import pytest
 
 from scpn_mif_core.cli import DEMO_SCENARIO, main, scenario_from_mapping
+from scpn_mif_core.ecosystem import default_code_root
 from scpn_mif_core.full_chain import (
     FullChainCaseResult,
     FullChainError,
@@ -248,7 +249,7 @@ def test_cli_json_mode_runs_the_same_real_chain(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     output = tmp_path / "json-evidence"
-    code_root = Path(__file__).resolve().parents[3]
+    code_root = default_code_root()
     assert main(["full-chain", "--output", str(output), "--code-root", str(code_root), "--json"]) == 0
     manifest = json.loads(capsys.readouterr().out)
     assert manifest["demo"] == "Fusion-to-Fire"

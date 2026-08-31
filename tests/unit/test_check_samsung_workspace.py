@@ -33,7 +33,7 @@ def _make_repo(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, patch_mount: bool = True
 ) -> tuple[Path, WorkspacePolicy]:
     gotm_root = tmp_path / "media" / "anulum" / "GOTM" / "aaa_God_of_the_Math_Collection"
-    repo = gotm_root / "03_CODE" / "SCPN-MIF-CORE"
+    repo = gotm_root / "03_CODE" / "SCPN-REACTOR-SYSTEMS" / "repositories" / "SCPN-MIF-CORE"
     repo.mkdir(parents=True)
     (repo / ".git").mkdir()
 
@@ -260,13 +260,13 @@ def test_git_directory_must_exist_and_not_be_a_symlink(tmp_path: Path, monkeypat
 
 def test_path_component_symlink_is_reported(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     gotm_real = tmp_path / "gotm-real"
-    repo = gotm_real / "03_CODE" / "SCPN-MIF-CORE"
+    repo = gotm_real / "03_CODE" / "SCPN-REACTOR-SYSTEMS" / "repositories" / "SCPN-MIF-CORE"
     repo.mkdir(parents=True)
     (repo / ".git").mkdir()
     _make_complete_venv(repo)
     gotm_link = tmp_path / "gotm-link"
     gotm_link.symlink_to(gotm_real, target_is_directory=True)
-    linked_repo = gotm_link / "03_CODE" / "SCPN-MIF-CORE"
+    linked_repo = gotm_link / "03_CODE" / "SCPN-REACTOR-SYSTEMS" / "repositories" / "SCPN-MIF-CORE"
     policy = WorkspacePolicy(
         expected_repo_root=linked_repo,
         gotm_root=gotm_link,

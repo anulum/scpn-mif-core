@@ -15,7 +15,7 @@ pre-commit install
 
 Repository-locality requirement: this checkout is expected to live under the
 Samsung GOTM working tree at
-`/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-MIF-CORE`,
+`/media/anulum/GOTM/aaa_God_of_the_Math_Collection/03_CODE/SCPN-REACTOR-SYSTEMS/repositories/SCPN-MIF-CORE`,
 on the ext4 `/media/anulum/GOTM` mount. The local guard
 (`python tools/check_samsung_workspace.py`) runs as part of the
 pre-commit/preflight pipeline to prevent old-mirror, home-directory, symlinked

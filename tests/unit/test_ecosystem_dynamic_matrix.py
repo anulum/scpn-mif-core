@@ -385,7 +385,8 @@ def test_default_code_root_without_env_falls_back_to_repository_parent(
 ) -> None:
     monkeypatch.delenv("SCPN_MIF_ECOSYSTEM_ROOT", raising=False)
     monkeypatch.delenv("GOTM_CODE_ROOT", raising=False)
-    expected = Path(ecosystem_module.__file__).resolve().parents[3]
+    repository_root = Path(ecosystem_module.__file__).resolve().parents[2]
+    expected = next((parent for parent in repository_root.parents if parent.name == "03_CODE"), repository_root.parent)
     assert default_code_root() == expected
 
 

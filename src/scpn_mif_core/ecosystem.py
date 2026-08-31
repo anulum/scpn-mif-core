@@ -305,7 +305,11 @@ def default_code_root() -> Path:
     env_root = os.environ.get("SCPN_MIF_ECOSYSTEM_ROOT") or os.environ.get("GOTM_CODE_ROOT")
     if env_root:
         return Path(env_root).expanduser().resolve()
-    return Path(__file__).resolve().parents[3]
+    repository_root = Path(__file__).resolve().parents[2]
+    for candidate in repository_root.parents:
+        if candidate.name == "03_CODE":
+            return candidate
+    return repository_root.parent
 
 
 def generate_ecosystem_report(
