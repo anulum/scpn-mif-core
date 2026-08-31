@@ -91,7 +91,7 @@ jobs:
             echo "present=false" >> "$GITHUB_OUTPUT"
             echo "::notice::No Mojo parity source is shipped; this advisory lane is not applicable."
           fi
-      - uses: prefix-dev/setup-pixi@f00437f565399d418b0acc85936d12c1fb668347  # v0.10.1
+      - uses: prefix-dev/setup-pixi@d3f436a425481402e6a95a1d1fc10331c708cd9e  # v0.10.2
         if: steps.mojo-surface.outputs.present == 'true'
       - name: Run the declared Mojo parity task
         if: steps.mojo-surface.outputs.present == 'true'
