@@ -77,10 +77,20 @@ def test_fusion_nightly_uses_the_full_chain_runtime_lock() -> None:
         "runtime": "full-chain",
     }
     assert standard_install["if"] == "matrix.sibling.runtime == 'standard'"
+    assert "--require-hashes -r requirements/ci.txt" in standard_install["run"]
+    assert "--no-deps --no-build-isolation -e ." in standard_install["run"]
+    assert "pip install --upgrade pip" not in standard_install["run"]
     assert locked_install["if"] == ("steps.sibling.outcome == 'success' && matrix.sibling.runtime == 'full-chain'")
     assert "--require-hashes -r requirements/full-chain-ci.txt" in locked_install["run"]
     assert locked_install["run"].count("--no-deps --no-build-isolation") == 2
     assert "python -m pip check" in locked_install["run"]
+
+    sibling_install = next(
+        step
+        for step in contract_trial["steps"]
+        if step.get("name") == "Install ${{ matrix.sibling.repo }}@main for runtime-import surfaces"
+    )
+    assert "--no-deps --no-build-isolation" in sibling_install["run"]
 
 
 def test_parity_workflow_is_advisory_and_documents_absent_mojo() -> None:

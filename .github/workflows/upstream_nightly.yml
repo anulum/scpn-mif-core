@@ -51,8 +51,8 @@ jobs:
       - name: Install MIF with dev tooling
         if: matrix.sibling.runtime == 'standard'
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[dev]"
+          python -m pip install --require-hashes -r requirements/ci.txt
+          python -m pip install --no-deps --no-build-isolation -e .
 
       - name: Checkout ${{ matrix.sibling.repo }}@main source tree
         id: sibling
@@ -72,7 +72,7 @@ jobs:
       - name: Install ${{ matrix.sibling.repo }}@main for runtime-import surfaces
         if: steps.sibling.outcome == 'success' && matrix.sibling.runtime == 'standard'
         run: |
-          python -m pip install "./_siblings/${{ matrix.sibling.dir }}" \
+          python -m pip install --no-deps --no-build-isolation -e "./_siblings/${{ matrix.sibling.dir }}" \
             || echo "::warning title=Sibling not installable::${{ matrix.sibling.repo }}@main is not pip-installable; only source-tree contract surfaces are checked."
 
       - name: Install hash-locked MIF/FUSION runtime
