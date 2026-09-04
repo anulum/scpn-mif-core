@@ -98,6 +98,25 @@ def test_spike_buffer_is_deterministic_ring() -> None:
     assert len(buffer) == 3
     assert [event.address for event in buffer.events] == [1, 2, 3]
     assert [event.t_ns for event in buffer.events] == [10, 20, 30]
+    assert buffer.telemetry.accepted_events == 4
+    assert buffer.telemetry.evicted_events == 1
+    assert buffer.telemetry.high_watermark == 3
+    assert buffer.telemetry.overflowed
+
+
+def test_legacy_buffer_loss_telemetry_is_sticky_until_explicit_reset() -> None:
+    buffer = SpikeBuffer(capacity=1)
+    buffer.push(AERSpikeEvent(address=0, t_ns=0))
+    buffer.push(AERSpikeEvent(address=1, t_ns=1))
+    buffer.clear()
+
+    assert buffer.telemetry.accepted_events == 2
+    assert buffer.telemetry.evicted_events == 1
+    assert buffer.telemetry.overflowed
+    buffer.reset_telemetry()
+    assert buffer.telemetry.accepted_events == 0
+    assert buffer.telemetry.evicted_events == 0
+    assert not buffer.telemetry.overflowed
 
 
 def test_empty_buffer_and_clear_reset_channel_state() -> None:
@@ -119,6 +138,7 @@ def test_spike_buffer_rejects_non_monotone_timestamps() -> None:
 
     with pytest.raises(ValueError, match="monotone"):
         buffer.push(AERSpikeEvent(address=1, t_ns=9))
+    assert buffer.telemetry.rejected_events == 1
 
 
 def test_spike_buffer_rejects_invalid_event_objects() -> None:
@@ -126,6 +146,7 @@ def test_spike_buffer_rejects_invalid_event_objects() -> None:
 
     with pytest.raises(TypeError, match="AERSpikeEvent"):
         buffer.push(object())  # type: ignore[arg-type]
+    assert buffer.telemetry.rejected_events == 1
 
 
 def test_decode_rejects_out_of_range_address() -> None:

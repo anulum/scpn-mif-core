@@ -10,6 +10,7 @@
 from .contracts import FullChainCaseResult, FullChainRunResult
 from .runtime import (
     FullChainError,
+    evaluate_exact_current_aer_diagnostic,
     evaluate_neuro_symbolic_admission,
     evaluate_pulsed_scheduler_admission,
     run_full_chain_demo,
@@ -20,6 +21,7 @@ __all__ = [
     "FullChainCaseResult",
     "FullChainError",
     "FullChainRunResult",
+    "evaluate_exact_current_aer_diagnostic",
     "evaluate_neuro_symbolic_admission",
     "evaluate_pulsed_scheduler_admission",
     "run_full_chain_demo",

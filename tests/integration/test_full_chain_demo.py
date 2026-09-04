@@ -71,6 +71,19 @@ def test_nominal_case_causes_exactly_one_rtl_trigger_then_fusion_actuation(evide
         "threshold permit only; no temporal LIF-dynamics claim"
     )
     assert nominal["control_neuro_symbolic"]["formal_fire_reachable"] is True
+    diagnostic = nominal["control_exact_current_diagnostic"]
+    assert diagnostic["execution_mode"] == "stateful_exact_current_diagnostic"
+    assert diagnostic["actuation_authority"] is False
+    assert diagnostic["fidelity_scope"] == "normalized_simulation_only"
+    assert diagnostic["telemetry"]["generated"] == diagnostic["telemetry"]["accepted"]
+    assert diagnostic["telemetry"]["dropped"] == 0
+    assert diagnostic["telemetry"]["overflow_sticky"] is False
+    assert diagnostic["post_projection_telemetry"]["queued"] == 0
+    stream = json.loads(diagnostic["event_stream_json"])
+    assert {event["raw_address"] for event in stream["events"]} == {0x4100, 0x4101}
+    control_execution = json.loads(diagnostic["control_execution_json"])
+    assert control_execution["schema"] == "scpn-control.exact-current-lif-execution.v1"
+    assert control_execution["transitions"][0]["transition"] == "mif007-aer-diagnostic"
     assert nominal["control_scheduler"]["permit"] is True
     assert nominal["control_permit"] is True
     assert nominal["rtl"]["bit_true"] is True
@@ -88,6 +101,8 @@ def test_safety_fault_vetoes_every_rtl_cycle_and_never_invokes_fusion(evidence: 
     assert veto["control_neuro_symbolic"]["temporal_state_preserved"] is False
     assert veto["control_neuro_symbolic"]["formal_marking_bounds_hold"] is True
     assert veto["control_neuro_symbolic"]["formal_fire_reachable"] is False
+    assert veto["control_exact_current_diagnostic"]["actuation_authority"] is False
+    assert veto["control_exact_current_diagnostic"]["loss_policy"] == "fail_closed_before_CONTROL_execution"
     assert veto["control_scheduler"]["permit"] is True
     assert veto["control_permit"] is False
     assert all(cycle["safety_veto"] for cycle in veto["rtl"]["cycles"])

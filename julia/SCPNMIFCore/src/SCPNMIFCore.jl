@@ -23,6 +23,26 @@ and ModelingToolkit.jl before Rust ports.
 module SCPNMIFCore
 
 export VERSION,
+    AER_ADDRESS_MAP_SCHEMA,
+    AER_EVENT_STREAM_SCHEMA,
+    AER_LOSS_TELEMETRY_SCHEMA,
+    AerAddressBinding,
+    AerAddressMap,
+    AerAdmission,
+    AerEventStream,
+    AerIntegrityBuffer,
+    AerLossTelemetry,
+    MappedAerEvent,
+    RawAerEvent,
+    accept_event!,
+    canonical_digest,
+    canonical_json,
+    conservation_holds,
+    event_integrity_telemetry,
+    map_event,
+    push_event!,
+    reset_epoch!,
+    resolve_address,
     AERDecodeSpec,
     AERSpikeBuffer,
     AERSpikeEvent,
@@ -103,6 +123,7 @@ include("diagnostic_stress_inject.jl")
 include("kinematic_safety.jl")
 include("merge_window.jl")
 include("aer_spike.jl")
+include("aer_event_integrity.jl")
 
 """
     FaradayRecoverySpec(turns, load_resistance_ohm; coupling_efficiency=1.0)

@@ -1,0 +1,22 @@
+{
+  "SPDX-License-Identifier": "AGPL-3.0-or-later",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://anulum.github.io/scpn-mif-core/schemas/aer_exact_current_execution_v1.schema.json",
+  "title": "SCPN MIF AER exact-current execution envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "projection",
+    "projection_sha256",
+    "control_execution_sha256",
+    "control_execution"
+  ],
+  "properties": {
+    "schema": { "const": "scpn-mif-core.aer-exact-current-execution.v1" },
+    "projection": { "$ref": "aer_exact_current_trace_v1.schema.json" },
+    "projection_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "control_execution_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "control_execution": { "type": "object" }
+  }
+}

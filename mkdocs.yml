@@ -161,6 +161,7 @@ nav:
           - Faraday recovery: api/physics/faraday_recovery.md
       - AER:
           - Spike-buffer decoder: api/aer/spike_buffer.md
+          - Ordered event integrity: api/aer/event_integrity.md
       - Diagnostics:
           - Normalisation: api/diagnostics/normalisation.md
           - Stress injection: api/diagnostics/stress_inject.md
@@ -174,6 +175,7 @@ nav:
           - Plasmoid-merger Petri net: api/formal/plasmoid_merger_petri_net.md
       - FPGA:
           - ADC-to-spike quantiser: api/fpga/adc_to_spike_quantiser.md
+          - Ordered AER producer and CDC ingress: api/fpga/aer_event_ingress.md
           - Trigger timing evidence package: api/fpga/timing_evidence_package.md
       - Interop:
           - Trigger I/O (White-Rabbit + EPICS): api/interop/trigger_io.md

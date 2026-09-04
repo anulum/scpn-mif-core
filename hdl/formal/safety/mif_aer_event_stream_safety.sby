@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SCPN-MIF-CORE — bounded ordered-event producer safety/conservation check.
+
+[options]
+mode bmc
+depth 10
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv -formal mif_adc_to_aer_event_stream.sv
+read_verilog -sv -formal mif_aer_event_stream_formal.sv
+prep -top mif_aer_event_stream_formal
+
+[files]
+../../src/sensors/mif_adc_to_aer_event_stream.sv
+../mif_aer_event_stream_formal.sv

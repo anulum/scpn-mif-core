@@ -13,6 +13,12 @@ address-event spike streams into ControlObservation-compatible feature
 vectors. The surface is allocated to Python and Rust. Go remains reserved for
 optional network router scaffolding and is not a local decode backend.
 
+This decoder is the compatibility rate/temporal/ISI surface. The separate
+[ordered event-integrity path](event_integrity.md) preserves raw address,
+polarity, source timestamps, and sequence through the exact-current diagnostic
+boundary; callers must not infer ordered lossless delivery from this ring
+decoder alone.
+
 ## Decode Strategies
 
 For a decode window `[t_start, t_start + W)` and channel address `a`, the

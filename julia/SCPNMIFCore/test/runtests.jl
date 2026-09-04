@@ -3,6 +3,8 @@
 using SCPNMIFCore
 using Test
 
+include("aer_event_integrity.jl")
+
 @testset "SCPNMIFCore bootstrap" begin
     @test SCPNMIFCore.VERSION == v"0.0.1"
 end

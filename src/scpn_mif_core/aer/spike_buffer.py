@@ -93,6 +93,17 @@ class AERDecodedObservation:
         object.__setattr__(self, "spike_count", _non_negative_int("spike_count", self.spike_count))
 
 
+@dataclass(frozen=True)
+class SpikeBufferTelemetry:
+    """Lifetime ingress and explicit ring-eviction counters."""
+
+    accepted_events: int
+    evicted_events: int
+    rejected_events: int
+    high_watermark: int
+    overflowed: bool
+
+
 class SpikeBuffer:
     """Deterministic monotone AER spike ring buffer."""
 
@@ -100,6 +111,11 @@ class SpikeBuffer:
         self.capacity = _positive_int("capacity", capacity)
         self._events: deque[AERSpikeEvent] = deque(maxlen=self.capacity)
         self._last_t_ns: int | None = None
+        self._accepted_events = 0
+        self._evicted_events = 0
+        self._rejected_events = 0
+        self._high_watermark = 0
+        self._overflowed = False
 
     def __len__(self) -> int:
         """Return the number of buffered spike events."""
@@ -117,19 +133,45 @@ class SpikeBuffer:
             return 0
         return max(event.address for event in self._events) + 1
 
+    @property
+    def telemetry(self) -> SpikeBufferTelemetry:
+        """Return an immutable snapshot of lifetime buffer integrity counters."""
+        return SpikeBufferTelemetry(
+            accepted_events=self._accepted_events,
+            evicted_events=self._evicted_events,
+            rejected_events=self._rejected_events,
+            high_watermark=self._high_watermark,
+            overflowed=self._overflowed,
+        )
+
     def push(self, event: AERSpikeEvent) -> None:
         """Append one monotone event, dropping the oldest event when full."""
         if not isinstance(event, AERSpikeEvent):
+            self._rejected_events += 1
             raise TypeError("event must be an AERSpikeEvent")
         if self._last_t_ns is not None and event.t_ns < self._last_t_ns:
+            self._rejected_events += 1
             raise ValueError("AER event timestamps must be monotone")
+        if len(self._events) == self.capacity:
+            self._evicted_events += 1
+            self._overflowed = True
         self._events.append(event)
         self._last_t_ns = event.t_ns
+        self._accepted_events += 1
+        self._high_watermark = max(self._high_watermark, len(self._events))
 
     def clear(self) -> None:
-        """Remove all buffered events and reset timestamp state."""
+        """Remove buffered events while preserving lifetime loss telemetry."""
         self._events.clear()
         self._last_t_ns = None
+
+    def reset_telemetry(self) -> None:
+        """Start a new telemetry epoch without discarding buffered events."""
+        self._accepted_events = 0
+        self._evicted_events = 0
+        self._rejected_events = 0
+        self._high_watermark = len(self._events)
+        self._overflowed = False
 
     def decode(self, spec: AERDecodeSpec) -> AERDecodedObservation:
         """Decode buffered events according to ``spec``."""

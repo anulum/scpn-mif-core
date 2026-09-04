@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://anulum.github.io/scpn-mif-core/schemas/aer_address_map_v1.schema.json",
+  "title": "SCPN-MIF-CORE AER address map v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "map_id", "bindings"],
+  "properties": {
+    "schema_version": {
+      "const": "scpn-mif-core/aer-address-map/1.0.0"
+    },
+    "map_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!\\s)(?:.*\\S)?$"
+    },
+    "bindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["raw_address", "channel", "polarity"],
+        "properties": {
+          "raw_address": {"type": "integer", "minimum": 0, "maximum": 65535},
+          "channel": {"type": "integer", "minimum": 0, "maximum": 65535},
+          "polarity": {"type": "integer", "enum": [-1, 1]}
+        }
+      }
+    }
+  }
+}

@@ -54,7 +54,7 @@ from .evidence import (
 )
 from .rtl import TriggerFabricBuild, build_trigger_fabric
 
-_SCHEMA = "scpn-mif-core/fusion-control-mif-full-chain/1.1.0"
+_SCHEMA = "scpn-mif-core/fusion-control-mif-full-chain/1.2.0"
 _NEURO_EXECUTION_MODE: Final = "stateless_transition_gate"
 _NEURO_STATE_LIFECYCLE: Final = "reset_before_single_transition_evaluation"
 _NEURO_FIDELITY_BOUNDARY: Final = "threshold permit only; no temporal LIF-dynamics claim"
@@ -62,6 +62,7 @@ _SEED = 20_260_825
 _BITSTREAM_LENGTH = 4096
 _ADC_WINDOW = 16
 _RTL_CYCLES = 5
+_AER_PULSE_WIDTH_NS = 20_000_000
 _FUSION_STEPS = 256
 _FUSION_DT_S = 2.0e-8
 _FUSION_FIELD_T = 5.0
@@ -249,6 +250,119 @@ def evaluate_pulsed_scheduler_admission(report: MergeTriggerReport) -> dict[str,
     }
 
 
+def _diagnostic_adc_samples() -> tuple[int, ...]:
+    """Return a deterministic bipolar MIF-007 stream with a positive net drive."""
+    from tools.adc_to_spike_reference import AdcToSpikeConfig
+
+    adc = AdcToSpikeConfig()
+    return tuple(-adc.adc_max if index % 8 == 7 else adc.adc_max for index in range(_ADC_WINDOW * _RTL_CYCLES))
+
+
+def evaluate_exact_current_aer_diagnostic(*, shot_id: str) -> dict[str, JsonValue]:
+    """Run MIF-007 events through MIF-006 mapping and CONTROL's stateful LIF.
+
+    This diagnostic never grants actuation authority.  The historical
+    deterministic ``lif_fire`` gate and the independent machine-safety veto
+    remain the only neuro-symbolic inputs to the trigger decision.
+    """
+    from scpn_mif_core.aer import (
+        AerAddressBinding,
+        AerAddressMap,
+        AerEventStream,
+        AerIntegrityBuffer,
+        RawAerEvent,
+    )
+    from scpn_mif_core.aer.exact_current_lif_bridge import (
+        AerExactCurrentLIFBridge,
+        AerExactCurrentProjectionSpec,
+        AerTransitionCalibration,
+    )
+    from tools.adc_to_spike_reference import AdcToSpikeConfig, run_adc_to_spike_reference
+
+    adc = AdcToSpikeConfig()
+    if 1_000_000_000 % adc.sample_rate_hz != 0:
+        raise FullChainError("MIF-007 diagnostic requires an integer-nanosecond source clock period")
+    report = run_adc_to_spike_reference(_diagnostic_adc_samples(), adc)
+    address_map = AerAddressMap(
+        "mif007-polarity-v1",
+        (
+            AerAddressBinding(adc.aer_base_address + adc.positive_offset, 0, 1),
+            AerAddressBinding(adc.aer_base_address + adc.negative_offset, 0, -1),
+        ),
+    )
+    buffer = AerIntegrityBuffer(max(1, len(report.events)), address_map)
+    period_ns = 1_000_000_000 // adc.sample_rate_hz
+    for sequence, event in enumerate(report.events):
+        admission = buffer.push(
+            RawAerEvent(
+                source_id="MIF-007-bdot-adc",
+                raw_address=event.aer_address,
+                polarity=-1 if event.q8_8_value < 0 else 1,
+                t_ns=event.sample_index * period_ns,
+                sequence=sequence,
+            )
+        )
+        if not admission.accepted:
+            raise FullChainError("lossless MIF-007 diagnostic buffer rejected an event")
+    stream = AerEventStream(
+        shot_id=shot_id,
+        clock_domain="mif007-adc-source",
+        source_frequency_hz=adc.sample_rate_hz,
+        map_id=address_map.map_id,
+        map_digest=address_map.digest,
+        events=buffer.events,
+        sequence_start=0,
+    )
+    projection_spec = AerExactCurrentProjectionSpec(
+        address_map_digest=address_map.digest,
+        pulse_width_ns=_AER_PULSE_WIDTH_NS,
+        calibrations=(AerTransitionCalibration("mif007-aer-diagnostic", ("1",)),),
+        calibration_id="mif007-unit-normalized-v1",
+        calibration_provenance=(
+            "deterministic normalized simulation profile; no facility calibration or actuation claim"
+        ),
+    )
+    bridge = AerExactCurrentLIFBridge.from_installed_control(projection_spec, shot_id=shot_id)
+    last_t_ns = stream.events[-1].t_ns if stream.events else 0
+    ingress_telemetry = buffer.telemetry
+    execution = bridge.execute(stream, ingress_telemetry, stop_ns=last_t_ns + _AER_PULSE_WIDTH_NS)
+    for _ in stream.events:
+        buffer.pop_oldest()
+    post_projection_telemetry = buffer.telemetry
+    return {
+        "execution_mode": "stateful_exact_current_diagnostic",
+        "actuation_authority": False,
+        "fidelity_scope": projection_spec.fidelity_scope,
+        "loss_policy": "fail_closed_before_CONTROL_execution",
+        "address_map_json": address_map.to_canonical_bytes().decode("utf-8"),
+        "address_map_sha256": address_map.digest,
+        "event_stream_json": stream.to_canonical_bytes().decode("utf-8"),
+        "event_stream_sha256": stream.digest,
+        "projection_spec_json": projection_spec.to_json(),
+        "projection_spec_sha256": projection_spec.sha256,
+        "projection": cast(JsonValue, execution.projection.to_payload()),
+        "projection_sha256": execution.projection.sha256,
+        "control_execution_json": execution.control_execution.to_json(),
+        "control_execution_sha256": execution.control_execution.sha256,
+        "telemetry": {
+            "generated": ingress_telemetry.generated,
+            "accepted": ingress_telemetry.accepted,
+            "dropped": ingress_telemetry.dropped,
+            "queued": ingress_telemetry.queued,
+            "high_watermark": ingress_telemetry.high_watermark,
+            "overflow_sticky": ingress_telemetry.overflow_sticky,
+        },
+        "post_projection_telemetry": {
+            "generated": post_projection_telemetry.generated,
+            "accepted": post_projection_telemetry.accepted,
+            "dropped": post_projection_telemetry.dropped,
+            "queued": post_projection_telemetry.queued,
+            "high_watermark": post_projection_telemetry.high_watermark,
+            "overflow_sticky": post_projection_telemetry.overflow_sticky,
+        },
+    }
+
+
 def _aer_stimulus(
     report: MergeTriggerReport,
     *,
@@ -376,6 +490,7 @@ def _run_case(
     report = evaluate_merge_trigger(_scenario(unsafe=unsafe))
     neuro = evaluate_neuro_symbolic_admission(report, backend_name=sc_backend)
     scheduler = evaluate_pulsed_scheduler_admission(report)
+    exact_current_diagnostic = evaluate_exact_current_aer_diagnostic(shot_id=f"full-chain-{case_name}")
     neuro_permit = cast(bool, neuro["stochastic_permit"])
     scheduler_permit = cast(bool, scheduler["permit"])
     control_permit = neuro_permit and scheduler_permit
@@ -423,6 +538,7 @@ def _run_case(
         "mif_bank_feasible": report.bank_feasible,
         "mif_bank_available_energy_J": exact_decimal(report.bank_available_energy_J),
         "control_neuro_symbolic": neuro,
+        "control_exact_current_diagnostic": exact_current_diagnostic,
         "control_scheduler": scheduler,
         "control_permit": control_permit,
         "aer": {
@@ -617,6 +733,7 @@ def run_full_chain_demo(
 
 __all__ = [
     "FullChainError",
+    "evaluate_exact_current_aer_diagnostic",
     "evaluate_neuro_symbolic_admission",
     "evaluate_pulsed_scheduler_admission",
     "run_full_chain_demo",

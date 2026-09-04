@@ -18,6 +18,15 @@
   trigger RTL, Fusion pulsed compression, and MIF Faraday recovery. The CLI emits
   float-free, SHA-256-bound evidence and a deterministic pickle-free trajectory
   without claiming hardware or post-route timing.
+- Added strict, versioned AER address-map and incremental event-stream
+  contracts with canonical SHA-256 evidence, reject-newest conservation
+  telemetry, independent Rust/Julia mirrors, and a loss-intolerant bridge to
+  CONTROL's public stateful exact-current LIF runtime. The normalized-current
+  profile is diagnostic-only and has no actuation authority.
+- Added an ordered full-payload ADC-to-AER producer and dual-clock asynchronous
+  FIFO carrying raw address, polarity, source tick, and sequence, with explicit
+  pressure/loss telemetry, deterministic large-corpus Verilator parity, Yosys
+  synthesis checks, and bounded safety/liveness properties.
 
 ### Security
 

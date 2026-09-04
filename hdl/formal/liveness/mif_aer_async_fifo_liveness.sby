@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# SCPN-MIF-CORE — bounded dual-clock AER FIFO path witnesses.
+
+[options]
+mode cover
+depth 32
+multiclock on
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv -formal mif_aer_async_fifo.sv
+read_verilog -sv -formal mif_aer_async_fifo_formal.sv
+prep -top mif_aer_async_fifo_formal
+
+[files]
+../../src/aer/mif_aer_async_fifo.sv
+../mif_aer_async_fifo_formal.sv

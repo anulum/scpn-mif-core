@@ -472,18 +472,18 @@ and the hardware trigger chain are still gated (see the items above).
 | Surface | Current inventory |
 |---|---:|
 | Package version | 0.1.1 |
-| Public API exports | 200 |
-| Python capability source modules | 26 |
-| Python capability classes | 93 |
+| Public API exports | 229 |
+| Python capability source modules | 28 |
+| Python capability classes | 116 |
 | Rust workspace crates | 10 |
-| Julia reference modules | 9 |
+| Julia reference modules | 10 |
 | Go parity sources | 4 |
 | Lean 4 proof modules | 8 |
-| Synthesisable HDL RTL modules | 4 |
-| Capability documentation pages | 62 |
+| Synthesisable HDL RTL modules | 7 |
+| Capability documentation pages | 64 |
 | Optional extras | 7 |
-| Python test files | 124 |
-| Public documentation pages | 62 |
+| Python test files | 128 |
+| Public documentation pages | 64 |
 | GitHub Actions workflows | 25 |
 
 Evidence boundary: this snapshot is a static inventory. Performance, coverage, hardware, and scientific-fidelity claims require their own committed evidence artifacts.

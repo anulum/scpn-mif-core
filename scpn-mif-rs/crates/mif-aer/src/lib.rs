@@ -19,6 +19,14 @@ use std::{collections::VecDeque, str::FromStr};
 
 use thiserror::Error;
 
+pub mod event_integrity;
+
+pub use event_integrity::{
+    AerAddressBinding, AerAddressMap, AerAdmission, AerEventStream, AerIntegrityBuffer,
+    AerIntegrityError, AerLossTelemetry, MappedAerEvent, RawAerEvent, AER_ADDRESS_MAP_SCHEMA,
+    AER_EVENT_STREAM_SCHEMA, AER_LOSS_TELEMETRY_SCHEMA,
+};
+
 /// Crate version derived from the workspace.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 

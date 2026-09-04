@@ -552,10 +552,31 @@ def _python_capability_classes(roots: tuple[Path, ...], *, repo: Path) -> list[d
 def _rust_workspace_crates(root: Path, *, repo: Path) -> list[dict[str, str]]:
     if not root.exists():
         return []
+    workspace_manifest = root / "Cargo.toml"
+    if not workspace_manifest.is_file():
+        return []
+    workspace_payload = tomllib.loads(workspace_manifest.read_text(encoding="utf-8"))
+    workspace = workspace_payload.get("workspace", {})
+    members = workspace.get("members", []) if isinstance(workspace, dict) else []
+    if not isinstance(members, list):
+        return []
     crates: list[dict[str, str]] = []
-    for manifest in sorted(root.rglob("Cargo.toml")):
-        if manifest == root / "Cargo.toml":
+    manifests: set[Path] = set()
+    resolved_root = root.resolve()
+    for member in members:
+        if not isinstance(member, str):
             continue
+        for member_path in root.glob(member):
+            resolved_member = member_path.resolve()
+            if not resolved_member.is_relative_to(resolved_root):
+                continue
+            manifest = member_path / "Cargo.toml"
+            if manifest.is_file():
+                manifests.add(manifest)
+    for manifest in root.glob("*/Cargo.toml"):
+        if manifest.parent.name != "target":
+            manifests.add(manifest)
+    for manifest in sorted(manifests):
         payload = tomllib.loads(manifest.read_text(encoding="utf-8"))
         package = payload.get("package", {})
         name = package.get("name")

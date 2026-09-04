@@ -337,6 +337,25 @@ def test_rust_crate_without_name_is_skipped(tmp_path: Path) -> None:
     assert TOOL._rust_workspace_crates(workspace, repo=tmp_path) == []
 
 
+def test_rust_crate_inventory_uses_workspace_members_not_build_cache(tmp_path: Path) -> None:
+    workspace = tmp_path / "rs"
+    crate = workspace / "crates" / "mif-a"
+    fuzz = workspace / "fuzz"
+    cached = workspace / "target" / "debug" / "build" / "foreign"
+    crate.mkdir(parents=True)
+    fuzz.mkdir(parents=True)
+    cached.mkdir(parents=True)
+    (workspace / "Cargo.toml").write_text('[workspace]\nmembers = ["crates/*"]\n', encoding="utf-8")
+    (crate / "Cargo.toml").write_text('[package]\nname = "mif-a"\nversion = "0.1.0"\n', encoding="utf-8")
+    (fuzz / "Cargo.toml").write_text('[package]\nname = "mif-fuzz"\nversion = "0.0.0"\n', encoding="utf-8")
+    (cached / "Cargo.toml").write_text('[package]\nname = "foreign"\nversion = "9.9.9"\n', encoding="utf-8")
+
+    assert TOOL._rust_workspace_crates(workspace, repo=tmp_path) == [
+        {"name": "mif-a", "path": "rs/crates/mif-a"},
+        {"name": "mif-fuzz", "path": "rs/fuzz"},
+    ]
+
+
 def test_config_path_outside_repo_records_absolute_source(tmp_path: Path) -> None:
     repo = _build_fixture(tmp_path / "repo")
     external = tmp_path / "external_capability_manifest.toml"

@@ -13,6 +13,7 @@
       "docs/adr/0009-standards-interop-seams.md",
       "docs/adr/0010-merge-window-predictor-feature-boundary.md",
       "docs/adr/index.md",
+      "docs/api/aer/event_integrity.md",
       "docs/api/aer/spike_buffer.md",
       "docs/api/daq/bus_mock.md",
       "docs/api/diagnostics/normalisation.md",
@@ -25,6 +26,7 @@
       "docs/api/formal/plasmoid_merger_petri_net.md",
       "docs/api/formal/pulsed_shot.md",
       "docs/api/fpga/adc_to_spike_quantiser.md",
+      "docs/api/fpga/aer_event_ingress.md",
       "docs/api/fpga/timing_evidence_package.md",
       "docs/api/full_chain.md",
       "docs/api/index.md",
@@ -72,13 +74,17 @@
       "go/daqmock/frame.go"
     ],
     "hdl_rtl_modules": [
+      "hdl/src/aer/mif_aer_async_fifo.sv",
       "hdl/src/aer/mif_aer_cdc_synchroniser.sv",
+      "hdl/src/aer/mif_aer_event_ingress.sv",
       "hdl/src/sensors/adc_to_spike_quantiser.sv",
+      "hdl/src/sensors/mif_adc_to_aer_event_stream.sv",
       "hdl/src/triggers/mif_fast_veto_gate.sv",
       "hdl/src/triggers/mif_trigger_fabric.sv"
     ],
     "julia_reference_modules": [
       "julia/SCPNMIFCore/src/SCPNMIFCore.jl",
+      "julia/SCPNMIFCore/src/aer_event_integrity.jl",
       "julia/SCPNMIFCore/src/aer_spike.jl",
       "julia/SCPNMIFCore/src/capacitor_bank.jl",
       "julia/SCPNMIFCore/src/diagnostic_normalisation.jl",
@@ -100,6 +106,14 @@
     ],
     "python_classes": [
       {
+        "name": "AERAddressMapError",
+        "path": "src/scpn_mif_core/aer/event_integrity.py"
+      },
+      {
+        "name": "AERContractMismatchError",
+        "path": "src/scpn_mif_core/aer/event_integrity.py"
+      },
+      {
         "name": "AERControlObservation",
         "path": "src/scpn_mif_core/aer/spike_buffer.py"
       },
@@ -112,8 +126,76 @@
         "path": "src/scpn_mif_core/aer/spike_buffer.py"
       },
       {
+        "name": "AERIntegrityError",
+        "path": "src/scpn_mif_core/aer/event_integrity.py"
+      },
+      {
+        "name": "AERPolarityMismatchError",
+        "path": "src/scpn_mif_core/aer/event_integrity.py"
+      },
+      {
+        "name": "AERSequenceError",
+        "path": "src/scpn_mif_core/aer/event_integrity.py"
+      },
+      {
         "name": "AERSpikeEvent",
         "path": "src/scpn_mif_core/aer/spike_buffer.py"
+      },
+      {
+        "name": "AERTimestampRegressionError",
+        "path": "src/scpn_mif_core/aer/event_integrity.py"
+      },
+      {
+        "name": "AerAddressBinding",
+        "path": "src/scpn_mif_core/aer/event_integrity.py"
+      },
+      {
+        "name": "AerAddressMap",
+        "path": "src/scpn_mif_core/aer/event_integrity.py"
+      },
+      {
+        "name": "AerAdmission",
+        "path": "src/scpn_mif_core/aer/event_integrity.py"
+      },
+      {
+        "name": "AerEventStream",
+        "path": "src/scpn_mif_core/aer/event_integrity.py"
+      },
+      {
+        "name": "AerExactCurrentExecution",
+        "path": "src/scpn_mif_core/aer/exact_current_lif_bridge.py"
+      },
+      {
+        "name": "AerExactCurrentLIFBridge",
+        "path": "src/scpn_mif_core/aer/exact_current_lif_bridge.py"
+      },
+      {
+        "name": "AerExactCurrentProjection",
+        "path": "src/scpn_mif_core/aer/exact_current_lif_bridge.py"
+      },
+      {
+        "name": "AerExactCurrentProjectionError",
+        "path": "src/scpn_mif_core/aer/exact_current_lif_bridge.py"
+      },
+      {
+        "name": "AerExactCurrentProjectionSpec",
+        "path": "src/scpn_mif_core/aer/exact_current_lif_bridge.py"
+      },
+      {
+        "name": "AerIntegrityBuffer",
+        "path": "src/scpn_mif_core/aer/event_integrity.py"
+      },
+      {
+        "name": "AerLossTelemetry",
+        "path": "src/scpn_mif_core/aer/event_integrity.py"
+      },
+      {
+        "name": "AerProjectedTick",
+        "path": "src/scpn_mif_core/aer/exact_current_lif_bridge.py"
+      },
+      {
+        "name": "AerTransitionCalibration",
+        "path": "src/scpn_mif_core/aer/exact_current_lif_bridge.py"
       },
       {
         "name": "BankTelemetry",
@@ -230,6 +312,10 @@
       {
         "name": "KinematicSafetySpec",
         "path": "src/scpn_mif_core/kinematic/safety_certificate.py"
+      },
+      {
+        "name": "MappedAerEvent",
+        "path": "src/scpn_mif_core/aer/event_integrity.py"
       },
       {
         "name": "MeasurementNoiseSpec",
@@ -352,6 +438,10 @@
         "path": "src/scpn_mif_core/lifecycle/capacitor_bank.py"
       },
       {
+        "name": "RawAerEvent",
+        "path": "src/scpn_mif_core/aer/event_integrity.py"
+      },
+      {
         "name": "RawDaqFrame",
         "path": "src/scpn_mif_core/daq/bus_mock.py"
       },
@@ -424,6 +514,10 @@
         "path": "src/scpn_mif_core/aer/spike_buffer.py"
       },
       {
+        "name": "SpikeBufferTelemetry",
+        "path": "src/scpn_mif_core/aer/spike_buffer.py"
+      },
+      {
         "name": "StreamingMergeTrigger",
         "path": "src/scpn_mif_core/kinematic/streaming_trigger.py"
       },
@@ -470,10 +564,16 @@
       {
         "name": "TriggerProbabilityTrace",
         "path": "src/scpn_mif_core/kinematic/trigger_probability.py"
+      },
+      {
+        "name": "UnknownAERAddressError",
+        "path": "src/scpn_mif_core/aer/event_integrity.py"
       }
     ],
     "python_source_modules": [
       "src/scpn_mif_core/aer/_rust_adapter.py",
+      "src/scpn_mif_core/aer/event_integrity.py",
+      "src/scpn_mif_core/aer/exact_current_lif_bridge.py",
       "src/scpn_mif_core/aer/spike_buffer.py",
       "src/scpn_mif_core/daq/_rust_adapter.py",
       "src/scpn_mif_core/daq/bus_mock.py",
@@ -544,19 +644,19 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 62,
+    "capability_documentation_pages": 64,
     "github_workflows": 25,
     "go_parity_sources": 4,
-    "hdl_rtl_modules": 4,
-    "julia_reference_modules": 9,
+    "hdl_rtl_modules": 7,
+    "julia_reference_modules": 10,
     "lean_proof_modules": 8,
     "optional_extras": 7,
-    "public_api_exports": 200,
-    "public_documentation_pages": 62,
-    "python_capability_classes": 93,
-    "python_capability_source_modules": 26,
+    "public_api_exports": 229,
+    "public_documentation_pages": 64,
+    "python_capability_classes": 116,
+    "python_capability_source_modules": 28,
     "rust_workspace_crates": 10,
-    "test_files": 124
+    "test_files": 128
   },
   "documentation": {
     "public_pages": [
@@ -571,6 +671,7 @@
       "docs/adr/0009-standards-interop-seams.md",
       "docs/adr/0010-merge-window-predictor-feature-boundary.md",
       "docs/adr/index.md",
+      "docs/api/aer/event_integrity.md",
       "docs/api/aer/spike_buffer.md",
       "docs/api/daq/bus_mock.md",
       "docs/api/diagnostics/normalisation.md",
@@ -583,6 +684,7 @@
       "docs/api/formal/plasmoid_merger_petri_net.md",
       "docs/api/formal/pulsed_shot.md",
       "docs/api/fpga/adc_to_spike_quantiser.md",
+      "docs/api/fpga/aer_event_ingress.md",
       "docs/api/fpga/timing_evidence_package.md",
       "docs/api/full_chain.md",
       "docs/api/index.md",
@@ -647,10 +749,35 @@
     "version": "Package version"
   },
   "package_exports": [
+    "AERAddressMapError",
+    "AERContractMismatchError",
     "AERControlObservation",
     "AERDecodeSpec",
     "AERDecodedObservation",
+    "AERIntegrityError",
+    "AERPolarityMismatchError",
+    "AERSequenceError",
     "AERSpikeEvent",
+    "AERTimestampRegressionError",
+    "AER_ADDRESS_MAP_SCHEMA_VERSION",
+    "AER_EVENT_STREAM_SCHEMA_VERSION",
+    "AER_EXACT_CURRENT_EXECUTION_SCHEMA",
+    "AER_EXACT_CURRENT_PROJECTION_PROFILE",
+    "AER_EXACT_CURRENT_PROJECTION_SCHEMA",
+    "AER_EXACT_CURRENT_TRACE_SCHEMA",
+    "AerAddressBinding",
+    "AerAddressMap",
+    "AerAdmission",
+    "AerEventStream",
+    "AerExactCurrentExecution",
+    "AerExactCurrentLIFBridge",
+    "AerExactCurrentProjection",
+    "AerExactCurrentProjectionError",
+    "AerExactCurrentProjectionSpec",
+    "AerIntegrityBuffer",
+    "AerLossTelemetry",
+    "AerProjectedTick",
+    "AerTransitionCalibration",
     "BankTelemetry",
     "CapacitorBank",
     "CapacitorBankSpec",
@@ -695,6 +822,7 @@
     "MIF_IMAS_INPUT_MAP",
     "MIF_MERGE_COMPRESSION_OBSERVATION_SCHEMA",
     "MIF_MERGE_COMPRESSION_OBSERVATION_VERSION",
+    "MappedAerEvent",
     "MeasurementNoiseSpec",
     "MergeCompressionObservationClock",
     "MergeCompressionObservationEvidence",
@@ -731,6 +859,7 @@
     "PulsedShotFSM",
     "PulsedShotSpec",
     "RLCRegime",
+    "RawAerEvent",
     "RawDaqFrame",
     "ReplayConfig",
     "ReplayThroughputReport",
@@ -757,6 +886,7 @@
     "TriggerIngress",
     "TriggerProbabilitySample",
     "TriggerProbabilityTrace",
+    "UnknownAERAddressError",
     "WhiteRabbitTimestamp",
     "__version__",
     "aer",
@@ -834,6 +964,7 @@
     "phase_lock_error",
     "physics",
     "predict_merge_window",
+    "project_aer_events",
     "propagate_trigger_probabilities",
     "recovered_power",
     "render_compatibility_matrix",
@@ -910,6 +1041,7 @@
       "tests/contract/test_quantum_qaoa_mpc_contract.py",
       "tests/contract/test_studio_feed_sdk_contract.py",
       "tests/integration/__init__.py",
+      "tests/integration/test_aer_exact_current_lif_chain.py",
       "tests/integration/test_examples.py",
       "tests/integration/test_full_chain_demo.py",
       "tests/integration/test_fusion_coupled_merge_trigger.py",
@@ -920,6 +1052,9 @@
       "tests/unit/__init__.py",
       "tests/unit/aer/__init__.py",
       "tests/unit/aer/test_decode_rate_mojo_parity.py",
+      "tests/unit/aer/test_event_integrity_contract.py",
+      "tests/unit/aer/test_event_integrity_properties.py",
+      "tests/unit/aer/test_exact_current_lif_bridge.py",
       "tests/unit/aer/test_spike_buffer.py",
       "tests/unit/aer/test_spike_buffer_rust_parity.py",
       "tests/unit/bench/__init__.py",

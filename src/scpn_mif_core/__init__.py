@@ -39,6 +39,27 @@ from scpn_mif_core import lifecycle as lifecycle
 from scpn_mif_core import merge_trigger as merge_trigger
 from scpn_mif_core import physics as physics
 from scpn_mif_core._version import __version__
+from scpn_mif_core.aer import (
+    AER_ADDRESS_MAP_SCHEMA_VERSION as AER_ADDRESS_MAP_SCHEMA_VERSION,
+)
+from scpn_mif_core.aer import (
+    AER_EVENT_STREAM_SCHEMA_VERSION as AER_EVENT_STREAM_SCHEMA_VERSION,
+)
+from scpn_mif_core.aer import (
+    AerAddressBinding as AerAddressBinding,
+)
+from scpn_mif_core.aer import (
+    AerAddressMap as AerAddressMap,
+)
+from scpn_mif_core.aer import (
+    AERAddressMapError as AERAddressMapError,
+)
+from scpn_mif_core.aer import (
+    AerAdmission as AerAdmission,
+)
+from scpn_mif_core.aer import (
+    AERContractMismatchError as AERContractMismatchError,
+)
 
 # AER ingress — spike buffer and rate/temporal/ISI decode
 from scpn_mif_core.aer import (
@@ -51,10 +72,40 @@ from scpn_mif_core.aer import (
     AERDecodeSpec as AERDecodeSpec,
 )
 from scpn_mif_core.aer import (
+    AerEventStream as AerEventStream,
+)
+from scpn_mif_core.aer import (
+    AerIntegrityBuffer as AerIntegrityBuffer,
+)
+from scpn_mif_core.aer import (
+    AERIntegrityError as AERIntegrityError,
+)
+from scpn_mif_core.aer import (
+    AerLossTelemetry as AerLossTelemetry,
+)
+from scpn_mif_core.aer import (
+    AERPolarityMismatchError as AERPolarityMismatchError,
+)
+from scpn_mif_core.aer import (
+    AERSequenceError as AERSequenceError,
+)
+from scpn_mif_core.aer import (
     AERSpikeEvent as AERSpikeEvent,
 )
 from scpn_mif_core.aer import (
+    AERTimestampRegressionError as AERTimestampRegressionError,
+)
+from scpn_mif_core.aer import (
+    MappedAerEvent as MappedAerEvent,
+)
+from scpn_mif_core.aer import (
+    RawAerEvent as RawAerEvent,
+)
+from scpn_mif_core.aer import (
     SpikeBuffer as SpikeBuffer,
+)
+from scpn_mif_core.aer import (
+    UnknownAERAddressError as UnknownAERAddressError,
 )
 from scpn_mif_core.aer import (
     decode_spike_features as decode_spike_features,
@@ -67,6 +118,42 @@ from scpn_mif_core.aer import (
 )
 from scpn_mif_core.aer import (
     dispatched_decode_spike_features as dispatched_decode_spike_features,
+)
+from scpn_mif_core.aer.exact_current_lif_bridge import (
+    AER_EXACT_CURRENT_EXECUTION_SCHEMA as AER_EXACT_CURRENT_EXECUTION_SCHEMA,
+)
+from scpn_mif_core.aer.exact_current_lif_bridge import (
+    AER_EXACT_CURRENT_PROJECTION_PROFILE as AER_EXACT_CURRENT_PROJECTION_PROFILE,
+)
+from scpn_mif_core.aer.exact_current_lif_bridge import (
+    AER_EXACT_CURRENT_PROJECTION_SCHEMA as AER_EXACT_CURRENT_PROJECTION_SCHEMA,
+)
+from scpn_mif_core.aer.exact_current_lif_bridge import (
+    AER_EXACT_CURRENT_TRACE_SCHEMA as AER_EXACT_CURRENT_TRACE_SCHEMA,
+)
+from scpn_mif_core.aer.exact_current_lif_bridge import (
+    AerExactCurrentExecution as AerExactCurrentExecution,
+)
+from scpn_mif_core.aer.exact_current_lif_bridge import (
+    AerExactCurrentLIFBridge as AerExactCurrentLIFBridge,
+)
+from scpn_mif_core.aer.exact_current_lif_bridge import (
+    AerExactCurrentProjection as AerExactCurrentProjection,
+)
+from scpn_mif_core.aer.exact_current_lif_bridge import (
+    AerExactCurrentProjectionError as AerExactCurrentProjectionError,
+)
+from scpn_mif_core.aer.exact_current_lif_bridge import (
+    AerExactCurrentProjectionSpec as AerExactCurrentProjectionSpec,
+)
+from scpn_mif_core.aer.exact_current_lif_bridge import (
+    AerProjectedTick as AerProjectedTick,
+)
+from scpn_mif_core.aer.exact_current_lif_bridge import (
+    AerTransitionCalibration as AerTransitionCalibration,
+)
+from scpn_mif_core.aer.exact_current_lif_bridge import (
+    project_aer_events as project_aer_events,
 )
 
 # DAQ bus — frame codec, UDP/PCIe replay mock, reactor descriptor profiles
@@ -629,6 +716,12 @@ from scpn_mif_core.physics import (
 )
 
 __all__ = [
+    "AER_ADDRESS_MAP_SCHEMA_VERSION",
+    "AER_EVENT_STREAM_SCHEMA_VERSION",
+    "AER_EXACT_CURRENT_EXECUTION_SCHEMA",
+    "AER_EXACT_CURRENT_PROJECTION_PROFILE",
+    "AER_EXACT_CURRENT_PROJECTION_SCHEMA",
+    "AER_EXACT_CURRENT_TRACE_SCHEMA",
     "DAQ_FRAME_VERSION",
     "DAQ_MAGIC",
     "EPICS_PREFIX",
@@ -641,10 +734,29 @@ __all__ = [
     "MIF_MERGE_COMPRESSION_OBSERVATION_SCHEMA",
     "MIF_MERGE_COMPRESSION_OBSERVATION_VERSION",
     "SIBLINGS",
+    "AERAddressMapError",
+    "AERContractMismatchError",
     "AERControlObservation",
     "AERDecodeSpec",
     "AERDecodedObservation",
+    "AERIntegrityError",
+    "AERPolarityMismatchError",
+    "AERSequenceError",
     "AERSpikeEvent",
+    "AERTimestampRegressionError",
+    "AerAddressBinding",
+    "AerAddressMap",
+    "AerAdmission",
+    "AerEventStream",
+    "AerExactCurrentExecution",
+    "AerExactCurrentLIFBridge",
+    "AerExactCurrentProjection",
+    "AerExactCurrentProjectionError",
+    "AerExactCurrentProjectionSpec",
+    "AerIntegrityBuffer",
+    "AerLossTelemetry",
+    "AerProjectedTick",
+    "AerTransitionCalibration",
     "BankTelemetry",
     "CapacitorBank",
     "CapacitorBankSpec",
@@ -678,6 +790,7 @@ __all__ = [
     "JitterSpec",
     "KinematicSafetyCertificate",
     "KinematicSafetySpec",
+    "MappedAerEvent",
     "MeasurementNoiseSpec",
     "MergeCompressionObservationClock",
     "MergeCompressionObservationEvidence",
@@ -714,6 +827,7 @@ __all__ = [
     "PulsedShotFSM",
     "PulsedShotSpec",
     "RLCRegime",
+    "RawAerEvent",
     "RawDaqFrame",
     "ReplayConfig",
     "ReplayThroughputReport",
@@ -739,6 +853,7 @@ __all__ = [
     "TriggerIngress",
     "TriggerProbabilitySample",
     "TriggerProbabilityTrace",
+    "UnknownAERAddressError",
     "WhiteRabbitTimestamp",
     "__version__",
     "aer",
@@ -816,6 +931,7 @@ __all__ = [
     "phase_lock_error",
     "physics",
     "predict_merge_window",
+    "project_aer_events",
     "propagate_trigger_probabilities",
     "recovered_power",
     "render_compatibility_matrix",

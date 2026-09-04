@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://anulum.github.io/scpn-mif-core/schemas/aer_event_stream_v1.schema.json",
+  "title": "SCPN-MIF-CORE AER event stream v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "shot_id",
+    "clock_domain",
+    "source_frequency_hz",
+    "map_id",
+    "map_digest",
+    "sequence_start",
+    "events"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "scpn-mif-core/aer-event-stream/1.0.0"
+    },
+    "map_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!\\s)(?:.*\\S)?$"
+    },
+    "map_digest": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "shot_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!\\s)(?:.*\\S)?$"
+    },
+    "clock_domain": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!\\s)(?:.*\\S)?$"
+    },
+    "source_frequency_hz": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 18446744073709551615
+    },
+    "sequence_start": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 18446744073709551615
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_id", "raw_address", "channel", "polarity", "t_ns", "sequence"],
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!\\s)(?:.*\\S)?$"
+          },
+          "raw_address": {"type": "integer", "minimum": 0, "maximum": 65535},
+          "channel": {"type": "integer", "minimum": 0, "maximum": 65535},
+          "polarity": {"type": "integer", "enum": [-1, 1]},
+          "t_ns": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615},
+          "sequence": {"type": "integer", "minimum": 0, "maximum": 18446744073709551615}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "SPDX-License-Identifier": "AGPL-3.0-or-later",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://anulum.github.io/scpn-mif-core/schemas/aer_exact_current_trace_v1.schema.json",
+  "title": "SCPN MIF AER exact-current projection trace v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "shot_id",
+    "source_id",
+    "clock_domain",
+    "source_frequency_hz",
+    "address_map_digest",
+    "start_ns",
+    "stop_ns",
+    "sequence_start",
+    "event_count",
+    "source_stream_sha256",
+    "source_events_sha256",
+    "projection_spec_sha256",
+    "ticks"
+  ],
+  "properties": {
+    "schema": { "const": "scpn-mif-core.aer-exact-current-trace.v1" },
+    "shot_id": { "type": "string", "minLength": 1 },
+    "source_id": { "type": "string", "minLength": 1 },
+    "clock_domain": { "type": "string", "minLength": 1 },
+    "source_frequency_hz": { "type": "integer", "minimum": 1, "maximum": 18446744073709551615 },
+    "address_map_digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "start_ns": { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 },
+    "stop_ns": { "type": "integer", "minimum": 1, "maximum": 18446744073709551615 },
+    "sequence_start": { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 },
+    "event_count": { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 },
+    "source_stream_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "source_events_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "projection_spec_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "ticks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["start_ns", "stop_ns", "duration_ns", "active_sequences", "transition_currents"],
+        "properties": {
+          "start_ns": { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 },
+          "stop_ns": { "type": "integer", "minimum": 1, "maximum": 18446744073709551615 },
+          "duration_ns": { "type": "integer", "minimum": 1, "maximum": 18446744073709551615 },
+          "active_sequences": {
+            "type": "array",
+            "items": { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 }
+          },
+          "transition_currents": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]+)?$" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

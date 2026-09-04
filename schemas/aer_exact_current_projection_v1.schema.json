@@ -1,0 +1,44 @@
+{
+  "SPDX-License-Identifier": "AGPL-3.0-or-later",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://anulum.github.io/scpn-mif-core/schemas/aer_exact_current_projection_v1.schema.json",
+  "title": "SCPN MIF AER exact-current projection specification v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "fidelity_scope",
+    "address_map_digest",
+    "pulse_width_ns",
+    "calibration_id",
+    "calibration_provenance",
+    "calibrations"
+  ],
+  "properties": {
+    "schema": { "const": "scpn-mif-core.aer-exact-current-projection.v1" },
+    "profile": { "const": "mif007_mif006_exact_current_rectangular_pulse_v1" },
+    "fidelity_scope": { "const": "normalized_simulation_only" },
+    "address_map_digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "pulse_width_ns": { "type": "integer", "minimum": 1, "maximum": 18446744073709551615 },
+    "calibration_id": { "type": "string", "minLength": 1 },
+    "calibration_provenance": { "type": "string", "minLength": 1 },
+    "calibrations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["transition_name", "channel_currents"],
+        "properties": {
+          "transition_name": { "type": "string", "minLength": 1 },
+          "channel_currents": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "pattern": "^-?(0|[1-9][0-9]*)(\\.[0-9]*[1-9])?$" }
+          }
+        }
+      }
+    }
+  }
+}
