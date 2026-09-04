@@ -124,6 +124,18 @@ def test_inventory_reconstructs_real_jobs_and_resolves_owners() -> None:
         inventory.workflow_path_for_job("unknown-job")
 
 
+def test_repository_governance_installs_project_before_collecting_tests() -> None:
+    """Keep the workflow's package import available to the real test collector."""
+    workflow_path = inventory.workflow_path_for_job("workflow-modularity")
+    job = inventory.job_blocks(workflow_path.read_text(encoding="utf-8"))["workflow-modularity"]
+
+    install = "python -m pip install --no-deps --no-build-isolation -e ."
+    test_run = "coverage run --rcfile=/dev/null"
+    assert install in job
+    assert test_run in job
+    assert job.index(install) < job.index(test_run)
+
+
 def test_inventory_rejects_non_object_duplicate_and_missing_surfaces(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

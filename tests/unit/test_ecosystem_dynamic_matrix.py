@@ -380,14 +380,22 @@ def test_render_handles_rows_without_notes() -> None:
     assert compatibility_report_json(report).strip().startswith("{")
 
 
-def test_default_code_root_without_env_falls_back_to_repository_parent(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def test_default_code_root_finds_03_code_ancestor(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("SCPN_MIF_ECOSYSTEM_ROOT", raising=False)
     monkeypatch.delenv("GOTM_CODE_ROOT", raising=False)
-    repository_root = Path(ecosystem_module.__file__).resolve().parents[2]
-    expected = next((parent for parent in repository_root.parents if parent.name == "03_CODE"), repository_root.parent)
-    assert default_code_root() == expected
+    module_path = tmp_path / "03_CODE" / "portfolio" / "repositories" / "SCPN-MIF-CORE" / "src" / "scpn_mif_core"
+    monkeypatch.setattr(ecosystem_module, "__file__", str(module_path / "ecosystem.py"))
+
+    assert default_code_root() == tmp_path / "03_CODE"
+
+
+def test_default_code_root_falls_back_for_standalone_checkout(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("SCPN_MIF_ECOSYSTEM_ROOT", raising=False)
+    monkeypatch.delenv("GOTM_CODE_ROOT", raising=False)
+    module_path = tmp_path / "SCPN-MIF-CORE" / "src" / "scpn_mif_core"
+    monkeypatch.setattr(ecosystem_module, "__file__", str(module_path / "ecosystem.py"))
+
+    assert default_code_root() == tmp_path
 
 
 def test_non_string_project_version_falls_through_to_poetry(tmp_path: Path) -> None:

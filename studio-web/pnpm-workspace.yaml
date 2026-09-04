@@ -3,6 +3,9 @@
 # Force patched transitive dependencies across the Studio tooling tree. pnpm 11
 # reads overrides here, not in package.json.
 overrides:
+  # GHSA-73wf-gq98-2v4g: reject inherited-key crashes and prototype writes
+  # from attacker-controlled browserslist statistics.
+  browserslist: '>=4.28.7'
   # Security floor for the current request-smuggling, cache and CRLF advisories.
   undici: '>=7.29.0'
   # jsdom requires undici 7.x internals directly

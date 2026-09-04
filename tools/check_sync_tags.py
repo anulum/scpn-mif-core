@@ -29,6 +29,9 @@ Exits non-zero when:
     * a `divergent` module has no incident report under
       `docs/internal/incidents/divergence_*.md`;
     * `LAST-SYNCED` is older than 90 days (mirror drift).
+
+Only Git-tracked source files are inspected, so local ignored or untracked
+scratch trees cannot change the repository gate result.
 """
 
 from __future__ import annotations
@@ -36,6 +39,8 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import re
+import shutil
+import subprocess  # nosec B404  # fixed-argument Git tracked-file inventory
 import sys
 from pathlib import Path
 
@@ -60,7 +65,7 @@ def _read_head(path: Path, max_lines: int = 30) -> list[str]:
 def _extract_tags(head_lines: list[str]) -> dict[str, str]:
     tags: dict[str, str] = {}
     for line in head_lines:
-        match = TAG_RE.match(line.strip())
+        match = TAG_RE.match(line.rstrip("\r\n"))
         if match:
             tags[match.group(1)] = match.group(2)
     return tags
@@ -71,11 +76,11 @@ def _validate_pin(value: str) -> None:
         raise SyncTagError(f"UPSTREAM-PIN does not match `name@semver` form: {value!r}")
 
 
-def _validate_last_synced(value: str) -> None:
+def _validate_last_synced(value: str, *, check_freshness: bool) -> None:
     if not ISO_RE.match(value):
         raise SyncTagError(f"LAST-SYNCED must be YYYY-MM-DDThhmm, got {value!r}")
     when = dt.datetime.strptime(value, "%Y-%m-%dT%H%M").replace(tzinfo=dt.UTC)
-    if (dt.datetime.now(tz=dt.UTC) - when).days > 90:
+    if check_freshness and (dt.datetime.now(tz=dt.UTC) - when).days > 90:
         raise SyncTagError(f"LAST-SYNCED is older than 90 days: {value}")
 
 
@@ -114,7 +119,7 @@ def validate_file(path: Path, repo_root: Path) -> list[str]:
     last_synced = tags.get("LAST-SYNCED")
     if last_synced:
         try:
-            _validate_last_synced(last_synced)
+            _validate_last_synced(last_synced, check_freshness=state == "mirror")
         except SyncTagError as exc:
             errors.append(f"{path}: {exc}")
 
@@ -122,13 +127,29 @@ def validate_file(path: Path, repo_root: Path) -> list[str]:
 
 
 def iter_candidate_files(repo_root: Path) -> list[Path]:
+    git = shutil.which("git")
+    if git is None:
+        raise SyncTagError("cannot enumerate tracked files: git executable not found")
+    result = subprocess.run(
+        [git, "-C", str(repo_root), "ls-files", "-z"],
+        check=False,
+        capture_output=True,
+    )  # nosec B603  # executable is resolved locally; arguments are not interpreted by a shell
+    if result.returncode != 0:
+        detail = result.stderr.decode("utf-8", errors="replace").strip()
+        raise SyncTagError(f"cannot enumerate tracked files: {detail or 'git ls-files failed'}")
+
     extensions = {".py", ".rs", ".jl", ".lean", ".go", ".sv", ".svh"}
     excluded_parents = {"target", "build", "dist", "site", ".venv", "__pycache__"}
     out: list[Path] = []
-    for path in repo_root.rglob("*"):
+    tracked_paths = result.stdout.decode("utf-8", errors="surrogateescape").split("\0")
+    for relative in tracked_paths:
+        if not relative:
+            continue
+        path = repo_root / relative
         if not path.is_file() or path.suffix not in extensions:
             continue
-        if any(part in excluded_parents for part in path.parts):
+        if any(part in excluded_parents for part in Path(relative).parts):
             continue
         out.append(path)
     return out
@@ -142,7 +163,12 @@ def main(argv: list[str] | None = None) -> int:
 
     repo_root = Path(args.root).resolve()
     all_errors: list[str] = []
-    for path in iter_candidate_files(repo_root):
+    try:
+        candidates = iter_candidate_files(repo_root)
+    except SyncTagError as exc:
+        print(f"sync-tag check cannot start: {exc}", file=sys.stderr)
+        return 2
+    for path in candidates:
         all_errors.extend(validate_file(path, repo_root))
 
     if all_errors:

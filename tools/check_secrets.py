@@ -21,6 +21,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import subprocess
 import sys
@@ -92,9 +93,14 @@ def _staged_files() -> list[Path]:
 
 def _tree_files(root: Path) -> list[Path]:
     out: list[Path] = []
-    for path in root.rglob("*"):
-        if path.is_file() and not _is_excluded(path.relative_to(root)):
-            out.append(path)
+    for current_str, dirnames, filenames in os.walk(root):
+        current = Path(current_str)
+        dirnames[:] = [dirname for dirname in dirnames if not _is_excluded((current / dirname).relative_to(root))]
+        out.extend(
+            path
+            for filename in filenames
+            if (path := current / filename).is_file() and not _is_excluded(path.relative_to(root))
+        )
     return out
 
 
