@@ -556,7 +556,7 @@
     "python_capability_classes": 93,
     "python_capability_source_modules": 26,
     "rust_workspace_crates": 10,
-    "test_files": 122
+    "test_files": 124
   },
   "documentation": {
     "public_pages": [
@@ -988,6 +988,8 @@
       "tests/unit/test_capability_manifest.py",
       "tests/unit/test_check_readme_version_mentions.py",
       "tests/unit/test_check_samsung_workspace.py",
+      "tests/unit/test_check_secrets.py",
+      "tests/unit/test_check_sync_tags.py",
       "tests/unit/test_check_wheel_contents.py",
       "tests/unit/test_ci_workflow_modularity.py",
       "tests/unit/test_claim_ledger_review.py",
