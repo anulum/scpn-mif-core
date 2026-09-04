@@ -62,6 +62,7 @@ jobs:
       - name: Run the real causal chain
         run: >
           pytest tests/unit/full_chain/test_contracts.py
+          tests/integration/test_aer_exact_current_lif_chain.py
           tests/integration/test_full_chain_demo.py
           -o "addopts=-ra --strict-markers --strict-config -p no:nengo -p no:randomly"
           --cov=src/scpn_mif_core/full_chain
