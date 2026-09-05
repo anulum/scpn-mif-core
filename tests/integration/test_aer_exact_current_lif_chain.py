@@ -71,6 +71,8 @@ def test_real_public_control_runtime_preserves_state_and_complete_sc_packets() -
     first_packet = _packet(first)
     assert len(first_packet["events"]) == 1
     assert first.to_payload()["control_execution"] == first.control_execution.to_payload()
+    assert json.loads(first.to_json()) == first.to_payload()
+    assert len(first.sha256) == 64
     assert first.projection.source_stream_sha256 == first_stream.digest
 
     assert buffer.pop_oldest().sequence == 0
@@ -228,3 +230,36 @@ def test_real_aer_control_sc_state_trace_against_independent_decimal_oracle(fami
         assert observed["phase"] == expected.phase
         assert abs(observed["time_ms"] - float(expected.time_ms)) <= max(2e-12, 64 * math.ulp(float(expected.time_ms)))
         assert abs(observed["voltage"] - float(expected.voltage)) <= max(2e-12, 64 * math.ulp(float(expected.voltage)))
+
+
+def test_real_bridge_rejects_contract_mismatch_and_exhausted_sequence_epoch() -> None:
+    address_map = AerAddressMap("mif007", (AerAddressBinding(0x4100, 0, 1),))
+    spec = AerExactCurrentProjectionSpec(
+        address_map.digest,
+        1_000_000,
+        (AerTransitionCalibration("diagnostic", ("1",)),),
+        "normalized",
+        "simulation-only calibration",
+    )
+    last_sequence = (1 << 64) - 1
+    bridge = AerExactCurrentLIFBridge.from_installed_control(spec, shot_id="boundary", sequence_start=last_sequence)
+    wrong_spec = replace(spec, calibrations=(AerTransitionCalibration("other", ("1",)),))
+    with pytest.raises(AerExactCurrentProjectionError, match="transition order"):
+        AerExactCurrentLIFBridge(bridge.runtime, wrong_spec, shot_id="boundary")
+    with pytest.raises(AerExactCurrentProjectionError, match="shot_id"):
+        AerExactCurrentLIFBridge(bridge.runtime, spec, shot_id="")
+    buffer = AerIntegrityBuffer(1, address_map, sequence_start=last_sequence)
+    buffer.push(RawAerEvent("adc", 0x4100, 1, 0, last_sequence))
+    stream = AerEventStream(
+        "boundary", "adc", 1_000_000_000, address_map.map_id, address_map.digest, buffer.events, last_sequence
+    )
+    execution = bridge.execute(stream, buffer.telemetry, stop_ns=1_000_000)
+    assert execution.projection.sequence_start == last_sequence
+    assert bridge.next_sequence is None
+    with pytest.raises(AerExactCurrentProjectionError, match="exhausted"):
+        bridge.execute(stream, buffer.telemetry, stop_ns=2_000_000)
+    with pytest.raises(AerExactCurrentProjectionError, match="shot_id"):
+        bridge.reset_shot("")
+    assert bridge.next_sequence is None
+    bridge.reset_shot("new-epoch")
+    assert bridge.next_sequence == 0

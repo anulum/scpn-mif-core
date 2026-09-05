@@ -106,3 +106,16 @@ normalized exact-current bridge. It does not claim independent simulator
 conformance, fixed-point neuron RTL parity, target-device timing closure,
 hardware-in-the-loop equivalence, or facility calibration. Those remain
 separate evidence gates.
+
+
+The exact-current bridge accepts an explicit `sequence_start` when creating a
+new accounting epoch, matching `AerIntegrityBuffer` and `AerEventStream`.
+The default is zero. Shot time and CONTROL state still start from zero; a
+nonzero sequence origin does not restore a previous physical state. Once the
+last u64 event is accepted, another execution fails until `reset_shot`, which
+starts sequence zero again.
+
+Required full-chain CI measures `exact_current_lif_bridge.py` against its real,
+pinned CONTROL/SC distributions with a 100% statement and branch gate. The
+Python-only gate owns the remaining AER modules and real Verilator ingress
+tests. Moving the bridge between environments does not relax its threshold.

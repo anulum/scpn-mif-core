@@ -279,6 +279,9 @@ omit = [
     # The source-bound Fusion-to-Fire modules are exercised in the dedicated
     # cross-repository CI job with real sibling checkouts and Verilator.
     "*/scpn_mif_core/full_chain/*",
+    # The exact-current AER bridge requires pinned CONTROL/SC distributions.
+    # Required full-chain CI enforces its separate 100% branch/statement gate.
+    "*/scpn_mif_core/aer/exact_current_lif_bridge.py",
     # Operational / environment entry-point scripts: their bodies are subprocess,
     # filesystem, and git orchestration (a CI/preflight harness, a workspace-mount
     # check, a secret scanner, a sync-tag check). Their logic is the orchestration

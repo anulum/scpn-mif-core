@@ -30,6 +30,7 @@ from scpn_mif_core.aer.exact_current_lif_bridge import (
     AER_EXACT_CURRENT_TRACE_SCHEMA,
     AerExactCurrentProjectionError,
     AerExactCurrentProjectionSpec,
+    AerProjectedTick,
     AerTransitionCalibration,
     project_aer_events,
 )
@@ -182,3 +183,97 @@ def test_projection_spec_is_digest_bound_and_refuses_physical_overclaim() -> Non
     assert spec.to_payload()["fidelity_scope"] == "normalized_simulation_only"
     with pytest.raises(AerExactCurrentProjectionError, match="physical calibration"):
         replace(spec, fidelity_scope="facility_calibrated")
+
+
+@pytest.mark.parametrize("current", ["", "garbage", "-0", "1.00", "1" + "0" * 309, 1])
+def test_calibration_rejects_noncanonical_or_unrepresentable_currents(current: object) -> None:
+    with pytest.raises(AerExactCurrentProjectionError):
+        AerTransitionCalibration("diagnostic", (current,))
+
+
+def test_calibration_normalizes_exact_fraction_and_zero() -> None:
+    calibration = AerTransitionCalibration("diagnostic", ("0", "0.125", "-2"))
+    assert calibration.channel_currents == ("0", "0.125", "-2")
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"schema": "unknown"},
+        {"profile": "unknown"},
+        {"pulse_width_ns": True},
+        {"pulse_width_ns": 0},
+        {"address_map_digest": "x" * 64},
+        {"calibrations": ()},
+        {"calibrations": (None,)},
+        {"calibrations": (AerTransitionCalibration("same", ("1",)),) * 2},
+        {"calibrations": (AerTransitionCalibration("one", ("1",)), AerTransitionCalibration("two", ("1", "2")))},
+        {"calibration_id": ""},
+        {"calibration_provenance": ""},
+    ],
+)
+def test_projection_spec_rejects_invalid_contract_fields(changes: dict[str, object]) -> None:
+    with pytest.raises(AerExactCurrentProjectionError):
+        replace(_spec(), **changes)
+
+
+def test_calibration_requires_transition_identity() -> None:
+    with pytest.raises(AerExactCurrentProjectionError, match="transition_name"):
+        AerTransitionCalibration("", ("1",))
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"stop_ns": 0},
+        {"active_sequences": (1, 0)},
+        {"active_sequences": (0, 0)},
+        {"active_sequences": (-1,)},
+        {"transition_currents": ([],)},
+        {"transition_currents": ((float("inf"),),)},
+    ],
+)
+def test_projected_tick_rejects_ambiguous_intervals_and_currents(changes: dict[str, object]) -> None:
+    tick = AerProjectedTick(0, 8, (0,), ((1.0,),))
+    assert tick.duration_ms == 0.000008
+    with pytest.raises(AerExactCurrentProjectionError):
+        replace(tick, **changes)
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"shot_id": ""},
+        {"source_id": ""},
+        {"clock_domain": ""},
+        {"stop_ns": 0},
+        {"sequence_start": (1 << 64) - 1},
+        {"ticks": ()},
+        {"ticks": (None,)},
+        {"ticks": (AerProjectedTick(1, 8, (), ((),)),)},
+        {"ticks": (AerProjectedTick(0, 2, (), ((),)), AerProjectedTick(3, 8, (), ((),)))},
+    ],
+)
+def test_projection_rejects_broken_provenance_or_interval_coverage(changes: dict[str, object]) -> None:
+    stream, telemetry = _stream_and_telemetry()
+    projection = project_aer_events(stream, telemetry, _spec(), start_ns=0, stop_ns=8)
+    with pytest.raises(AerExactCurrentProjectionError):
+        replace(projection, **changes)
+
+
+def test_projection_refuses_wrong_public_inputs_and_out_of_interval_events() -> None:
+    stream, telemetry = _stream_and_telemetry()
+    for candidate_stream, candidate_telemetry, candidate_spec in (
+        (None, telemetry, _spec()),
+        (stream, None, _spec()),
+        (stream, telemetry, None),
+    ):
+        with pytest.raises(AerExactCurrentProjectionError):
+            project_aer_events(candidate_stream, candidate_telemetry, candidate_spec, start_ns=0, stop_ns=8)
+    with pytest.raises(AerExactCurrentProjectionError, match="positive duration"):
+        project_aer_events(stream, telemetry, _spec(), start_ns=0, stop_ns=0)
+    with pytest.raises(AerExactCurrentProjectionError, match="outside"):
+        project_aer_events(stream, telemetry, _spec(), start_ns=2, stop_ns=8)
+    wider_channel = replace(stream, events=tuple(replace(event, channel=1) for event in stream.events))
+    with pytest.raises(AerExactCurrentProjectionError, match="channel exceeds"):
+        project_aer_events(wider_channel, telemetry, _spec(), start_ns=0, stop_ns=8)

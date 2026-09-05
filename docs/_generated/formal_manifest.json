@@ -240,7 +240,7 @@
       "depends_on": [
         {
           "path": "hdl/formal/mif_aer_event_stream_formal.sv",
-          "sha256": "87c02809447fc382dedb35cf56344c8a92c96c7706a2d56dc4d608f04bd1b7a9"
+          "sha256": "3a37d550e716d64042b8c322c45f8a783061326df518febf6e39b224f0b1d093"
         },
         {
           "path": "hdl/formal/safety/mif_aer_event_stream_safety.sby",
@@ -564,7 +564,7 @@
         },
         {
           "path": "hdl/formal/mif_aer_event_stream_formal.sv",
-          "sha256": "87c02809447fc382dedb35cf56344c8a92c96c7706a2d56dc4d608f04bd1b7a9"
+          "sha256": "3a37d550e716d64042b8c322c45f8a783061326df518febf6e39b224f0b1d093"
         },
         {
           "path": "hdl/src/sensors/mif_adc_to_aer_event_stream.sv",

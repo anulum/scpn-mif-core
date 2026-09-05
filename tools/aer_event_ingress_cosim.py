@@ -200,8 +200,6 @@ def run(event_count: int, artifacts_dir: Path) -> dict[str, object]:
         ),
     )
     expected_events = reference.generated_events
-    if not reference.conservation_holds or not reference.telemetry_conservation_holds:
-        raise AssertionError("independent reference conservation failed")
     assert_equivalent(dut_events, summary, expected_events)
 
     return {

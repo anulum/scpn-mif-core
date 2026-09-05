@@ -399,3 +399,80 @@ def test_buffer_rejects_wrong_capacity_map_and_event_types() -> None:
     buffer = AerIntegrityBuffer(1, _address_map())
     with pytest.raises(TypeError, match="RawAerEvent"):
         buffer.push(object())  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("binding", [None, {1: 0}])
+def test_address_map_rejects_malformed_wire_binding_objects(binding: object) -> None:
+    payload = _address_map().to_mapping()
+    payload["bindings"] = [binding]
+    with pytest.raises(TypeError):
+        AerAddressMap.from_mapping(payload)
+
+
+@pytest.mark.parametrize(("field", "value"), [("map_id", 7), ("schema_version", None)])
+def test_address_map_rejects_non_text_identity(field: str, value: object) -> None:
+    payload = _address_map().to_mapping()
+    payload[field] = value
+    with pytest.raises(TypeError, match="string"):
+        AerAddressMap.from_mapping(payload)
+
+
+def test_integrity_buffer_validates_map_and_exposes_queue_length() -> None:
+    with pytest.raises(TypeError, match="AerAddressMap"):
+        AerIntegrityBuffer(4, None)
+    buffer = AerIntegrityBuffer(4, _address_map())
+    assert len(buffer) == 0
+    buffer.push(_raw(0))
+    assert len(buffer) == 1
+
+
+@pytest.mark.parametrize(
+    ("events", "error"),
+    [
+        ((None,), TypeError),
+        ((_raw(0, t_ns=2), _raw(1, t_ns=1)), AERTimestampRegressionError),
+        ((_raw(0, polarity=-1),), AERPolarityMismatchError),
+        ((_raw(2),), AERSequenceError),
+    ],
+)
+def test_raw_stream_refuses_invalid_payload_and_order(events: tuple[object, ...], error: type[Exception]) -> None:
+    with pytest.raises(error):
+        AerEventStream.from_raw_events(
+            _address_map(), events, shot_id="shot", clock_domain="adc", source_frequency_hz=1, sequence_start=0
+        )
+
+
+@pytest.mark.parametrize(
+    ("changes", "error"),
+    [
+        ({"events": (None,)}, TypeError),
+        ({"schema_version": "unknown"}, AERContractMismatchError),
+        ({"map_digest": "x" * 64}, ValueError),
+        ({"source_frequency_hz": True}, TypeError),
+    ],
+)
+def test_stream_constructor_rejects_invalid_identity(changes: dict[str, object], error: type[Exception]) -> None:
+    fields = {
+        "shot_id": "shot",
+        "clock_domain": "adc",
+        "source_frequency_hz": 1,
+        "map_id": _address_map().map_id,
+        "map_digest": _address_map().digest,
+        "events": (),
+        "sequence_start": 0,
+    }
+    fields.update(changes)
+    with pytest.raises(error):
+        AerEventStream(**fields)
+
+
+def test_mapped_stream_rejects_timestamp_regression() -> None:
+    events = tuple(MappedAerEvent("adc", 0x4100, 0, 1, t, sequence) for sequence, t in enumerate((2, 1)))
+    with pytest.raises(AERTimestampRegressionError):
+        AerEventStream("shot", "adc", 1, _address_map().map_id, _address_map().digest, events, 0)
+
+
+@pytest.mark.parametrize("overflow", [0, 1, "false", None])
+def test_loss_telemetry_rejects_non_boolean_overflow(overflow: object) -> None:
+    with pytest.raises(TypeError, match="overflow_sticky"):
+        AerLossTelemetry(0, 0, 0, 0, 0, overflow)

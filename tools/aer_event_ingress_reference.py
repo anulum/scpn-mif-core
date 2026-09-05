@@ -90,6 +90,13 @@ class AerEventIngressReport:
     telemetry_saturation_sticky: bool
     sequence_wrap_sticky: bool
 
+    def __post_init__(self) -> None:
+        """Reject traces and telemetry that contradict event conservation."""
+        if not self.conservation_holds:
+            raise ValueError("AER event conservation invariant failed")
+        if not self.telemetry_conservation_holds:
+            raise ValueError("AER telemetry conservation invariant failed")
+
     @property
     def conservation_holds(self) -> bool:
         """Return whether generated equals accepted plus queued plus dropped."""
@@ -190,8 +197,6 @@ def run_aer_event_stream_reference(
         telemetry_saturation_sticky=telemetry_saturation,
         sequence_wrap_sticky=sequence_wrap,
     )
-    if not report.conservation_holds:
-        raise AssertionError("AER event conservation invariant failed")
     return report
 
 

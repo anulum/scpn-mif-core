@@ -69,3 +69,13 @@ jobs:
           --cov-config=coverage.full-chain.toml
           --cov-report=term-missing
           --cov-fail-under=95
+      - name: Exact-current AER bridge (100% statements and branches)
+        run: >
+          pytest tests/unit/aer/test_exact_current_lif_bridge.py
+          tests/integration/test_aer_exact_current_lif_chain.py
+          -k "not real_aer_control_sc_state_trace_against_independent_decimal_oracle"
+          -o "addopts=-ra --strict-markers --strict-config -p no:nengo -p no:randomly"
+          --cov=src/scpn_mif_core/aer
+          --cov-config=coverage.aer-bridge.toml
+          --cov-report=term-missing
+          --cov-fail-under=100

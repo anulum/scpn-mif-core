@@ -52,10 +52,10 @@ jobs:
         run: mypy src/scpn_mif_core/ tools/ cosim/ examples/
       - name: bandit
         run: bandit -r src/scpn_mif_core/ -c pyproject.toml -q
-      - name: pytest (full tree under the 100% coverage gate)
-        run: pytest tests/ -m "not full_chain" --cov=scpn_mif_core --cov=tools --cov-report=xml --cov-report=term
       - name: Install Verilator for cosimulation
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends verilator
+      - name: pytest (full tree under the 100% coverage gate)
+        run: pytest tests/ -m "not full_chain" --cov=scpn_mif_core --cov=tools --cov-report=xml --cov-report=term
       - name: Ordered AER ingress full-payload parity
         run: python -m tools.aer_event_ingress_cosim --events 4096
       - name: cosim (bit-true Python vs Verilator, 100% harness coverage gate)

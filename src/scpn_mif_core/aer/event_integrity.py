@@ -220,6 +220,8 @@ class AerLossTelemetry:
         """Validate non-negative counters and event conservation."""
         for name in ("generated", "accepted", "dropped", "queued", "high_watermark"):
             object.__setattr__(self, name, _u64(name, getattr(self, name)))
+        if not isinstance(self.overflow_sticky, bool):
+            raise TypeError("overflow_sticky must be boolean")
         if self.generated != self.accepted + self.dropped:
             raise ValueError("telemetry must conserve generated == accepted + dropped")
         if self.queued > self.accepted:
@@ -589,13 +591,6 @@ def _u16(name: str, value: object) -> int:
 
 def _u64(name: str, value: object) -> int:
     return _bounded_int(name, value, _U64_MAX)
-
-
-def _positive_int(name: str, value: object) -> int:
-    parsed = _integer(name, value)
-    if parsed <= 0:
-        raise ValueError(f"{name} must be positive")
-    return parsed
 
 
 def _positive_u64(name: str, value: object) -> int:

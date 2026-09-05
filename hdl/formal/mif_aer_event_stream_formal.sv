@@ -73,9 +73,6 @@ module mif_aer_event_stream_formal (
         end else begin
             past_valid <= 1'b1;
             if (aer_valid && aer_ready) begin
-                if (have_accepted && !sequence_wrap_sticky) begin
-                    assert (aer_sequence > last_accepted_sequence);
-                end
                 last_accepted_sequence <= aer_sequence;
                 have_accepted <= 1'b1;
             end
@@ -84,6 +81,9 @@ module mif_aer_event_stream_formal (
 
     always_ff @(posedge clk) begin
         if (rst_n) begin
+            if (aer_valid && aer_ready && have_accepted && !sequence_wrap_sticky) begin
+                assert (aer_sequence > last_accepted_sequence);
+            end
             assert (queued_count <= 4);
             assert (high_watermark >= queued_count);
             assert (aer_valid == (queued_count != 0));

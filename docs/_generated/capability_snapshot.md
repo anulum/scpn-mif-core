@@ -16,7 +16,7 @@
 | Synthesisable HDL RTL modules | 7 |
 | Capability documentation pages | 65 |
 | Optional extras | 7 |
-| Python test files | 129 |
+| Python test files | 131 |
 | Public documentation pages | 65 |
 | GitHub Actions workflows | 25 |
 

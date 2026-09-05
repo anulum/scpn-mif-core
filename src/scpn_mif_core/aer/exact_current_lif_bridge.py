@@ -22,7 +22,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from itertools import pairwise
-from typing import Final, Protocol, cast
+from typing import TYPE_CHECKING, Final, Protocol, cast
 
 from scpn_mif_core.aer.event_integrity import AerEventStream, AerLossTelemetry, MappedAerEvent
 
@@ -37,25 +37,26 @@ class AerExactCurrentProjectionError(ValueError):
     """Raised when an AER stream cannot be projected without semantic loss."""
 
 
-class _ControlExecution(Protocol):
-    """Public subset returned by CONTROL's exact-current runtime."""
+if TYPE_CHECKING:
 
-    @property
-    def sha256(self) -> str: ...
+    class _ControlExecution(Protocol):
+        """Public subset returned by CONTROL's exact-current runtime."""
 
-    def to_payload(self) -> dict[str, object]: ...
+        @property
+        def sha256(self) -> str: ...
 
-    def to_json(self) -> str: ...
+        def to_payload(self) -> dict[str, object]: ...
 
+        def to_json(self) -> str: ...
 
-class _ControlRuntime(Protocol):
-    """Public subset consumed by the MIF bridge."""
+    class _ControlRuntime(Protocol):
+        """Public subset consumed by the MIF bridge."""
 
-    transition_names: tuple[str, ...]
+        transition_names: tuple[str, ...]
 
-    def execute(self, ticks: Sequence[object]) -> _ControlExecution: ...
+        def execute(self, ticks: Sequence[object]) -> _ControlExecution: ...
 
-    def reset_shot(self, shot_id: str) -> None: ...
+        def reset_shot(self, shot_id: str) -> None: ...
 
 
 def _require_u64(name: str, value: int, *, positive: bool = False) -> int:
@@ -346,32 +347,11 @@ class AerExactCurrentExecution:
         return hashlib.sha256(self.to_json().encode("utf-8")).hexdigest()
 
 
-def _telemetry_value(telemetry: AerLossTelemetry, name: str) -> int | bool:
-    try:
-        return cast(int | bool, getattr(telemetry, name))
-    except AttributeError as exc:  # pragma: no cover - version-skew guard
-        raise AerExactCurrentProjectionError(f"AER loss telemetry is missing {name}") from exc
-
-
 def _require_lossless(events: Sequence[MappedAerEvent], telemetry: AerLossTelemetry) -> None:
-    dropped = _telemetry_value(telemetry, "dropped")
-    overflow = _telemetry_value(telemetry, "overflow_sticky")
-    rejected = getattr(telemetry, "rejected", 0)
-    queued = _telemetry_value(telemetry, "queued")
-    accepted = _telemetry_value(telemetry, "accepted")
-    generated = _telemetry_value(telemetry, "generated")
-    if any(
-        isinstance(value, bool) or not isinstance(value, int) or value < 0
-        for value in (dropped, rejected, queued, accepted, generated)
-    ):
-        raise AerExactCurrentProjectionError("AER telemetry counters must be non-negative integers")
-    if not isinstance(overflow, bool):
-        raise AerExactCurrentProjectionError("AER overflow_sticky must be boolean")
-    if generated != accepted + dropped:
-        raise AerExactCurrentProjectionError("AER source accounting is not conserved")
-    if queued != len(events):
+    # AerLossTelemetry validates counter types and conservation at construction.
+    if telemetry.queued != len(events):
         raise AerExactCurrentProjectionError("AER queued count does not match supplied events")
-    if dropped or rejected or overflow:
+    if telemetry.dropped or telemetry.overflow_sticky:
         raise AerExactCurrentProjectionError("AER loss, rejection, or overflow blocks exact-current execution")
 
 
@@ -408,12 +388,7 @@ def project_aer_events(
         raise AerExactCurrentProjectionError("projection interval must have positive duration")
     _require_lossless(frozen, telemetry)
 
-    sequences = tuple(event.sequence for event in frozen)
-    expected_stop = stream.sequence_start + len(frozen)
-    if expected_stop > U64_MAX + 1:
-        raise AerExactCurrentProjectionError("event sequence range overflowed u64")
-    if sequences != tuple(range(stream.sequence_start, expected_stop)):
-        raise AerExactCurrentProjectionError("event sequence must be contiguous from sequence_start")
+    # AerEventStream validates contiguous u64 sequence identity at construction.
     source_ids = {event.source_id for event in frozen}
     if len(source_ids) > 1:
         raise AerExactCurrentProjectionError("all projected events must have one source_id")
@@ -471,7 +446,9 @@ def project_aer_events(
 class AerExactCurrentLIFBridge:
     """Stateful bridge with locally transactional source cursors."""
 
-    def __init__(self, runtime: _ControlRuntime, spec: AerExactCurrentProjectionSpec, *, shot_id: str) -> None:
+    def __init__(
+        self, runtime: _ControlRuntime, spec: AerExactCurrentProjectionSpec, *, shot_id: str, sequence_start: int = 0
+    ) -> None:
         if tuple(runtime.transition_names) != spec.transition_names:
             raise AerExactCurrentProjectionError("CONTROL transition order differs from projection calibration")
         if not isinstance(shot_id, str) or not shot_id:
@@ -480,7 +457,7 @@ class AerExactCurrentLIFBridge:
         self.spec = spec
         self.shot_id = shot_id
         self._next_start_ns = 0
-        self._next_sequence: int | None = 0
+        self._next_sequence: int | None = _require_u64("sequence_start", sequence_start)
         self._source_id: str | None = None
 
     @classmethod
@@ -489,15 +466,37 @@ class AerExactCurrentLIFBridge:
         spec: AerExactCurrentProjectionSpec,
         *,
         shot_id: str,
+        sequence_start: int = 0,
     ) -> AerExactCurrentLIFBridge:
-        """Bind only through CONTROL's installed, digest-verified public API."""
+        """Bind through CONTROL's installed, digest-verified public API.
+
+        Parameters
+        ----------
+        spec : AerExactCurrentProjectionSpec
+            Normalized current calibration and exact event-map identity.
+        shot_id : str
+            Non-empty identifier shared with the CONTROL shot.
+        sequence_start : int, optional
+            First u64 generation sequence in this accounting epoch, default 0.
+            Time still starts at zero; this does not restore CONTROL state.
+
+        Returns
+        -------
+        AerExactCurrentLIFBridge
+            Fresh bridge bound to the installed SC reference profile.
+
+        Raises
+        ------
+        AerExactCurrentProjectionError
+            If the identity, sequence origin, or optional runtime is invalid.
+        """
         try:
             from scpn_control.scpn import ExactCurrentLIFProfileBinding, ExactCurrentLIFRuntime
         except ImportError as exc:  # pragma: no cover - optional dependency guard
             raise AerExactCurrentProjectionError("scpn-control exact-current runtime is unavailable") from exc
         binding = ExactCurrentLIFProfileBinding.from_installed_reference()
         runtime = ExactCurrentLIFRuntime(spec.transition_names, binding, shot_id=shot_id)
-        return cls(cast(_ControlRuntime, runtime), spec, shot_id=shot_id)
+        return cls(cast("_ControlRuntime", runtime), spec, shot_id=shot_id, sequence_start=sequence_start)
 
     @property
     def next_start_ns(self) -> int:

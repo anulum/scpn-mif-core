@@ -1370,9 +1370,9 @@ scipy==1.17.1 \
     #   jaxlib
     #   osqp
     #   scpn-phase-orchestrator
-scpn-phase-orchestrator==1.4.2 \
-    --hash=sha256:328fdeebdd06b3396727b3cf53446780bf45229e332a3352536b4af0936fddf3 \
-    --hash=sha256:fe74cfb678325b32481085d75b075a3a6a13262d850e57447a7bc4b090570933
+scpn-phase-orchestrator==1.3.1 \
+    --hash=sha256:c0318a85931eef3fba6615bb5ff587c749c5a83c766504d10cdf7f2ac94e6fe3 \
+    --hash=sha256:c2d7c0a5c0ad47f420fee02e54ccc28122bf8d128eb3b80ca51ba5f034320274
     # via -r requirements/full-chain-ci.in
 setuptools==84.0.0 \
     --hash=sha256:51a52592b3b99e102b609654876bd65f19f999935166d1352678931132b0c670 \
