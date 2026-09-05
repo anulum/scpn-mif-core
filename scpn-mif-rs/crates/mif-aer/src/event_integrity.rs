@@ -142,9 +142,9 @@ impl AerAddressMap {
         }
         encoded.push_str("],\"map_id\":");
         write_json_string(&mut encoded, &self.map_id);
-        write!(
+        writeln!(
             encoded,
-            ",\"schema_version\":\"{AER_ADDRESS_MAP_SCHEMA}\"}}\n"
+            ",\"schema_version\":\"{AER_ADDRESS_MAP_SCHEMA}\"}}"
         )
         .expect("writing to a String cannot fail");
         encoded
@@ -408,9 +408,9 @@ impl AerEventStream {
         )
         .expect("writing to a String cannot fail");
         write_json_string(&mut encoded, &self.shot_id);
-        write!(
+        writeln!(
             encoded,
-            ",\"source_frequency_hz\":{}}}\n",
+            ",\"source_frequency_hz\":{}}}",
             self.source_frequency_hz
         )
         .expect("writing to a String cannot fail");

@@ -19,7 +19,7 @@
         "tools/run_formal.py"
       ],
       "metrics": {
-        "task_count": 11,
+        "task_count": 15,
         "timing_task_count": 4,
         "verifier": "tools/run_formal.py --suite all"
       }

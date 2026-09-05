@@ -65,7 +65,8 @@
       "docs/standards/safety_readiness_mapping.md",
       "docs/validation/belova_merge_reproduction.md",
       "docs/validation/benchmark_dashboard.md",
-      "docs/validation/fair_validation_bundle.md"
+      "docs/validation/fair_validation_bundle.md",
+      "docs/validation/lif_analytic_reference.md"
     ],
     "go_parity_sources": [
       "go/cmd/daqmock_probe/main.go",
@@ -644,19 +645,19 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 64,
+    "capability_documentation_pages": 65,
     "github_workflows": 25,
     "go_parity_sources": 4,
     "hdl_rtl_modules": 7,
     "julia_reference_modules": 10,
     "lean_proof_modules": 8,
     "optional_extras": 7,
-    "public_api_exports": 229,
-    "public_documentation_pages": 64,
+    "public_api_exports": 230,
+    "public_documentation_pages": 65,
     "python_capability_classes": 116,
     "python_capability_source_modules": 28,
     "rust_workspace_crates": 10,
-    "test_files": 128
+    "test_files": 129
   },
   "documentation": {
     "public_pages": [
@@ -723,7 +724,8 @@
       "docs/standards/safety_readiness_mapping.md",
       "docs/validation/belova_merge_reproduction.md",
       "docs/validation/benchmark_dashboard.md",
-      "docs/validation/fair_validation_bundle.md"
+      "docs/validation/fair_validation_bundle.md",
+      "docs/validation/lif_analytic_reference.md"
     ]
   },
   "evidence_boundary": "Counts are file-system and static-source inventory only; benchmark, coverage, hardware, and scientific-fidelity claims remain governed by their dedicated evidence artifacts.",
@@ -870,6 +872,7 @@
     "SiblingReport",
     "SiblingSpec",
     "SpikeBuffer",
+    "SpikeBufferTelemetry",
     "StreamingMergeTrigger",
     "StreamingTriggerDecision",
     "StreamingTriggerSample",
@@ -1055,6 +1058,7 @@
       "tests/unit/aer/test_event_integrity_contract.py",
       "tests/unit/aer/test_event_integrity_properties.py",
       "tests/unit/aer/test_exact_current_lif_bridge.py",
+      "tests/unit/aer/test_lif_analytic_oracle.py",
       "tests/unit/aer/test_spike_buffer.py",
       "tests/unit/aer/test_spike_buffer_rust_parity.py",
       "tests/unit/bench/__init__.py",

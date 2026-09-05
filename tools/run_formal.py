@@ -101,7 +101,8 @@ def run_task(task: FormalTask, *, build_root: Path = BUILD_ROOT) -> FormalResult
     completed = subprocess.run(
         ["sby", "-f", "-d", str(workdir), task.sby_path.name],
         check=False,
-        capture_output=True,
+        stdout=sys.stdout,
+        stderr=sys.stderr,
         text=True,
         cwd=task.sby_path.parent,
     )

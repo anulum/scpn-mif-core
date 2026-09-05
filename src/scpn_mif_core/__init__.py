@@ -105,6 +105,9 @@ from scpn_mif_core.aer import (
     SpikeBuffer as SpikeBuffer,
 )
 from scpn_mif_core.aer import (
+    SpikeBufferTelemetry as SpikeBufferTelemetry,
+)
+from scpn_mif_core.aer import (
     UnknownAERAddressError as UnknownAERAddressError,
 )
 from scpn_mif_core.aer import (
@@ -837,6 +840,7 @@ __all__ = [
     "SiblingReport",
     "SiblingSpec",
     "SpikeBuffer",
+    "SpikeBufferTelemetry",
     "StreamingMergeTrigger",
     "StreamingTriggerDecision",
     "StreamingTriggerSample",
