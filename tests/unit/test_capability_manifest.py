@@ -10,8 +10,11 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
+import shutil
 import subprocess
 import sys
+import tarfile
 from pathlib import Path
 from typing import Any
 
@@ -575,3 +578,52 @@ def test_literal_string_list_returns_empty_for_non_list() -> None:
 
     node = ast.parse("42", mode="eval").body
     assert _literal_string_list(node) == []
+
+
+@pytest.fixture
+def real_repository_snapshot(tmp_path: Path) -> Path:
+    archive = tmp_path / "source.tar"
+    subprocess.run(["git", "archive", "--output", str(archive), "HEAD"], cwd=_repo_root(), check=True)
+    snapshot = tmp_path / "repository"
+    snapshot.mkdir()
+    with tarfile.open(archive) as stream:
+        stream.extractall(snapshot, filter="data")
+    return snapshot
+
+
+@pytest.mark.parametrize("missing_manifest", [False, True])
+def test_public_inventory_rejects_missing_or_nonlist_workspace_members(
+    real_repository_snapshot: Path, missing_manifest: bool
+) -> None:
+    workspace = real_repository_snapshot / "scpn-mif-rs/Cargo.toml"
+    if missing_manifest:
+        workspace.unlink()
+    else:
+        workspace.write_text(
+            re.sub(r"members = \[.*?\]", "members = 7", workspace.read_text(), count=1, flags=re.DOTALL)
+        )
+    manifest = TOOL.build_capability_manifest(real_repository_snapshot)
+    assert manifest["capabilities"]["rust_workspace_crates"] == []
+
+
+def test_public_inventory_excludes_invalid_members_build_artifacts_and_escaped_symlinks(
+    real_repository_snapshot: Path, tmp_path: Path
+) -> None:
+    rust = real_repository_snapshot / "scpn-mif-rs"
+    workspace = rust / "Cargo.toml"
+    actual_crate = rust / "crates/mif-aer"
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    shutil.copy2(actual_crate / "Cargo.toml", outside / "Cargo.toml")
+    (rust / "crates/outside").symlink_to(outside, target_is_directory=True)
+    (rust / "escaped").symlink_to(outside, target_is_directory=True)
+    target = rust / "target"
+    target.mkdir()
+    shutil.copy2(actual_crate / "Cargo.toml", target / "Cargo.toml")
+    members = 'members = [7, "crates/mif-aer", "Cargo.lock", "crates/missing", "crates/outside", "crates/mif-aer"]'
+    workspace.write_text(re.sub(r"members = \[.*?\]", members, workspace.read_text(), count=1, flags=re.DOTALL))
+    manifest = TOOL.build_capability_manifest(real_repository_snapshot)
+    rows = manifest["capabilities"]["rust_workspace_crates"]
+    assert {"name": "mif-aer", "path": "scpn-mif-rs/crates/mif-aer"} in rows
+    assert len([row for row in rows if row["path"] == "scpn-mif-rs/crates/mif-aer"]) == 1
+    assert not any(part in row["path"] for row in rows for part in ("outside", "escaped", "target"))

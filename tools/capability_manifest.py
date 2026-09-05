@@ -574,7 +574,7 @@ def _rust_workspace_crates(root: Path, *, repo: Path) -> list[dict[str, str]]:
             if manifest.is_file():
                 manifests.add(manifest)
     for manifest in root.glob("*/Cargo.toml"):
-        if manifest.parent.name != "target":
+        if manifest.parent.name != "target" and manifest.resolve().is_relative_to(resolved_root):
             manifests.add(manifest)
     for manifest in sorted(manifests):
         payload = tomllib.loads(manifest.read_text(encoding="utf-8"))
