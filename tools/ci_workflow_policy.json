@@ -65,7 +65,7 @@
   "optional_jobs": [],
   "legacy_job_sha256": {
     "python": "9ffbc568abe3dbc068d82239cb917ad9496e1c4eb2cd3134695ab7be29c12ba2",
-    "full-chain": "156e0850b03770911d6dbce97723e97c4c64dfcce0cd8e0e6a039ab6839e993c",
+    "full-chain": "80b59f8849f663def71ef53af2d01502a3e5a761bd81d3244835a48964c8b011",
     "rust": "88e9e35cbd7a64aac6bacc4434e1e7dd38f9ae1b5d53b6709a0f19167287a423",
     "sync-tags": "08347487803e42e6d5ab582f661c2cdab8c3d0bf5a73fdd735342231c864de06",
     "secrets": "bf6b289551ade8e26b2e6ef8af35569d993c5ea1274ad447ee3b71d41ad8c409",
