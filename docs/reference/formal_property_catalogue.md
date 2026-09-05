@@ -5,9 +5,9 @@
 
 This is the public proof inventory for the MIF-owned SymbiYosys layer. Each stable ID names one semantic assertion or non-vacuity witness. The generated [JSON manifest](../_generated/formal_manifest.json) binds these names to exact proof inputs and digests.
 
-A `prove` task uses its configured depth as a k-induction horizon; a `cover` task uses it as a bounded witness horizon. Neither is a nanosecond claim. Device timing remains separately hardware-gated.
+A `prove` task uses its configured depth as a k-induction horizon; a `cover` task uses it as a bounded witness horizon. A `bmc` task checks safety only within its bounded horizon, without induction. None is a nanosecond claim. Device timing remains separately hardware-gated.
 
-The catalogue currently names **40** properties: 25 safety, 8 liveness, and 7 cycle-timing. The MIF-010 target is 70; the generated manifest reports target status from named entries only.
+The catalogue currently names **60** properties: 37 safety, 16 liveness, and 7 cycle-timing. The MIF-010 target is 70; the generated manifest reports target status from named entries only.
 
 Raw `assert`/`cover`/`assume` token counts are retained in the JSON only as CI hygiene. Shared macro definitions can be counted in several tasks, so token totals are not proof identities or evidence of specification coverage.
 
@@ -28,6 +28,24 @@ Named properties:
 - `mif.adc.handshake.withdraw-requires-ready` (`assertion`) — A valid event can be withdrawn only after an accepting ready cycle.
 - `mif.adc.handshake.address-change-requires-valid` (`assertion`) — The AER address changes only while a live event is presented.
 
+## `mif_aer_async_fifo_safety`
+
+- Suite: `safety`
+- Mode: `bmc`
+- Depth: `16` (bounded safety horizon)
+- Task: `hdl/formal/safety/mif_aer_async_fifo_safety.sby`
+
+Depth rationale: Multiclock bounded safety checking at depth 16 covers local reset synchronization, two-stage Gray-pointer crossings, full/empty transitions, destination stalls, and multiple source/destination clock interleavings for the four-entry proof instance.
+
+Named properties:
+
+- `mif.aer-async-fifo.pointer.gray-single-step` (`assertion`) — Each accepted source write and destination read advances its local Gray pointer by at most one bit.
+- `mif.aer-async-fifo.accounting.pointer-conservation` (`assertion`) — Before telemetry saturation, each local binary pointer exactly equals the low-order bits of its accepted-event counter.
+- `mif.aer-async-fifo.occupancy.bounded` (`assertion`) — Both synchronized local occupancy estimates remain within the configured FIFO depth.
+- `mif.aer-async-fifo.payload.tracer-equivalence` (`assertion`) — A consecutive deterministic tracer retains raw address, explicit polarity, source tick, and sequence in order across storage and the clock-domain boundary.
+- `mif.aer-async-fifo.payload.stable-while-stalled` (`assertion`) — The complete destination payload remains valid and stable while the destination applies backpressure.
+- `mif.aer-async-fifo.backpressure.visible` (`assertion`) — A source valid request while the FIFO is not ready raises a sticky backpressure indication without claiming a drop.
+
 ## `mif_aer_cdc_synchroniser_safety`
 
 - Suite: `safety`
@@ -42,6 +60,24 @@ Named properties:
 - `mif.aer-cdc.output.exact-two-stage-delay` (`assertion`) — The synchronised output equals the asynchronous input delayed by exactly two destination flops after warm-up.
 - `mif.aer-cdc.output.registered-second-stage` (`assertion`) — The synchronised output is a pure registered copy of the first-stage sample, with no combinational bypass.
 - `mif.aer-cdc.input.registered-first-stage` (`assertion`) — The first synchroniser stage is the asynchronous input sampled on the preceding destination edge.
+
+## `mif_aer_event_stream_safety`
+
+- Suite: `safety`
+- Mode: `bmc`
+- Depth: `10` (bounded safety horizon)
+- Task: `hdl/formal/safety/mif_aer_event_stream_safety.sby`
+
+Depth rationale: Bounded safety checking at depth 10 spans reset, repeated enqueue/dequeue, a full four-entry queue, explicit drops, simultaneous pop/push, and accepted history sufficient to check ordered full-payload stability and one-epoch conservation.
+
+Named properties:
+
+- `mif.aer-event-stream.queue.bounded` (`assertion`) — The ordered producer queue never exceeds its configured depth.
+- `mif.aer-event-stream.accounting.conservation` (`assertion`) — Before telemetry saturation, generated events equal accepted plus explicitly dropped plus queued events within one reset epoch.
+- `mif.aer-event-stream.payload.stable-while-stalled` (`assertion`) — Raw address, explicit polarity, source tick, and sequence remain stable while a valid event is backpressured.
+- `mif.aer-event-stream.order.strict` (`assertion`) — Accepted sequence identifiers remain strictly ordered before an explicitly reported sequence wrap.
+- `mif.aer-event-stream.drop.visible` (`assertion`) — Every increase in the dropped-event count has a sticky overflow indication and a corresponding generated event.
+- `mif.aer-event-stream.overflow.sticky` (`assertion`) — Once queue overflow is observed within an accounting epoch, its indication remains asserted until reset.
 
 ## `mif_fast_veto_gate_safety`
 
@@ -98,6 +134,38 @@ Named properties:
 - `mif.adc.witness.event-presentable` (`cover`) — An AER event can be presented.
 - `mif.adc.witness.backpressure-reachable` (`cover`) — A presented event can encounter sink back-pressure.
 - `mif.adc.witness.stalled-event-drains` (`cover`) — A stalled event can be accepted when the sink returns ready.
+
+## `mif_aer_async_fifo_liveness`
+
+- Suite: `liveness`
+- Mode: `cover`
+- Depth: `32` (bounded witness horizon)
+- Task: `hdl/formal/liveness/mif_aer_async_fifo_liveness.sby`
+
+Depth rationale: Multiclock cover mode uses bounded model checking. Depth 32 spans both local reset synchronizers, a source write, pointer synchronization into the destination domain, destination presentation and acceptance, plus reachable source and destination stalls.
+
+Named properties:
+
+- `mif.aer-async-fifo.witness.write` (`cover`) — A full-payload event can be accepted in the source clock domain.
+- `mif.aer-async-fifo.witness.read` (`cover`) — A synchronized full-payload event can be accepted in the destination clock domain.
+- `mif.aer-async-fifo.witness.source-backpressure` (`cover`) — The bounded FIFO can apply source backpressure when full.
+- `mif.aer-async-fifo.witness.destination-stall` (`cover`) — A valid destination event can remain presented while destination ready is low.
+
+## `mif_aer_event_stream_liveness`
+
+- Suite: `liveness`
+- Mode: `cover`
+- Depth: `24` (bounded witness horizon)
+- Task: `hdl/formal/liveness/mif_aer_event_stream_liveness.sby`
+
+Depth rationale: Cover mode uses bounded model checking. Depth 24 reaches event presentation, acceptance, sustained backpressure, queue saturation, explicit overflow telemetry, and a trace containing both accepted and dropped events.
+
+Named properties:
+
+- `mif.aer-event-stream.witness.backpressure` (`cover`) — A complete queued event can be presented while the downstream boundary is stalled.
+- `mif.aer-event-stream.witness.acceptance` (`cover`) — A complete queued event can be accepted through ready/valid.
+- `mif.aer-event-stream.witness.overflow` (`cover`) — A bounded queue overflow and its sticky telemetry are reachable.
+- `mif.aer-event-stream.witness.accepted-and-dropped` (`cover`) — One accounting epoch can contain multiple accepted events and an explicit dropped event.
 
 ## `mif_fast_veto_gate_liveness`
 

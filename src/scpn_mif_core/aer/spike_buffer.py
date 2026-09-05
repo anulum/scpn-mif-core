@@ -144,7 +144,7 @@ class SpikeBuffer:
             overflowed=self._overflowed,
         )
 
-    def push(self, event: AERSpikeEvent) -> None:
+    def push(self, event: object) -> None:
         """Append one monotone event, dropping the oldest event when full."""
         if not isinstance(event, AERSpikeEvent):
             self._rejected_events += 1

@@ -55,6 +55,11 @@ def test_manifest_records_mode_depth_catalogue_and_input_digests() -> None:
     assert "hdl/formal/safety/mif_trigger_fabric_safety.sby" in paths
     assert all(len(dep["sha256"]) == 64 for task in manifest["tasks"] for dep in task["depends_on"])
 
+    bounded = by_name["mif_aer_async_fifo_safety"]
+    assert bounded["mode"] == "bmc"
+    assert bounded["depth"] == 16
+    assert bounded["depth_interpretation"] == "bounded safety horizon"
+
     liveness = by_name["mif_trigger_fabric_liveness"]
     assert liveness["mode"] == "cover"
     assert liveness["depth_interpretation"] == "bounded witness horizon"

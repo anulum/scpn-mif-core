@@ -2,7 +2,7 @@
   "SPDX-License-Identifier": "AGPL-3.0-or-later",
   "schema_version": "2.0.0",
   "verifier": "tools/run_formal.py --suite all",
-  "task_count": 11,
+  "task_count": 15,
   "proof_inventory": {
     "basis": "curated semantic claims and non-vacuity witnesses from hdl/formal/property_catalogue.json; these stable IDs are the public proof inventory",
     "specification_target": {
@@ -12,10 +12,10 @@
       "total": 70
     },
     "catalogued_properties": {
-      "safety": 25,
-      "liveness": 8,
+      "safety": 37,
+      "liveness": 16,
       "timing": 7,
-      "total": 40
+      "total": 60
     },
     "meets_specification_target": false
   },
@@ -23,14 +23,14 @@
     "basis": "assert/cover/assume statement count over each task's resolved SystemVerilog sources (including shared `include headers); a statement inside a generate loop or macro definition counts once, and shared definitions can appear in multiple tasks; these counts detect drift but do not identify proof claims",
     "per_suite": {
       "safety": {
-        "asserts": 33,
-        "covers": 12,
-        "assumes": 3
+        "asserts": 66,
+        "covers": 20,
+        "assumes": 12
       },
       "liveness": {
-        "asserts": 28,
-        "covers": 8,
-        "assumes": 2
+        "asserts": 61,
+        "covers": 16,
+        "assumes": 11
       },
       "timing": {
         "asserts": 16,
@@ -39,9 +39,9 @@
       }
     },
     "total": {
-      "asserts": 77,
-      "covers": 36,
-      "assumes": 9
+      "asserts": 143,
+      "covers": 52,
+      "assumes": 27
     }
   },
   "tasks": [
@@ -106,6 +106,70 @@
     },
     {
       "suite": "safety",
+      "name": "mif_aer_async_fifo_safety",
+      "sby": "hdl/formal/safety/mif_aer_async_fifo_safety.sby",
+      "mode": "bmc",
+      "depth": 16,
+      "depth_interpretation": "bounded safety horizon",
+      "depth_rationale": "Multiclock bounded safety checking at depth 16 covers local reset synchronization, two-stage Gray-pointer crossings, full/empty transitions, destination stalls, and multiple source/destination clock interleavings for the four-entry proof instance.",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/mif_aer_async_fifo_formal.sv",
+          "sha256": "f75a9708ee95554b92e5472aa50e50e1e7a5412110921298b23ca00bba7e1fc1"
+        },
+        {
+          "path": "hdl/formal/safety/mif_aer_async_fifo_safety.sby",
+          "sha256": "ebc9dfbc86ad0f9a1d43542f43d8d10f8f3a8554a90e0225d80f5cd1a32b8b51"
+        },
+        {
+          "path": "hdl/src/aer/mif_aer_async_fifo.sv",
+          "sha256": "ef6b4b66332064247996654b2b739195dca8badf3f16ff8a76005ed1068107de"
+        }
+      ],
+      "named_properties": [
+        {
+          "id": "mif.aer-async-fifo.pointer.gray-single-step",
+          "kind": "assertion",
+          "statement": "Each accepted source write and destination read advances its local Gray pointer by at most one bit."
+        },
+        {
+          "id": "mif.aer-async-fifo.accounting.pointer-conservation",
+          "kind": "assertion",
+          "statement": "Before telemetry saturation, each local binary pointer exactly equals the low-order bits of its accepted-event counter."
+        },
+        {
+          "id": "mif.aer-async-fifo.occupancy.bounded",
+          "kind": "assertion",
+          "statement": "Both synchronized local occupancy estimates remain within the configured FIFO depth."
+        },
+        {
+          "id": "mif.aer-async-fifo.payload.tracer-equivalence",
+          "kind": "assertion",
+          "statement": "A consecutive deterministic tracer retains raw address, explicit polarity, source tick, and sequence in order across storage and the clock-domain boundary."
+        },
+        {
+          "id": "mif.aer-async-fifo.payload.stable-while-stalled",
+          "kind": "assertion",
+          "statement": "The complete destination payload remains valid and stable while the destination applies backpressure."
+        },
+        {
+          "id": "mif.aer-async-fifo.backpressure.visible",
+          "kind": "assertion",
+          "statement": "A source valid request while the FIFO is not ready raises a sticky backpressure indication without claiming a drop."
+        }
+      ],
+      "raw_statement_counts": {
+        "asserts": 18,
+        "covers": 4,
+        "assumes": 8
+      }
+    },
+    {
+      "suite": "safety",
       "name": "mif_aer_cdc_synchroniser_safety",
       "sby": "hdl/formal/safety/mif_aer_cdc_synchroniser_safety.sby",
       "mode": "prove",
@@ -157,6 +221,70 @@
       ],
       "raw_statement_counts": {
         "asserts": 5,
+        "covers": 4,
+        "assumes": 1
+      }
+    },
+    {
+      "suite": "safety",
+      "name": "mif_aer_event_stream_safety",
+      "sby": "hdl/formal/safety/mif_aer_event_stream_safety.sby",
+      "mode": "bmc",
+      "depth": 10,
+      "depth_interpretation": "bounded safety horizon",
+      "depth_rationale": "Bounded safety checking at depth 10 spans reset, repeated enqueue/dequeue, a full four-entry queue, explicit drops, simultaneous pop/push, and accepted history sufficient to check ordered full-payload stability and one-epoch conservation.",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/mif_aer_event_stream_formal.sv",
+          "sha256": "87c02809447fc382dedb35cf56344c8a92c96c7706a2d56dc4d608f04bd1b7a9"
+        },
+        {
+          "path": "hdl/formal/safety/mif_aer_event_stream_safety.sby",
+          "sha256": "8e855997840f80afe39b2229510db9ac7154f22aa80e6548b1e5b1bb70181e8c"
+        },
+        {
+          "path": "hdl/src/sensors/mif_adc_to_aer_event_stream.sv",
+          "sha256": "4863d364aa22dedb7bbeaaaf480444d88d22355b6f68980480495c5081c66a83"
+        }
+      ],
+      "named_properties": [
+        {
+          "id": "mif.aer-event-stream.queue.bounded",
+          "kind": "assertion",
+          "statement": "The ordered producer queue never exceeds its configured depth."
+        },
+        {
+          "id": "mif.aer-event-stream.accounting.conservation",
+          "kind": "assertion",
+          "statement": "Before telemetry saturation, generated events equal accepted plus explicitly dropped plus queued events within one reset epoch."
+        },
+        {
+          "id": "mif.aer-event-stream.payload.stable-while-stalled",
+          "kind": "assertion",
+          "statement": "Raw address, explicit polarity, source tick, and sequence remain stable while a valid event is backpressured."
+        },
+        {
+          "id": "mif.aer-event-stream.order.strict",
+          "kind": "assertion",
+          "statement": "Accepted sequence identifiers remain strictly ordered before an explicitly reported sequence wrap."
+        },
+        {
+          "id": "mif.aer-event-stream.drop.visible",
+          "kind": "assertion",
+          "statement": "Every increase in the dropped-event count has a sticky overflow indication and a corresponding generated event."
+        },
+        {
+          "id": "mif.aer-event-stream.overflow.sticky",
+          "kind": "assertion",
+          "statement": "Once queue overflow is observed within an accounting epoch, its indication remains asserted until reset."
+        }
+      ],
+      "raw_statement_counts": {
+        "asserts": 15,
         "covers": 4,
         "assumes": 1
       }
@@ -360,6 +488,114 @@
       "raw_statement_counts": {
         "asserts": 5,
         "covers": 3,
+        "assumes": 1
+      }
+    },
+    {
+      "suite": "liveness",
+      "name": "mif_aer_async_fifo_liveness",
+      "sby": "hdl/formal/liveness/mif_aer_async_fifo_liveness.sby",
+      "mode": "cover",
+      "depth": 32,
+      "depth_interpretation": "bounded witness horizon",
+      "depth_rationale": "Multiclock cover mode uses bounded model checking. Depth 32 spans both local reset synchronizers, a source write, pointer synchronization into the destination domain, destination presentation and acceptance, plus reachable source and destination stalls.",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/liveness/mif_aer_async_fifo_liveness.sby",
+          "sha256": "c0d7f15f26edd21b38045d3adf665e650b44c276d92f344b5b44201440ef30a0"
+        },
+        {
+          "path": "hdl/formal/mif_aer_async_fifo_formal.sv",
+          "sha256": "f75a9708ee95554b92e5472aa50e50e1e7a5412110921298b23ca00bba7e1fc1"
+        },
+        {
+          "path": "hdl/src/aer/mif_aer_async_fifo.sv",
+          "sha256": "ef6b4b66332064247996654b2b739195dca8badf3f16ff8a76005ed1068107de"
+        }
+      ],
+      "named_properties": [
+        {
+          "id": "mif.aer-async-fifo.witness.write",
+          "kind": "cover",
+          "statement": "A full-payload event can be accepted in the source clock domain."
+        },
+        {
+          "id": "mif.aer-async-fifo.witness.read",
+          "kind": "cover",
+          "statement": "A synchronized full-payload event can be accepted in the destination clock domain."
+        },
+        {
+          "id": "mif.aer-async-fifo.witness.source-backpressure",
+          "kind": "cover",
+          "statement": "The bounded FIFO can apply source backpressure when full."
+        },
+        {
+          "id": "mif.aer-async-fifo.witness.destination-stall",
+          "kind": "cover",
+          "statement": "A valid destination event can remain presented while destination ready is low."
+        }
+      ],
+      "raw_statement_counts": {
+        "asserts": 18,
+        "covers": 4,
+        "assumes": 8
+      }
+    },
+    {
+      "suite": "liveness",
+      "name": "mif_aer_event_stream_liveness",
+      "sby": "hdl/formal/liveness/mif_aer_event_stream_liveness.sby",
+      "mode": "cover",
+      "depth": 24,
+      "depth_interpretation": "bounded witness horizon",
+      "depth_rationale": "Cover mode uses bounded model checking. Depth 24 reaches event presentation, acceptance, sustained backpressure, queue saturation, explicit overflow telemetry, and a trace containing both accepted and dropped events.",
+      "engines": [
+        "smtbmc z3"
+      ],
+      "expected_status": "pass",
+      "depends_on": [
+        {
+          "path": "hdl/formal/liveness/mif_aer_event_stream_liveness.sby",
+          "sha256": "8dfd21324ad1e2a887c60b211426f3fb824c83a53796bf8884fa3192c5175880"
+        },
+        {
+          "path": "hdl/formal/mif_aer_event_stream_formal.sv",
+          "sha256": "87c02809447fc382dedb35cf56344c8a92c96c7706a2d56dc4d608f04bd1b7a9"
+        },
+        {
+          "path": "hdl/src/sensors/mif_adc_to_aer_event_stream.sv",
+          "sha256": "4863d364aa22dedb7bbeaaaf480444d88d22355b6f68980480495c5081c66a83"
+        }
+      ],
+      "named_properties": [
+        {
+          "id": "mif.aer-event-stream.witness.backpressure",
+          "kind": "cover",
+          "statement": "A complete queued event can be presented while the downstream boundary is stalled."
+        },
+        {
+          "id": "mif.aer-event-stream.witness.acceptance",
+          "kind": "cover",
+          "statement": "A complete queued event can be accepted through ready/valid."
+        },
+        {
+          "id": "mif.aer-event-stream.witness.overflow",
+          "kind": "cover",
+          "statement": "A bounded queue overflow and its sticky telemetry are reachable."
+        },
+        {
+          "id": "mif.aer-event-stream.witness.accepted-and-dropped",
+          "kind": "cover",
+          "statement": "One accounting epoch can contain multiple accepted events and an explicit dropped event."
+        }
+      ],
+      "raw_statement_counts": {
+        "asserts": 15,
+        "covers": 4,
         "assumes": 1
       }
     },

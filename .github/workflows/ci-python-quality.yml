@@ -57,7 +57,7 @@ jobs:
       - name: Install Verilator for cosimulation
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends verilator
       - name: Ordered AER ingress full-payload parity
-        run: python tools/aer_event_ingress_cosim.py --events 4096
+        run: python -m tools.aer_event_ingress_cosim --events 4096
       - name: cosim (bit-true Python vs Verilator, 100% harness coverage gate)
         run: >
           pytest cosim/ -o addopts=""

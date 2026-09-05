@@ -22,9 +22,9 @@ use thiserror::Error;
 pub mod event_integrity;
 
 pub use event_integrity::{
-    AerAddressBinding, AerAddressMap, AerAdmission, AerEventStream, AerIntegrityBuffer,
-    AerIntegrityError, AerLossTelemetry, MappedAerEvent, RawAerEvent, AER_ADDRESS_MAP_SCHEMA,
-    AER_EVENT_STREAM_SCHEMA, AER_LOSS_TELEMETRY_SCHEMA,
+    AER_ADDRESS_MAP_SCHEMA, AER_EVENT_STREAM_SCHEMA, AER_LOSS_TELEMETRY_SCHEMA, AerAddressBinding,
+    AerAddressMap, AerAdmission, AerEventStream, AerIntegrityBuffer, AerIntegrityError,
+    AerLossTelemetry, MappedAerEvent, RawAerEvent,
 };
 
 /// Crate version derived from the workspace.

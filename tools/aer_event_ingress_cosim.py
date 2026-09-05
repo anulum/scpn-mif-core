@@ -20,7 +20,7 @@ import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-from aer_event_ingress_reference import (
+from tools.aer_event_ingress_reference import (
     AerEventStreamConfig,
     AerFullEvent,
     run_aer_event_stream_reference,

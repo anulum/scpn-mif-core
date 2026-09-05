@@ -7,8 +7,8 @@
 // SCPN-MIF-CORE — AER event-integrity acceptance tests.
 
 use mif_aer::{
-    AerAddressBinding, AerAddressMap, AerEventStream, AerIntegrityBuffer, AerIntegrityError,
-    RawAerEvent, AER_ADDRESS_MAP_SCHEMA, AER_EVENT_STREAM_SCHEMA,
+    AER_ADDRESS_MAP_SCHEMA, AER_EVENT_STREAM_SCHEMA, AerAddressBinding, AerAddressMap,
+    AerEventStream, AerIntegrityBuffer, AerIntegrityError, RawAerEvent,
 };
 use proptest::prelude::*;
 
@@ -242,10 +242,12 @@ fn buffer_accepts_u64_max_once_then_fails_closed_until_epoch_reset() {
     );
     assert_eq!(buffer.accept().unwrap().unwrap().sequence(), u64::MAX);
     buffer.reset_epoch().expect("drained epoch can reset");
-    assert!(buffer
-        .push(raw(0x4101, u64::MAX, u64::MAX))
-        .unwrap()
-        .accepted());
+    assert!(
+        buffer
+            .push(raw(0x4101, u64::MAX, u64::MAX))
+            .unwrap()
+            .accepted()
+    );
 }
 
 proptest! {

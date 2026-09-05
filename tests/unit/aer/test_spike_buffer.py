@@ -145,7 +145,7 @@ def test_spike_buffer_rejects_invalid_event_objects() -> None:
     buffer = SpikeBuffer(capacity=4)
 
     with pytest.raises(TypeError, match="AERSpikeEvent"):
-        buffer.push(object())  # type: ignore[arg-type]
+        buffer.push(object())
     assert buffer.telemetry.rejected_events == 1
 
 

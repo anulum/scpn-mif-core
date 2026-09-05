@@ -225,7 +225,11 @@ def build_manifest(
                     "sby": sby_path.relative_to(repo_root).as_posix(),
                     "mode": mode,
                     "depth": depth,
-                    "depth_interpretation": "bounded witness horizon" if mode == "cover" else "k-induction horizon",
+                    "depth_interpretation": {
+                        "cover": "bounded witness horizon",
+                        "bmc": "bounded safety horizon",
+                        "prove": "k-induction horizon",
+                    }[mode],
                     "depth_rationale": metadata["depth_rationale"],
                     "engines": engines,
                     "expected_status": "pass",
@@ -286,7 +290,8 @@ def render_catalogue_markdown(manifest: dict[str, Any]) -> str:
         "[JSON manifest](../_generated/formal_manifest.json) binds these names to exact proof inputs and digests.",
         "",
         "A `prove` task uses its configured depth as a k-induction horizon; a `cover` task uses it as a bounded "
-        "witness horizon. Neither is a nanosecond claim. Device timing remains separately hardware-gated.",
+        "witness horizon. A `bmc` task checks safety only within its bounded horizon, without induction. "
+        "None is a nanosecond claim. Device timing remains separately hardware-gated.",
         "",
         f"The catalogue currently names **{counts['total']}** properties: {counts['safety']} safety, "
         f"{counts['liveness']} liveness, and {counts['timing']} cycle-timing. The MIF-010 target is "
