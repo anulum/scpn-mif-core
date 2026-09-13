@@ -12,8 +12,9 @@ overrides:
   # (lib/handler/wrap-handler.js, removed in undici 8); keep its subtree on
   # the secured 7.x line instead of letting the blanket override force 8.x.
   jsdom>undici: '>=7.29.0 <8.0.0'
-  # GHSA-xcpc-8h2w-3j85: reject oversized declared ZIP entries.
-  adm-zip: 0.6.0
+  # GHSA-vwc7-r8mq-g2x9 and GHSA-xcpc-8h2w-3j85: block writes through
+  # destination symlinks and reject oversized declared ZIP entries.
+  adm-zip: 0.6.1
   # GHSA-rgw5-rvv9-x895: bound brace expansion memory use.
   brace-expansion: 5.0.9
   # GHSA-fxqj-rqcc-2cmp: prevent sourceMappingURL file disclosure.
