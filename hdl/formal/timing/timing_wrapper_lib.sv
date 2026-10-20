@@ -10,7 +10,7 @@
 // SYNC-STATE: mirror
 // UPSTREAM-PIN: sc-neurocore-engine@3.15.34
 // CONTRACT-TEST: cosim/test_aer_cdc_synchroniser.py
-// LAST-SYNCED: 2026-06-21T0212
+// LAST-SYNCED: 2026-10-20T1822
 // UPSTREAM: sc-neurocore hdl/formal/timing/timing_wrapper_lib.sv @ commit 7a57adfab. Verbatim copy so
 //   MIF's formal flow runs without a sibling checkout. Do not edit here; re-vendor
 //   on UPSTREAM bumps (changes belong upstream in sc-neurocore).
