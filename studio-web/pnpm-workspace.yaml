@@ -1,3 +1,15 @@
+minimumReleaseAgeExclude:
+  - '@typescript-eslint/eslint-plugin@8.72.1'
+  - '@typescript-eslint/parser@8.72.1'
+  - '@typescript-eslint/project-service@8.72.1'
+  - '@typescript-eslint/scope-manager@8.72.1'
+  - '@typescript-eslint/tsconfig-utils@8.72.1'
+  - '@typescript-eslint/type-utils@8.72.1'
+  - '@typescript-eslint/types@8.72.1'
+  - '@typescript-eslint/typescript-estree@8.72.1'
+  - '@typescript-eslint/utils@8.72.1'
+  - '@typescript-eslint/visitor-keys@8.72.1'
+  - typescript-eslint@8.72.1
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Force patched transitive dependencies across the Studio tooling tree. pnpm 11
@@ -7,16 +19,16 @@ overrides:
   # from attacker-controlled browserslist statistics.
   browserslist: '>=4.28.7'
   # Security floor for the current request-smuggling, cache and CRLF advisories.
-  undici: '>=7.29.0'
+  undici: '>=7.30.1'
   # jsdom requires undici 7.x internals directly
   # (lib/handler/wrap-handler.js, removed in undici 8); keep its subtree on
   # the secured 7.x line instead of letting the blanket override force 8.x.
-  jsdom>undici: '>=7.29.0 <8.0.0'
+  jsdom>undici: '>=7.30.1 <8.0.0'
   # GHSA-vwc7-r8mq-g2x9 and GHSA-xcpc-8h2w-3j85: block writes through
   # destination symlinks and reject oversized declared ZIP entries.
   adm-zip: 0.6.1
   # GHSA-rgw5-rvv9-x895: bound brace expansion memory use.
-  brace-expansion: 5.0.9
+  brace-expansion: 5.0.12
   # GHSA-fxqj-rqcc-2cmp: prevent sourceMappingURL file disclosure.
   postcss: 8.5.23
   # GHSA-2v37-7h3g-55p8: prevent zero-size custom-generator loops.

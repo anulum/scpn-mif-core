@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: "22"
       - name: Enable pnpm
-        run: corepack enable && corepack prepare pnpm@11.2.2 --activate
+        run: corepack enable && corepack prepare pnpm@11.28.9 --activate
       - name: Install
         run: pnpm install --frozen-lockfile
       - name: Typecheck
