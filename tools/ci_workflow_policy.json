@@ -64,11 +64,11 @@
   ],
   "optional_jobs": [],
   "legacy_job_sha256": {
-    "python": "40d2c903d112d315b4b24e97af0e7afd282b9388679aab518ca95305ad691125",
-    "full-chain": "a20f0f266d0af03b8d23340326e5a7e446dc4e11eed321eda7a9ab636b731c98",
-    "rust": "88e9e35cbd7a64aac6bacc4434e1e7dd38f9ae1b5d53b6709a0f19167287a423",
-    "sync-tags": "08347487803e42e6d5ab582f661c2cdab8c3d0bf5a73fdd735342231c864de06",
-    "secrets": "bf6b289551ade8e26b2e6ef8af35569d993c5ea1274ad447ee3b71d41ad8c409",
-    "studio-web": "7570cb0ea493b2d08dae27254d9298be8f2c4f43255e2fc411fc0468963563ff"
+    "python": "bf996604baeed36695611838dd7636fa2257f60c25a9f2a9a64226f290f861f8",
+    "full-chain": "77e889aad52c83aa4f0b962db54ccdfd2b338d1bf19c0332a11f50aee8f0cad4",
+    "rust": "5efbc8093154937e69a8a9d2a6aedc68f04f48b9d1b12c8fa425388d8d96de7d",
+    "sync-tags": "0d068eaef7be4b4415ebd017ba2c93f81a29d1f96ff8f347297b1e0df01e73e1",
+    "secrets": "38ea3a96af79b6438d58d58f9f13b0c14972e602d9c97dffe3ce5f75a3e2ccd6",
+    "studio-web": "302549a3d296e2a600da5aaaba19d282033e7584383979d4c28da345518b2fa0"
   }
 }
