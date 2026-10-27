@@ -11,3 +11,5 @@ AER = "AER"
 aer = "aer"
 Ono = "Ono"
 arange = "arange"
+# NumPy spells the array-flag attribute `ndarray.flags.writeable`.
+writeable = "writeable"
