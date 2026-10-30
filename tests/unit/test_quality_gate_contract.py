@@ -64,6 +64,25 @@ def test_ci_python_dependencies_are_hash_locked() -> None:
         assert f"{pin} \\" in lock
 
 
+def test_nightly_benchmark_installs_the_same_hash_lock_as_ci() -> None:
+    """The nightly benchmark must not float to unpinned test tooling.
+
+    An unpinned ``.[dev]`` install picked up pytest 9.2.0, which removed the
+    private ``Function._nodeid`` that pytest-benchmark 5.3.0 reads, and every
+    nightly benchmark errored at setup while per-commit CI stayed green.
+    """
+    nightly = yaml.safe_load(_read(".github/workflows/benchmark-nightly.yml"))
+    runs = [step.get("run", "") for step in nightly["jobs"]["benchmark"]["steps"]]
+    joined = "\n".join(runs)
+
+    assert "python -m pip install --require-hashes -r requirements/ci.txt" in joined
+    assert "python -m pip install --no-deps --no-build-isolation -e ." in joined
+    assert "python -m pip install --no-deps --no-build-isolation ./scpn-mif-rs/crates/mif-ffi" in joined
+    assert ".[dev]" not in joined
+    assert "pip install --upgrade pip" not in joined
+    assert "pytest-benchmark==" in _read("requirements/ci.txt")
+
+
 def test_full_chain_input_pins_match_the_hash_lock() -> None:
     source = _read("requirements/full-chain-ci.in")
     lock = _read("requirements/full-chain-ci.txt")
