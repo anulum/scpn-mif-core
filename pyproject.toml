@@ -183,13 +183,14 @@ namespace_packages = true
 mypy_path = ["src"]
 # The one strict cohort. Every caller (Make, pre-commit, CI, preflight) runs a
 # bare `mypy`, so this list is the single source of what is type-checked.
-files = ["src/scpn_mif_core", "tools", "cosim", "examples", "tests", "conftest.py"]
-# `bench` and `campaigns` stay outside it by design: they are auxiliary
-# benchmark/campaign scripts whose hot paths consume the untyped compiled Rust extension via
-# `pytest.importorskip`, so full static typing there would be `Any`-laundering with
-# no checking benefit. They still run under ruff + the Benchmark-nightly workflow.
+files = ["src/scpn_mif_core", "tools", "cosim", "examples", "tests", "campaigns", "conftest.py"]
+# `bench` stays outside it by design: its benchmark hot paths consume the
+# untyped compiled Rust extension via `pytest.importorskip`, so full static
+# typing there would be `Any`-laundering with no checking benefit. It still runs
+# under ruff + the Benchmark-nightly workflow. `campaigns` uses no Rust and is
+# in the cohort.
 # Re-evaluate if a typed Rust stub (.pyi) for scpn_mif_core_rs is published.
-exclude = ["lean", "go", "scpn-mif-rs", "hdl", "build", "dist", "bench", "campaigns"]
+exclude = ["lean", "go", "scpn-mif-rs", "hdl", "build", "dist", "bench"]
 
 [[tool.mypy.overrides]]
 module = [
@@ -216,6 +217,10 @@ module = [
     # instead of erroring; the live coupling is exercised only where it is present.
     "scpn_fusion",
     "scpn_fusion.*",
+    # The campaigns render figures with matplotlib, the optional `demo` extra;
+    # without it the figure path is skipped at run time.
+    "matplotlib",
+    "matplotlib.*",
 ]
 ignore_missing_imports = true
 

@@ -92,7 +92,7 @@ SURFACES: tuple[Surface, ...] = (
     Surface(
         "campaigns",
         ("campaigns/*.py", "campaigns/lif_oracles/*.py", "campaigns/*.md"),
-        ("ruff", "pytest", "demo-container"),
+        ("ruff", "mypy", "pytest", "demo-container"),
     ),
     Surface(
         "campaign-results",
@@ -267,13 +267,9 @@ UNTYPED_PYTHON_ROOTS = {
         "benchmark scripts whose hot paths call the untyped compiled Rust extension; "
         "ruff-checked and run by the Benchmark nightly workflow"
     ),
-    "campaigns/": (
-        "seeded campaign scripts outside the package; ruff-checked and exercised by "
-        "the demo, the physics-parity tests and the demo container"
-    ),
     "papers/": "manuscript package verifier; ruff-checked and run by the Paper workflow",
 }
-TYPED_PYTHON_ROOTS = ("src/scpn_mif_core/", "tools/", "cosim/", "examples/", "tests/")
+TYPED_PYTHON_ROOTS = ("src/scpn_mif_core/", "tools/", "cosim/", "examples/", "tests/", "campaigns/")
 TYPED_PYTHON_FILES = frozenset({"conftest.py"})
 
 
