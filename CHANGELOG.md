@@ -35,6 +35,9 @@
 
 ### Security
 
+- The workflow audit now requires full-SHA action pins in every workflow,
+  not only in `ci.yml` and the `ci-*.yml` categories, so release, publication,
+  documentation, security and nightly workflows are held to the same rule.
 - The docs, stale and upstream-nightly workflows now grant no permission at
   workflow level; each job declares only what it uses (Pages deployment:
   `pages` and `id-token`; stale triage: `issues` and `pull-requests`;

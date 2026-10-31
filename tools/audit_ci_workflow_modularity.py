@@ -89,6 +89,18 @@ def _check_action_pins(workflow: dict[str, Any], path: Path, errors: list[str]) 
                 errors.append(f"{path}: job {job_id} has unpinned action {reference}")
 
 
+def _check_other_workflow_pins(workflow_root: Path, checked: set[Path], errors: list[str]) -> None:
+    """Require immutable action SHAs in every workflow outside the CI split too.
+
+    Release, publication, documentation, security and nightly workflows run
+    third-party actions with write scopes or secrets, so an unpinned
+    reference there matters at least as much as in the CI categories.
+    """
+    others = sorted({*workflow_root.glob("*.yml"), *workflow_root.glob("*.yaml")} - checked)
+    for path in others:
+        _check_action_pins(_load_workflow(path), path, errors)
+
+
 def _check_no_direct_coordinator_readers(errors: list[str]) -> None:
     """Prevent tests and tools from coupling contracts to the coordinator file."""
     allowed = {
@@ -253,6 +265,7 @@ def audit_ci_workflow_modularity(policy: WorkflowPolicy | None = None) -> list[s
         if "toJSON(needs)" not in gate_text or 'value["result"] != "success"' not in gate_text:
             errors.append("required CI gate must fail closed over every category result")
     _check_action_pins(coordinator, coordinator_path, errors)
+    _check_other_workflow_pins(workflow_root, {coordinator_path, *expected_paths}, errors)
     _check_no_direct_coordinator_readers(errors)
     return errors
 

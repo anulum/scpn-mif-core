@@ -75,7 +75,7 @@ ownership split with the sibling repositories.
 | Hostile or malformed Studio feed | the feed is narrowed by type guards; anything that fails falls back to the bundled sample; React renders text without raw HTML |
 | Third-party script on the documentation site | exact-version MathJax from jsDelivr only; a test binds the list and forbids `polyfill.io`, a domain that served malicious code in 2024 |
 | Tampered release | releases run only from version tags after the required core and formal checks passed on that commit; PyPI publication uses OIDC trusted publishing from a protected environment with attestations; GitHub release artefacts carry build-provenance attestations |
-| Workflow tampering towards write authority | third-party actions pinned to full SHAs; write scopes appear only in the release and wheel-publication jobs, docs deployment, CodeQL and Scorecard result upload, the PyPI download-statistics commit, and the stale-issue and upstream-issue jobs |
+| Workflow tampering towards write authority | third-party actions pinned to full SHAs in every workflow, enforced by `tools/audit_ci_workflow_modularity.py`; no workflow grants a write scope at workflow level, and write scopes appear only in the release and wheel-publication jobs, docs deployment, CodeQL and Scorecard result upload, the PyPI download-statistics commit, and the stale-issue and upstream-issue jobs |
 | Pickle or code execution through evidence files | NPY members are written with `allow_pickle=False` |
 | Secret introduction | no secrets are needed to build or test; `tools/check_secrets.py` runs in pre-commit and over the whole tree in CI; GitHub secret scanning with push protection |
 | Licence drift or a third-party file published under the project licence | REUSE 3.3 compliance gated by the `reuse` pre-commit hook in CI; the USPTO patent copy is annotated as a third-party public record |
@@ -93,10 +93,9 @@ check on the tag commit is not `success`.
   or an explicit root makes the ecosystem report import and run Python from
   that tree, and the full-chain demo imports sibling packages from its
   checkouts. Run them only against checkouts you trust.
-- **Workflow scopes.** The docs, stale and upstream-nightly workflows grant
-  their write scopes at workflow level rather than per job; the action-pin
-  audit enforces SHAs only for `ci.yml` and the `ci-*.yml` workflows, so the
-  other workflows are pinned today without an automated check.
+- **Pinned actions are trusted.** The jobs that hold write scopes or
+  publication rights run third-party actions at pinned commits; a pin fixes
+  the code but does not review it.
 - **Demo container.** The `Dockerfile` uses a base image by tag, runs as
   root and is not built or scanned in CI. It is a demo, not a deployment.
 - **Predictor weights** ignore unknown members; only the documented fields

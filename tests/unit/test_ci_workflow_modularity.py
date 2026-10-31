@@ -255,6 +255,43 @@ def test_audit_reports_category_ownership_secret_and_security_failures(
         assert any(fragment in error for error in errors)
 
 
+def test_audit_requires_pins_in_workflows_outside_the_ci_split(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Release, docs and nightly workflows are held to the same SHA pin rule."""
+    policy = _policy()
+    _write_fixture(tmp_path, policy)
+    monkeypatch.setattr(modularity, "REPOSITORY_ROOT", tmp_path)
+    workflow_root = tmp_path / ".github/workflows"
+    pinned = f"""name: Release
+on:
+  push:
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@{_ACTION_SHA}  # v7.0.1
+      - uses: ./.github/actions/local
+"""
+    (workflow_root / "release.yml").write_text(pinned, encoding="utf-8")
+    (workflow_root / "docs.yaml").write_text(pinned.replace("name: Release", "name: Docs"), encoding="utf-8")
+
+    assert modularity.audit_ci_workflow_modularity(policy) == []
+
+    (workflow_root / "release.yml").write_text(
+        pinned.replace(f"actions/checkout@{_ACTION_SHA}", "actions/checkout@v7"), encoding="utf-8"
+    )
+    (workflow_root / "docs.yaml").write_text(
+        pinned.replace(f"actions/checkout@{_ACTION_SHA}", "pypa/gh-action-pypi-publish@release/v1"),
+        encoding="utf-8",
+    )
+
+    errors = modularity.audit_ci_workflow_modularity(policy)
+
+    assert errors == [
+        f"{workflow_root / 'docs.yaml'}: job publish has unpinned action pypa/gh-action-pypi-publish@release/v1",
+        f"{workflow_root / 'release.yml'}: job publish has unpinned action actions/checkout@v7",
+    ]
+
+
 def test_audit_rejects_duplicate_unregistered_optional_and_direct_reader(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
