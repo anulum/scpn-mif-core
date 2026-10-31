@@ -128,6 +128,12 @@
 
 ### Fixed
 
+- The MIF Studio panel now has accessible names: the section is labelled by
+  its heading, the verbs table has a caption, the timing-evidence table is
+  labelled by its heading (ids from `useId`, unique when the Hub mounts several
+  panels), and every column header declares `scope="col"`. Role-based tests
+  bind them.
+
 - `dispatched_decode_spike_features` no longer raises `TypeError` for a
   Rust-backed spike buffer with the `temporal` or `isi` strategy (or with
   `rate` when the Python kernel is preferred): such a buffer is mirrored into

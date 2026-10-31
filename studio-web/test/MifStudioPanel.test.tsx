@@ -67,6 +67,33 @@ const SEALED_DECISIONS: readonly SealedStreamingDecision[] = [
 ];
 
 describe('MifStudioPanel', () => {
+  it('names the panel and its tables for assistive technology', () => {
+    render(<MifStudioPanel />);
+    expect(screen.getByRole('region', { name: 'SCPN-MIF-CORE — MIF Studio' })).toBeInTheDocument();
+    const verbs = screen.getByRole('table', { name: 'Verbs' });
+    const timing = screen.getByRole('table', { name: 'Timing evidence' });
+    for (const table of [verbs, timing]) {
+      const headers = table.querySelectorAll('thead th');
+      expect(headers.length).toBeGreaterThan(0);
+      headers.forEach((header) => {
+        expect(header.getAttribute('scope')).toBe('col');
+      });
+    }
+  });
+
+  it('keeps labels unique when the Hub mounts two panels', () => {
+    render(
+      <>
+        <MifStudioPanel />
+        <MifStudioPanel />
+      </>,
+    );
+    expect(screen.getAllByRole('region', { name: 'SCPN-MIF-CORE — MIF Studio' })).toHaveLength(2);
+    expect(screen.getAllByRole('table', { name: 'Timing evidence' })).toHaveLength(2);
+    const ids = Array.from(document.querySelectorAll('[id]')).map((element) => element.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
   it('renders the studio header', () => {
     render(<MifStudioPanel />);
     expect(screen.getByRole('heading', { name: 'SCPN-MIF-CORE — MIF Studio' })).toBeInTheDocument();

@@ -7,6 +7,7 @@
 // MIF Studio UI remote — the exposed MifStudioPanel
 
 import type { ReactElement } from 'react';
+import { useId } from 'react';
 
 import type {
   Backend,
@@ -72,20 +73,24 @@ export default function MifStudioPanel({
   sealedStreamingDecisions = [],
   hubSealStatuses = {},
 }: MifStudioPanelProps = {}): ReactElement {
+  // The Hub may mount several panels; generated ids keep each label unique.
+  const titleId = useId();
+  const timingTitleId = useId();
   return (
-    <section className="mif-studio">
+    <section className="mif-studio" aria-labelledby={titleId}>
       <header className="mif-studio__header">
-        <h2>SCPN-MIF-CORE — MIF Studio</h2>
+        <h2 id={titleId}>SCPN-MIF-CORE — MIF Studio</h2>
       </header>
 
       <table className="mif-studio__verbs">
+        <caption>Verbs</caption>
         <thead>
           <tr>
-            <th>Verb</th>
-            <th>Safety tier</th>
-            <th>Side effect</th>
-            <th>Timing</th>
-            <th>Hub gate</th>
+            <th scope="col">Verb</th>
+            <th scope="col">Safety tier</th>
+            <th scope="col">Side effect</th>
+            <th scope="col">Timing</th>
+            <th scope="col">Hub gate</th>
           </tr>
         </thead>
         <tbody>
@@ -120,14 +125,14 @@ export default function MifStudioPanel({
       </div>
 
       <div className="mif-studio__timing-evidence">
-        <h3>Timing evidence</h3>
-        <table>
+        <h3 id={timingTitleId}>Timing evidence</h3>
+        <table aria-labelledby={timingTitleId}>
           <thead>
             <tr>
-              <th>Evidence class</th>
-              <th>Status</th>
-              <th>Claim unit</th>
-              <th>Wall-clock claim</th>
+              <th scope="col">Evidence class</th>
+              <th scope="col">Status</th>
+              <th scope="col">Claim unit</th>
+              <th scope="col">Wall-clock claim</th>
             </tr>
           </thead>
           <tbody>
