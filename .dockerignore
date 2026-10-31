@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# SCPN-MIF-CORE — build context for the demo image.
+#
+# Allowlist: the builder receives only what `pip install ".[demo]"` and
+# `make demo` need, plus the legal notices. Everything else in the working
+# tree (private records, agent files, environments, `.env` files, caches,
+# build output) never leaves the machine. A test binds this list.
+
+*
+!pyproject.toml
+!README.md
+!LICENSE
+!LICENSES/
+!NOTICE.md
+!COPYRIGHT
+!Makefile
+!src/
+!examples/
+!campaigns/
+**/__pycache__/
+**/*.py[cod]

@@ -16,16 +16,21 @@
 # It prints the lifecycle + merge-trigger results and writes the campaign JSON +
 # PNG artifacts into campaigns/results/ inside the container.
 
-FROM python:3.12-slim
+# python:3.12-slim, pinned to its multi-architecture index digest
+# (resolved 2026-10-31); Dependabot's docker ecosystem proposes digest updates.
+FROM python:3.12-slim@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends make \
     && rm -rf /var/lib/apt/lists/*
 
+# The demo needs no privilege: it runs as an unprivileged user that owns only
+# the application directory (the campaign writes its results there).
+RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin mif
 WORKDIR /app
-COPY . .
+COPY --chown=mif:mif . .
 
-RUN python -m pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir ".[demo]"
+RUN pip install --no-cache-dir ".[demo]"
 
+USER mif
 CMD ["make", "demo"]

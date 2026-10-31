@@ -35,6 +35,11 @@
 
 ### Security
 
+- The demo image no longer receives the whole working tree: a new
+  `.dockerignore` admits only the build metadata, sources, examples,
+  campaigns and legal notices, so private records, agent files, `.env` files,
+  environments and build output stay out. The base image is pinned by digest,
+  the demo runs as an unprivileged user, and Dependabot tracks the base image.
 - The workflow audit now requires full-SHA action pins in every workflow,
   not only in `ci.yml` and the `ci-*.yml` categories, so release, publication,
   documentation, security and nightly workflows are held to the same rule.

@@ -78,6 +78,7 @@ ownership split with the sibling repositories.
 | Workflow tampering towards write authority | third-party actions pinned to full SHAs in every workflow, enforced by `tools/audit_ci_workflow_modularity.py`; no workflow grants a write scope at workflow level, and write scopes appear only in the release and wheel-publication jobs, docs deployment, CodeQL and Scorecard result upload, the PyPI download-statistics commit, and the stale-issue and upstream-issue jobs |
 | Pickle or code execution through evidence files | NPY members are written with `allow_pickle=False` |
 | Secret introduction | no secrets are needed to build or test; `tools/check_secrets.py` runs in pre-commit and over the whole tree in CI; GitHub secret scanning with push protection |
+| Private or local files baked into the demo image | `.dockerignore` is an allowlist (build metadata, sources, examples, campaigns, legal notices); a test binds it |
 | Licence drift or a third-party file published under the project licence | REUSE 3.3 compliance gated by the `reuse` pre-commit hook in CI; the USPTO patent copy is annotated as a third-party public record |
 
 ## Fail-closed behaviour
@@ -96,8 +97,10 @@ check on the tag commit is not `success`.
 - **Pinned actions are trusted.** The jobs that hold write scopes or
   publication rights run third-party actions at pinned commits; a pin fixes
   the code but does not review it.
-- **Demo container.** The `Dockerfile` uses a base image by tag, runs as
-  root and is not built or scanned in CI. It is a demo, not a deployment.
+- **Demo container.** The base image is pinned by digest, the demo runs as
+  an unprivileged user and the build context is an allowlist, but the image
+  is not built or scanned in CI and its Python dependencies are installed
+  from version ranges, not a hash lock. It is a demo, not a deployment.
 - **Predictor weights** ignore unknown members; only the documented fields
   are read.
 - **Timing claims.** Formal proofs bound clock cycles, not nanoseconds;
