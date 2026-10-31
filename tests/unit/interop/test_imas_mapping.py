@@ -21,14 +21,17 @@ from scpn_mif_core.interop.imas_mapping import (
 
 
 def test_common_substructures() -> None:
+    """The common IMAS substructures are ids_properties and time."""
     assert IMAS_COMMON_SUBSTRUCTURES == ("ids_properties", "time")
 
 
 def test_map_references_verified_ids_names() -> None:
+    """The map references the equilibrium, magnetics and pf_active IDSs."""
     assert ids_names() == ("equilibrium", "magnetics", "pf_active")
 
 
 def test_each_mapping_is_well_formed() -> None:
+    """Every mapping names a signal, lane, IDS, a path inside it, a direction and a note."""
     for mapping in MIF_IMAS_INPUT_MAP:
         assert mapping.mif_signal
         assert mapping.mif_lane
@@ -39,6 +42,7 @@ def test_each_mapping_is_well_formed() -> None:
 
 
 def test_b_dot_probe_maps_to_magnetics() -> None:
+    """The B-dot probe is consumed from the magnetics poloidal-field probes."""
     mapping = mapping_for("b_dot_probe_signal")
     assert mapping.ids_name == "magnetics"
     assert "b_field_pol_probe" in mapping.ids_path
@@ -46,23 +50,27 @@ def test_b_dot_probe_maps_to_magnetics() -> None:
 
 
 def test_equilibrium_carries_cocos_note() -> None:
+    """The equilibrium mapping notes COCOS 17."""
     mapping = mapping_for("frc_equilibrium_state")
     assert mapping.ids_name == "equilibrium"
     assert "COCOS=17" in mapping.note
 
 
 def test_capacitor_bank_is_published_to_pf_active() -> None:
+    """The capacitor bank is published to pf_active."""
     mapping = mapping_for("capacitor_bank_drive")
     assert mapping.ids_name == "pf_active"
     assert mapping.direction == "published"
 
 
 def test_mapping_for_unknown_signal_raises() -> None:
+    """An unknown MIF signal has no mapping and is refused."""
     with pytest.raises(KeyError, match="no IMAS mapping for MIF signal"):
         mapping_for("not_a_signal")
 
 
 def test_ids_names_accepts_custom_iterable() -> None:
+    """ids_names lists the distinct IDSs of a given mapping set."""
     custom = (
         ImasInputMapping("s1", "l", "wall", "wall.x", "consumed", "n"),
         ImasInputMapping("s2", "l", "magnetics", "magnetics.y", "consumed", "n"),

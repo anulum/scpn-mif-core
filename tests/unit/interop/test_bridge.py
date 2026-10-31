@@ -71,6 +71,7 @@ def _safe_report() -> MergeTriggerReport:
 
 
 def test_extract_mif_inputs_round_trips_consumed_signals() -> None:
+    """The consumed B-dot and equilibrium signals are extracted from a payload unchanged."""
     bdot = mapping_for("b_dot_probe_signal")
     equilibrium = mapping_for("frc_equilibrium_state")
     payload = {bdot.ids_path: [0.0, 0.31], equilibrium.ids_path: {"ip": 1.2e5}}
@@ -79,18 +80,21 @@ def test_extract_mif_inputs_round_trips_consumed_signals() -> None:
 
 
 def test_extract_mif_inputs_omits_published_signals() -> None:
+    """The published capacitor-bank drive is not extracted as an input."""
     # The published capacitor-bank drive is MIF output, not a consumed input.
     payload = {mapping_for("b_dot_probe_signal").ids_path: [1.0], mapping_for("frc_equilibrium_state").ids_path: {}}
     assert "capacitor_bank_drive" not in extract_mif_inputs(payload)
 
 
 def test_extract_mif_inputs_missing_path_raises_by_default() -> None:
+    """A missing consumed path is refused by default."""
     payload = {mapping_for("b_dot_probe_signal").ids_path: [1.0]}
     with pytest.raises(KeyError, match="frc_equilibrium_state"):
         extract_mif_inputs(payload)
 
 
 def test_extract_mif_inputs_missing_path_skipped_when_not_required() -> None:
+    """A missing path is skipped when inputs are not required."""
     payload = {mapping_for("b_dot_probe_signal").ids_path: [1.0]}
     inputs = extract_mif_inputs(payload, require=False)
     assert inputs == {"b_dot_probe_signal": [1.0]}
@@ -116,6 +120,7 @@ def _ingress_egress(report: MergeTriggerReport) -> tuple[TriggerIngress, Trigger
 
 
 def test_safe_decision_fires_and_has_positive_latency() -> None:
+    """A safe decision fires without veto and measures 42 ns from ingress to egress."""
     report = _safe_report()
     assert report.outcome is MergeTriggerOutcome.FIRE
     ingress, egress = _ingress_egress(report)
@@ -125,12 +130,14 @@ def test_safe_decision_fires_and_has_positive_latency() -> None:
 
 
 def test_egress_fire_tracks_the_decision_outcome() -> None:
+    """The egress fire flag equals whether the decision fired."""
     report = _safe_report()
     _, egress = _ingress_egress(report)
     assert egress.fire == (report.outcome is MergeTriggerOutcome.FIRE)
 
 
 def test_epics_channels_cover_the_trigger_contract() -> None:
+    """Every trigger-contract field has an SCPN:MIF:TRIG channel."""
     channels = epics_channels()
     for key in ("FIRE", "VETO_ACTIVE", "LATENCY_PS"):
         assert key in channels

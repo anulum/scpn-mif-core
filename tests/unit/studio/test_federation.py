@@ -36,6 +36,7 @@ V2_KEYS = {
 
 
 def test_federation_document_is_the_ratified_two_block_envelope() -> None:
+    """The federation document holds exactly schema_a and architecture_map, each from its builder."""
     document = build_federation_document()
     # The Hub's split_manifest_envelope hard-requires a top-level schema_a key.
     assert set(document) == {"schema_a", "architecture_map"}
@@ -44,12 +45,14 @@ def test_federation_document_is_the_ratified_two_block_envelope() -> None:
 
 
 def test_architecture_map_has_the_full_v2_key_set() -> None:
+    """The architecture map has every v2 key and the v2 version."""
     architecture_map = build_architecture_map_extension()
     assert set(architecture_map) == V2_KEYS
     assert architecture_map["version"] == ARCHITECTURE_MAP_VERSION == "architecture-map.v2"
 
 
 def test_pipeline_stages_span_scenario_to_decision() -> None:
+    """The pipeline runs from scenario to a decision with FIRE, ABORT and HOLD outputs."""
     stages = build_architecture_map_extension()["pipeline_stages"]
     names = [stage["stage"] for stage in stages]
     assert names[0] == "scenario"
@@ -63,6 +66,7 @@ def test_pipeline_stages_span_scenario_to_decision() -> None:
 
 
 def test_backends_are_fastest_first_with_python_floor() -> None:
+    """Dispatch backends run fastest first, Rust then Python; RTL and formal have no order."""
     backends = build_architecture_map_extension()["backends"]
     dispatch = [b for b in backends if b["dispatch_order"] is not None]
     orders = [b["dispatch_order"] for b in dispatch]
@@ -75,6 +79,7 @@ def test_backends_are_fastest_first_with_python_floor() -> None:
 
 
 def test_capabilities_carry_honest_status_and_tier() -> None:
+    """Every capability has an allowed status and tier, and silicon timing is partial."""
     capabilities = build_architecture_map_extension()["capabilities"]
     allowed_status = {"wired", "rtl", "partial", "roadmap", "contract"}
     allowed_tier = {"core", "extended"}
@@ -88,6 +93,7 @@ def test_capabilities_carry_honest_status_and_tier() -> None:
 
 
 def test_interfaces_expose_the_federated_ui_panel() -> None:
+    """The interfaces include the CLI, library, feed and the federated UI panel."""
     interfaces = build_architecture_map_extension()["interfaces"]
     kinds = {interface["kind"] for interface in interfaces}
     assert {"cli", "library", "studio_feed", "ui_module"} <= kinds
@@ -96,6 +102,7 @@ def test_interfaces_expose_the_federated_ui_panel() -> None:
 
 
 def test_verb_substrates_mirror_the_verb_contracts() -> None:
+    """Verb substrates equal the verb contracts' backends."""
     substrates = build_architecture_map_extension()["verb_substrates"]
     assert substrates == {verb.name: list(verb.backends) for verb in MIF_VERBS}
     assert substrates["prove"] == ["symbiyosys"]
@@ -103,6 +110,7 @@ def test_verb_substrates_mirror_the_verb_contracts() -> None:
 
 
 def test_evidence_badges_separate_local_cosim_from_hil() -> None:
+    """Local Verilator cosimulation is available and measured; hardware-in-the-loop stays hardware-gated."""
     badges = build_architecture_map_extension()["evidence_badges"]
     by_badge = {badge["badge"]: badge for badge in badges}
 
@@ -121,6 +129,7 @@ def test_evidence_badges_separate_local_cosim_from_hil() -> None:
 
 
 def test_evidence_badges_separate_cycle_formal_from_wall_clock_timing() -> None:
+    """Cycle bounds are formally proven without wall-clock claims; nanosecond timing stays hardware-gated."""
     badges = build_architecture_map_extension()["evidence_badges"]
     by_badge = {badge["badge"]: badge for badge in badges}
 
@@ -147,6 +156,7 @@ def test_evidence_badges_separate_cycle_formal_from_wall_clock_timing() -> None:
 
 
 def test_cross_repo_declares_the_owning_siblings() -> None:
+    """The cross-repository block names the owning siblings and each edge's adapter and wire format."""
     cross_repo = build_architecture_map_extension()["cross_repo"]
     siblings = {edge["sibling"] for edge in cross_repo}
     assert siblings == {
@@ -161,6 +171,7 @@ def test_cross_repo_declares_the_owning_siblings() -> None:
 
 
 def test_wire_formats_name_the_cross_boundary_contracts() -> None:
+    """The wire formats name the scenario, report, AER and DAQ contracts."""
     wire_formats = build_architecture_map_extension()["wire_formats"]
     names = {wire["name"] for wire in wire_formats}
     assert {"MergeTriggerScenario", "MergeTriggerReport", "aer-spike-q88", "daq-frame"} <= names
@@ -169,6 +180,7 @@ def test_wire_formats_name_the_cross_boundary_contracts() -> None:
 
 
 def test_boundaries_separate_executed_from_gated_and_closed() -> None:
+    """Boundaries are executed, bounded, hardware-gated or closed, and compression is closed as FUSION-owned."""
     boundaries = build_architecture_map_extension()["boundaries"]
     assert set(boundaries) == {"executed", "bounded", "hardware_gated", "closed"}
     for scope in boundaries.values():

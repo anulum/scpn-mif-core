@@ -83,6 +83,7 @@ def _benchmark_bundle() -> EvidenceBundle:
 
 @pytest.fixture(scope="module")
 def signer() -> Ed25519Signer:
+    """Return a fresh Ed25519 signer for the tests."""
     return Ed25519Signer.generate(key_id="mif-test-key")
 
 
@@ -100,6 +101,7 @@ def _claim_status_regrade(unit: Mapping[str, Any]) -> str:
 
 
 def test_seals_cosim_bundle_bit_exact_and_verifies(signer: Ed25519Signer) -> None:
+    """A cosimulation bundle is sealed as bit-exact recompute evidence and verifies."""
     envelope = seal_mif_evidence(_cosim_bundle(), signer=signer)
     assert envelope.verifiability_mode == "recompute"
     assert envelope.exactness_class == "bit-exact"
@@ -110,12 +112,14 @@ def test_seals_cosim_bundle_bit_exact_and_verifies(signer: Ed25519Signer) -> Non
 
 
 def test_seals_formal_bundle_bit_exact(signer: Ed25519Signer) -> None:
+    """A formal-proof bundle is sealed as bit-exact."""
     envelope = seal_mif_evidence(_formal_bundle(), signer=signer)
     assert envelope.exactness_class == "bit-exact"
     assert envelope.unit["schema"] == "studio.formal-proof.v1"
 
 
 def test_seals_benchmark_bundle_with_procedure_tolerance(signer: Ed25519Signer) -> None:
+    """A benchmark bundle is sealed with procedure reproducibility, not equal timings."""
     envelope = seal_mif_evidence(_benchmark_bundle(), signer=signer)
     exactness = envelope.exactness_class
     assert isinstance(exactness, dict)
@@ -125,6 +129,7 @@ def test_seals_benchmark_bundle_with_procedure_tolerance(signer: Ed25519Signer) 
 
 
 def test_tampered_unit_renders_forged(signer: Ed25519Signer) -> None:
+    """A sealed unit changed after sealing verifies as forged."""
     envelope = seal_mif_evidence(_cosim_bundle(), signer=signer)
     wire = envelope.to_dict()
     tampered = dict(wire)
@@ -137,6 +142,7 @@ def test_tampered_unit_renders_forged(signer: Ed25519Signer) -> None:
 
 
 def test_stripped_envelope_renders_stripped(signer: Ed25519Signer) -> None:
+    """An envelope without its seal verifies as stripped."""
     envelope = seal_mif_evidence(_cosim_bundle(), signer=signer)
     rendered = _claim_status_regrade(envelope.unit)
     verdict = verify(None, rendered, keyring=_keyring(signer), regrade=_claim_status_regrade)
@@ -144,12 +150,14 @@ def test_stripped_envelope_renders_stripped(signer: Ed25519Signer) -> None:
 
 
 def test_unknown_schema_fails_closed(signer: Ed25519Signer) -> None:
+    """An unknown evidence schema is refused."""
     bundle = dataclasses.replace(_cosim_bundle(), schema="studio.unknown.v1")
     with pytest.raises(ValueError, match="unknown MIF evidence schema"):
         seal_mif_evidence(bundle, signer=signer)
 
 
 def test_attestation_bearing_bundle_fails_closed(signer: Ed25519Signer) -> None:
+    """A bundle that needs attestation is refused, since no such lane exists."""
     from scpn_studio_platform.evidence import Attestation
 
     attested = dataclasses.replace(
@@ -166,6 +174,7 @@ def test_attestation_bearing_bundle_fails_closed(signer: Ed25519Signer) -> None:
 
 
 def test_exactness_map_covers_exactly_the_four_advertised_schemas() -> None:
+    """The exactness map covers exactly the four advertised schemas."""
     assert sorted(EXACTNESS_BY_SCHEMA) == [
         "studio.benchmark.v1",
         "studio.cosim.v1",

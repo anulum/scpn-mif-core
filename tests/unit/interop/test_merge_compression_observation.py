@@ -148,6 +148,7 @@ def _delete(path: tuple[str, ...]) -> Callable[[dict[str, Any]], None]:
 
 
 def test_public_producer_emits_unique_non_actionable_bytes() -> None:
+    """The producer emits a schema-tagged, review-only simulation observation whose digest is its SHA-256."""
     payload = _valid_bytes()
     decoded = merge_compression_observation_from_bytes(payload)
 
@@ -164,6 +165,7 @@ def test_public_producer_emits_unique_non_actionable_bytes() -> None:
 
 
 def test_public_producer_reproduces_immutable_fixture() -> None:
+    """The producer reproduces the 2475-byte fixture and its hash."""
     fixture = FIXTURE.read_bytes()
 
     assert len(fixture) == 2_475
@@ -173,12 +175,14 @@ def test_public_producer_reproduces_immutable_fixture() -> None:
 
 
 def test_curated_root_facade_exports_the_byte_contract() -> None:
+    """The package root exports the same encoder, decoder and schema."""
     assert mif.merge_compression_observation_to_bytes is merge_compression_observation_to_bytes
     assert mif.merge_compression_observation_from_bytes is merge_compression_observation_from_bytes
     assert mif.MIF_MERGE_COMPRESSION_OBSERVATION_SCHEMA == MIF_MERGE_COMPRESSION_OBSERVATION_SCHEMA
 
 
 def test_public_producer_is_deterministic_and_preserves_explicit_time() -> None:
+    """Two runs give the same bytes and keep the given timestamp."""
     first = _valid_bytes(timestamp_ns=1_000_000)
     second = _valid_bytes(timestamp_ns=1_000_000)
 
@@ -190,6 +194,7 @@ def test_public_producer_is_deterministic_and_preserves_explicit_time() -> None:
 
 @pytest.mark.parametrize("mutation", ["whitespace", "duplicate", "digest", "action", "observed", "unknown"])
 def test_public_decoder_refuses_byte_and_semantic_drift(mutation: str) -> None:
+    """Each byte or meaning mutation of a valid observation is refused."""
     valid = _valid_bytes()
     if mutation == "whitespace":
         changed = valid + b"\n"
@@ -266,6 +271,7 @@ def test_public_decoder_refuses_byte_and_semantic_drift(mutation: str) -> None:
     ],
 )
 def test_public_decoder_refuses_closed_field_matrix(mutate: Callable[[dict[str, object]], None]) -> None:
+    """Each change to the closed field set is refused."""
     record = json.loads(_valid_bytes())
     mutate(record)
     changed = _reseal(record)
@@ -276,11 +282,13 @@ def test_public_decoder_refuses_closed_field_matrix(mutate: Callable[[dict[str, 
 
 @pytest.mark.parametrize("payload", [b"", b"\xff", b"{", b"[]\n", b"x" * (1024 * 1024 + 1)])
 def test_public_decoder_refuses_invalid_transport(payload: bytes) -> None:
+    """Bytes that are not a valid observation transport are refused."""
     with pytest.raises(ValueError):
         merge_compression_observation_from_bytes(payload)
 
 
 def test_public_producer_refuses_crosslinked_time_drift() -> None:
+    """A clock that disagrees with the model time is refused."""
     state, sample, spec, identity, _clock, evidence = _carriers(timestamp_ns=1_000_000)
     wrong_clock = MergeCompressionObservationClock(
         domain="mif_model_time",
@@ -301,6 +309,7 @@ def test_public_producer_refuses_crosslinked_time_drift() -> None:
 
 
 def test_public_metadata_refuses_physical_or_ambiguous_identity() -> None:
+    """An ambiguous source revision and a physical quality claim are refused."""
     with pytest.raises(ValueError, match="source_revision"):
         MergeCompressionObservationIdentity(
             source_revision="main",
@@ -336,6 +345,7 @@ def test_public_metadata_refuses_physical_or_ambiguous_identity() -> None:
     ],
 )
 def test_public_identity_refuses_ambiguous_values(field: str, value: Any) -> None:
+    """Each ambiguous identity value is refused."""
     identity = _carriers()[3]
     with pytest.raises(ValueError):
         replace(identity, **{field: value})
@@ -354,6 +364,7 @@ def test_public_identity_refuses_ambiguous_values(field: str, value: Any) -> Non
     ],
 )
 def test_public_clock_refuses_invalid_values(field: str, value: Any) -> None:
+    """Each invalid clock value is refused."""
     clock = _carriers()[4]
     with pytest.raises(ValueError):
         replace(clock, **{field: value})
@@ -374,12 +385,14 @@ def test_public_clock_refuses_invalid_values(field: str, value: Any) -> None:
     ],
 )
 def test_public_evidence_refuses_invalid_values(field: str, value: Any) -> None:
+    """Each invalid evidence value is refused."""
     evidence = _carriers()[5]
     with pytest.raises(ValueError):
         replace(evidence, **{field: value})
 
 
 def test_public_evidence_accepts_explicit_degradation() -> None:
+    """Evidence may declare itself degraded."""
     evidence = replace(_carriers()[5], quality="degraded", quality_flags=("clipped",))
     assert evidence.quality == "degraded"
 
@@ -388,6 +401,7 @@ def test_public_evidence_accepts_explicit_degradation() -> None:
     "case", ["calibration", "validity", "state_time", "phase_error", "candidate", "lock", "nonfinite"]
 )
 def test_public_producer_refuses_carrier_crosslink_drift(case: str) -> None:
+    """Each disagreement between the carried report and the observation is refused."""
     state, sample, spec, identity, clock, evidence = _carriers(timestamp_ns=1_000_000)
     if case == "calibration":
         evidence = replace(evidence, calibrated_at_ns=2_000_000)
@@ -416,6 +430,7 @@ def test_public_producer_refuses_carrier_crosslink_drift(case: str) -> None:
 
 
 def test_public_producer_preserves_a_valid_nonfire_decision() -> None:
+    """A hold-no-lock decision is kept, with no first-fire time."""
     state, _sample, spec, identity, clock, evidence = _carriers()
     hold_spec = replace(spec, armed=False)
     hold_sample = StreamingMergeTrigger(hold_spec).push(state.phases_rad, state.positions_m, t_s=state.t_s)

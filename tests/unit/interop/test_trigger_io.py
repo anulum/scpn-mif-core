@@ -25,11 +25,13 @@ from scpn_mif_core.interop.trigger_io import (
 
 
 def test_total_picoseconds_combines_all_fields() -> None:
+    """Total picoseconds combine seconds, nanoseconds and picoseconds."""
     ts = WhiteRabbitTimestamp(tai_seconds=2, nanoseconds=3, picoseconds=4)
     assert ts.total_picoseconds == (2 * 1_000_000_000 + 3) * 1_000 + 4
 
 
 def test_picoseconds_since_is_signed_interval() -> None:
+    """The interval between two timestamps is signed."""
     a = WhiteRabbitTimestamp(tai_seconds=1, nanoseconds=0, picoseconds=0)
     b = WhiteRabbitTimestamp(tai_seconds=1, nanoseconds=0, picoseconds=500)
     assert b.picoseconds_since(a) == 500
@@ -37,34 +39,40 @@ def test_picoseconds_since_is_signed_interval() -> None:
 
 
 def test_default_picoseconds_zero() -> None:
+    """Picoseconds default to zero."""
     assert WhiteRabbitTimestamp(tai_seconds=0, nanoseconds=0).picoseconds == 0
 
 
 @pytest.mark.parametrize("field", ["tai_seconds", "nanoseconds", "picoseconds"])
 def test_bool_field_rejected(field: str) -> None:
+    """A boolean in an integer field is refused."""
     kwargs = {"tai_seconds": 0, "nanoseconds": 0, "picoseconds": 0, field: True}
     with pytest.raises(TypeError, match=f"{field} must be an integer"):
         WhiteRabbitTimestamp(**kwargs)
 
 
 def test_float_field_rejected() -> None:
+    """A float nanosecond field is refused."""
     with pytest.raises(TypeError, match="nanoseconds must be an integer"):
         WhiteRabbitTimestamp(tai_seconds=0, nanoseconds=cast(Any, 1.0), picoseconds=0)
 
 
 def test_negative_seconds_rejected() -> None:
+    """Negative TAI seconds are refused."""
     with pytest.raises(ValueError, match="tai_seconds must be non-negative"):
         WhiteRabbitTimestamp(tai_seconds=-1, nanoseconds=0, picoseconds=0)
 
 
 @pytest.mark.parametrize("ns", [-1, 1_000_000_000])
 def test_nanoseconds_range(ns: int) -> None:
+    """Nanoseconds outside 0 to 999 999 999 are refused."""
     with pytest.raises(ValueError, match="nanoseconds must lie"):
         WhiteRabbitTimestamp(tai_seconds=0, nanoseconds=ns, picoseconds=0)
 
 
 @pytest.mark.parametrize("ps", [-1, 1000])
 def test_picoseconds_range(ps: int) -> None:
+    """Picoseconds outside 0 to 999 are refused."""
     with pytest.raises(ValueError, match="picoseconds must lie"):
         WhiteRabbitTimestamp(tai_seconds=0, nanoseconds=0, picoseconds=ps)
 
@@ -74,18 +82,21 @@ def _ts(ns: int, ps: int = 0) -> WhiteRabbitTimestamp:
 
 
 def test_egress_latency_positive() -> None:
+    """Egress after ingress gives the positive latency in picoseconds."""
     ingress = TriggerIngress(timestamp=_ts(10), spike_count=8, confidence_q8_8=200, bank_ready=True, safety_veto=False)
     egress = TriggerEgress(timestamp=_ts(58), fire=True, veto_active=False)
     assert egress_latency_ps(ingress, egress) == 48_000
 
 
 def test_egress_latency_zero() -> None:
+    """Equal timestamps give zero latency."""
     ingress = TriggerIngress(timestamp=_ts(10), spike_count=8, confidence_q8_8=200, bank_ready=True, safety_veto=False)
     egress = TriggerEgress(timestamp=_ts(10), fire=False, veto_active=True)
     assert egress_latency_ps(ingress, egress) == 0
 
 
 def test_egress_before_ingress_rejected() -> None:
+    """Egress before ingress is refused."""
     ingress = TriggerIngress(timestamp=_ts(50), spike_count=8, confidence_q8_8=200, bank_ready=True, safety_veto=False)
     egress = TriggerEgress(timestamp=_ts(10), fire=True, veto_active=False)
     with pytest.raises(ValueError, match="egress timestamp precedes ingress"):
@@ -93,21 +104,25 @@ def test_egress_before_ingress_rejected() -> None:
 
 
 def test_epics_channel_known_signal_case_insensitive() -> None:
+    """Known signals map to their channel regardless of case."""
     assert epics_channel("fire") == f"{EPICS_PREFIX}:TRIG:FIRE"
     assert epics_channel("SAFETY_VETO") == f"{EPICS_PREFIX}:TRIG:SAFETY_VETO"
 
 
 def test_epics_channel_empty_rejected() -> None:
+    """An empty signal name is refused."""
     with pytest.raises(ValueError, match="signal must be a non-empty name"):
         epics_channel("   ")
 
 
 def test_epics_channel_unknown_rejected() -> None:
+    """An unknown signal is refused."""
     with pytest.raises(KeyError, match="unknown trigger-lane signal"):
         epics_channel("not_a_signal")
 
 
 def test_epics_channels_all_prefixed_and_complete() -> None:
+    """Every channel carries the prefix, including fire, latency and ingress time."""
     channels = epics_channels()
     assert channels["FIRE"] == f"{EPICS_PREFIX}:TRIG:FIRE"
     assert all(value.startswith(f"{EPICS_PREFIX}:") for value in channels.values())

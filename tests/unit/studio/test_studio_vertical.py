@@ -87,6 +87,7 @@ _PROVE_TASK = {
 
 
 def test_manifest_advertises_the_four_verbs() -> None:
+    """The manifest advertises evaluate, prove, cosimulate and benchmark with a content digest and UI panel."""
     manifest = build_manifest().to_dict()
     assert manifest["studio"] == "scpn-mif-core"
     assert [verb["verb"] for verb in manifest["verbs"]] == ["evaluate", "prove", "cosimulate", "benchmark"]
@@ -97,6 +98,7 @@ def test_manifest_advertises_the_four_verbs() -> None:
 
 
 def test_declared_surface_is_content_addressable() -> None:
+    """The declared surface is a map of named byte payloads."""
     surface = declared_surface()
     assert "verb/evaluate" in surface
     assert "evidence/schemas" in surface
@@ -104,10 +106,12 @@ def test_declared_surface_is_content_addressable() -> None:
 
 
 def test_manifest_content_digest_is_deterministic() -> None:
+    """Two builds give the same content digest."""
     assert build_manifest().content_digest == build_manifest().content_digest
 
 
 def test_manifest_passes_the_platform_conformance_gate() -> None:
+    """The platform gate admits the manifest on the v1 era without rejections or warnings."""
     # lock-2, manifest half (SDK 0.8.0): MIF's CapabilityManifest is gate-reviewed
     # against the platform contract on every run — admitted, on the v1 era, with no
     # rejections or warnings (the gate verifies the digest form, not a recompute; the
@@ -122,6 +126,7 @@ def test_manifest_passes_the_platform_conformance_gate() -> None:
 
 
 def test_committed_manifest_artifact_matches_the_builder() -> None:
+    """The committed studio manifest equals the federation document the builder produces."""
     # Drift gate: docs/_generated/studio_manifest.json is the federation artifact the Hub
     # gates against; it must equal the ratified {schema_a, architecture_map} envelope
     # (regenerate it with tools/emit_studio_manifest.py when this fails).
@@ -138,6 +143,7 @@ def test_committed_manifest_artifact_matches_the_builder() -> None:
 
 
 def test_platform_sdk_range_tracks_the_studio_extra_pin() -> None:
+    """Both manifest authorings advertise the SDK range pinned by the studio extra."""
     # Drift guard: the manifest's advertised platform_sdk must equal the [studio] install
     # pin in pyproject.toml (the single source of truth), so the two cannot diverge as the
     # SDK is bumped — both the SDK-typed and the SDK-independent manifest authorings.
@@ -159,6 +165,7 @@ def test_platform_sdk_range_tracks_the_studio_extra_pin() -> None:
 
 
 def test_merge_trigger_evidence_fire_admitted() -> None:
+    """A fire report maps to an admitted, bounded-model merge-trigger bundle from the Python backend."""
     report = evaluate_merge_trigger(_scenario([-5.0e-4, 5.0e-4], [0.0, 0.0]))
     bundle = merge_trigger_evidence(
         report, started="t0", ended="t1", host="rig", studio_version="0.1.0", active_backend="python"
@@ -171,6 +178,7 @@ def test_merge_trigger_evidence_fire_admitted() -> None:
 
 
 def test_merge_trigger_evidence_non_fire_rejected() -> None:
+    """A report that does not fire maps to a rejected bundle."""
     report = evaluate_merge_trigger(_scenario([-1.0e-3, 1.0e-3], [-1.0, 1.0]))
     bundle = merge_trigger_evidence(
         report, started="t0", ended="t1", host="rig", studio_version="0.1.0", active_backend="rust"
@@ -197,6 +205,7 @@ def test_legacy_bridge_matches_canonical_merge_claim_boundary() -> None:
 
 
 def test_formal_proof_evidence_prove_mode() -> None:
+    """A prove result maps to a formally proven bundle with the SymbiYosys certificate digests."""
     bundle = formal_proof_evidence(
         _PROVE_TASK, started="t0", ended="t1", host="ci", studio_version="0.1.0", checker_version="0.45"
     ).to_dict()
@@ -210,6 +219,7 @@ def test_formal_proof_evidence_prove_mode() -> None:
 
 
 def test_formal_proof_evidence_cover_mode_is_accepted() -> None:
+    """A cover result also maps to a formally proven bundle."""
     # The result payload (carrying the mode) is content-addressed via the entity
     # digest, not embedded in the SDK bundle; assert the cover mode is accepted and
     # still produces a formally-proven bundle.
@@ -226,6 +236,7 @@ def test_formal_proof_evidence_cover_mode_is_accepted() -> None:
 
 
 def test_formal_proof_evidence_subject_falls_back_to_sby() -> None:
+    """Without a subject digest, the .sby file digest is used."""
     task = {**_PROVE_TASK, "depends_on": [{"path": _PROVE_TASK["sby"], "sha256": "c" * 64}]}
     bundle = formal_proof_evidence(
         task, started="t0", ended="t1", host="ci", studio_version="0.1.0", checker_version="0.45"
@@ -242,6 +253,7 @@ def test_formal_proof_evidence_subject_falls_back_to_sby() -> None:
     ],
 )
 def test_formal_proof_evidence_fail_closed(task_patch: dict[str, object], match: str) -> None:
+    """Each malformed proof task is refused with its message."""
     with pytest.raises(ValueError, match=match):
         formal_proof_evidence(
             {**_PROVE_TASK, **task_patch},
@@ -254,6 +266,7 @@ def test_formal_proof_evidence_fail_closed(task_patch: dict[str, object], match:
 
 
 def test_cosim_evidence_bit_true_and_mismatch() -> None:
+    """A bit-true cosimulation is bit-exact measured evidence; a mismatch is a rejected validation gap."""
     ok = cosim_evidence(
         harness="mif008", bit_true=True, mismatch_count=0, started="t0", ended="t1", host="ci", studio_version="0.1.0"
     ).to_dict()
@@ -271,6 +284,7 @@ def test_cosim_evidence_bit_true_and_mismatch() -> None:
 
 
 def test_benchmark_evidence_recompute_and_status() -> None:
+    """A benchmark bundle names its regeneration command and is bounded-model."""
     from scpn_studio_platform.evidence import ClaimStatus
 
     bundle = benchmark_evidence(
@@ -290,6 +304,7 @@ def test_benchmark_evidence_recompute_and_status() -> None:
 
 
 def test_every_mapper_defaults_to_traceable_unchecked_freshness() -> None:
+    """Every mapper declares traceable-unchecked freshness by default."""
     # The honest conservative default: a mapper binds a result it is given and does
     # not re-check the source on render, so every bundle declares traceable-unchecked.
     report = evaluate_merge_trigger(_scenario([-5.0e-4, 5.0e-4], [0.0, 0.0]))
@@ -319,6 +334,7 @@ def test_every_mapper_defaults_to_traceable_unchecked_freshness() -> None:
 
 
 def test_a_caller_may_declare_verified_at_source_when_it_re_ran_the_source() -> None:
+    """A caller that re-ran the source may declare verified-at-source and gets reference-validated."""
     from scpn_studio_platform.evidence import Freshness
 
     bundle = cosim_evidence(
@@ -338,6 +354,7 @@ def test_a_caller_may_declare_verified_at_source_when_it_re_ran_the_source() -> 
 
 
 def test_default_freshness_lowers_cosim_boundary_until_source_is_rechecked() -> None:
+    """Without a source recheck an admitted cosimulation stays bounded-model, and is promoted only after it."""
     # Era-v2 producer contract: a stale admitted claim cannot even carry the
     # reference-validated label. The mapper lowers it to bounded-model and promotes
     # only after an explicit same-session source verification.
