@@ -31,6 +31,7 @@ _FIXTURE: Final[Path] = Path(__file__).resolve().parents[2] / "fixtures" / "phys
 
 
 def test_pinned_fusion_stroke_replays_through_mif_merge_trigger() -> None:
+    """The pinned FUSION stroke, with its provenance and claim boundary, fires through the merge trigger."""
     fixture = load_fusion_merge_window_fixture(_FIXTURE)
 
     report = evaluate_fusion_merge_window_stroke(fixture.stroke)
@@ -63,6 +64,7 @@ def test_pinned_fusion_stroke_replays_through_mif_merge_trigger() -> None:
 
 
 def test_fixture_field_rate_is_pinned_finite_difference_channel() -> None:
+    """The fixture field rate equals the finite difference of its field samples."""
     fixture = load_fusion_merge_window_fixture(_FIXTURE)
 
     np.testing.assert_allclose(
@@ -86,6 +88,7 @@ def test_stroke_validation_rejects_invalid_replay_channels(
     kwargs: dict[str, ArrayLike],
     message: str,
 ) -> None:
+    """Each invalid replay channel is refused with its message."""
     values: dict[str, ArrayLike] = {
         "time_s": [0.0, 1.0],
         "radius_m": [0.2, 0.1],
@@ -113,11 +116,13 @@ def test_field_rate_validation_rejects_invalid_samples(
     magnetic_field_T: list[float],
     message: str,
 ) -> None:
+    """Each invalid field-rate input is refused with its message."""
     with pytest.raises(ValueError, match=message):
         magnetic_field_rate_from_samples(time_s, magnetic_field_T)
 
 
 def test_payload_requires_recovery_enabled_report() -> None:
+    """The payload refuses a report without recovery."""
     fixture = load_fusion_merge_window_fixture(_FIXTURE)
     scenario = replace(fusion_merge_window_scenario(fixture.stroke), recovery=None, expansion=None)
     report = evaluate_merge_trigger(scenario)

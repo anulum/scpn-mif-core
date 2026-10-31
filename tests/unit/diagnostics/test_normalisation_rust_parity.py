@@ -53,6 +53,7 @@ def _rust_state() -> Any:
 
 @pytest.mark.parametrize("seed", SEEDS)
 def test_random_vector_parity(seed: int) -> None:
+    """Rust and Python give identical features, masks and out-of-range lists for seeded vectors."""
     rng = random.Random(seed)
     py_state = DiagnosticNormalisationState(_calibrations(), sample_period_ns=50)
     values = [
@@ -72,6 +73,7 @@ def test_random_vector_parity(seed: int) -> None:
 
 
 def test_reject_policy_error_parity() -> None:
+    """Both backends refuse the same out-of-range value under the reject policy."""
     py_cal = DiagnosticChannelCalibration("temperature_eV", "eV", 0.0, 1_000.0, "reject", "thermal calibration")
     py_state = DiagnosticNormalisationState((py_cal,))
     rust_cal = rust.DiagnosticChannelCalibration(
@@ -86,6 +88,7 @@ def test_reject_policy_error_parity() -> None:
 
 
 def test_rust_adapter_normalises_mapping_and_returns_read_only_features() -> None:
+    """The Rust adapter normalises a mapping into read-only features with the expected clips."""
     state = RustBackedDiagnosticNormalisationState(_calibrations(), sample_period_ns=50)
     sample = {
         "temperature_eV": 1_200.0,
@@ -103,6 +106,7 @@ def test_rust_adapter_normalises_mapping_and_returns_read_only_features() -> Non
 
 
 def test_rust_normalise_features_helper_preserves_positional_contract() -> None:
+    """The Rust positional helper returns read-only features in channel order."""
     features = rust_normalise_features(_calibrations(), [500.0, 3.05e21, -10.0, 1.0e9], sample_period_ns=50)
 
     np.testing.assert_allclose(features, [0.0, 0.2040816326530612, -1.0, 1.0], rtol=0.0, atol=0.0)
@@ -110,6 +114,7 @@ def test_rust_normalise_features_helper_preserves_positional_contract() -> None:
 
 
 def test_dispatched_normalisation_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With Rust preferred the dispatcher returns the Rust-backed state."""
     import scpn_mif_core.diagnostics as diagnostics
 
     monkeypatch.setattr(diagnostics, "preferred_backend", lambda _kernel: "rust")
@@ -121,6 +126,7 @@ def test_dispatched_normalisation_uses_rust_when_preferred(monkeypatch: pytest.M
 
 
 def test_rust_rejects_non_finite_affine_span() -> None:
+    """Rust refuses a range whose affine span overflows."""
     with pytest.raises(ValueError, match="affine span"):
         rust.DiagnosticChannelCalibration(
             "wide_field_T", "T", -1.0e308, 1.0e308, "clip", "wide range calibration", None
@@ -128,6 +134,7 @@ def test_rust_rejects_non_finite_affine_span() -> None:
 
 
 def test_matrix_parity_is_bit_exact_and_counts_agree() -> None:
+    """On a 64-row matrix both backends agree bit for bit, with equal clip counts."""
     py_state = DiagnosticNormalisationState(_calibrations(), sample_period_ns=50)
     rust_state = RustBackedDiagnosticNormalisationState(_calibrations(), sample_period_ns=50)
     rng = random.Random(2026)
@@ -152,6 +159,7 @@ def test_matrix_parity_is_bit_exact_and_counts_agree() -> None:
 
 
 def test_matrix_rust_rows_match_single_call_ffi_surface() -> None:
+    """Each Rust matrix row equals the single-call result."""
     rust_state = RustBackedDiagnosticNormalisationState(_calibrations())
     matrix = np.asarray([[500.0, 2.0e21, -5.0, 1.0e8], [1_200.0, 5.0e22, -20.0, -2.0e9]], dtype=np.float64)
     result = rust_state.normalise_matrix(matrix)
@@ -162,6 +170,7 @@ def test_matrix_rust_rows_match_single_call_ffi_surface() -> None:
 
 
 def test_matrix_rust_rejects_non_contiguous_shape_errors() -> None:
+    """The Rust matrix path refuses malformed shapes."""
     rust_state = RustBackedDiagnosticNormalisationState(_calibrations())
     with pytest.raises(ValueError, match="matrix"):
         rust_state.normalise_matrix(np.empty((0, 4)))

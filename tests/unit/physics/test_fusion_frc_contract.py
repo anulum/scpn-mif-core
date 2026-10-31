@@ -22,6 +22,7 @@ from scpn_mif_core.physics.fusion_frc_contract import (
 
 
 def test_contract_report_detects_present_fusion_frc_surfaces() -> None:
+    """With every FUSION FRC surface present the contract is ready for integration."""
     fusion_core = SimpleNamespace(
         RigidRotorFRCInputs=object,
         solve_frc_equilibrium=lambda: None,
@@ -54,6 +55,7 @@ def test_contract_report_detects_present_fusion_frc_surfaces() -> None:
 
 
 def test_contract_report_preserves_blocked_claim_boundaries() -> None:
+    """Blocked claim boundaries keep full evidence unready while integration is ready."""
     fusion_core = SimpleNamespace(
         RigidRotorFRCInputs=object,
         solve_frc_equilibrium=lambda: None,
@@ -94,6 +96,7 @@ def test_contract_report_preserves_blocked_claim_boundaries() -> None:
 
 
 def test_contract_report_lists_missing_required_symbols() -> None:
+    """Missing required symbols are listed and block integration."""
     report = inspect_fusion_frc_contract(SimpleNamespace())
 
     assert not report.ready_for_mif_integration
@@ -103,6 +106,7 @@ def test_contract_report_lists_missing_required_symbols() -> None:
 
 
 def test_contract_report_accepts_string_status_and_ignores_malformed_hooks() -> None:
+    """A string status is accepted and malformed hooks are ignored."""
     fusion_core = SimpleNamespace(
         RigidRotorFRCInputs=object,
         solve_frc_equilibrium=lambda: None,
@@ -138,6 +142,7 @@ def test_contract_report_accepts_string_status_and_ignores_malformed_hooks() -> 
 
 
 def test_contract_report_distinguishes_symbol_readiness_from_full_evidence_readiness() -> None:
+    """With symbols present and no blocked boundary, full evidence is also ready."""
     fusion_core = SimpleNamespace(
         RigidRotorFRCInputs=object,
         solve_frc_equilibrium=lambda: None,
@@ -174,6 +179,7 @@ def test_contract_report_distinguishes_symbol_readiness_from_full_evidence_readi
 
 
 def test_contract_loads_optional_fusion_core(monkeypatch: pytest.MonkeyPatch) -> None:
+    """load_fusion_core imports scpn_fusion.core."""
     fusion_core = SimpleNamespace()
 
     def fake_import_module(name: str) -> object:

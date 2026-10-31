@@ -40,6 +40,7 @@ def _approx_equal(a: float, b: float) -> bool:
 
 @pytest.mark.parametrize("seed", SEEDS)
 def test_scalar_faraday_recovery_parity(seed: int) -> None:
+    """Rust and Python agree on flux, flux rate, back-EMF and power for seeded inputs."""
     rng = random.Random(seed)
     radius = rng.uniform(0.02, 1.0)
     velocity = rng.uniform(-2_000.0, 2_000.0)
@@ -59,6 +60,7 @@ def test_scalar_faraday_recovery_parity(seed: int) -> None:
 
 
 def test_python_and_rust_reject_non_finite_derived_observables() -> None:
+    """Both backends refuse the same overflowing derived values."""
     py_spec = FaradayRecoverySpec(turns=1.0, load_resistance_ohm=1.0)
     rust_spec = rust.FaradayRecoverySpec(1.0, 1.0, 1.0)
 
@@ -81,6 +83,7 @@ def test_python_and_rust_reject_non_finite_derived_observables() -> None:
 
 
 def test_python_and_rust_zero_coupling_return_zero_power_without_squaring_emf() -> None:
+    """Both backends return zero power at zero coupling for a huge EMF."""
     py_spec = FaradayRecoverySpec(turns=1.0, load_resistance_ohm=1.0, coupling_efficiency=0.0)
     rust_spec = rust.FaradayRecoverySpec(1.0, 1.0, 0.0)
 
@@ -89,6 +92,7 @@ def test_python_and_rust_zero_coupling_return_zero_power_without_squaring_emf() 
 
 
 def test_waveform_faraday_recovery_parity() -> None:
+    """Rust and Python agree on the waveform EMF, power, energy and peaks."""
     spec = FaradayRecoverySpec(turns=32.0, load_resistance_ohm=4.0, coupling_efficiency=0.9)
     rust_spec = rust.FaradayRecoverySpec(32.0, 4.0, 0.9)
     time_s = np.linspace(0.0, 4e-6, 33)
@@ -120,6 +124,7 @@ def test_waveform_faraday_recovery_parity() -> None:
 
 
 def test_python_and_rust_zero_coupling_waveform_parity() -> None:
+    """Both backends return zero power and energy for a zero-coupling waveform."""
     spec = FaradayRecoverySpec(turns=1.0, load_resistance_ohm=1.0, coupling_efficiency=0.0)
     rust_spec = rust.FaradayRecoverySpec(1.0, 1.0, 0.0)
     time_s = np.array([0.0, 1.0])
@@ -152,6 +157,7 @@ def test_python_and_rust_zero_coupling_waveform_parity() -> None:
 
 
 def test_dispatched_faraday_back_emf_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With Rust preferred the dispatched back-EMF equals the Rust result."""
     import scpn_mif_core.physics as physics
 
     monkeypatch.setattr(physics, "preferred_backend", lambda _kernel: "rust")
@@ -161,6 +167,7 @@ def test_dispatched_faraday_back_emf_uses_rust_when_preferred(monkeypatch: pytes
 
 
 def test_dispatched_waveform_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With Rust preferred the dispatched waveform equals the Rust result."""
     import scpn_mif_core.physics as physics
 
     monkeypatch.setattr(physics, "preferred_backend", lambda _kernel: "rust")

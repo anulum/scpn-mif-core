@@ -60,6 +60,7 @@ def _calibrations() -> tuple[DiagnosticChannelCalibration, ...]:
 
 
 def test_affine_mapping_and_manifest_fields() -> None:
+    """In-range values map affinely into [-1, 1] without clipping, read-only, and the manifest records its fields."""
     state = DiagnosticNormalisationState(_calibrations(), sample_period_ns=50)
     sample = state.normalise_sample(
         {
@@ -91,6 +92,7 @@ def test_affine_mapping_and_manifest_fields() -> None:
 
 
 def test_out_of_range_clip_is_deterministic_and_bounded() -> None:
+    """Out-of-range values clip to the bounds, are flagged per channel and stay in [-1, 1]."""
     state = DiagnosticNormalisationState(_calibrations())
     sample = state.normalise_sample(
         {
@@ -108,6 +110,7 @@ def test_out_of_range_clip_is_deterministic_and_bounded() -> None:
 
 
 def test_reject_policy_raises_on_out_of_range_samples() -> None:
+    """Under the reject policy values above or below the range are refused."""
     calibration = DiagnosticChannelCalibration(
         name="bdot_dv_dt",
         unit="V/s",
@@ -149,6 +152,7 @@ def test_calibration_rejects_malformed_identity_policy_and_aer_fields(
     calibration_factory: Callable[[], DiagnosticChannelCalibration],
     message: str,
 ) -> None:
+    """A calibration with a malformed name, policy or AER field is refused with its message."""
     with pytest.raises(ValueError, match=message):
         calibration_factory()
 
@@ -164,11 +168,13 @@ def test_normalise_sample_rejects_missing_and_non_finite_measurements(
     sample: dict[str, float],
     message: str,
 ) -> None:
+    """A missing or non-finite measurement is refused with its message."""
     with pytest.raises(ValueError, match=message):
         DiagnosticNormalisationState(_calibrations()).normalise_sample(sample)
 
 
 def test_normalised_sample_rejects_shape_mask_and_range_mismatches() -> None:
+    """A normalised sample with the wrong shape, names, mask or range is refused."""
     with pytest.raises(ValueError, match="one-dimensional"):
         NormalisedDiagnosticSample(("temperature_eV",), np.asarray([[0.0]], dtype=np.float64), (False,), ())
     with pytest.raises(ValueError, match="channel_names"):
@@ -188,6 +194,7 @@ def test_normalised_sample_rejects_shape_mask_and_range_mismatches() -> None:
     ],
 )
 def test_invalid_calibration_ranges_raise(physical_min: float, physical_max: float, message: str) -> None:
+    """An invalid physical range is refused with its message."""
     with pytest.raises(ValueError, match=message):
         DiagnosticChannelCalibration(
             name="temperature_eV",
@@ -200,6 +207,7 @@ def test_invalid_calibration_ranges_raise(physical_min: float, physical_max: flo
 
 
 def test_affine_coefficients_must_remain_finite() -> None:
+    """A range whose affine span or scale overflows is refused."""
     with pytest.raises(ValueError, match="affine span"):
         DiagnosticChannelCalibration(
             name="wide_field_T",
@@ -222,6 +230,7 @@ def test_affine_coefficients_must_remain_finite() -> None:
 
 
 def test_large_same_sign_range_uses_stable_midpoint() -> None:
+    """A large same-sign range keeps a finite offset and maps its midpoint to zero."""
     calibration = DiagnosticChannelCalibration(
         name="dense_plasma_m3",
         unit="m^-3",
@@ -241,6 +250,7 @@ def test_large_same_sign_range_uses_stable_midpoint() -> None:
 
 
 def test_fit_calibrations_preserves_unit_order_and_rejects_zero_span() -> None:
+    """Fitted calibrations keep channel order, observed bounds and addresses, and a zero span is refused."""
     observations = [
         {"temperature_eV": 120.0, "density_m3": 1.0e20},
         {"temperature_eV": 900.0, "density_m3": 5.0e21},
@@ -267,6 +277,7 @@ def test_fit_calibrations_preserves_unit_order_and_rejects_zero_span() -> None:
 
 
 def test_fit_calibrations_rejects_empty_invalid_policy_and_non_finite_observations() -> None:
+    """Fitting refuses no observations, a bad provenance, policy or unit, and non-finite values."""
     with pytest.raises(ValueError, match="at least one observation"):
         fit_diagnostic_calibrations([], units={"temperature_eV": "eV"}, provenance="shot sweep")
     with pytest.raises(ValueError, match="provenance"):
@@ -289,6 +300,7 @@ def test_fit_calibrations_rejects_empty_invalid_policy_and_non_finite_observatio
 
 
 def test_batch_and_vector_normalisation_are_order_stable() -> None:
+    """Vector and batch normalisation follow channel order and return read-only arrays."""
     state = DiagnosticNormalisationState(_calibrations())
     vector_sample = state.normalise_vector([250.0, 1.0e20, 10.0])
     batch = state.normalise_batch(
@@ -304,6 +316,7 @@ def test_batch_and_vector_normalisation_are_order_stable() -> None:
 
 
 def test_state_rejects_empty_duplicate_bad_period_and_vector_length() -> None:
+    """The state refuses no calibrations, a bad period, duplicate names and a wrong vector length."""
     calibration = _calibrations()[0]
     with pytest.raises(ValueError, match="at least one calibration"):
         DiagnosticNormalisationState(())
@@ -318,6 +331,7 @@ def test_state_rejects_empty_duplicate_bad_period_and_vector_length() -> None:
 
 
 def test_empty_batch_preserves_channel_width_and_is_read_only() -> None:
+    """An empty batch keeps its channel width and is read-only."""
     state = DiagnosticNormalisationState(_calibrations())
     batch = state.normalise_batch(())
 
@@ -328,6 +342,7 @@ def test_empty_batch_preserves_channel_width_and_is_read_only() -> None:
 def test_dispatched_normalisation_uses_python_fallback_when_rust_is_not_available(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Without the Rust extension the dispatcher returns the Python state."""
     import scpn_mif_core.diagnostics as diagnostics
 
     monkeypatch.setattr(diagnostics, "preferred_backend", lambda _kernel: "rust")
@@ -345,6 +360,7 @@ def test_dispatched_normalisation_uses_python_fallback_when_rust_is_not_availabl
 
 
 def test_normalise_matrix_rows_match_normalise_vector_bit_exactly() -> None:
+    """Each matrix row equals the single-vector result bit for bit, mask included."""
     state = DiagnosticNormalisationState(_calibrations(), sample_period_ns=50)
     rows = [
         [500.0, 2.0e21, -5.0],
@@ -363,6 +379,7 @@ def test_normalise_matrix_rows_match_normalise_vector_bit_exactly() -> None:
 
 
 def test_normalise_matrix_aggregates_clipped_counts_per_channel() -> None:
+    """The matrix result counts clipped samples per channel."""
     state = DiagnosticNormalisationState(_calibrations())
     result = state.normalise_matrix(
         [
@@ -374,6 +391,7 @@ def test_normalise_matrix_aggregates_clipped_counts_per_channel() -> None:
 
 
 def test_normalise_matrix_outputs_are_read_only() -> None:
+    """Matrix features and mask are read-only."""
     state = DiagnosticNormalisationState(_calibrations())
     result = state.normalise_matrix([[500.0, 2.0e21, -5.0]])
     assert not result.features.flags.writeable
@@ -381,6 +399,7 @@ def test_normalise_matrix_outputs_are_read_only() -> None:
 
 
 def test_normalise_matrix_rejects_wrong_shape_and_empty_input() -> None:
+    """A one-dimensional, ragged or empty matrix is refused."""
     state = DiagnosticNormalisationState(_calibrations())
     with pytest.raises(ValueError, match="matrix"):
         state.normalise_matrix([500.0, 2.0e21, -5.0])  # 1-D
@@ -391,6 +410,7 @@ def test_normalise_matrix_rejects_wrong_shape_and_empty_input() -> None:
 
 
 def test_normalise_matrix_reject_policy_raises_on_out_of_range() -> None:
+    """Under the reject policy an out-of-range matrix value is refused."""
     reject = DiagnosticChannelCalibration(
         name="strict_eV",
         unit="eV",
@@ -405,6 +425,7 @@ def test_normalise_matrix_reject_policy_raises_on_out_of_range() -> None:
 
 
 def test_matrix_dataclass_validates_shapes_and_range_directly() -> None:
+    """The matrix result refuses wrong dimensions, mask, names, counts and range."""
     names = ("a", "b")
     good_features = np.zeros((2, 2))
     good_mask = np.zeros((2, 2), dtype=np.bool_)

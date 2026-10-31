@@ -83,6 +83,7 @@ def _run_mojo(binary: Path, problem: Path) -> list[list[float]]:
 
 
 def test_mojo_matches_python_waveform(mojo_binary: Path, tmp_path: Path) -> None:
+    """The Mojo waveform matches Python: flux bit for bit, the rest within about one ULP."""
     rng = np.random.default_rng(20260623)
     n = 8
     t = np.cumsum(rng.uniform(0.1, 0.3, n))
@@ -111,6 +112,7 @@ def test_mojo_matches_python_waveform(mojo_binary: Path, tmp_path: Path) -> None
 
 
 def test_mojo_zero_coupling_yields_zero_power(mojo_binary: Path, tmp_path: Path) -> None:
+    """With zero coupling Mojo returns exactly zero power and energy."""
     # coupling_efficiency == 0 -> the power array and recovered energy are exactly zero.
     t = np.array([0.0, 1.0, 2.0, 3.0])
     r = np.array([1.0, 1.0, 1.0, 1.0])

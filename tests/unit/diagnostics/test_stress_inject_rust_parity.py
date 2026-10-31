@@ -53,6 +53,7 @@ def _frame(index: int) -> DiagnosticFrame:
 
 @pytest.mark.parametrize("seed", SEEDS)
 def test_stress_injection_parity(seed: int) -> None:
+    """Rust and Python produce the same frames and audit log for each seed."""
     config = _config(seed)
     frames = tuple(_frame(index) for index in range(8))
     py_stream = DegradedSensorStream(config)
@@ -71,6 +72,7 @@ def test_stress_injection_parity(seed: int) -> None:
 
 
 def test_dispatched_stress_stream_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With Rust preferred the dispatcher returns the Rust-backed stream."""
     import scpn_mif_core.diagnostics as diagnostics
 
     monkeypatch.setattr(diagnostics, "preferred_backend", lambda _kernel: "rust")
@@ -82,11 +84,13 @@ def test_dispatched_stress_stream_uses_rust_when_preferred(monkeypatch: pytest.M
 
 
 def test_rust_rejects_bad_config_lengths() -> None:
+    """Rust refuses configuration lists of different lengths."""
     with pytest.raises(ValueError, match="same length"):
         rust.StressInjectionConfig(1, ["temperature_eV"], [1.0, 2.0], [0.0], 10, 50, 1.0, True)
 
 
 def test_rust_rejects_non_finite_noisy_sample() -> None:
+    """Rust refuses a stressed sample that becomes non-finite."""
     config = StressInjectionConfig(
         seed=3,
         noise=NoiseSpec({"temperature_eV": 1.0e308}),

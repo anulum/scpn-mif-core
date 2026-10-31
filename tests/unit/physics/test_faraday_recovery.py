@@ -30,10 +30,12 @@ from scpn_mif_core.physics import (
 
 
 def test_magnetic_flux_is_b_pi_r_squared() -> None:
+    """Magnetic flux equals B times pi r squared."""
     assert magnetic_flux(radius_m=0.25, magnetic_field_T=4.0) == pytest.approx(4.0 * math.pi * 0.25**2)
 
 
 def test_constant_field_expanding_radius_matches_closed_form() -> None:
+    """With constant field and moving radius the back-EMF equals its closed form."""
     emf = faraday_back_emf(
         radius_m=0.2,
         radial_velocity_m_s=800.0,
@@ -46,6 +48,7 @@ def test_constant_field_expanding_radius_matches_closed_form() -> None:
 
 
 def test_constant_radius_field_ramp_matches_closed_form() -> None:
+    """With constant radius and a field ramp the back-EMF equals its closed form."""
     emf = faraday_back_emf(
         radius_m=0.17,
         radial_velocity_m_s=0.0,
@@ -58,10 +61,12 @@ def test_constant_radius_field_ramp_matches_closed_form() -> None:
 
 
 def test_static_radius_and_field_have_zero_back_emf() -> None:
+    """A static radius and field give zero back-EMF."""
     assert faraday_back_emf(0.4, 0.0, 8.0, 0.0, 32.0) == pytest.approx(0.0, abs=1e-15)
 
 
 def test_flux_rate_matches_product_rule_decomposition() -> None:
+    """The flux rate equals its product-rule decomposition."""
     radius = 0.31
     velocity = -240.0
     field = 7.2
@@ -91,7 +96,6 @@ def test_closed_form_carrier_acceptance_table_matches_public_api(
     coupling: float,
 ) -> None:
     """MIF-009 acceptance: public scalar API matches the closed-form carrier table."""
-
     del name
     spec = FaradayRecoverySpec(turns=turns, load_resistance_ohm=load, coupling_efficiency=coupling)
     expected_flux = math.pi * radius * radius * field
@@ -114,6 +118,7 @@ def test_closed_form_carrier_acceptance_table_matches_public_api(
 
 
 def test_evaluate_faraday_state_returns_typed_state() -> None:
+    """The state evaluation returns flux, back-EMF and power that agree with the scalar functions."""
     spec = FaradayRecoverySpec(turns=16.0, load_resistance_ohm=2.0)
     state = evaluate_faraday_state(spec, 0.2, -50.0, 4.0, 1000.0)
     assert isinstance(state, FaradayRecoveryState)
@@ -123,6 +128,7 @@ def test_evaluate_faraday_state_returns_typed_state() -> None:
 
 
 def test_evaluate_faraday_recovery_integrates_constant_power_exactly() -> None:
+    """A constant-power waveform integrates to power times duration."""
     spec = FaradayRecoverySpec(turns=20.0, load_resistance_ohm=5.0, coupling_efficiency=0.8)
     time_s = np.array([0.0, 0.5, 1.0, 1.5])
     radius_m = np.full_like(time_s, 0.1)
@@ -147,43 +153,51 @@ def test_evaluate_faraday_recovery_integrates_constant_power_exactly() -> None:
 
 
 def test_spec_rejects_non_positive_turns() -> None:
+    """Non-positive turns are refused."""
     with pytest.raises(ValueError, match="turns"):
         FaradayRecoverySpec(turns=0.0, load_resistance_ohm=1.0)
 
 
 def test_spec_rejects_non_positive_load_resistance() -> None:
+    """Non-positive load resistance is refused."""
     with pytest.raises(ValueError, match="load_resistance_ohm"):
         FaradayRecoverySpec(turns=1.0, load_resistance_ohm=0.0)
 
 
 def test_spec_rejects_coupling_efficiency_outside_unit_interval() -> None:
+    """Coupling efficiency outside [0, 1] is refused."""
     with pytest.raises(ValueError, match="coupling_efficiency"):
         FaradayRecoverySpec(turns=1.0, load_resistance_ohm=1.0, coupling_efficiency=1.1)
 
 
 def test_faraday_back_emf_rejects_negative_radius() -> None:
+    """A negative radius is refused."""
     with pytest.raises(ValueError, match="radius_m"):
         faraday_back_emf(-0.1, 0.0, 5.0, 0.0, 10.0)
 
 
 def test_faraday_back_emf_rejects_non_positive_turns() -> None:
+    """Non-positive turns are refused by the scalar back-EMF."""
     with pytest.raises(ValueError, match="turns"):
         faraday_back_emf(0.1, 0.0, 5.0, 0.0, -1.0)
 
 
 def test_recovered_power_rejects_non_finite_emf() -> None:
+    """A non-finite back-EMF is refused."""
     spec = FaradayRecoverySpec(turns=10.0, load_resistance_ohm=1.0)
     with pytest.raises(ValueError, match="back_emf_V"):
         recovered_power(spec, float("nan"))
 
 
 def test_zero_coupling_efficiency_returns_zero_power_without_squaring_emf() -> None:
+    """Zero coupling gives zero power even for an EMF whose square would overflow."""
     spec = FaradayRecoverySpec(turns=10.0, load_resistance_ohm=1.0, coupling_efficiency=0.0)
 
     assert recovered_power(spec, 1e200) == 0.0
 
 
 def test_zero_coupling_waveform_has_zero_power_and_energy_for_large_finite_emf() -> None:
+    """A zero-coupling waveform has zero power, energy and peak power."""
     spec = FaradayRecoverySpec(turns=1.0, load_resistance_ohm=1.0, coupling_efficiency=0.0)
     report = evaluate_faraday_recovery(
         spec,
@@ -200,6 +214,7 @@ def test_zero_coupling_waveform_has_zero_power_and_energy_for_large_finite_emf()
 
 
 def test_scalar_paths_reject_non_finite_derived_observables() -> None:
+    """Scalar paths refuse inputs whose flux, rate, EMF or power overflows."""
     spec = FaradayRecoverySpec(turns=1.0, load_resistance_ohm=1.0)
 
     with pytest.raises(ValueError, match="flux_Wb must be finite"):
@@ -213,6 +228,7 @@ def test_scalar_paths_reject_non_finite_derived_observables() -> None:
 
 
 def test_waveform_rejects_non_finite_derived_observables() -> None:
+    """The waveform path refuses an overflowing flux."""
     spec = FaradayRecoverySpec(turns=1.0, load_resistance_ohm=1.0)
 
     with pytest.raises(ValueError, match="flux_Wb must be finite"):
@@ -227,6 +243,7 @@ def test_waveform_rejects_non_finite_derived_observables() -> None:
 
 
 def test_dispatched_faraday_back_emf_falls_back_to_python(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without Rust the dispatched back-EMF uses Python."""
     import scpn_mif_core.physics as physics
 
     monkeypatch.setattr(physics, "preferred_backend", lambda _kernel: "python")
@@ -236,6 +253,7 @@ def test_dispatched_faraday_back_emf_falls_back_to_python(monkeypatch: pytest.Mo
 
 
 def test_dispatched_waveform_falls_back_to_python(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without Rust the dispatched waveform uses Python."""
     import scpn_mif_core.physics as physics
 
     monkeypatch.setattr(physics, "preferred_backend", lambda _kernel: "python")
@@ -252,6 +270,7 @@ def test_dispatched_waveform_falls_back_to_python(monkeypatch: pytest.MonkeyPatc
 
 
 def test_waveform_rejects_non_monotonic_time_grid() -> None:
+    """A time grid that is not strictly increasing is refused."""
     spec = FaradayRecoverySpec(turns=10.0, load_resistance_ohm=1.0)
     with pytest.raises(ValueError, match="strictly increasing"):
         evaluate_faraday_recovery(
@@ -265,6 +284,7 @@ def test_waveform_rejects_non_monotonic_time_grid() -> None:
 
 
 def test_waveform_rejects_single_time_sample() -> None:
+    """A single time sample is refused."""
     spec = FaradayRecoverySpec(turns=10.0, load_resistance_ohm=1.0)
     with pytest.raises(ValueError, match="at least two"):
         evaluate_faraday_recovery(
@@ -278,6 +298,7 @@ def test_waveform_rejects_single_time_sample() -> None:
 
 
 def test_waveform_rejects_negative_radius_sample() -> None:
+    """A negative radius sample is refused."""
     spec = FaradayRecoverySpec(turns=10.0, load_resistance_ohm=1.0)
     with pytest.raises(ValueError, match="radius_m"):
         evaluate_faraday_recovery(
@@ -291,6 +312,7 @@ def test_waveform_rejects_negative_radius_sample() -> None:
 
 
 def test_waveform_rejects_shape_mismatch() -> None:
+    """Arrays of different shapes are refused."""
     spec = FaradayRecoverySpec(turns=10.0, load_resistance_ohm=1.0)
     with pytest.raises(ValueError, match="same shape"):
         evaluate_faraday_recovery(
@@ -304,6 +326,7 @@ def test_waveform_rejects_shape_mismatch() -> None:
 
 
 def test_waveform_rejects_non_1d_array() -> None:
+    """A non-one-dimensional array is refused."""
     spec = FaradayRecoverySpec(turns=10.0, load_resistance_ohm=1.0)
     with pytest.raises(ValueError, match="one-dimensional"):
         evaluate_faraday_recovery(
@@ -317,12 +340,14 @@ def test_waveform_rejects_non_1d_array() -> None:
 
 
 def test_waveform_rejects_empty_array() -> None:
+    """An empty array is refused."""
     spec = FaradayRecoverySpec(turns=10.0, load_resistance_ohm=1.0)
     with pytest.raises(ValueError, match="must not be empty"):
         evaluate_faraday_recovery(spec, [], [], [], [], [])
 
 
 def test_waveform_rejects_non_finite_sample() -> None:
+    """A non-finite sample is refused."""
     spec = FaradayRecoverySpec(turns=10.0, load_resistance_ohm=1.0)
     with pytest.raises(ValueError, match="finite"):
         evaluate_faraday_recovery(
@@ -352,6 +377,7 @@ def test_property_back_emf_is_linear_in_effective_turns(
     turns: float,
     scale: float,
 ) -> None:
+    """Back-EMF scales linearly with the number of turns."""
     base = faraday_back_emf(radius, velocity, field, field_rate, turns)
     scaled = faraday_back_emf(radius, velocity, field, field_rate, turns * scale)
     assert scaled == pytest.approx(base * scale, rel=1e-12, abs=1e-9)
