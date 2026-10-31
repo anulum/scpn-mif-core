@@ -9,9 +9,12 @@
 """Belova-anchored kinematic parity for the MIF-003 merge-window monitor.
 
 Anchors the MIF kinematic merge model to Belova et al., "Hybrid simulations of
-FRC merging and compression" (arXiv:2501.03425, HYM code, Helion). All Belova
-constants are verified at source (text-stated, not figure-digitised; see
-``.coordination/research/SCPN-MIF-CORE/belova_2501.03425_verified_constants_2026-06-20.md``).
+FRC merging and compression" (arXiv:2501.03425, HYM code, Helion). Every case
+constant is bound to the printed page it comes from (section III.A, pp. 6-9,
+and III.B, pp. 10-14); the compression case's initial state is read from the
+text and Fig. 8 (p. 12). See
+``.coordination/research/SCPN-MIF-CORE/belova_2501.03425_verified_constants_2026-06-20.md``
+and its 2026-10-31 correction.
 
 Scope (deliberately bounded by ADR 0001 — MIF owns kinematics, not reconnection):
 
@@ -21,11 +24,14 @@ Scope (deliberately bounded by ADR 0001 — MIF owns kinematics, not reconnectio
    monitor achieves a merge-window lock within a calibrated availability window
    ``TAU_WINDOW_TA``. The classification reproduces every reported Belova outcome.
 
-2. **Ballistic closure as an explicit UPPER BOUND on the merge time.** The
-   constant-velocity closure time over-predicts Belova's measured merge time
-   (Fig 1: ~12.1 tA ballistic vs ~5 tA measured, a factor ~2.4). That gap is the
-   reconnection-driven mutual acceleration, which is FUSION-owned physics
-   (FUS-C.6); MIF reports the bound and the factor, and does not model the speedup.
+2. **Ballistic closure as a kinematic reference, not a bound.** The
+   constant-velocity closure time is compared with each printed time scale
+   (``reconnection_speedup`` = ballistic / printed). It over-predicts Fig 1
+   (~12.1 tA vs peak reconnection at ~5 tA in a partial merge, ~2.4), Figs 3-4
+   and Fig 5 at ΔZ = 110, but under-predicts Fig 5 at ΔZ = 125 (33.1 tA vs ~36 tA
+   printed), where the FRCs slow down pushing the open-field plasma aside
+   (Belova p. 10). Both the acceleration and the drag are FUSION-owned physics
+   (FUS-C.6); MIF reports the ratios and models neither.
 
 What this does NOT claim: tA-exact merge times (needs HYM), or any
 compression-coupled number (the mirror-field cases are excluded from the kinematic
@@ -51,7 +57,7 @@ from scpn_mif_core.kinematic import MergeWindowMonitor, MergeWindowSpec
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PARITY_PATH = REPO_ROOT / "bench" / "results" / "belova_merge_parity.json"
 
-SCHEMA = "scpn-mif-core/belova-merge-parity/1.0.0"
+SCHEMA = "scpn-mif-core/belova-merge-parity/1.1.0"
 SOURCE = "Belova et al., arXiv:2501.03425, 'Hybrid simulations of FRC merging and compression' (HYM)"
 
 # Calibrated kinematic merge-window availability, in tA. This is a single fitted
@@ -74,9 +80,11 @@ _CONSECUTIVE = 3
 class BelovaCase:
     """One Belova FRC merging case, with its source citation.
 
-    All numeric fields are verified-at-source from the cited section/figure.
-    ``observed_merge_time_tA`` is ``None`` when the figure reports an outcome but
-    not a single merge time.
+    Every numeric field is bound to the cited page. ``observed_merge_time_tA``
+    is ``None`` when the paper reports an outcome but no single time, and
+    ``observed_time_note`` says what the printed time is (peak reconnection,
+    a range midpoint). ``vz_va`` is ``None`` for a case that starts at rest and
+    is driven by the mirror field, for which no ballistic closure exists.
     """
 
     name: str
@@ -84,21 +92,97 @@ class BelovaCase:
     xs: float
     elongation: float
     s_star: float
-    vz_va: float
+    vz_va: float | None
     delta_z_di: float
     compression: bool
     observed_merge: bool
     observed_merge_time_tA: float | None
+    observed_time_note: str = ""
 
 
 # Verified-at-source case table (Belova §3.1–3.2, figures). ΔZ in dᵢ, Vz in vA.
 BELOVA_CASES: tuple[BelovaCase, ...] = (
-    BelovaCase("fig1_merge", "Fig 1, §3.1", 0.69, 2.9, 25.6, 0.2, 180.0, False, True, 5.0),
-    BelovaCase("fig3_4_merge", "Figs 3-4, §3.1", 0.53, 1.5, 20.0, 0.1, 75.0, False, True, 6.5),
-    BelovaCase("fig5_merge_dz110", "Fig 5, §3.1", 0.53, 1.5, 20.0, 0.05, 110.0, False, True, None),
-    BelovaCase("fig5_merge_dz125", "Fig 5, §3.1", 0.53, 1.5, 20.0, 0.05, 125.0, False, True, None),
-    BelovaCase("fig5_no_merge_dz185", "Fig 5, §3.1", 0.53, 1.5, 20.0, 0.05, 185.0, False, False, None),
-    BelovaCase("compression_merge", "§3.2, Conclusions", 0.69, 2.9, 25.6, 0.05, 125.0, True, True, 22.5),
+    BelovaCase(
+        "fig1_merge",
+        "Fig 1, §III.A, pp. 6-7",
+        0.69,
+        2.9,
+        25.6,
+        0.2,
+        180.0,
+        False,
+        True,
+        5.0,
+        "peak reconnection at t ~ 5 tA; the FRCs merge only partially into a doublet "
+        "(final ΔZ ≈ 40 MHD, ≈ 90 hybrid), so this is not a completed-merge time",
+    ),
+    BelovaCase(
+        "fig3_4_merge",
+        "Figs 3-4, §III.A, pp. 8-9",
+        0.53,
+        1.5,
+        20.0,
+        0.1,
+        75.0,
+        False,
+        True,
+        6.5,
+        "midpoint of the hybrid range t ~ 6-7 tA (nearly complete merging); the MHD run "
+        "merges completely by t ~ 5 tA; the printed separation is ΔZ ≈ 75",
+    ),
+    BelovaCase(
+        "fig5_merge_dz110",
+        "Fig 5, §III.A, p. 9",
+        0.53,
+        1.5,
+        20.0,
+        0.05,
+        110.0,
+        False,
+        True,
+        18.0,
+        "complete merging at t ~ 18 tA",
+    ),
+    BelovaCase(
+        "fig5_merge_dz125",
+        "Fig 5, §III.A, p. 9",
+        0.53,
+        1.5,
+        20.0,
+        0.05,
+        125.0,
+        False,
+        True,
+        36.0,
+        "complete merging at t ~ 36 tA",
+    ),
+    BelovaCase(
+        "fig5_no_merge_dz185",
+        "Fig 5, §III.A, p. 9",
+        0.53,
+        1.5,
+        20.0,
+        0.05,
+        185.0,
+        False,
+        False,
+        None,
+        "printed as ΔZ ≈ 185; the FRCs reach ΔZ ≈ 140 by t ~ 50 tA and then drift apart",
+    ),
+    BelovaCase(
+        "compression_merge",
+        "§III.B, Figs 6-8, pp. 10-12; Conclusions, p. 14",
+        0.69,
+        2.9,
+        25.6,
+        None,
+        180.0,
+        True,
+        True,
+        22.5,
+        "same initial FRCs as Figs 1-2, starting at ΔZ ≈ 180 with Vz ≈ 0 (Fig 8) and driven by "
+        "the mirror field to Vz ~ 0.4 vA at t ≈ 10 tA; fully merged at t ~ 20-25 tA (midpoint 22.5)",
+    ),
 )
 
 
@@ -108,15 +192,32 @@ def di_per_rc(case: BelovaCase) -> float:
 
 
 def vz_di_per_ta(case: BelovaCase) -> float:
-    """Return the inbound speed in dᵢ/tA: Vz·vA = Vz·(S*/xs) dᵢ/tA."""
+    """Return the inbound speed in dᵢ/tA: Vz·vA = Vz·(S*/xs) dᵢ/tA.
+
+    Raises
+    ------
+    ValueError
+        If the case has no initial velocity (it starts at rest and is driven by
+        the mirror field), so no constant-velocity approach exists.
+    """
+    if case.vz_va is None:
+        raise ValueError(f"{case.name} has no initial velocity; it is driven by the mirror field")
     return case.vz_va * case.s_star / case.xs
 
 
 def ballistic_closure_time_ta(case: BelovaCase) -> float:
     """Return the constant-velocity half-separation closure time, in tA.
 
-    This is an UPPER BOUND on the physical merge time: the FRCs accelerate toward
-    each other via reconnection (FUSION-owned), so the real merge is faster.
+    This is a kinematic reference, not a bound on the physical merge time:
+    reconnection can speed the approach up and the plasma on the open field
+    lines between the FRCs can slow it down, both FUSION-owned. It was once
+    described as an upper bound, but Fig 5 at ΔZ = 125 merges later than this
+    closure; ``reconnection_speedup`` in the report gives the ratio per case.
+
+    Raises
+    ------
+    ValueError
+        If the case has no initial velocity.
     """
     return (case.delta_z_di / 2.0) / vz_di_per_ta(case)
 
@@ -176,10 +277,12 @@ def build_parity_report(*, tau_window_ta: float = TAU_WINDOW_TA) -> dict[str, An
     classified = 0
     correct = 0
     for case in BELOVA_CASES:
-        ballistic = round(ballistic_closure_time_ta(case), 4)
+        # A mirror-driven case starts at rest: it has no constant-velocity
+        # approach, so neither a ballistic closure nor a monitor drive exists.
+        ballistic = None if case.vz_va is None else round(ballistic_closure_time_ta(case), 4)
         # Report the monitor lock within the same availability window used to
         # classify, so a no-merge case correctly reports no lock.
-        lock = monitor_first_lock_time_ta(case, horizon_ta=tau_window_ta)
+        lock = None if case.vz_va is None else monitor_first_lock_time_ta(case, horizon_ta=tau_window_ta)
         entry: dict[str, Any] = {
             "name": case.name,
             "cite": case.cite,
@@ -196,6 +299,7 @@ def build_parity_report(*, tau_window_ta: float = TAU_WINDOW_TA) -> dict[str, An
             "monitor_first_lock_time_tA": None if lock is None else round(lock, 4),
             "observed_merge": case.observed_merge,
             "observed_merge_time_tA": case.observed_merge_time_tA,
+            "observed_time_note": case.observed_time_note,
         }
         if case.compression:
             entry["classification"] = "excluded-compression-FUSION-owned"
@@ -205,7 +309,7 @@ def build_parity_report(*, tau_window_ta: float = TAU_WINDOW_TA) -> dict[str, An
             entry["classification_correct"] = predicted == case.observed_merge
             classified += 1
             correct += int(predicted == case.observed_merge)
-        if case.observed_merge_time_tA:
+        if case.observed_merge_time_tA and ballistic is not None:
             entry["reconnection_speedup"] = round(ballistic / case.observed_merge_time_tA, 4)
         cases.append(entry)
 
@@ -224,8 +328,8 @@ def build_parity_report(*, tau_window_ta: float = TAU_WINDOW_TA) -> dict[str, An
         },
         "notes": [
             "Merge/no-merge is decided by the real MIF MergeWindowMonitor driven by Belova-normalized initial conditions; the monitor's first-lock time tracks the ballistic closure.",
-            "Ballistic closure is an UPPER BOUND on the merge time; the reconnection_speedup (~2.4 for Fig 1) is the mutual acceleration MIF delegates to FUSION (FUS-C.6, ADR 0001).",
-            "Compression cases are excluded from the kinematic classification: the increasing mirror field that drives them is FUSION-owned physics, not MIF kinematics.",
+            "Ballistic closure is a kinematic reference, not a bound: reconnection_speedup divides it by the printed time named in observed_time_note; it is above 1 for Fig 1 (peak reconnection in a partial merge, ~2.4), Figs 3-4 and Fig 5 at dZ=110, and below 1 for Fig 5 at dZ=125, where the FRCs merge later than the closure. Acceleration and drag are FUSION-owned (FUS-C.6, ADR 0001).",
+            "Compression cases are excluded from the kinematic classification and get no ballistic or monitor number: they start at rest and the increasing mirror field that drives them is FUSION-owned physics, not MIF kinematics.",
             "tau_window_tA is a single calibrated threshold; the data bound it to the open interval in tau_window_bound_tA.",
         ],
     }

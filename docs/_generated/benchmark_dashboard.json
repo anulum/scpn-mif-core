@@ -1862,7 +1862,7 @@
   "excluded_artifacts": [
     {
       "file": "bench/results/belova_merge_parity.json",
-      "reason": "not a cross-backend performance comparison (schema: scpn-mif-core/belova-merge-parity/1.0.0)"
+      "reason": "not a cross-backend performance comparison (schema: scpn-mif-core/belova-merge-parity/1.1.0)"
     },
     {
       "file": "bench/results/trigger_latency_budget.json",

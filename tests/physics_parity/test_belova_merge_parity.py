@@ -38,18 +38,30 @@ def _case(name: str) -> BelovaCase:
 
 
 # --------------------------------------------------------------------------- #
-# Verified-at-source constants (Belova §3.1–3.2)                               #
+# Constants bound to printed pages (Belova §III.A–B, pp. 6–14)                #
 # --------------------------------------------------------------------------- #
 def test_verified_constants_match_source() -> None:
-    """The Fig. 1 merge and Fig. 5 no-merge cases carry the values verified against the source."""
+    """Each case carries the values printed on its cited page."""
     fig1 = _case("fig1_merge")
     assert (fig1.xs, fig1.elongation, fig1.s_star) == (0.69, 2.9, 25.6)
     assert (fig1.vz_va, fig1.delta_z_di) == (0.2, 180.0)
     assert fig1.observed_merge_time_tA == 5.0
+    assert "peak reconnection" in fig1.observed_time_note
+    assert "partially" in fig1.observed_time_note
 
+    assert _case("fig5_merge_dz110").observed_merge_time_tA == 18.0
+    assert _case("fig5_merge_dz125").observed_merge_time_tA == 36.0
     no_merge = _case("fig5_no_merge_dz185")
     assert no_merge.delta_z_di == 185.0
     assert no_merge.observed_merge is False
+
+    # p. 10 and Fig. 8: the compression case starts from the Figs 1-2 state at
+    # ΔZ ≈ 180 at rest and is driven by the mirror field.
+    compression = _case("compression_merge")
+    assert (compression.xs, compression.elongation, compression.s_star) == (0.69, 2.9, 25.6)
+    assert compression.delta_z_di == 180.0
+    assert compression.vz_va is None
+    assert compression.observed_merge_time_tA == 22.5
 
 
 def test_every_case_carries_a_citation() -> None:
@@ -76,6 +88,7 @@ def test_vz_di_per_ta_bridges_velocity_units() -> None:
 def test_ballistic_closure_matches_closed_form() -> None:
     """The ballistic closure time equals its closed form, about 12.13 Alfven times for Fig. 1."""
     case = _case("fig1_merge")
+    assert case.vz_va is not None
     expected = case.delta_z_di * case.xs / (2.0 * case.vz_va * case.s_star)
     assert ballistic_closure_time_ta(case) == pytest.approx(expected)
     assert ballistic_closure_time_ta(case) == pytest.approx(12.1289, abs=1e-3)
@@ -85,9 +98,11 @@ def test_ballistic_closure_matches_closed_form() -> None:
 # MIF MergeWindowMonitor anchor                                                #
 # --------------------------------------------------------------------------- #
 def test_monitor_lock_tracks_ballistic_closure() -> None:
-    """The MIF merge-window monitor locks within 0.5 Alfven times of the ballistic closure in every case."""
+    """The MIF merge-window monitor locks within 0.5 Alfven times of the ballistic closure in every moving case."""
     # The real MIF monitor locks within a few samples of the ballistic closure.
     for case in BELOVA_CASES:
+        if case.vz_va is None:
+            continue
         lock = monitor_first_lock_time_ta(case)
         assert lock is not None
         assert lock == pytest.approx(ballistic_closure_time_ta(case), abs=0.5)
@@ -142,14 +157,35 @@ def test_report_excludes_compression_cases_from_classification() -> None:
     assert "predicted_merge" not in compression
 
 
-def test_report_records_reconnection_speedup_as_upper_bound() -> None:
-    """The Fig. 1 entry records the ballistic over measured merge time, about 2.4, as the reconnection speed-up."""
+def test_report_records_reconnection_speedup_against_the_printed_time() -> None:
+    """The Fig. 1 entry divides the ballistic closure by the peak-reconnection time, about 2.4."""
     report = build_parity_report()
     fig1 = next(c for c in report["cases"] if c["name"] == "fig1_merge")
-    # Ballistic over-predicts the measured merge time (~2.4x); this is the
-    # FUSION-delegated reconnection acceleration.
     assert fig1["reconnection_speedup"] == pytest.approx(12.1289 / 5.0, abs=1e-3)
     assert fig1["reconnection_speedup"] > 2.0
+    assert "peak reconnection" in fig1["observed_time_note"]
+
+
+def test_ballistic_closure_is_not_an_upper_bound_on_the_merge_time() -> None:
+    """Fig. 5 at ΔZ = 125 merges at ~36 t_A, later than its 33.1 t_A ballistic closure."""
+    report = build_parity_report()
+    speedup = {c["name"]: c.get("reconnection_speedup") for c in report["cases"]}
+    assert speedup["fig5_merge_dz125"] == pytest.approx(33.125 / 36.0, abs=1e-3)
+    assert speedup["fig5_merge_dz125"] < 1.0
+    assert speedup["fig5_merge_dz110"] > 1.0
+    assert speedup["fig3_4_merge"] > 1.0
+
+
+def test_compression_case_gets_no_kinematic_numbers() -> None:
+    """The mirror-driven compression case has no ballistic closure, monitor lock or speed-up."""
+    report = build_parity_report()
+    compression = next(c for c in report["cases"] if c["name"] == "compression_merge")
+    assert compression["ballistic_closure_time_tA"] is None
+    assert compression["monitor_first_lock_time_tA"] is None
+    assert "reconnection_speedup" not in compression
+    assert compression["observed_merge_time_tA"] == 22.5
+    with pytest.raises(ValueError, match="no initial velocity"):
+        ballistic_closure_time_ta(_case("compression_merge"))
 
 
 def test_report_no_merge_case_has_no_monitor_lock() -> None:

@@ -62,7 +62,7 @@
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/benchmark_dashboard.json",
-      "sha256": "sha256:839ef07aa15c1a6279f9290c5a53cc69920d6c4963d66f6b2133b9583e2c78bc",
+      "sha256": "sha256:10e8013223af49a590f821d46b6833517b669bbac5b8799d5fc4b935fcd4d8c7",
       "size_bytes": 74472
     },
     {
@@ -90,8 +90,8 @@
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/studio_manifest.json",
-      "sha256": "sha256:eb39fec3255de6e61aa4fcc56ff6d5a56fbba1b7629d24fcedc917abac2bca26",
-      "size_bytes": 14729
+      "sha256": "sha256:d757ddd7a5ff6058d3f7cb2ce78726892116e2c4123769a72955f8d8d8cb118d",
+      "size_bytes": 14777
     },
     {
       "kind": "generated-dashboard",
@@ -104,8 +104,8 @@
       "kind": "validation-documentation",
       "media_type": "text/markdown",
       "path": "docs/validation/belova_merge_reproduction.md",
-      "sha256": "sha256:c64262c8a5ffa6dc2815c8148332c40dae018f9cff5ddcc62eb8e4c9de772f09",
-      "size_bytes": 3629
+      "sha256": "sha256:043ecf8ce28a2f26d59ad4b180d82455f352309b403182f8f65aaf8e47a31685",
+      "size_bytes": 4860
     },
     {
       "kind": "validation-documentation",
@@ -125,8 +125,8 @@
       "kind": "reproduction-tool",
       "media_type": "text/x-python",
       "path": "tools/belova_merge_parity.py",
-      "sha256": "sha256:c6c7d93dd7d602b27e63f2c4d375b0174d4b4d54ae15c56e381479dd878f3837",
-      "size_bytes": 12136
+      "sha256": "sha256:d71beade0c4fa6f474d68d9541a3c321d1079695fffa76f30c7260e1eb115704",
+      "size_bytes": 15235
     },
     {
       "kind": "reproduction-tool",
@@ -230,8 +230,8 @@
       "kind": "benchmark-result",
       "media_type": "application/json",
       "path": "bench/results/belova_merge_parity.json",
-      "sha256": "sha256:4d385bb215d0685de1fd82c0187447ae371428af6d9660a59480978f261823ce",
-      "size_bytes": 4236
+      "sha256": "sha256:bf5014df13218408210fc9cc460e2844ed06ff37d7e3b37379029f30673e09a3",
+      "size_bytes": 5475
     },
     {
       "kind": "benchmark-result",

@@ -369,7 +369,7 @@ def _boundaries() -> dict[str, list[str]]:
             "open-tool formal safety/liveness and bounded cycle-latency timing",
         ],
         "bounded": [
-            "merge-window classification reports the ballistic-closure upper bound; the reconnection speedup is FUSION-owned (FUS-C.6)",
+            "merge-window classification reports the ballistic closure as a kinematic reference, not a bound; reconnection acceleration and open-field drag are FUSION-owned (FUS-C.6)",
             "Faraday recovery runs over a prescribed expansion trajectory, not self-consistent plasma evolution",
             "kinematic safety certificate is a sampled-envelope check of the Lean invariant",
         ],
