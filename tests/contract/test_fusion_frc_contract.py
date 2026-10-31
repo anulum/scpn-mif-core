@@ -17,6 +17,7 @@ pytestmark = [pytest.mark.contract, pytest.mark.scpn_fusion_core]
 
 
 def test_scpn_fusion_frc_surface_available() -> None:
+    """The installed fusion core exposes every symbol the MIF FRC integration requires."""
     fusion_core = pytest.importorskip("scpn_fusion.core", reason="scpn-fusion-core is not fully installed")
 
     report = inspect_fusion_frc_contract(fusion_core)
@@ -25,6 +26,7 @@ def test_scpn_fusion_frc_surface_available() -> None:
 
 
 def test_scpn_fusion_frc_claim_boundaries_are_explicit() -> None:
+    """The FRC contract lists its blocked FUS-C claim boundaries and does not claim full evidence."""
     fusion_core = pytest.importorskip("scpn_fusion.core", reason="scpn-fusion-core is not fully installed")
 
     report = inspect_fusion_frc_contract(fusion_core)

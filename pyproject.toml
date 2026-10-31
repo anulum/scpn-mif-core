@@ -154,7 +154,13 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S", "PT011", "PT012", "E402", "D"]
+"tests/**/*.py" = ["S", "PT011", "PT012", "E402"]
+# Docstrings are being written tree by tree under
+# PE-20261003/SCPN-MIF-CORE/documentation-scope-waivers; these trees still
+# wait for theirs, and each entry is removed when its tree is done.
+"tests/unit/**/*.py" = ["D"]
+"tests/integration/**/*.py" = ["D"]
+"tests/physics_parity/**/*.py" = ["D"]
 "bench/**/*.py" = ["S"]
 "examples/**/*.py" = ["S"]
 "campaigns/**/*.py" = ["S"]
@@ -162,7 +168,7 @@ ignore = [
 # Cosimulation harnesses and their tests drive external simulators by subprocess
 # (scope of S); docstrings are enforced there like in src/ and tools/.
 "cosim/**/*.py" = ["S"]
-"conftest.py" = ["S", "D"]
+"conftest.py" = ["S"]
 # Parity tests intentionally use `pytest.importorskip` before further imports,
 # quote forward references to the runtime-resolved Rust extension module, and
 # use the multiplication sign in mathematical prose.

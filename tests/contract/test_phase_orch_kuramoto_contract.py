@@ -17,6 +17,7 @@ pytestmark = [pytest.mark.contract, pytest.mark.scpn_phase_orchestrator]
 
 
 def test_scpn_phase_orchestrator_source_surfaces_ready(ecosystem_report: EcosystemReport) -> None:
+    """Every phase-orchestrator source surface is ready; an import failure is reported as a blocked runtime dependency."""
     row = ecosystem_report.require("scpn-phase-orchestrator")
 
     if row.source_version is None:

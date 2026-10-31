@@ -17,6 +17,7 @@ pytestmark = [pytest.mark.contract, pytest.mark.scpn_control]
 
 
 def test_scpn_control_capacitor_bank_surface_ready(ecosystem_report: EcosystemReport) -> None:
+    """The scpn-control row imports and every surface is ready; skip when its source tree is absent."""
     row = ecosystem_report.require("scpn-control")
 
     if row.source_version is None:

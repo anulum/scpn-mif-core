@@ -1,2 +1,3 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SCPN-MIF-CORE — cross-repository contract tests.
+"""Contract tests against the sibling SCPN repositories."""

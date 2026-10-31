@@ -17,6 +17,7 @@ pytestmark = [pytest.mark.contract, pytest.mark.scpn_fusion_core]
 
 
 def test_scpn_fusion_solver_owner_surface_detected(ecosystem_report: EcosystemReport) -> None:
+    """The fusion-core row is ready, possibly with blockers, and records that FUSION owns the solver lane."""
     row = ecosystem_report.require("scpn-fusion-core")
 
     if row.source_version is None:
