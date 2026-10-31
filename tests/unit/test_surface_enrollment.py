@@ -331,6 +331,7 @@ def surfaces_of(path: str) -> list[str]:
 
 
 def test_every_tracked_file_has_exactly_one_gated_surface() -> None:
+    """Every tracked file matches exactly one gated surface."""
     unmatched: list[str] = []
     ambiguous: dict[str, list[str]] = {}
     for path in tracked_files():
@@ -344,6 +345,7 @@ def test_every_tracked_file_has_exactly_one_gated_surface() -> None:
 
 
 def test_every_surface_names_gates_and_is_populated() -> None:
+    """Every surface has a unique name, gates, and patterns that match files."""
     files = tracked_files()
     names = [surface.name for surface in SURFACES]
     assert len(names) == len(set(names))
@@ -354,6 +356,7 @@ def test_every_surface_names_gates_and_is_populated() -> None:
 
 
 def test_untyped_python_is_a_reasoned_exception() -> None:
+    """Every Python file is typed or a listed exception, never both."""
     for path in tracked_files():
         if not path.endswith(".py"):
             continue
@@ -363,6 +366,7 @@ def test_untyped_python_is_a_reasoned_exception() -> None:
 
 
 def test_the_typed_roots_are_the_mypy_cohort() -> None:
+    """The typed roots equal the mypy files setting."""
     pyproject = (REPO / "pyproject.toml").read_text(encoding="utf-8")
     match = re.search(r"^files = \[(.*)\]$", pyproject, re.MULTILINE)
     assert match is not None
@@ -371,6 +375,7 @@ def test_the_typed_roots_are_the_mypy_cohort() -> None:
 
 
 def test_path_matching_stays_inside_segments() -> None:
+    """Patterns match within path segments, and ** crosses them."""
     assert path_matches("tools/a.py", "tools/*.py")
     assert not path_matches("tools/sub/a.py", "tools/*.py")
     assert path_matches("docs/a.md", "docs/**/*.md")

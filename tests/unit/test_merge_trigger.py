@@ -91,6 +91,7 @@ def _expansion() -> ExpansionTrajectory:
 # Outcomes                                                                     #
 # --------------------------------------------------------------------------- #
 def test_locked_safe_feasible_scenario_fires() -> None:
+    """A locked, safe, feasible scenario fires."""
     report = evaluate_merge_trigger(_scenario())
     assert report.outcome is MergeTriggerOutcome.FIRE
     assert report.lock_achieved
@@ -101,6 +102,7 @@ def test_locked_safe_feasible_scenario_fires() -> None:
 
 
 def test_zero_bank_voltage_aborts_as_infeasible() -> None:
+    """An empty bank aborts as infeasible."""
     report = evaluate_merge_trigger(_scenario(bank_initial_voltage_V=0.0))
     assert report.outcome is MergeTriggerOutcome.ABORT_BANK_INFEASIBLE
     assert not report.bank_feasible
@@ -109,6 +111,7 @@ def test_zero_bank_voltage_aborts_as_infeasible() -> None:
 
 
 def test_unlocked_phases_hold_without_lock() -> None:
+    """Phases that never lock hold."""
     report = evaluate_merge_trigger(
         _scenario(
             moving_frame=_moving_frame([1.0, 1.0], [[0.0, 0.0], [0.0, 0.0]]),
@@ -122,6 +125,7 @@ def test_unlocked_phases_hold_without_lock() -> None:
 
 
 def test_diverging_approach_aborts_as_unsafe() -> None:
+    """A diverging approach aborts as unsafe at the first violation."""
     report = evaluate_merge_trigger(
         _scenario(initial_positions_m=[-0.001, 0.001], velocities_m_s=[-1.0, 1.0]),
     )
@@ -132,6 +136,7 @@ def test_diverging_approach_aborts_as_unsafe() -> None:
 
 
 def test_safety_takes_precedence_over_bank_feasibility() -> None:
+    """An unsafe approach with an empty bank aborts on safety."""
     # An unsafe approach with an empty bank still aborts on safety, not the bank.
     report = evaluate_merge_trigger(
         _scenario(
@@ -147,6 +152,7 @@ def test_safety_takes_precedence_over_bank_feasibility() -> None:
 # Recovery estimate                                                            #
 # --------------------------------------------------------------------------- #
 def test_recovery_estimate_matches_standalone_kernel() -> None:
+    """The recovery estimate equals the standalone Faraday kernel."""
     recovery = FaradayRecoverySpec(turns=10.0, load_resistance_ohm=1.0, coupling_efficiency=0.8)
     expansion = _expansion()
     report = evaluate_merge_trigger(_scenario(recovery=recovery, expansion=expansion))
@@ -168,6 +174,7 @@ def test_recovery_estimate_matches_standalone_kernel() -> None:
 
 
 def test_no_recovery_when_trajectory_absent() -> None:
+    """Without a trajectory there is no recovery estimate."""
     report = evaluate_merge_trigger(_scenario())
     assert report.recovery_report is None
     assert report.recovered_energy_J is None
@@ -178,6 +185,7 @@ def test_no_recovery_when_trajectory_absent() -> None:
 # Report payload                                                               #
 # --------------------------------------------------------------------------- #
 def test_report_carries_full_intermediate_evidence() -> None:
+    """The report keeps the kinematic, window and safety evidence."""
     report = evaluate_merge_trigger(_scenario())
     assert isinstance(report, MergeTriggerReport)
     assert isinstance(report.kinematic_report, MovingFrameUPDEReport)
@@ -196,32 +204,38 @@ def test_report_carries_full_intermediate_evidence() -> None:
     ["initial_phases_rad", "initial_positions_m", "velocities_m_s"],
 )
 def test_wrong_state_vector_length_is_rejected(field: str) -> None:
+    """A state vector of the wrong length is refused."""
     with pytest.raises(ValueError, match="must contain 2 values"):
         _scenario(**{field: [0.0, 0.0, 0.0]})
 
 
 def test_non_positive_step_is_rejected() -> None:
+    """A non-positive step is refused."""
     with pytest.raises(ValueError, match="dt_s must be strictly positive"):
         _scenario(dt_s=0.0)
 
 
 def test_zero_steps_is_rejected() -> None:
+    """Zero steps are refused."""
     with pytest.raises(ValueError, match="steps must be at least 1"):
         _scenario(steps=0)
 
 
 @pytest.mark.parametrize("voltage", [-1.0, 2.0e4 + 1.0])
 def test_bank_voltage_out_of_range_is_rejected(voltage: float) -> None:
+    """A bank voltage out of range is refused."""
     with pytest.raises(ValueError, match="bank_initial_voltage_V must lie"):
         _scenario(bank_initial_voltage_V=voltage)
 
 
 def test_recovery_without_expansion_is_rejected() -> None:
+    """Recovery without expansion is refused."""
     recovery = FaradayRecoverySpec(turns=10.0, load_resistance_ohm=1.0)
     with pytest.raises(ValueError, match="supplied together or both omitted"):
         _scenario(recovery=recovery)
 
 
 def test_expansion_without_recovery_is_rejected() -> None:
+    """Expansion without recovery is refused."""
     with pytest.raises(ValueError, match="supplied together or both omitted"):
         _scenario(expansion=_expansion())

@@ -19,6 +19,7 @@ def _read(relative_path: str) -> str:
 
 
 def test_dysco_page_is_wired_into_public_papers_nav() -> None:
+    """The DYSCO page is in the navigation and the papers index."""
     mkdocs = _read("mkdocs.yml")
     index = _read("docs/papers/index.md")
 
@@ -27,6 +28,7 @@ def test_dysco_page_is_wired_into_public_papers_nav() -> None:
 
 
 def test_dysco_external_source_register_carries_verified_arxiv_entry() -> None:
+    """The source register lists the verified DYSCO preprint and its page."""
     register = _read("docs/external_sources/README.md")
 
     assert "Muratore & Mathis (2026)" in register
@@ -35,6 +37,7 @@ def test_dysco_external_source_register_carries_verified_arxiv_entry() -> None:
 
 
 def test_dysco_page_records_mif_scope_boundary_without_internal_paths() -> None:
+    """The DYSCO page states its scope boundary and names no private path."""
     page = _read("docs/papers/dysco.md")
 
     assert "does not change the verified trigger path" in page

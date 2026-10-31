@@ -18,6 +18,7 @@ from tools import update_dispatch
 
 
 def test_rewrite_dispatch_preserves_last_updated_when_timestamp_is_none() -> None:
+    """Without a timestamp the table text is unchanged."""
     text = (
         'schema_version = "1.0.0"\n'
         'last_updated = "2026-06-04T1024"\n'
@@ -36,15 +37,18 @@ def test_rewrite_dispatch_preserves_last_updated_when_timestamp_is_none() -> Non
 
 
 def test_extract_backend_matches_and_rejects() -> None:
+    """The backend is read from a benchmark name, or None without one."""
     assert update_dispatch._extract_backend("test_bench_rust_capacitor_step") == "rust"
     assert update_dispatch._extract_backend("test_capacitor_step") is None
 
 
 def test_kernel_from_group_returns_input() -> None:
+    """The kernel name is the benchmark group."""
     assert update_dispatch._kernel_from_group("capacitor_bank.step_single") == "capacitor_bank.step_single"
 
 
 def test_rank_backends_orders_fastest_first() -> None:
+    """Backends are ranked by mean, fastest first."""
     records: list[dict[str, object]] = [
         {"name": "test_bench_rust_step", "mean_ns": 10.0},
         {"name": "test_bench_python_step", "mean_ns": 30.0},
@@ -54,6 +58,7 @@ def test_rank_backends_orders_fastest_first() -> None:
 
 
 def test_rank_backends_skips_unbacked_and_non_numeric() -> None:
+    """Records without a backend or a numeric mean are skipped."""
     records: list[dict[str, object]] = [
         {"name": "not_a_bench", "mean_ns": 1.0},
         {"name": "test_bench_rust_step", "mean_ns": "slow"},
@@ -63,6 +68,7 @@ def test_rank_backends_skips_unbacked_and_non_numeric() -> None:
 
 
 def test_kernel_qualified_name_maps_known_and_passes_unknown() -> None:
+    """Known kernels get their domain prefix and unknown names pass through."""
     assert update_dispatch._kernel_qualified_name({"kernel": "capacitor_bank"}, "x") == "lifecycle.capacitor_bank"
     assert update_dispatch._kernel_qualified_name({"kernel": "mystery"}, "x") == "mystery"
     assert update_dispatch._kernel_qualified_name({}, "fallback") == "fallback"
@@ -74,6 +80,7 @@ def _write_result(directory: Path, stem: str, kernel: str, ordering: list[tuple[
 
 
 def test_collect_backend_orderings_reads_results(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Rankings are read from the results directory."""
     monkeypatch.setattr(update_dispatch, "RESULTS_DIR", tmp_path)
     _write_result(tmp_path, "capacitor_bank", "capacitor_bank", [("python", 30.0), ("rust", 10.0)])
     rankings = update_dispatch.collect_backend_orderings()
@@ -81,11 +88,13 @@ def test_collect_backend_orderings_reads_results(tmp_path: Path, monkeypatch: py
 
 
 def test_collect_backend_orderings_missing_dir_is_empty(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A missing results directory gives no rankings."""
     monkeypatch.setattr(update_dispatch, "RESULTS_DIR", tmp_path / "absent")
     assert update_dispatch.collect_backend_orderings() == {}
 
 
 def test_collect_backend_orderings_skips_invalid_and_empty(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Invalid and empty result files are skipped."""
     monkeypatch.setattr(update_dispatch, "RESULTS_DIR", tmp_path)
     (tmp_path / "broken.json").write_text("{not json", encoding="utf-8")
     (tmp_path / "no_tests.json").write_text(json.dumps({"kernel": "merge_window", "tests": []}), encoding="utf-8")
@@ -96,6 +105,7 @@ def test_collect_backend_orderings_skips_invalid_and_empty(tmp_path: Path, monke
 
 
 def test_rewrite_dispatch_replaces_ranked_and_refreshes_timestamp() -> None:
+    """Ranked kernels are rewritten with comments kept, unranked ones untouched, and the timestamp refreshed."""
     text = (
         'last_updated = "2026-01-01T0000"\n'
         '"kinematic.merge_window" = ["python", "rust"]    # comment\n'
@@ -112,6 +122,7 @@ def test_rewrite_dispatch_replaces_ranked_and_refreshes_timestamp() -> None:
 
 
 def test_rewrite_dispatch_preserves_absent_trailing_newline() -> None:
+    """A table without a final newline stays without one."""
     text = '"kinematic.merge_window" = ["python"]'
     after = update_dispatch.rewrite_dispatch(text, {}, new_last_updated=None)
     assert after == text
@@ -119,6 +130,7 @@ def test_rewrite_dispatch_preserves_absent_trailing_newline() -> None:
 
 
 def test_merge_ordering_keeps_unmeasured_parity_surfaces_in_place() -> None:
+    """Unmeasured backends keep their slots while measured ones re-rank."""
     # Mojo has no promoted JSON rows; it must keep its curated slot while the
     # measured backends re-rank among their own positions.
     existing = ["rust", "python", "mojo", "julia"]
@@ -132,12 +144,14 @@ def test_merge_ordering_keeps_unmeasured_parity_surfaces_in_place() -> None:
 
 
 def test_merge_ordering_appends_newly_measured_backends() -> None:
+    """A newly measured backend is appended."""
     assert update_dispatch._merge_ordering(["python"], ["rust", "python"]) == ["python", "rust"]
 
 
 def test_main_check_reports_stale(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
+    """The --check command exits 1 for a stale table."""
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text('"kinematic.merge_window" = ["python", "rust"]\n', encoding="utf-8")
     monkeypatch.setattr(update_dispatch, "DISPATCH_PATH", dispatch)
@@ -152,6 +166,7 @@ def test_main_check_reports_stale(
 def test_main_check_stale_table_with_current_snapshot_reports_only_stale(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
+    """A stale table with a current snapshot reports only the stale table."""
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text('"kinematic.merge_window" = ["python", "rust"]\n', encoding="utf-8")
     snapshot = tmp_path / "snapshot.toml"
@@ -170,6 +185,7 @@ def test_main_check_stale_table_with_current_snapshot_reports_only_stale(
 def test_main_check_reports_out_of_step_snapshot(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
+    """A snapshot out of step with the table is reported."""
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text('"kinematic.merge_window" = ["rust", "python"]\n', encoding="utf-8")
     snapshot = tmp_path / "snapshot.toml"
@@ -184,6 +200,7 @@ def test_main_check_reports_out_of_step_snapshot(
 
 
 def test_main_check_up_to_date(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The --check command exits 0 when everything is current."""
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text('"kinematic.merge_window" = ["rust", "python"]\n', encoding="utf-8")
     snapshot = tmp_path / "snapshot.toml"
@@ -197,6 +214,7 @@ def test_main_check_up_to_date(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
 
 
 def test_main_writes_when_changed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The command rewrites the table and writes a byte-identical packaged snapshot."""
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text('last_updated = "old"\n"kinematic.merge_window" = ["python", "rust"]\n', encoding="utf-8")
     snapshot = tmp_path / "snapshot.toml"
@@ -212,11 +230,13 @@ def test_main_writes_when_changed(tmp_path: Path, monkeypatch: pytest.MonkeyPatc
 
 
 def test_main_missing_dispatch_file_returns_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A missing table makes the command exit 1."""
     monkeypatch.setattr(update_dispatch, "DISPATCH_PATH", tmp_path / "absent.toml")
     assert update_dispatch.main([]) == 1
 
 
 def test_main_no_rankings_returns_0(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """No rankings make the command exit 0."""
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text("[kernels]\n", encoding="utf-8")
     monkeypatch.setattr(update_dispatch, "DISPATCH_PATH", dispatch)

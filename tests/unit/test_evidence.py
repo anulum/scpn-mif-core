@@ -85,6 +85,7 @@ _PROVE_TASK = {
 
 
 def test_content_digest_is_deterministic_and_prefixed() -> None:
+    """The content digest is sha256-prefixed and independent of key order."""
     payload = {"b": 2, "a": 1}
     first = content_digest(payload)
     assert first.startswith("sha256:")
@@ -92,6 +93,7 @@ def test_content_digest_is_deterministic_and_prefixed() -> None:
 
 
 def test_content_digest_differs_on_change() -> None:
+    """A changed value changes the digest."""
     assert content_digest({"a": 1}) != content_digest({"a": 2})
 
 
@@ -117,6 +119,7 @@ def _bundle(**overrides: Any) -> dict[str, Any]:
 
 
 def test_build_evidence_bundle_envelope() -> None:
+    """A bundle carries schema, profile, provenance and a hash chain equal to the entity digest."""
     bundle = _bundle()
     assert bundle["schema"] == "studio.test.v1"
     assert bundle["ro_crate_profile"] == RO_CRATE_PROFILE
@@ -134,6 +137,7 @@ def test_build_evidence_bundle_envelope() -> None:
 
 
 def test_build_evidence_bundle_includes_optional_blocks() -> None:
+    """Optional numeric, formal, citation, lineage and substrate blocks are included."""
     bundle = _bundle(
         numeric_provenance={"exactness": "bit-exact"},
         formal_certificate=[{"checker": "symbiyosys"}],
@@ -149,6 +153,7 @@ def test_build_evidence_bundle_includes_optional_blocks() -> None:
 
 
 def test_attestation_hmac_present_with_key_absent_without() -> None:
+    """The attestation carries an HMAC only when a key is given."""
     assert _bundle()["attestation"]["hmac"] is None
     keyed = _bundle(hmac_key=b"secret")
     assert isinstance(keyed["attestation"]["hmac"], str)
@@ -158,6 +163,7 @@ def test_attestation_hmac_present_with_key_absent_without() -> None:
 
 
 def test_merge_trigger_evidence_fire_is_admitted() -> None:
+    """A fire report maps to an admitted, measured, bounded-model bundle."""
     report = evaluate_merge_trigger(_scenario([-5.0e-4, 5.0e-4], [0.0, 0.0]))
     bundle = merge_trigger_evidence(report, started="t0", ended="t1", host="rig", studio_version="0.1.0")
     assert bundle["schema"] == "studio.merge-trigger.v1"
@@ -172,6 +178,7 @@ def test_merge_trigger_evidence_fire_is_admitted() -> None:
 
 
 def test_merge_trigger_evidence_non_fire_is_rejected() -> None:
+    """A report that does not fire maps to a rejected bundle."""
     report = evaluate_merge_trigger(_scenario([-1.0e-3, 1.0e-3], [-1.0, 1.0]))
     bundle = merge_trigger_evidence(report, started="t0", ended="t1", host="rig", studio_version="0.1.0")
     assert report.outcome.value != "fire"
@@ -182,6 +189,7 @@ def test_merge_trigger_evidence_non_fire_is_rejected() -> None:
 
 
 def test_formal_proof_evidence_prove_mode() -> None:
+    """A prove result maps to a k-induction bundle with the SymbiYosys certificate digests."""
     bundle = formal_proof_evidence(
         _PROVE_TASK, started="t0", ended="t1", host="ci", studio_version="0.1.0", checker_version="0.45"
     )
@@ -197,6 +205,7 @@ def test_formal_proof_evidence_prove_mode() -> None:
 
 
 def test_formal_proof_evidence_cover_mode_uses_bounded_cover() -> None:
+    """A cover result uses the bounded-cover method."""
     task = {**_PROVE_TASK, "mode": "cover"}
     bundle = formal_proof_evidence(
         task, started="t0", ended="t1", host="ci", studio_version="0.1.0", checker_version="0.45"
@@ -205,6 +214,7 @@ def test_formal_proof_evidence_cover_mode_uses_bounded_cover() -> None:
 
 
 def test_formal_proof_evidence_subject_falls_back_to_sby() -> None:
+    """Without RTL dependencies the subject digest is the .sby file's."""
     task = {
         **_PROVE_TASK,
         "depends_on": [{"path": "hdl/formal/safety/mif_trigger_fabric_safety.sby", "sha256": "c" * 64}],
@@ -231,6 +241,7 @@ def _valid_formal() -> dict[str, object]:
 
 
 def test_validate_accepts_emitter_bundles() -> None:
+    """Bundles from the emitters validate."""
     validate_studio_bundle(_valid_measured())  # must not raise
     validate_studio_bundle(_valid_formal())  # must not raise
 
@@ -258,6 +269,7 @@ _MeasuredMutator = Callable[[dict[str, Any]], object]
     ],
 )
 def test_validate_rejects_nonconformant_measured(mutate: _MeasuredMutator, match: str) -> None:
+    """Each non-conforming measured bundle is refused with its message."""
     bundle = _valid_measured()
     mutate(bundle)
     with pytest.raises(ValueError, match=match):
@@ -276,6 +288,7 @@ def test_validate_rejects_nonconformant_measured(mutate: _MeasuredMutator, match
     ],
 )
 def test_validate_rejects_nonconformant_formal(mutate: _MeasuredMutator, match: str) -> None:
+    """Each non-conforming formal bundle is refused with its message."""
     bundle = _valid_formal()
     mutate(bundle)
     with pytest.raises(ValueError, match=match):
@@ -286,6 +299,7 @@ def test_validate_rejects_nonconformant_formal(mutate: _MeasuredMutator, match: 
 
 
 def test_formal_proof_evidence_rejects_bad_mode() -> None:
+    """An unknown proof mode is refused."""
     with pytest.raises(ValueError, match="mode must be one of"):
         formal_proof_evidence(
             {**_PROVE_TASK, "mode": "smt"},
@@ -298,6 +312,7 @@ def test_formal_proof_evidence_rejects_bad_mode() -> None:
 
 
 def test_formal_proof_evidence_rejects_empty_depends_on() -> None:
+    """An empty dependency list is refused."""
     with pytest.raises(ValueError, match="depends_on must be non-empty"):
         formal_proof_evidence(
             {**_PROVE_TASK, "depends_on": []},
@@ -310,6 +325,7 @@ def test_formal_proof_evidence_rejects_empty_depends_on() -> None:
 
 
 def test_formal_proof_evidence_rejects_sby_absent_from_depends_on() -> None:
+    """A .sby file missing from the dependencies is refused."""
     with pytest.raises(ValueError, match="must appear in depends_on"):
         formal_proof_evidence(
             {**_PROVE_TASK, "sby": "hdl/formal/other.sby"},
@@ -325,6 +341,7 @@ def test_formal_proof_evidence_rejects_sby_absent_from_depends_on() -> None:
 
 
 def test_cosim_evidence_bit_true_is_admitted_and_bit_exact() -> None:
+    """A bit-true cosimulation is admitted as bit-exact, reference-validated simulator evidence."""
     bundle = cosim_evidence(
         harness="mif008_trigger_fabric",
         bit_true=True,
@@ -347,6 +364,7 @@ def test_cosim_evidence_bit_true_is_admitted_and_bit_exact() -> None:
 
 
 def test_cosim_evidence_mismatch_is_validation_gap() -> None:
+    """A mismatch is a rejected validation gap with its maximum error."""
     bundle = cosim_evidence(
         harness="mif008_trigger_fabric",
         bit_true=False,
@@ -367,6 +385,7 @@ def test_cosim_evidence_mismatch_is_validation_gap() -> None:
 
 
 def test_benchmark_evidence_carries_recompute_provenance() -> None:
+    """A benchmark bundle names its command, host, backend and metrics."""
     bundle = benchmark_evidence(
         name="trigger_latency_budget",
         metrics={"hot_path_ns": 56},
@@ -387,6 +406,7 @@ def test_benchmark_evidence_carries_recompute_provenance() -> None:
 
 
 def test_benchmark_evidence_honest_bounded_status_is_respected() -> None:
+    """A benchmark declared bounded-model stays bounded-model."""
     bundle = benchmark_evidence(
         name="trigger_latency_budget",
         metrics={"hot_path_ns": 56, "modelled_tiers_ns": 48},

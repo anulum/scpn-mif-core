@@ -20,12 +20,14 @@ from tools import emit_studio_manifest as emitter
 
 
 def test_manifest_json_is_the_canonical_serialisation() -> None:
+    """The manifest JSON is the federation document, newline-terminated."""
     payload = json.loads(emitter.manifest_json())
     assert payload == build_federation_document()
     assert emitter.manifest_json().endswith("\n")
 
 
 def test_manifest_json_is_the_ratified_two_block_envelope() -> None:
+    """The manifest JSON holds exactly schema_a and the v2 architecture map."""
     payload = json.loads(emitter.manifest_json())
     # The Hub's split_manifest_envelope requires a top-level schema_a key.
     assert set(payload) == {"schema_a", "architecture_map"}
@@ -34,11 +36,13 @@ def test_manifest_json_is_the_ratified_two_block_envelope() -> None:
 
 
 def test_committed_artifact_is_current() -> None:
+    """The committed studio manifest is current."""
     # The real committed docs/_generated/studio_manifest.json must already be in step.
     assert emitter.is_current(emitter.DEFAULT_ARTIFACT) is True
 
 
 def test_emit_writes_the_manifest(tmp_path: Path) -> None:
+    """Emitting writes the manifest and it is current."""
     out = tmp_path / "nested" / "studio_manifest.json"
     emitter.emit(out)
     assert out.read_text(encoding="utf-8") == emitter.manifest_json()
@@ -46,12 +50,14 @@ def test_emit_writes_the_manifest(tmp_path: Path) -> None:
 
 
 def test_is_current_false_on_drift(tmp_path: Path) -> None:
+    """A changed manifest is not current."""
     stale = tmp_path / "studio_manifest.json"
     stale.write_text('{"studio": "stale"}\n', encoding="utf-8")
     assert emitter.is_current(stale) is False
 
 
 def test_main_emits_by_default(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The command writes the manifest by default."""
     target = tmp_path / "studio_manifest.json"
     monkeypatch.setattr(emitter, "DEFAULT_ARTIFACT", target)
     assert emitter.main([]) == 0
@@ -59,6 +65,7 @@ def test_main_emits_by_default(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
 
 
 def test_main_check_passes_when_current(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The --check command exits 0 when current."""
     target = tmp_path / "studio_manifest.json"
     target.write_text(emitter.manifest_json(), encoding="utf-8")
     monkeypatch.setattr(emitter, "DEFAULT_ARTIFACT", target)
@@ -66,6 +73,7 @@ def test_main_check_passes_when_current(tmp_path: Path, monkeypatch: pytest.Monk
 
 
 def test_main_check_fails_on_drift(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The --check command exits 1 after drift."""
     target = tmp_path / "studio_manifest.json"
     target.write_text('{"studio": "stale"}\n', encoding="utf-8")
     monkeypatch.setattr(emitter, "DEFAULT_ARTIFACT", target)

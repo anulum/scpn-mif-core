@@ -29,6 +29,7 @@ def _write_wheel(path: Path, members: set[str]) -> None:
 
 
 def test_check_wheel_contents_accepts_a_wheel_containing_the_package(tmp_path: Path) -> None:
+    """A wheel holding the package and its required members passes."""
     wheel_path = tmp_path / "scpn_mif_core-0.1.0-py3-none-any.whl"
     _write_wheel(wheel_path, set(DEFAULT_REQUIRED_MEMBERS) | {"scpn_mif_core/kinematic/merge_window.py"})
 
@@ -41,6 +42,7 @@ def test_check_wheel_contents_accepts_a_wheel_containing_the_package(tmp_path: P
 
 
 def test_check_wheel_contents_rejects_an_empty_or_package_less_wheel(tmp_path: Path) -> None:
+    """A wheel without the required members is refused."""
     wheel_path = tmp_path / "scpn_mif_core-0.1.0-py3-none-any.whl"
     _write_wheel(wheel_path, {"scpn_mif_core-0.1.0.dist-info/METADATA"})
 
@@ -49,6 +51,7 @@ def test_check_wheel_contents_rejects_an_empty_or_package_less_wheel(tmp_path: P
 
 
 def test_check_wheel_contents_requires_exactly_one_wheel(tmp_path: Path) -> None:
+    """No wheel or more than one wheel is refused."""
     with pytest.raises(WheelContentError, match="expected exactly one wheel"):
         check_wheel_contents(tmp_path)
 
@@ -60,6 +63,7 @@ def test_check_wheel_contents_requires_exactly_one_wheel(tmp_path: Path) -> None
 
 
 def test_check_wheel_contents_rejects_invalid_wheel_zip(tmp_path: Path) -> None:
+    """A file that is not a wheel ZIP is refused."""
     wheel_path = tmp_path / "broken.whl"
     wheel_path.write_text("not a zip archive", encoding="utf-8")
 
@@ -68,6 +72,7 @@ def test_check_wheel_contents_rejects_invalid_wheel_zip(tmp_path: Path) -> None:
 
 
 def test_check_wheel_contents_rejects_missing_custom_package_prefix(tmp_path: Path) -> None:
+    """A wheel without the named package directory is refused."""
     wheel_path = tmp_path / "custom-0.1.0-py3-none-any.whl"
     _write_wheel(wheel_path, {"metadata/METADATA"})
 
@@ -76,6 +81,7 @@ def test_check_wheel_contents_rejects_missing_custom_package_prefix(tmp_path: Pa
 
 
 def test_cli_reports_success_and_failure(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """The command exits 0 for a good wheel and 1 for a bad one."""
     wheel_path = tmp_path / "scpn_mif_core-0.1.0-py3-none-any.whl"
     _write_wheel(wheel_path, set(DEFAULT_REQUIRED_MEMBERS))
 

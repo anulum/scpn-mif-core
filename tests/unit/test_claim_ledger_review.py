@@ -5,6 +5,7 @@
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
 # SCPN-MIF-CORE — claim-ledger review receipt tests.
+"""Tests of the claim-ledger review receipt: building, validation and the command."""
 
 from __future__ import annotations
 
@@ -58,6 +59,7 @@ def _ledger(tmp_path: Path) -> Path:
 
 
 def test_build_receipt_validates_private_ledger_and_summarises_without_blocker_text(tmp_path: Path) -> None:
+    """The receipt validates the ledger and gives counts without copying blocker text."""
     receipt = build_review_receipt(_ledger(tmp_path), repo=tmp_path)
 
     assert receipt["schema"] == RECEIPT_SCHEMA
@@ -71,6 +73,7 @@ def test_build_receipt_validates_private_ledger_and_summarises_without_blocker_t
 
 
 def test_build_receipt_rejects_missing_reference(tmp_path: Path) -> None:
+    """A ledger reference that does not resolve is refused."""
     ledger = _ledger(tmp_path)
     (tmp_path / "evidence.json").unlink()
 
@@ -79,6 +82,7 @@ def test_build_receipt_rejects_missing_reference(tmp_path: Path) -> None:
 
 
 def test_validate_receipt_checks_commit_and_age(tmp_path: Path) -> None:
+    """A receipt for another commit or older than the limit is reported."""
     receipt = build_review_receipt(_ledger(tmp_path), repo=tmp_path)
     findings = validate_review_receipt(
         receipt,
@@ -92,6 +96,7 @@ def test_validate_receipt_checks_commit_and_age(tmp_path: Path) -> None:
 
 
 def test_validate_receipt_rejects_bad_shape() -> None:
+    """A wrong schema, unchecked references and a bad count are reported."""
     findings = validate_review_receipt({"schema": "bad"})
 
     assert f"schema must be {RECEIPT_SCHEMA!r}" in findings
@@ -100,10 +105,12 @@ def test_validate_receipt_rejects_bad_shape() -> None:
 
 
 def test_validate_receipt_rejects_non_object_root() -> None:
+    """A receipt root that is not an object is reported."""
     assert validate_review_receipt([]) == ("receipt root must be an object",)
 
 
 def test_validate_receipt_rejects_inconsistent_counts(tmp_path: Path) -> None:
+    """Counts larger than their totals are reported."""
     receipt = build_review_receipt(_ledger(tmp_path), repo=tmp_path)
     receipt["public_claim_count"] = 2
     receipt["claims_with_blockers_count"] = 2
@@ -117,6 +124,7 @@ def test_validate_receipt_rejects_inconsistent_counts(tmp_path: Path) -> None:
 
 
 def test_cli_emit_and_check_round_trip(tmp_path: Path) -> None:
+    """A receipt emitted by the command passes its own check."""
     ledger = _ledger(tmp_path)
     receipt = tmp_path / "receipt.json"
 
@@ -137,6 +145,7 @@ def test_cli_emit_and_check_round_trip(tmp_path: Path) -> None:
 
 
 def test_build_receipt_counts_public_unblocked_claim(tmp_path: Path) -> None:
+    """A public claim without blockers is counted as public and unblocked."""
     ledger = _ledger(tmp_path)
     document = json.loads(ledger.read_text(encoding="utf-8"))
     document["claims"][0].update(
@@ -170,6 +179,7 @@ def test_build_receipt_counts_public_unblocked_claim(tmp_path: Path) -> None:
 def test_build_receipt_defensive_guards(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, ledger: dict[str, object], message: str
 ) -> None:
+    """Each malformed ledger input is refused with its message."""
     path = tmp_path / "ledger.json"
     path.write_text("{}\n", encoding="utf-8")
     monkeypatch.setattr(claim_ledger_review, "validate_ledger_path", lambda *args, **kwargs: ())
@@ -179,12 +189,14 @@ def test_build_receipt_defensive_guards(
 
 
 def test_build_receipt_rejects_invalid_generated_receipt(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """A generated receipt that fails validation is refused."""
     monkeypatch.setattr(claim_ledger_review, "validate_review_receipt", lambda receipt: ("bad",))
     with pytest.raises(ValueError, match="generated review receipt is invalid: bad"):
         build_review_receipt(_ledger(tmp_path), repo=tmp_path)
 
 
 def test_load_and_render_reject_non_objects(tmp_path: Path) -> None:
+    """Loading or rendering a non-object is refused."""
     path = tmp_path / "array.json"
     path.write_text("[]\n", encoding="utf-8")
     with pytest.raises(ValueError, match="expected a JSON object"):
@@ -194,6 +206,7 @@ def test_load_and_render_reject_non_objects(tmp_path: Path) -> None:
 
 
 def test_validate_receipt_reports_malformed_fields_and_future_time(tmp_path: Path) -> None:
+    """Malformed commit, hash, time and count fields and a future review time are reported."""
     receipt = build_review_receipt(_ledger(tmp_path), repo=tmp_path)
     receipt.update(
         reviewed_commit="ABC",
@@ -214,6 +227,7 @@ def test_validate_receipt_reports_malformed_fields_and_future_time(tmp_path: Pat
 
 
 def test_validate_receipt_rejects_age_configuration(tmp_path: Path) -> None:
+    """A negative age or a naive clock is refused."""
     receipt = build_review_receipt(_ledger(tmp_path), repo=tmp_path)
     with pytest.raises(ValueError, match="max_age_days must be non-negative"):
         validate_review_receipt(receipt, max_age_days=-1)
@@ -222,6 +236,7 @@ def test_validate_receipt_rejects_age_configuration(tmp_path: Path) -> None:
 
 
 def test_cli_reports_emit_load_and_validation_errors(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """The command exits 1 on emit, load and validation errors and prints them."""
     missing = tmp_path / "missing.json"
     assert main(["emit", str(missing), str(tmp_path / "out.json"), "--repo", str(tmp_path)]) == 1
     assert capsys.readouterr().err

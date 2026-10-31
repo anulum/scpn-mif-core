@@ -29,14 +29,12 @@ from tools.fair_validation_bundle import (
 
 def test_committed_fair_bundle_is_current() -> None:
     """The committed FAIR bundle must match a fresh public-surface build."""
-
     assert check_bundle() == ()
     assert BUNDLE_PATH.read_text(encoding="utf-8") == render(build_bundle())
 
 
 def test_bundle_is_fail_closed_until_internal_ledger_allows_claims() -> None:
     """The public bundle must not promote performance-superiority or validation claims by itself."""
-
     bundle = build_bundle()
 
     assert bundle["schema"] == SCHEMA
@@ -51,7 +49,6 @@ def test_bundle_is_fail_closed_until_internal_ledger_allows_claims() -> None:
 
 def test_bundle_carries_zenodo_cff_metadata() -> None:
     """Citation metadata must come from the public Zenodo and CFF files."""
-
     citation = build_bundle()["citation"]
 
     assert citation["zenodo"]["version"] == "0.1.1"
@@ -64,7 +61,6 @@ def test_bundle_carries_zenodo_cff_metadata() -> None:
 
 def test_artifacts_are_public_and_checksummed() -> None:
     """Every bundled artifact entry must be public, existing, and content-addressed."""
-
     bundle = build_bundle()
     paths = {artifact["path"] for artifact in bundle["artifacts"]}
 
@@ -89,7 +85,6 @@ def test_artifacts_are_public_and_checksummed() -> None:
 
 def test_reproduction_commands_cover_claim_and_generated_artifact_gates() -> None:
     """The bundle must include commands for claim gates and generated-surface drift."""
-
     commands = [command["command"] for command in build_bundle()["reproduction"]["commands"]]
 
     assert "python tools/benchmark_dashboard.py --check" in commands
@@ -106,7 +101,6 @@ def test_reproduction_commands_cover_claim_and_generated_artifact_gates() -> Non
 
 def test_environment_summary_lifts_project_and_benchmark_context() -> None:
     """The environment manifest should expose project pins and benchmark context."""
-
     environment = build_bundle()["environment"]
 
     assert environment["project"]["name"] == "scpn-mif-core"
@@ -132,7 +126,6 @@ def test_environment_summary_lifts_project_and_benchmark_context() -> None:
 )
 def test_validate_public_artifact_path_rejects_private_or_agentic_paths(path: str) -> None:
     """Private, credential, and coordination paths are never valid bundle entries."""
-
     with pytest.raises(ValueError, match="not allowed in the public FAIR bundle"):
         validate_public_artifact_path(path)
 
@@ -140,7 +133,6 @@ def test_validate_public_artifact_path_rejects_private_or_agentic_paths(path: st
 @pytest.mark.parametrize("path", ["/tmp/private.json", "../outside.json", "bench/results/local/raw.json"])
 def test_validate_public_artifact_path_rejects_absolute_parent_and_local_paths(path: str) -> None:
     """Absolute paths, parent traversal, and local benchmark scratch are forbidden."""
-
     with pytest.raises(ValueError, match="not allowed in the public FAIR bundle"):
         validate_public_artifact_path(path)
 
@@ -162,13 +154,11 @@ def test_validate_public_artifact_path_rejects_absolute_parent_and_local_paths(p
 )
 def test_artifact_kind_classifies_public_surfaces(path: str, expected: str) -> None:
     """Artifact kinds should be stable enough for downstream package filters."""
-
     assert artifact_kind(path) == expected
 
 
 def test_load_json_rejects_non_object(tmp_path: Path) -> None:
     """JSON inputs that are not objects fail loudly."""
-
     path = tmp_path / "array.json"
     path.write_text("[]\n", encoding="utf-8")
 
@@ -178,7 +168,6 @@ def test_load_json_rejects_non_object(tmp_path: Path) -> None:
 
 def test_unique_existing_skips_missing_and_duplicates(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The public inventory de-duplicates paths and ignores missing optional files."""
-
     monkeypatch.setattr(fair_validation_bundle, "REPO_ROOT", tmp_path)
     present = tmp_path / "README.md"
     present.write_text("# Project\n", encoding="utf-8")
@@ -188,7 +177,6 @@ def test_unique_existing_skips_missing_and_duplicates(tmp_path: Path, monkeypatc
 
 def test_cff_parser_ignores_non_doi_identifier_values(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Only DOI-looking CFF identifier values enter the DOI list."""
-
     cff = tmp_path / "CITATION.cff"
     cff.write_text(
         "\n".join(
@@ -216,7 +204,6 @@ def test_cff_parser_ignores_non_doi_identifier_values(tmp_path: Path, monkeypatc
 
 def test_check_bundle_reports_missing_and_stale_custom_bundle(tmp_path: Path) -> None:
     """The drift checker reports missing and stale bundle files."""
-
     target = tmp_path / "fair_validation_bundle.json"
     missing = fair_validation_bundle.check_bundle(bundle_path=target)
     assert len(missing) == 1
@@ -230,7 +217,6 @@ def test_check_bundle_reports_missing_and_stale_custom_bundle(tmp_path: Path) ->
 
 def test_cli_writes_and_checks_custom_bundle(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """The CLI supports deterministic generation and drift checks."""
-
     target = tmp_path / "fair_validation_bundle.json"
     monkeypatch.setattr(fair_validation_bundle, "BUNDLE_PATH", target)
 

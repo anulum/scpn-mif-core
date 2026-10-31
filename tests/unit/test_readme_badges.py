@@ -62,10 +62,12 @@ def _badge_version(label: str) -> str:
 
 
 def test_badge_block_is_the_audited_set() -> None:
+    """The README badge block is exactly the audited set."""
     assert _badges() == AUDITED_BADGES
 
 
 def test_toolchain_badges_match_their_files() -> None:
+    """Each toolchain badge matches the version in its file."""
     pyproject = tomllib.loads((REPO / "pyproject.toml").read_text(encoding="utf-8"))
     assert pyproject["project"]["requires-python"] == f">={_badge_version('Python')},<3.13"
     rust = tomllib.loads((REPO / "rust-toolchain.toml").read_text(encoding="utf-8"))
@@ -79,6 +81,7 @@ def test_toolchain_badges_match_their_files() -> None:
 
 
 def test_badge_targets_exist_in_the_repository() -> None:
+    """Each badge target exists, and the funding file names the account."""
     for relative in ("LICENSE", "notebooks/merge_trigger_quickstart.ipynb", "binder/postBuild", ".github/FUNDING.yml"):
         assert (REPO / relative).is_file(), relative
     funding = (REPO / ".github" / "FUNDING.yml").read_text(encoding="utf-8")

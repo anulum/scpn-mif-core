@@ -5,6 +5,7 @@
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
 # SCPN-MIF-CORE — Studio formal sealed-claim emitter tests.
+"""Tests of the Studio formal sealed-claim emitter and its command."""
 
 from __future__ import annotations
 
@@ -53,6 +54,7 @@ def _configure(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> tuple[Path, P
 
 
 def test_helpers_bind_payload_to_live_inputs(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """The emitter hashes the live manifest and builds a reference-validated claim with the checker version."""
     manifest, _, _ = _configure(monkeypatch, tmp_path)
 
     assert emitter._sha256(manifest) == hashlib.sha256(manifest.read_bytes()).hexdigest()
@@ -65,6 +67,7 @@ def test_helpers_bind_payload_to_live_inputs(monkeypatch: pytest.MonkeyPatch, tm
 def test_cli_emit_check_and_stale_detection(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
+    """The command writes the claim, --check passes, then reports it stale after a change."""
     _, status, artifact = _configure(monkeypatch, tmp_path)
 
     assert emitter.main(["--issued-utc", "2026-07-26T00:00:00Z", "--checker-version", "Yosys 1; Z3 2"]) == 0
@@ -79,6 +82,7 @@ def test_cli_emit_check_and_stale_detection(
 
 
 def test_cli_requires_checker_and_supports_default_issue_time(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """The command needs a checker version and fills in the issue time itself."""
     _configure(monkeypatch, tmp_path)
 
     with pytest.raises(SystemExit, match="2"):

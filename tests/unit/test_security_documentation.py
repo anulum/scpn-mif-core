@@ -21,6 +21,7 @@ def _read(relative_path: str) -> str:
 
 
 def test_public_security_docs_do_not_claim_gitleaks_is_installed() -> None:
+    """Public security documents do not mention gitleaks."""
     public_security_text = "\n".join(
         (
             _read("SECURITY.md"),
@@ -32,6 +33,7 @@ def test_public_security_docs_do_not_claim_gitleaks_is_installed() -> None:
 
 
 def test_public_security_docs_match_actual_secret_scan_wiring() -> None:
+    """Security documents describe the secret scan as CI and pre-commit actually run it."""
     security = _read("SECURITY.md")
     ci = read_ci_workflow_source()
     pre_commit = _read(".pre-commit-config.yaml")
@@ -45,6 +47,7 @@ def test_public_security_docs_match_actual_secret_scan_wiring() -> None:
 
 
 def test_security_policy_supported_version_matches_current_release_line() -> None:
+    """The security policy supports the current release line only."""
     security = _read("SECURITY.md")
 
     assert "| 0.1.x" in security
@@ -52,6 +55,7 @@ def test_security_policy_supported_version_matches_current_release_line() -> Non
 
 
 def test_security_policy_uses_mif_owned_threat_surfaces() -> None:
+    """The security policy names MIF's own surfaces and defers the others to their owners."""
     security = _read("SECURITY.md")
 
     for owned_surface in (

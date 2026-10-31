@@ -73,16 +73,19 @@ def _with_recovery() -> dict[str, Any]:
 # version + ecosystem                                                          #
 # --------------------------------------------------------------------------- #
 def test_version_prints_package_version(capsys: pytest.CaptureFixture[str]) -> None:
+    """The version command prints the package version."""
     assert main(["version"]) == 0
     assert capsys.readouterr().out.strip() == __version__
 
 
 def test_ecosystem_renders_markdown(capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
+    """The ecosystem command prints the Markdown report."""
     assert main(["ecosystem", "--root", str(tmp_path)]) == 0
     assert "SPDX-License-Identifier" in capsys.readouterr().out
 
 
 def test_ecosystem_emits_json(capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
+    """The ecosystem command prints JSON with --json."""
     assert main(["ecosystem", "--root", str(tmp_path), "--json"]) == 0
     payload = json.loads(capsys.readouterr().out)
     assert "siblings" in payload
@@ -92,6 +95,7 @@ def test_ecosystem_emits_json(capsys: pytest.CaptureFixture[str], tmp_path: Path
 # run                                                                          #
 # --------------------------------------------------------------------------- #
 def test_run_prints_human_report(capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
+    """The run command prints a readable fire report without recovery."""
     path = _write(tmp_path / "scenario.json", _FIRE_SCENARIO)
     assert main(["run", str(path)]) == 0
     out = capsys.readouterr().out
@@ -100,6 +104,7 @@ def test_run_prints_human_report(capsys: pytest.CaptureFixture[str], tmp_path: P
 
 
 def test_run_emits_json_report(capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
+    """The run command prints a JSON report with --json."""
     path = _write(tmp_path / "scenario.json", _FIRE_SCENARIO)
     assert main(["run", str(path), "--json"]) == 0
     payload = json.loads(capsys.readouterr().out)
@@ -108,17 +113,20 @@ def test_run_emits_json_report(capsys: pytest.CaptureFixture[str], tmp_path: Pat
 
 
 def test_run_reports_recovery_when_present(capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
+    """The run command prints recovered energy when the scenario has recovery."""
     path = _write(tmp_path / "scenario.json", _with_recovery())
     assert main(["run", str(path)]) == 0
     assert "recovered energy J:" in capsys.readouterr().out
 
 
 def test_run_missing_file_returns_two(capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
+    """A missing scenario file exits 2 with an error."""
     assert main(["run", str(tmp_path / "absent.json")]) == 2
     assert "error" in capsys.readouterr().err
 
 
 def test_run_invalid_scenario_returns_two(capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
+    """An invalid scenario exits 2 with an error."""
     broken = dict(_FIRE_SCENARIO)
     broken["bank_initial_voltage_V"] = -1.0
     path = _write(tmp_path / "scenario.json", broken)
@@ -127,6 +135,7 @@ def test_run_invalid_scenario_returns_two(capsys: pytest.CaptureFixture[str], tm
 
 
 def test_run_malformed_json_returns_two(capsys: pytest.CaptureFixture[str], tmp_path: Path) -> None:
+    """Malformed JSON exits 2 with an error."""
     path = tmp_path / "scenario.json"
     path.write_text("{ not json", encoding="utf-8")
     assert main(["run", str(path)]) == 2
@@ -146,6 +155,7 @@ def test_run_malformed_json_returns_two(capsys: pytest.CaptureFixture[str], tmp_
 def test_run_refuses_ambiguous_or_incomplete_documents(
     capsys: pytest.CaptureFixture[str], tmp_path: Path, text: str, message: str
 ) -> None:
+    """Each ambiguous or incomplete document exits 2 with its message."""
     path = tmp_path / "scenario.json"
     path.write_text(text, encoding="utf-8")
     assert main(["run", str(path)]) == 2
@@ -155,6 +165,7 @@ def test_run_refuses_ambiguous_or_incomplete_documents(
 def test_run_refuses_a_repeated_member_that_would_change_the_decision(
     capsys: pytest.CaptureFixture[str], tmp_path: Path
 ) -> None:
+    """A repeated member that would change the decision exits 2 and names the member."""
     text = json.dumps(_FIRE_SCENARIO)[:-1] + ', "initial_phases_rad": [0.0, 0.5]}'
     path = tmp_path / "scenario.json"
     path.write_text(text, encoding="utf-8")
@@ -166,6 +177,7 @@ def test_run_refuses_a_repeated_member_that_would_change_the_decision(
 def test_run_refuses_a_member_of_the_wrong_shape(
     capsys: pytest.CaptureFixture[str], tmp_path: Path, moving_frame: object
 ) -> None:
+    """A member of the wrong shape exits 2."""
     broken = dict(_FIRE_SCENARIO)
     broken["moving_frame"] = moving_frame
     path = _write(tmp_path / "scenario.json", broken)
@@ -174,6 +186,7 @@ def test_run_refuses_a_member_of_the_wrong_shape(
 
 
 def test_missing_subcommand_exits() -> None:
+    """No subcommand exits."""
     with pytest.raises(SystemExit):
         main([])
 
@@ -182,6 +195,7 @@ def test_missing_subcommand_exits() -> None:
 # helpers                                                                      #
 # --------------------------------------------------------------------------- #
 def test_scenario_from_mapping_builds_a_valid_scenario() -> None:
+    """A mapping builds a scenario without recovery or expansion."""
     scenario = scenario_from_mapping(_FIRE_SCENARIO)
     assert isinstance(scenario, MergeTriggerScenario)
     assert scenario.recovery is None
@@ -189,12 +203,14 @@ def test_scenario_from_mapping_builds_a_valid_scenario() -> None:
 
 
 def test_scenario_from_mapping_carries_recovery() -> None:
+    """A mapping with recovery builds a scenario with recovery and expansion."""
     scenario = scenario_from_mapping(_with_recovery())
     assert scenario.recovery is not None
     assert scenario.expansion is not None
 
 
 def test_report_to_dict_exposes_all_decision_fields() -> None:
+    """The report dictionary holds every decision field."""
     report = evaluate_merge_trigger(scenario_from_mapping(_FIRE_SCENARIO))
     payload = report_to_dict(report)
     assert payload["outcome"] == "fire"
@@ -206,6 +222,7 @@ def test_report_to_dict_exposes_all_decision_fields() -> None:
 # demo (zero-file pip-install-to-first-result)                                 #
 # --------------------------------------------------------------------------- #
 def test_demo_runs_built_in_scenario_to_fire(capsys: pytest.CaptureFixture[str]) -> None:
+    """The demo command fires on the built-in scenario."""
     assert main(["demo"]) == 0
     out = capsys.readouterr().out
     assert "outcome:" in out
@@ -213,12 +230,14 @@ def test_demo_runs_built_in_scenario_to_fire(capsys: pytest.CaptureFixture[str])
 
 
 def test_demo_emits_json_report(capsys: pytest.CaptureFixture[str]) -> None:
+    """The demo command prints a JSON report with --json."""
     assert main(["demo", "--json"]) == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["outcome"] == "fire"
 
 
 def test_demo_emit_scenario_round_trips_through_run(capsys: pytest.CaptureFixture[str]) -> None:
+    """The emitted demo scenario equals the built-in one and fires when run."""
     assert main(["demo", "--emit-scenario"]) == 0
     emitted = json.loads(capsys.readouterr().out)
     assert emitted == DEMO_SCENARIO
@@ -227,5 +246,6 @@ def test_demo_emit_scenario_round_trips_through_run(capsys: pytest.CaptureFixtur
 
 
 def test_demo_scenario_is_valid_and_fires() -> None:
+    """The built-in scenario is valid and fires."""
     report = evaluate_merge_trigger(scenario_from_mapping(DEMO_SCENARIO))
     assert report.outcome is MergeTriggerOutcome.FIRE

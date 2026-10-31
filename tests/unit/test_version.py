@@ -24,33 +24,39 @@ def _read_text(path: Path) -> str:
 
 
 def test_python_module_version_matches_pyproject() -> None:
+    """The module version equals pyproject.toml."""
     pyproject = tomllib.loads(_read_text(REPO / "pyproject.toml"))
     assert scpn_mif_core.__version__ == pyproject["project"]["version"]
 
 
 def test_version_file_matches_module() -> None:
+    """The VERSION file equals the module version."""
     text = _read_text(REPO / "src" / "scpn_mif_core" / "VERSION").strip()
     assert text == scpn_mif_core.__version__
 
 
 def test_citation_cff_version_matches_module() -> None:
+    """CITATION.cff carries the module version."""
     text = _read_text(REPO / "CITATION.cff")
     target = f'version: "{scpn_mif_core.__version__}"'
     assert target in text, f"expected {target!r} in CITATION.cff"
 
 
 def test_cargo_workspace_version_matches_module() -> None:
+    """The Cargo workspace version equals the module version."""
     cargo = tomllib.loads(_read_text(REPO / "scpn-mif-rs" / "Cargo.toml"))
     assert cargo["workspace"]["package"]["version"] == scpn_mif_core.__version__
 
 
 def test_julia_project_version_matches_module() -> None:
+    """The Julia project carries the module version."""
     text = _read_text(REPO / "Project.toml")
     target = f'version = "{scpn_mif_core.__version__}"'
     assert target in text
 
 
 def test_zenodo_metadata_version_matches_module() -> None:
+    """The Zenodo metadata version equals the module version."""
     # Zenodo reads .zenodo.json to label the archived release; a stale version here
     # mislabels the DOI record even when the archived artifact is correct.
     import json
@@ -64,6 +70,7 @@ def test_zenodo_metadata_version_matches_module() -> None:
     reason="agent metadata file is gitignored and absent outside a local agent workspace",
 )
 def test_agent_metadata_version_matches_module() -> None:
+    """The agent metadata version equals the module version."""
     import json
 
     meta = json.loads(_read_text(REPO / ".agent_metadata.json"))

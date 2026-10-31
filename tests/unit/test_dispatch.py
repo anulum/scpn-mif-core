@@ -24,14 +24,17 @@ def _reset_cache() -> None:
 
 
 def test_dispatch_returns_python_for_unknown_kernel() -> None:
+    """An unknown kernel falls back to Python only."""
     assert _dispatch.available_backends("does.not.exist") == ["python"]
 
 
 def test_dispatch_preferred_backend_first_of_list() -> None:
+    """The preferred backend of an unknown kernel is Python."""
     assert _dispatch.preferred_backend("does.not.exist") == "python"
 
 
 def test_dispatch_lifecycle_capacitor_bank_listed() -> None:
+    """The capacitor bank is registered with Rust first, Python and Julia."""
     backends = _dispatch.available_backends("lifecycle.capacitor_bank")
     # The table is committed with the measured Rust speedup so Rust must be first.
     assert backends, "lifecycle.capacitor_bank must be registered"
@@ -41,6 +44,7 @@ def test_dispatch_lifecycle_capacitor_bank_listed() -> None:
 
 
 def test_dispatch_lifecycle_pulsed_shot_fsm_listed() -> None:
+    """The pulsed-shot FSM is registered with Rust first and Python."""
     backends = _dispatch.available_backends("lifecycle.pulsed_shot_fsm")
     assert backends, "lifecycle.pulsed_shot_fsm must be registered"
     assert backends[0] == "rust", f"expected rust as fastest, got {backends!r}"
@@ -48,6 +52,7 @@ def test_dispatch_lifecycle_pulsed_shot_fsm_listed() -> None:
 
 
 def test_dispatch_lifecycle_plasmoid_merger_petri_net_listed() -> None:
+    """The merger net is registered with Rust first and Python."""
     backends = _dispatch.available_backends("lifecycle.plasmoid_merger_petri_net")
     assert backends, "lifecycle.plasmoid_merger_petri_net must be registered"
     assert backends[0] == "rust", f"expected rust as fastest, got {backends!r}"
@@ -55,6 +60,7 @@ def test_dispatch_lifecycle_plasmoid_merger_petri_net_listed() -> None:
 
 
 def test_dispatch_sampled_safety_certificate_listed() -> None:
+    """The safety certificate is registered with Rust first, Python and Julia."""
     backends = _dispatch.available_backends("kinematic.sampled_safety_certificate")
     assert backends, "kinematic.sampled_safety_certificate must be registered"
     assert backends[0] == "rust", f"expected rust as fastest sampled safety backend, got {backends!r}"
@@ -63,6 +69,7 @@ def test_dispatch_sampled_safety_certificate_listed() -> None:
 
 
 def test_dispatch_merge_window_listed() -> None:
+    """The merge window is registered with Rust first, Python and Julia."""
     backends = _dispatch.available_backends("kinematic.merge_window")
     assert backends, "kinematic.merge_window must be registered"
     assert backends[0] == "rust", f"expected rust as fastest merge-window backend, got {backends!r}"
@@ -71,6 +78,7 @@ def test_dispatch_merge_window_listed() -> None:
 
 
 def test_dispatch_aer_spike_buffer_listed() -> None:
+    """The spike buffer is registered with Rust first, Python and Julia."""
     backends = _dispatch.available_backends("aer.spike_buffer")
     assert backends, "aer.spike_buffer must be registered"
     assert backends[0] == "rust", f"expected rust as fastest spike-buffer backend, got {backends!r}"
@@ -79,6 +87,7 @@ def test_dispatch_aer_spike_buffer_listed() -> None:
 
 
 def test_dispatch_aer_decode_rate_listed() -> None:
+    """The rate decoder is registered with Rust first, Python and Julia."""
     backends = _dispatch.available_backends("aer.decode_rate")
     assert backends, "aer.decode_rate must be registered"
     assert backends[0] == "rust", f"expected rust as fastest decode-rate backend, got {backends!r}"
@@ -87,6 +96,7 @@ def test_dispatch_aer_decode_rate_listed() -> None:
 
 
 def test_dispatch_diagnostic_normalisation_listed() -> None:
+    """Diagnostic normalisation is registered with Rust first, Python and Julia."""
     backends = _dispatch.available_backends("diagnostics.normalisation")
     assert backends, "diagnostics.normalisation must be registered"
     assert backends[0] == "rust", f"expected rust as fastest diagnostic backend, got {backends!r}"
@@ -95,6 +105,7 @@ def test_dispatch_diagnostic_normalisation_listed() -> None:
 
 
 def test_dispatch_diagnostic_stress_inject_listed() -> None:
+    """Stress injection is registered with Rust first, Python and Julia."""
     backends = _dispatch.available_backends("diagnostics.stress_inject")
     assert backends, "diagnostics.stress_inject must be registered"
     assert backends[0] == "rust", f"expected rust as fastest stress-injection backend, got {backends!r}"
@@ -103,6 +114,7 @@ def test_dispatch_diagnostic_stress_inject_listed() -> None:
 
 
 def test_dispatch_daq_udp_multicast_mock_listed() -> None:
+    """The UDP DAQ mock is registered with Rust first, Python and Go."""
     backends = _dispatch.available_backends("daq.udp_multicast_mock")
     assert backends, "daq.udp_multicast_mock must be registered"
     assert backends[0] == "rust", f"expected rust as fastest UDP DAQ backend, got {backends!r}"
@@ -111,6 +123,7 @@ def test_dispatch_daq_udp_multicast_mock_listed() -> None:
 
 
 def test_dispatch_daq_pcie_dma_ring_mock_listed() -> None:
+    """The PCIe DAQ mock is registered with Rust first, Python and Go."""
     backends = _dispatch.available_backends("daq.pcie_dma_ring_mock")
     assert backends, "daq.pcie_dma_ring_mock must be registered"
     assert backends[0] == "rust", f"expected rust as fastest PCIe DAQ backend, got {backends!r}"
@@ -119,6 +132,7 @@ def test_dispatch_daq_pcie_dma_ring_mock_listed() -> None:
 
 
 def test_dispatch_faraday_back_emf_listed() -> None:
+    """The Faraday back-EMF is registered with Rust first and Python."""
     backends = _dispatch.available_backends("physics.faraday_back_emf")
     assert backends, "physics.faraday_back_emf must be registered"
     assert backends[0] == "rust", f"expected rust as fastest scalar backend, got {backends!r}"
@@ -126,6 +140,7 @@ def test_dispatch_faraday_back_emf_listed() -> None:
 
 
 def test_dispatch_faraday_waveform_listed() -> None:
+    """The Faraday waveform is registered with Rust first, Python and Julia."""
     backends = _dispatch.available_backends("physics.faraday_recovery_waveform")
     assert backends, "physics.faraday_recovery_waveform must be registered"
     # Rust leads since the 2026-07-04 zero-copy FFI boundary; Python is the floor.
@@ -141,6 +156,7 @@ def test_dispatch_excludes_fusion_owned_frc_kernels() -> None:
 
 
 def test_dispatch_is_rust_available_returns_bool() -> None:
+    """The Rust availability check returns a boolean."""
     value = _dispatch.is_rust_available()
     assert isinstance(value, bool)
 

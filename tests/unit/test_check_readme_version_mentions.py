@@ -26,6 +26,7 @@ REPO = Path(__file__).resolve().parents[2]
 
 
 def test_strip_generated_capability_snapshot_keeps_surrounding_prose() -> None:
+    """Removing the generated snapshot keeps the prose around it."""
     text = "\n".join(
         (
             "Before 0.1.0",
@@ -44,6 +45,7 @@ def test_strip_generated_capability_snapshot_keeps_surrounding_prose() -> None:
 
 
 def test_find_readme_version_findings_reports_only_stale_prose_versions() -> None:
+    """Only stale versions in prose are reported."""
     text = "\n".join(
         (
             "The current release 0.2.0 is active.",
@@ -62,18 +64,21 @@ def test_find_readme_version_findings_reports_only_stale_prose_versions() -> Non
 
 
 def test_check_readme_version_mentions_accepts_current_repository_readme() -> None:
+    """The repository README has no stale version."""
     expected = read_expected_version(REPO)
 
     assert check_readme_version_mentions(REPO, expected_version=expected) == ()
 
 
 def test_main_returns_zero_for_current_repository_readme(capsys: pytest.CaptureFixture[str]) -> None:
+    """The command exits 0 on the repository README."""
     del capsys
 
     assert main([str(REPO)]) == 0
 
 
 def test_main_reports_stale_readme_version(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """The command exits 1 and names a stale version with its line."""
     repo = tmp_path / "repo"
     package = repo / "src" / "scpn_mif_core"
     package.mkdir(parents=True)
@@ -88,6 +93,7 @@ def test_main_reports_stale_readme_version(tmp_path: Path, capsys: pytest.Captur
 
 
 def test_read_expected_version_rejects_non_string_literal(tmp_path: Path) -> None:
+    """A __version__ that is not a string literal is refused."""
     package = tmp_path / "src" / "scpn_mif_core"
     package.mkdir(parents=True)
     package.joinpath("_version.py").write_text("__version__ = 1\n", encoding="utf-8")
@@ -97,6 +103,7 @@ def test_read_expected_version_rejects_non_string_literal(tmp_path: Path) -> Non
 
 
 def test_read_expected_version_requires_version_assignment(tmp_path: Path) -> None:
+    """A module without __version__ is refused."""
     package = tmp_path / "src" / "scpn_mif_core"
     package.mkdir(parents=True)
     package.joinpath("_version.py").write_text("VERSION = '0.1.0'\n", encoding="utf-8")

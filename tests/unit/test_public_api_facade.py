@@ -36,26 +36,31 @@ def _expected_surface() -> set[str]:
 
 
 def test_facade_all_equals_union_of_subpackages() -> None:
+    """The package __all__ is the union of the subpackages' exports."""
     assert set(scpn_mif_core.__all__) == _expected_surface()
 
 
 def test_facade_all_has_no_duplicates() -> None:
+    """The package __all__ has no duplicates."""
     names = scpn_mif_core.__all__
     assert len(names) == len(set(names))
 
 
 def test_every_exported_name_resolves() -> None:
+    """Every exported name can be imported."""
     for name in scpn_mif_core.__all__:
         assert hasattr(scpn_mif_core, name), f"{name} is advertised but not importable"
 
 
 def test_subpackages_are_exposed_as_attributes() -> None:
+    """Each subpackage is an attribute of the package."""
     for name in AGGREGATED_MODULES:
         module = getattr(scpn_mif_core, name)
         assert module.__name__ == f"scpn_mif_core.{name}"
 
 
 def test_primary_entry_points_are_reachable_from_top_level() -> None:
+    """A dispatched entry point is the same object at the top level."""
     # The dispatched_* functions are the documented entry points; spot-check one
     # numeric kernel and confirm the object is the same as the subpackage's.
     from scpn_mif_core.physics import dispatched_faraday_back_emf as direct

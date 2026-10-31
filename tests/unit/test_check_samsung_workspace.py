@@ -65,6 +65,7 @@ def _make_complete_venv(repo: Path) -> Path:
 
 
 def test_complete_linux_venv_and_pnpm_internal_links_pass(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A complete Linux venv with pnpm's internal links passes."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
     _make_complete_venv(repo)
     pnpm_target = repo / "studio-web" / "node_modules" / ".pnpm" / "react@19" / "node_modules" / "react"
@@ -77,6 +78,7 @@ def test_complete_linux_venv_and_pnpm_internal_links_pass(tmp_path: Path, monkey
 
 
 def test_venv_root_must_not_be_a_symlink(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A symlinked .venv is refused."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
     target = tmp_path / "outside-venv"
     target.mkdir()
@@ -88,6 +90,7 @@ def test_venv_root_must_not_be_a_symlink(tmp_path: Path, monkeypatch: pytest.Mon
 
 
 def test_missing_required_venv_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A missing .venv is refused."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
 
     errors = collect_workspace_errors(repo, policy=policy)
@@ -96,6 +99,7 @@ def test_missing_required_venv_is_rejected(tmp_path: Path, monkeypatch: pytest.M
 
 
 def test_file_dependency_tree_root_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A dependency tree that is a file is refused."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
     _make_complete_venv(repo)
     (repo / "target").write_text("not a directory\n", encoding="utf-8")
@@ -106,6 +110,7 @@ def test_file_dependency_tree_root_is_rejected(tmp_path: Path, monkeypatch: pyte
 
 
 def test_optional_dependency_tree_may_be_absent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """An optional dependency tree may be absent."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
     _make_complete_venv(repo)
 
@@ -113,6 +118,7 @@ def test_optional_dependency_tree_may_be_absent(tmp_path: Path, monkeypatch: pyt
 
 
 def test_windows_layout_venv_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A Windows-layout venv is refused."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
     scripts = repo / ".venv" / "Scripts"
     scripts.mkdir(parents=True)
@@ -126,6 +132,7 @@ def test_windows_layout_venv_is_rejected(tmp_path: Path, monkeypatch: pytest.Mon
 
 
 def test_venv_requires_pyvenv_cfg_and_executable_toolchain(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A venv without pyvenv.cfg, with a non-executable tool or a missing tool is refused."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
     bin_dir = repo / ".venv" / "bin"
     bin_dir.mkdir(parents=True)
@@ -142,6 +149,7 @@ def test_venv_requires_pyvenv_cfg_and_executable_toolchain(tmp_path: Path, monke
 
 
 def test_venv_tools_must_execute(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A tool that cannot run --version is refused."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
     venv = _make_complete_venv(repo)
     broken_pip = venv / "bin" / "pip"
@@ -154,6 +162,7 @@ def test_venv_tools_must_execute(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 
 
 def test_venv_python_version_command_must_pass(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """An interpreter whose --version fails is refused."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
     _make_complete_venv(repo)
 
@@ -170,6 +179,7 @@ def test_venv_python_version_command_must_pass(tmp_path: Path, monkeypatch: pyte
 
 
 def test_venv_python_symlink_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A symlinked interpreter is refused."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
     venv = _make_complete_venv(repo)
     (venv / "bin" / "python").unlink()
@@ -181,6 +191,7 @@ def test_venv_python_symlink_is_rejected(tmp_path: Path, monkeypatch: pytest.Mon
 
 
 def test_venv_python_must_be_executable(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A non-executable interpreter is refused."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
     venv = _make_complete_venv(repo)
     (venv / "bin" / "python").chmod(stat.S_IRUSR | stat.S_IWUSR)
@@ -191,6 +202,7 @@ def test_venv_python_must_be_executable(tmp_path: Path, monkeypatch: pytest.Monk
 
 
 def test_dependency_tree_root_symlink_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A symlinked node_modules is refused."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
     _make_complete_venv(repo)
     node_modules = repo / "studio-web" / "node_modules"
@@ -205,6 +217,7 @@ def test_dependency_tree_root_symlink_is_rejected(tmp_path: Path, monkeypatch: p
 
 
 def test_source_tree_symlink_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A symlink inside the source tree is reported."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
     _make_complete_venv(repo)
     external_module = tmp_path / "module.py"
@@ -219,6 +232,7 @@ def test_source_tree_symlink_is_rejected(tmp_path: Path, monkeypatch: pytest.Mon
 
 
 def test_mount_and_repository_location_errors_are_reported(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A wrong root, a location outside the tree, a backup path, a wrong mount and a non-ext4 filesystem are reported."""
     repo, _policy = _make_repo(tmp_path, monkeypatch)
     _make_complete_venv(repo)
     forbidden = repo.parent
@@ -245,6 +259,7 @@ def test_mount_and_repository_location_errors_are_reported(tmp_path: Path, monke
 
 
 def test_git_directory_must_exist_and_not_be_a_symlink(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A missing or symlinked .git is reported."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
     _make_complete_venv(repo)
     (repo / ".git").rmdir()
@@ -259,6 +274,7 @@ def test_git_directory_must_exist_and_not_be_a_symlink(tmp_path: Path, monkeypat
 
 
 def test_path_component_symlink_is_reported(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A symlink in a path component is reported."""
     gotm_real = tmp_path / "gotm-real"
     repo = gotm_real / "03_CODE" / "SCPN-REACTOR-SYSTEMS" / "repositories" / "SCPN-MIF-CORE"
     repo.mkdir(parents=True)
@@ -286,6 +302,7 @@ def test_path_component_symlink_is_reported(tmp_path: Path, monkeypatch: pytest.
 
 
 def test_collect_uses_findmnt_output(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The mount check reads findmnt and passes on the expected mount."""
     repo, policy = _make_repo(tmp_path, monkeypatch, patch_mount=False)
     _make_complete_venv(repo)
 
@@ -301,6 +318,8 @@ def test_collect_uses_findmnt_output(tmp_path: Path, monkeypatch: pytest.MonkeyP
 
 
 def test_main_reports_findmnt_failure(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """A findmnt failure makes the command exit 1 and say the mount is unknown."""
+
     def fake_run(cmd: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
         del kwargs
         return subprocess.CompletedProcess(cmd, 1, stdout="", stderr="missing mount")
@@ -316,6 +335,7 @@ def test_main_reports_findmnt_failure(monkeypatch: pytest.MonkeyPatch, capsys: p
 
 
 def test_collect_reports_nonzero_tool_version(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A tool whose --version exits non-zero is reported."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
     _make_complete_venv(repo)
 
@@ -331,6 +351,7 @@ def test_collect_reports_nonzero_tool_version(tmp_path: Path, monkeypatch: pytes
 
 
 def test_collect_reports_tool_version_timeout(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A tool whose --version times out is reported."""
     repo, policy = _make_repo(tmp_path, monkeypatch)
     _make_complete_venv(repo)
 
@@ -346,6 +367,7 @@ def test_collect_reports_tool_version_timeout(tmp_path: Path, monkeypatch: pytes
 
 
 def test_main_honours_non_samsung_escape_hatches(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The flag and the environment escape both let the command pass off the Samsung disk."""
     assert main(["--allow-non-samsung"]) == 0
 
     monkeypatch.setenv("MIF_ALLOW_NON_SAMSUNG", "yes")
@@ -353,6 +375,8 @@ def test_main_honours_non_samsung_escape_hatches(monkeypatch: pytest.MonkeyPatch
 
 
 def test_main_reports_failure(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """Collected errors make the command exit 1 and print them."""
+
     def fake_errors() -> list[str]:
         return ["broken"]
 
@@ -367,6 +391,8 @@ def test_main_reports_failure(monkeypatch: pytest.MonkeyPatch, capsys: pytest.Ca
 
 
 def test_main_reports_success(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """No errors make the command exit 0 and report success."""
+
     def fake_errors() -> list[str]:
         return []
 

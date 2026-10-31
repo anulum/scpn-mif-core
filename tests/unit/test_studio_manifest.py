@@ -32,6 +32,7 @@ def _validation_error_for(manifest: _Manifest) -> str:
 
 
 def test_manifest_structure() -> None:
+    """The manifest carries its era, protocol, transport, studio, version, SDK range and digest."""
     manifest = mif_capability_manifest()
     assert manifest["contract_era"] == "v1"
     assert manifest["protocol_version"] == "1"
@@ -44,6 +45,7 @@ def test_manifest_structure() -> None:
 
 
 def test_manifest_verbs_carry_2_3_attributes() -> None:
+    """Every verb carries its safety tier, side effect, timing, products and backends."""
     verbs = {verb["verb"]: verb for verb in mif_capability_manifest()["verbs"]}
     assert {"evaluate", "prove", "cosimulate", "benchmark"} <= set(verbs)
     for verb in verbs.values():
@@ -57,20 +59,24 @@ def test_manifest_verbs_carry_2_3_attributes() -> None:
 
 
 def test_manifest_evidence_types_are_union_of_produces() -> None:
+    """The evidence types are the union of what the verbs produce."""
     manifest = mif_capability_manifest()
     produced = sorted({produced for verb in manifest["verbs"] for produced in verb["produces"]})
     assert manifest["evidence_types"] == produced
 
 
 def test_manifest_content_digest_is_deterministic() -> None:
+    """Two builds give the same digest."""
     assert mif_capability_manifest()["content_digest"] == mif_capability_manifest()["content_digest"]
 
 
 def test_valid_manifest_passes_validation() -> None:
+    """The built manifest validates."""
     validate_capability_manifest(mif_capability_manifest())  # must not raise
 
 
 def test_validate_rejects_nonconformant_manifest() -> None:
+    """Each non-conforming manifest is refused with its message."""
     cases: tuple[tuple[_Mutator, str], ...] = (
         (lambda m: m.pop("studio_version"), "studio_version is required"),
         (lambda m: m.update(contract_era="v2"), "contract_era must be"),

@@ -27,6 +27,7 @@ def _initialise_repository(root: Path, tracked_source: str) -> None:
 
 
 def test_cli_ignores_indented_examples_and_untracked_scratch(tmp_path: Path) -> None:
+    """Indented tag examples and untracked files are ignored and the check passes."""
     tracked_source = '''"""Example that is documentation, not a source tag.
 
     # SYNC-STATE: mirror
@@ -54,6 +55,7 @@ def test_cli_ignores_indented_examples_and_untracked_scratch(tmp_path: Path) -> 
 
 
 def test_cli_retains_staleness_gate_for_tracked_mirrors(tmp_path: Path) -> None:
+    """A tracked mirror synced more than 90 days ago is reported."""
     _initialise_repository(
         tmp_path,
         "\n".join(
@@ -74,6 +76,7 @@ def test_cli_retains_staleness_gate_for_tracked_mirrors(tmp_path: Path) -> None:
 
 
 def test_cli_rejects_malformed_pending_timestamp(tmp_path: Path) -> None:
+    """A malformed LAST-SYNCED timestamp is reported."""
     _initialise_repository(
         tmp_path,
         "\n".join(
@@ -92,6 +95,7 @@ def test_cli_rejects_malformed_pending_timestamp(tmp_path: Path) -> None:
 
 
 def test_cli_fails_closed_outside_git_repository(tmp_path: Path) -> None:
+    """Outside a git repository the check exits 2."""
     result = _run(sys.executable, str(TOOL), "--root", str(tmp_path), cwd=tmp_path)
 
     assert result.returncode == 2

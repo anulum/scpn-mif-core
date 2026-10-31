@@ -40,6 +40,7 @@ def _completed(stdout: str = "", stderr: str = "", returncode: int = 0) -> subpr
 
 
 def test_dynamic_ecosystem_report_reads_versions_and_surfaces(tmp_path: Path) -> None:
+    """The report reads each sibling's version and surfaces and grades its status."""
     _write_fake_neurocore(tmp_path)
     _write_fake_phase(tmp_path)
     _write_fake_control(tmp_path)
@@ -187,12 +188,14 @@ def _write_source(repo: Path, relative: str, text: str, *, package: str = "scpn_
 
 
 def test_require_raises_descriptive_keyerror_for_unknown_row(tmp_path: Path) -> None:
+    """An unknown row is refused with its name."""
     report = generate_ecosystem_report(tmp_path, generated_at_utc="2026-06-14T00:00:00+00:00")
     with pytest.raises(KeyError, match="no row for 'does-not-exist'"):
         report.require("does-not-exist")
 
 
 def test_failed_surfaces_lists_only_non_ready_surfaces() -> None:
+    """Failed surfaces list only those not ready."""
     ready = SurfaceReport("a", STATUS_READY, "ok")
     blocked = SurfaceReport("b", STATUS_BLOCKED_SURFACE, "missing")
     row = SiblingReport(
@@ -215,6 +218,7 @@ def test_failed_surfaces_lists_only_non_ready_surfaces() -> None:
 
 
 def test_absent_sibling_repositories_are_reported_as_missing(tmp_path: Path) -> None:
+    """An absent sibling is reported missing with no version or surfaces."""
     report = generate_ecosystem_report(tmp_path, generated_at_utc="2026-06-14T00:00:00+00:00")
     for row in report.siblings:
         assert row.status == STATUS_MISSING_REPO
@@ -227,6 +231,7 @@ def test_absent_sibling_repositories_are_reported_as_missing(tmp_path: Path) -> 
 
 
 def test_pyproject_absent_yields_no_source_version(tmp_path: Path) -> None:
+    """Without pyproject.toml there is no source version."""
     repo = tmp_path / "SCPN-CONTROL"
     _write_init(repo, "scpn_control", "0.20.7")  # module but no pyproject.toml
     report = generate_ecosystem_report(tmp_path, generated_at_utc="2026-06-14T00:00:00+00:00")
@@ -234,6 +239,7 @@ def test_pyproject_absent_yields_no_source_version(tmp_path: Path) -> None:
 
 
 def test_poetry_style_version_is_read(tmp_path: Path) -> None:
+    """A Poetry version is read."""
     repo = tmp_path / "SCPN-CONTROL"
     repo.mkdir(parents=True, exist_ok=True)
     repo.joinpath("pyproject.toml").write_text(
@@ -244,6 +250,7 @@ def test_poetry_style_version_is_read(tmp_path: Path) -> None:
 
 
 def test_generic_surface_missing_file_blocks_the_row(tmp_path: Path) -> None:
+    """A missing surface file blocks the row."""
     repo = tmp_path / "SCPN-PHASE-ORCHESTRATOR"
     _write_pyproject(repo, "scpn-phase-orchestrator", "0.8.0")
     _write_init(repo, "scpn_phase_orchestrator", "0.8.0")
@@ -255,6 +262,7 @@ def test_generic_surface_missing_file_blocks_the_row(tmp_path: Path) -> None:
 
 
 def test_generic_surface_missing_token_blocks_the_row(tmp_path: Path) -> None:
+    """A missing surface token blocks the row."""
     repo = tmp_path / "SCPN-PHASE-ORCHESTRATOR"
     _write_pyproject(repo, "scpn-phase-orchestrator", "0.8.0")
     _write_init(repo, "scpn_phase_orchestrator", "0.8.0")
@@ -269,6 +277,7 @@ def test_generic_surface_missing_token_blocks_the_row(tmp_path: Path) -> None:
 
 
 def test_control_module_missing_symbols_blocks_surface(tmp_path: Path) -> None:
+    """Missing CONTROL symbols block the surface."""
     repo = tmp_path / "SCPN-CONTROL"
     _write_pyproject(repo, "scpn-control", "0.20.7")
     _write_init(repo, "scpn_control", "0.20.7")
@@ -282,6 +291,7 @@ def test_control_module_missing_symbols_blocks_surface(tmp_path: Path) -> None:
 
 
 def test_control_module_import_error_blocks_runtime(tmp_path: Path) -> None:
+    """A CONTROL import error blocks the runtime surface."""
     repo = tmp_path / "SCPN-CONTROL"
     _write_pyproject(repo, "scpn-control", "0.20.7")
     _write_init(repo, "scpn_control", "0.20.7")
@@ -294,6 +304,7 @@ def test_control_module_import_error_blocks_runtime(tmp_path: Path) -> None:
 
 
 def test_fusion_contract_missing_symbols_blocks_surface(tmp_path: Path) -> None:
+    """Missing FUSION contract symbols block the surface."""
     repo = tmp_path / "SCPN-FUSION-CORE"
     _write_pyproject(repo, "scpn-fusion", "3.9.10")
     _write_init(repo, "scpn_fusion", "3.9.10")
@@ -304,6 +315,7 @@ def test_fusion_contract_missing_symbols_blocks_surface(tmp_path: Path) -> None:
 
 
 def test_runtime_version_mismatch_is_recorded_as_a_note(tmp_path: Path) -> None:
+    """A runtime version that differs from the source version is noted."""
     repo = tmp_path / "SCPN-CONTROL"
     _write_pyproject(repo, "scpn-control", "0.20.7")
     _write_init(repo, "scpn_control", "9.9.9")  # runtime __version__ differs from source pyproject
@@ -330,6 +342,7 @@ def test_runtime_version_mismatch_is_recorded_as_a_note(tmp_path: Path) -> None:
 
 
 def test_default_code_root_honours_environment_override(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The environment variable overrides the default code root."""
     from scpn_mif_core.ecosystem import default_code_root
 
     monkeypatch.setenv("SCPN_MIF_ECOSYSTEM_ROOT", str(tmp_path))
@@ -338,6 +351,7 @@ def test_default_code_root_honours_environment_override(tmp_path: Path, monkeypa
 
 
 def test_runtime_import_preserves_existing_pythonpath(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The runtime import keeps an existing PYTHONPATH."""
     monkeypatch.setenv("PYTHONPATH", str(tmp_path))
     _write_fake_control(tmp_path)
     row = generate_ecosystem_report(tmp_path).require("scpn-control")
@@ -347,6 +361,8 @@ def test_runtime_import_preserves_existing_pythonpath(tmp_path: Path, monkeypatc
 def test_isolated_sibling_timeout_is_reported_instead_of_crashing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """A sibling import that times out returns code 124 with a timeout message."""
+
     def timeout(*_args: object, **_kwargs: object) -> None:
         raise subprocess.TimeoutExpired(cmd="python", timeout=30.0)
 
@@ -358,6 +374,7 @@ def test_isolated_sibling_timeout_is_reported_instead_of_crashing(
 
 
 def test_render_handles_rows_without_notes() -> None:
+    """Rendering rows without notes omits the notes and still gives JSON."""
     row = SiblingReport(
         key="scpn-control",
         package="scpn-control",
@@ -381,6 +398,7 @@ def test_render_handles_rows_without_notes() -> None:
 
 
 def test_default_code_root_finds_03_code_ancestor(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The default code root is the nearest 03_CODE ancestor."""
     monkeypatch.delenv("SCPN_MIF_ECOSYSTEM_ROOT", raising=False)
     monkeypatch.delenv("GOTM_CODE_ROOT", raising=False)
     module_path = tmp_path / "03_CODE" / "portfolio" / "repositories" / "SCPN-MIF-CORE" / "src" / "scpn_mif_core"
@@ -390,6 +408,7 @@ def test_default_code_root_finds_03_code_ancestor(tmp_path: Path, monkeypatch: p
 
 
 def test_default_code_root_falls_back_for_standalone_checkout(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A standalone checkout falls back to its parent."""
     monkeypatch.delenv("SCPN_MIF_ECOSYSTEM_ROOT", raising=False)
     monkeypatch.delenv("GOTM_CODE_ROOT", raising=False)
     module_path = tmp_path / "SCPN-MIF-CORE" / "src" / "scpn_mif_core"
@@ -399,6 +418,7 @@ def test_default_code_root_falls_back_for_standalone_checkout(tmp_path: Path, mo
 
 
 def test_non_string_project_version_falls_through_to_poetry(tmp_path: Path) -> None:
+    """A non-string project version falls back to the Poetry version."""
     repo = tmp_path / "SCPN-CONTROL"
     repo.mkdir(parents=True, exist_ok=True)
     repo.joinpath("pyproject.toml").write_text(
@@ -410,6 +430,7 @@ def test_non_string_project_version_falls_through_to_poetry(tmp_path: Path) -> N
 
 
 def test_pyproject_without_any_version_yields_no_source_version(tmp_path: Path) -> None:
+    """A pyproject without a version gives none."""
     repo = tmp_path / "SCPN-CONTROL"
     repo.mkdir(parents=True, exist_ok=True)
     repo.joinpath("pyproject.toml").write_text('[project]\nname = "scpn-control"\n', encoding="utf-8")
@@ -418,6 +439,7 @@ def test_pyproject_without_any_version_yields_no_source_version(tmp_path: Path) 
 
 
 def test_pyproject_with_non_mapping_poetry_table_yields_no_version(tmp_path: Path) -> None:
+    """A non-table Poetry section gives no version."""
     repo = tmp_path / "SCPN-CONTROL"
     repo.mkdir(parents=True, exist_ok=True)
     repo.joinpath("pyproject.toml").write_text('[tool]\npoetry = "not-a-table"\n', encoding="utf-8")
@@ -426,6 +448,7 @@ def test_pyproject_with_non_mapping_poetry_table_yields_no_version(tmp_path: Pat
 
 
 def test_pyproject_with_non_string_poetry_version_yields_no_version(tmp_path: Path) -> None:
+    """A non-string Poetry version gives none."""
     repo = tmp_path / "SCPN-CONTROL"
     repo.mkdir(parents=True, exist_ok=True)
     repo.joinpath("pyproject.toml").write_text("[tool.poetry]\nversion = 456\n", encoding="utf-8")
@@ -434,6 +457,7 @@ def test_pyproject_with_non_string_poetry_version_yields_no_version(tmp_path: Pa
 
 
 def test_runtime_import_failure_blocks_runtime_and_records_note(tmp_path: Path) -> None:
+    """A runtime import failure blocks the row and adds a non-authoritative note."""
     repo = tmp_path / "SCPN-PHASE-ORCHESTRATOR"
     _write_pyproject(repo, "scpn-phase-orchestrator", "0.8.0")
     package_dir = repo / "src" / "scpn_phase_orchestrator"
@@ -453,12 +477,14 @@ def test_runtime_import_failure_blocks_runtime_and_records_note(tmp_path: Path) 
 
 
 def test_runtime_import_without_existing_pythonpath(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The runtime import works without a PYTHONPATH."""
     monkeypatch.delenv("PYTHONPATH", raising=False)
     _write_fake_control(tmp_path)
     assert generate_ecosystem_report(tmp_path).require("scpn-control").import_status == "ok"
 
 
 def test_generic_surface_without_module_or_file_is_ready(tmp_path: Path) -> None:
+    """A surface with neither module nor file is declared ready."""
     surface = SurfaceSpec(name="freeform", detail="declared ready with neither module nor file")
     report = ecosystem_module._generic_surface_report(tmp_path, surface)
     assert report.status == STATUS_READY
@@ -466,6 +492,7 @@ def test_generic_surface_without_module_or_file_is_ready(tmp_path: Path) -> None
 
 
 def test_quantum_all_future_symbols_present_marks_lane_surface_ready(tmp_path: Path) -> None:
+    """With all future symbols present the quantum lane is ready but stays deferred and gated."""
     repo = tmp_path / "SCPN-QUANTUM-CONTROL"
     _write_pyproject(repo, "scpn-quantum-control", "0.9.11")
     _write_init(repo, "scpn_quantum_control", "0.9.11")
@@ -494,6 +521,7 @@ def test_quantum_all_future_symbols_present_marks_lane_surface_ready(tmp_path: P
 
 
 def test_runtime_import_non_json_output_is_recorded_as_error(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Non-JSON import output is recorded as an error."""
     monkeypatch.setattr(ecosystem_module, "_run_python", lambda *a, **k: _completed(stdout="not json"))
     _write_fake_control(tmp_path)
     row = generate_ecosystem_report(tmp_path).require("scpn-control")
@@ -503,12 +531,14 @@ def test_runtime_import_non_json_output_is_recorded_as_error(tmp_path: Path, mon
 
 
 def test_runtime_error_with_empty_streams_uses_fallback_detail(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """An import error without output gets the fallback detail."""
     monkeypatch.setattr(ecosystem_module, "_run_python", lambda *a, **k: _completed(returncode=1))
     _write_fake_control(tmp_path)
     assert generate_ecosystem_report(tmp_path).require("scpn-control").import_detail == "import failed"
 
 
 def test_fusion_subprocess_failure_blocks_runtime(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A failing FUSION probe blocks the runtime surface."""
     monkeypatch.setattr(
         ecosystem_module, "_run_python", lambda *a, **k: _completed(stderr="ImportError: boom", returncode=1)
     )
@@ -519,6 +549,7 @@ def test_fusion_subprocess_failure_blocks_runtime(tmp_path: Path, monkeypatch: p
 
 
 def test_fusion_non_json_output_blocks_runtime(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Non-JSON FUSION probe output blocks the runtime surface."""
     monkeypatch.setattr(ecosystem_module, "_run_python", lambda *a, **k: _completed(stdout="garbage line"))
     _write_fake_fusion(tmp_path)
     row = generate_ecosystem_report(tmp_path).require("scpn-fusion-core")
@@ -527,6 +558,7 @@ def test_fusion_non_json_output_blocks_runtime(tmp_path: Path, monkeypatch: pyte
 
 
 def test_fusion_contract_ready_without_blockers_is_ready(tmp_path: Path) -> None:
+    """A FUSION contract with every acceptance status ready makes the row ready."""
     repo = tmp_path / "SCPN-FUSION-CORE"
     _write_pyproject(repo, "scpn-fusion", "3.9.10")
     _write_init(repo, "scpn_fusion", "3.9.10")

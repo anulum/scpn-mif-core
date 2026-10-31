@@ -40,6 +40,7 @@ def _json(relative_path: str) -> dict[str, Any]:
 
 
 def test_readme_exposes_configured_sponsor_and_notebook_badges() -> None:
+    """The README carries the configured Sponsors, Colab and Binder badges."""
     readme = _read("README.md")
     funding = _read(".github/FUNDING.yml")
     funding_payload = "\n".join(line for line in funding.splitlines() if line and not line.startswith("#"))
@@ -52,6 +53,7 @@ def test_readme_exposes_configured_sponsor_and_notebook_badges() -> None:
 
 
 def test_binder_environment_installs_current_checkout_demo_extra() -> None:
+    """Binder installs the checkout's demo extra and JupyterLab."""
     requirements = _read("binder/requirements.txt")
     post_build = _read("binder/postBuild")
 
@@ -61,6 +63,7 @@ def test_binder_environment_installs_current_checkout_demo_extra() -> None:
 
 
 def test_merge_trigger_notebook_runs_real_public_api_without_outputs() -> None:
+    """The notebook uses the public API, has no stored outputs and no private paths."""
     notebook = _json(NOTEBOOK_PATH)
     sources = "\n".join("".join(cell.get("source", [])) for cell in notebook["cells"])
     namespace: dict[str, Any] = {}
@@ -89,6 +92,7 @@ def test_merge_trigger_notebook_runs_real_public_api_without_outputs() -> None:
 
 
 def test_studio_platform_pin_tracks_published_keeper_conformance() -> None:
+    """The Studio SDK pin is the same in pyproject, the manifests, the feed and the release notes."""
     pyproject = tomllib.loads(_read("pyproject.toml"))
     committed = _json("docs/_generated/studio_manifest.json")
     feed = _json("studio-web/public/studio-feed.json")
@@ -105,6 +109,7 @@ def test_studio_platform_pin_tracks_published_keeper_conformance() -> None:
 
 
 def test_mkdocs_excludes_internal_workstation_docs() -> None:
+    """The documentation site excludes internal/."""
     mkdocs = _read("mkdocs.yml")
 
     assert "exclude_docs: |" in mkdocs
@@ -112,6 +117,7 @@ def test_mkdocs_excludes_internal_workstation_docs() -> None:
 
 
 def test_public_surfaces_keep_local_cosim_distinct_from_hil() -> None:
+    """Public surfaces keep local cosimulation apart from hardware-in-the-loop."""
     readme = _read("README.md")
     system_map = _read("docs/architecture/system_map.md")
     feed = _json("studio-web/public/studio-feed.json")
@@ -126,6 +132,7 @@ def test_public_surfaces_keep_local_cosim_distinct_from_hil() -> None:
 
 
 def test_studio_feed_keeps_seal_adjudication_hub_owned() -> None:
+    """The feed carries no seal verdicts, which stay with the Hub."""
     feed = _json("studio-web/public/studio-feed.json")
     release_notes = _read("studio-web/RELEASE_NOTES.md")
     studio_docs = _read("docs/api/studio_vertical.md")
@@ -138,6 +145,7 @@ def test_studio_feed_keeps_seal_adjudication_hub_owned() -> None:
 
 
 def test_public_surfaces_keep_cycle_formal_distinct_from_wall_clock_timing() -> None:
+    """Public surfaces keep cycle-formal timing apart from wall-clock claims, which none allows."""
     timing_package = _json("docs/_generated/timing_evidence_package.json")
     studio_feed = _json("studio-web/public/studio-feed.json")
     studio_manifest = _json("docs/_generated/studio_manifest.json")

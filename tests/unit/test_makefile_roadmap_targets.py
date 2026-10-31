@@ -43,6 +43,7 @@ ROADMAP_TARGETS = ("formal", "synth-zu3eg", "synth-zu9eg")
 # --------------------------------------------------------------------------- #
 @pytest.mark.parametrize("target", ROADMAP_TARGETS)
 def test_roadmap_target_is_guarded(target: str) -> None:
+    """Each roadmap target guards on its prerequisite, prints a roadmap message and fails without it."""
     text = _makefile_text()
     recipe = _recipe_body(text, target)
     assert "if [ -f" in recipe, f"{target} recipe must guard on a prerequisite file"
@@ -66,6 +67,7 @@ def _recipe_body(text: str, target: str) -> str:
 # --------------------------------------------------------------------------- #
 @pytest.mark.parametrize("target", ROADMAP_TARGETS)
 def test_roadmap_target_reports_and_fails_when_unavailable(target: str) -> None:
+    """Each roadmap target fails with the roadmap message when its inputs are absent."""
     if shutil.which("make") is None:
         pytest.skip("make is not available on this runner")
     root = _repo_root()

@@ -64,14 +64,17 @@ def _ledger(*claims: object) -> dict[str, object]:
 
 
 def test_ledger_finding_formats_path_and_message() -> None:
+    """A finding formats as its path and message."""
     assert LedgerFinding("$.claims[0]", "bad field").format() == "$.claims[0]: bad field"
 
 
 def test_validate_ledger_document_accepts_blocked_internal_draft() -> None:
+    """A blocked internal draft is valid."""
     assert validate_ledger_document(_ledger()) == ()
 
 
 def test_validate_ledger_document_accepts_resolved_local_reference(tmp_path: Path) -> None:
+    """A local reference that exists is valid when references are checked."""
     reference = tmp_path / "evidence.json"
     reference.write_text("{}", encoding="utf-8")
     claim = _claim(evidence=[{"type": "external_validation", "status": "partial", "reference": "evidence.json"}])
@@ -80,6 +83,7 @@ def test_validate_ledger_document_accepts_resolved_local_reference(tmp_path: Pat
 
 
 def test_validate_ledger_document_accepts_remote_references_when_checking_paths(tmp_path: Path) -> None:
+    """Remote references are valid when local paths are checked."""
     claim = _claim(
         evidence=[{"type": "external_validation", "status": "partial", "reference": "https://example.test/a"}]
     )
@@ -88,6 +92,7 @@ def test_validate_ledger_document_accepts_remote_references_when_checking_paths(
 
 
 def test_validate_ledger_document_reports_unresolved_local_reference(tmp_path: Path) -> None:
+    """A local reference that does not exist is reported."""
     claim = _claim(evidence=[{"type": "external_validation", "status": "partial", "reference": "missing.json"}])
 
     assert LedgerFinding(
@@ -100,6 +105,7 @@ def test_validate_ledger_document_reports_unresolved_local_reference(tmp_path: P
 
 
 def test_validate_ledger_document_accepts_public_claim_with_passed_evidence() -> None:
+    """A public claim with passed evidence is valid."""
     claim = _claim(
         current_state="claim_gate_passed",
         public_claim_allowed=True,
@@ -117,14 +123,17 @@ def test_validate_ledger_document_accepts_public_claim_with_passed_evidence() ->
 
 
 def test_validate_ledger_document_rejects_non_object_root() -> None:
+    """A root that is not an object is reported."""
     assert validate_ledger_document([]) == (LedgerFinding("$", "ledger root must be an object"),)
 
 
 def test_validate_ledger_document_rejects_non_string_mapping_keys() -> None:
+    """A root with non-string keys is reported."""
     assert validate_ledger_document({1: "bad"}) == (LedgerFinding("$", "ledger root must be an object"),)
 
 
 def test_validate_ledger_document_reports_root_field_errors() -> None:
+    """Invalid root fields are reported."""
     findings = validate_ledger_document({"schema_version": "", "updated_utc": 7, "reviewed_commit": 8, "claims": []})
 
     assert findings == (
@@ -136,6 +145,7 @@ def test_validate_ledger_document_reports_root_field_errors() -> None:
 
 
 def test_validate_ledger_document_requires_claims_list() -> None:
+    """A missing claims list is reported."""
     findings = validate_ledger_document(
         {"schema_version": "1.1", "updated_utc": "now", "reviewed_commit": "b" * 40, "claims": "no"}
     )
@@ -146,6 +156,7 @@ def test_validate_ledger_document_requires_claims_list() -> None:
 
 
 def test_validate_ledger_document_requires_current_schema_and_reviewed_commit() -> None:
+    """An old schema and a missing reviewed commit are reported."""
     ledger = _ledger()
     ledger["schema_version"] = "1.0"
     ledger["reviewed_commit"] = "ABC"
@@ -157,6 +168,7 @@ def test_validate_ledger_document_requires_current_schema_and_reviewed_commit() 
 
 
 def test_validate_ledger_document_rejects_non_object_claim() -> None:
+    """A claim that is not an object is reported."""
     assert validate_ledger_document(_ledger({"not": "used"}, ["bad"]))[-1] == LedgerFinding(
         "$.claims[1]",
         "claim entry must be an object",
@@ -164,6 +176,7 @@ def test_validate_ledger_document_rejects_non_object_claim() -> None:
 
 
 def test_validate_ledger_document_reports_claim_schema_errors() -> None:
+    """Each invalid claim field is reported."""
     claim = {
         "id": "",
         "lane": 1,
@@ -188,6 +201,7 @@ def test_validate_ledger_document_reports_claim_schema_errors() -> None:
 
 
 def test_validate_ledger_document_reports_missing_fields() -> None:
+    """Missing claim fields are reported."""
     findings = validate_ledger_document(_ledger({"id": "CLAIM-2"}))
 
     assert LedgerFinding("$.claims[0]", "missing required field 'lane'") in findings
@@ -195,12 +209,14 @@ def test_validate_ledger_document_reports_missing_fields() -> None:
 
 
 def test_validate_ledger_document_rejects_duplicate_claim_ids() -> None:
+    """A duplicate claim id is reported."""
     findings = validate_ledger_document(_ledger(_claim(id="CLAIM-X"), _claim(id="CLAIM-X")))
 
     assert LedgerFinding("$.claims[1]", "duplicate claim id 'CLAIM-X'") in findings
 
 
 def test_validate_ledger_document_reports_bad_string_list_items() -> None:
+    """Empty or non-string list items are reported."""
     claim = _claim(blockers=["ok", 7], next_actions=["", "ok"])
 
     findings = validate_ledger_document(_ledger(claim))
@@ -210,6 +226,7 @@ def test_validate_ledger_document_reports_bad_string_list_items() -> None:
 
 
 def test_validate_ledger_document_reports_evidence_entry_errors() -> None:
+    """Invalid evidence entries are reported."""
     claim = _claim(
         evidence=[
             "bad",
@@ -226,12 +243,14 @@ def test_validate_ledger_document_reports_evidence_entry_errors() -> None:
 
 
 def test_validate_ledger_document_requires_evidence_items() -> None:
+    """A claim without evidence is reported."""
     findings = validate_ledger_document(_ledger(_claim(evidence=[])))
 
     assert LedgerFinding("$.claims[0]", "'evidence' must contain at least one item") in findings
 
 
 def test_validate_ledger_document_blocks_public_claims_with_unresolved_blockers() -> None:
+    """A public claim with open blockers is reported."""
     findings = validate_ledger_document(
         _ledger(
             _claim(
@@ -246,6 +265,7 @@ def test_validate_ledger_document_blocks_public_claims_with_unresolved_blockers(
 
 
 def test_validate_ledger_document_blocks_public_claims_without_passed_public_evidence() -> None:
+    """A public claim without passed public evidence is reported."""
     findings = validate_ledger_document(
         _ledger(
             _claim(
@@ -267,6 +287,7 @@ def test_validate_ledger_document_blocks_public_claims_without_passed_public_evi
 
 
 def test_validate_ledger_path_reports_invalid_json(tmp_path: Path) -> None:
+    """A file that is not JSON is reported."""
     path = tmp_path / "ledger.json"
     path.write_text("{", encoding="utf-8")
 
@@ -276,6 +297,7 @@ def test_validate_ledger_path_reports_invalid_json(tmp_path: Path) -> None:
 
 
 def test_validate_ledger_path_checks_references(tmp_path: Path) -> None:
+    """Reference checking reports a missing local file."""
     path = tmp_path / "ledger.json"
     path.write_text(
         json.dumps(_ledger(_claim(evidence=[{"type": "study", "status": "draft", "reference": "no.md"}]))),
@@ -288,6 +310,7 @@ def test_validate_ledger_path_checks_references(tmp_path: Path) -> None:
 
 
 def test_validate_ledger_path_enforces_review_age(tmp_path: Path) -> None:
+    """A review older than the allowed age is reported."""
     path = tmp_path / "ledger.json"
     path.write_text(json.dumps(_ledger()), encoding="utf-8")
     now = datetime(2026, 7, 10, tzinfo=UTC)
@@ -298,6 +321,7 @@ def test_validate_ledger_path_enforces_review_age(tmp_path: Path) -> None:
 
 
 def test_validate_ledger_path_rejects_materially_future_review(tmp_path: Path) -> None:
+    """A review dated well in the future is reported."""
     ledger = _ledger()
     ledger["updated_utc"] = "2026-07-10T00:06:00Z"
     path = tmp_path / "ledger.json"
@@ -310,10 +334,12 @@ def test_validate_ledger_path_rejects_materially_future_review(tmp_path: Path) -
 
 @pytest.mark.parametrize("value", ["2026-07-10T00:00:00", "not-a-dateZ", "2026-07-10T00:00:00.1Z"])
 def test_parse_utc_timestamp_rejects_noncanonical_values(value: str) -> None:
+    """Each non-canonical timestamp parses to None."""
     assert parse_utc_timestamp(value) is None
 
 
 def test_validate_ledger_path_rejects_invalid_age_arguments(tmp_path: Path) -> None:
+    """A negative age or a naive clock is refused."""
     path = tmp_path / "ledger.json"
     path.write_text(json.dumps(_ledger()), encoding="utf-8")
 
@@ -324,6 +350,7 @@ def test_validate_ledger_path_rejects_invalid_age_arguments(tmp_path: Path) -> N
 
 
 def test_validate_ledger_path_accepts_timezone_aware_fresh_review(tmp_path: Path) -> None:
+    """A fresh review checked with an aware clock is valid."""
     ledger = _ledger()
     ledger["updated_utc"] = "2026-07-10T00:00:00Z"
     path = tmp_path / "ledger.json"
@@ -333,6 +360,7 @@ def test_validate_ledger_path_accepts_timezone_aware_fresh_review(tmp_path: Path
 
 
 def test_validate_ledger_path_skips_age_math_for_invalid_timestamp(tmp_path: Path) -> None:
+    """An invalid review timestamp is reported without an age check."""
     ledger = _ledger()
     ledger["updated_utc"] = "invalid"
     path = tmp_path / "ledger.json"
@@ -344,6 +372,7 @@ def test_validate_ledger_path_skips_age_math_for_invalid_timestamp(tmp_path: Pat
 
 
 def test_main_returns_zero_for_valid_ledger(tmp_path: Path, capsys: CaptureFixture) -> None:
+    """The command exits 0 and prints OK for a valid ledger."""
     path = tmp_path / "ledger.json"
     path.write_text(json.dumps(_ledger()), encoding="utf-8")
 
@@ -352,6 +381,7 @@ def test_main_returns_zero_for_valid_ledger(tmp_path: Path, capsys: CaptureFixtu
 
 
 def test_main_accepts_check_references_for_valid_ledger(tmp_path: Path, capsys: CaptureFixture) -> None:
+    """With reference checking the command exits 0 for a valid ledger."""
     evidence = tmp_path / "evidence.md"
     evidence.write_text("evidence", encoding="utf-8")
     path = tmp_path / "ledger.json"
@@ -365,6 +395,7 @@ def test_main_accepts_check_references_for_valid_ledger(tmp_path: Path, capsys: 
 
 
 def test_main_reports_findings_for_invalid_ledger(tmp_path: Path, capsys: CaptureFixture) -> None:
+    """The command exits 1 and lists the findings of an invalid ledger."""
     path = tmp_path / "ledger.json"
     path.write_text(json.dumps([]), encoding="utf-8")
 

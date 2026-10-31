@@ -125,6 +125,7 @@ def _reference() -> set[Command]:
 
 
 def test_reference_cohort_holds_every_hosted_gate_kind() -> None:
+    """The hosted cohort includes mypy, ruff, Clippy and the Studio tests, and no setup step."""
     reference = _reference()
     assert (".", ("mypy",)) in reference
     assert (".", ("ruff", "check", ".")) in reference
@@ -134,11 +135,13 @@ def test_reference_cohort_holds_every_hosted_gate_kind() -> None:
 
 
 def test_preflight_runs_every_hosted_gate(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The preflight runs every hosted gate command."""
     missing = uncovered(_reference(), preflight_commands(monkeypatch))
     assert missing == set()
 
 
 def test_a_dropped_gate_is_detected(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Removing any one gate from the preflight is detected."""
     local = preflight_commands(monkeypatch)
     for dropped in sorted(_reference()):
         if dropped[1][:2] == ("pytest", "tests/"):
@@ -147,12 +150,14 @@ def test_a_dropped_gate_is_detected(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_a_marker_filtered_local_suite_does_not_cover_the_hosted_suite() -> None:
+    """A full local test run covers a filtered hosted run, but a filtered local run does not."""
     hosted: set[Command] = {(".", ("pytest", "tests/", "-m", "not full_chain"))}
     assert uncovered(hosted, {(".", ("pytest", "tests/", "-q"))}) == set()
     assert uncovered(hosted, {(".", ("pytest", "tests/", "-m", "unit"))}) == hosted
 
 
 def test_setup_steps_are_not_gates() -> None:
+    """Install and toolchain steps are setup, not gates."""
     assert is_setup(("python", "-m", "pip", "install", "-e", "."))
     assert is_setup(("pnpm", "install", "--frozen-lockfile"))
     assert is_setup(("sudo", "apt-get", "update"))

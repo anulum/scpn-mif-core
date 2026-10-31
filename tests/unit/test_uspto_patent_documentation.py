@@ -21,6 +21,7 @@ def _read(relative_path: str) -> str:
 
 
 def test_uspto_source_note_is_wired_into_public_papers_nav() -> None:
+    """The patent note is in the navigation and the papers index."""
     mkdocs = _read("mkdocs.yml")
     index = _read("docs/papers/index.md")
 
@@ -29,6 +30,7 @@ def test_uspto_source_note_is_wired_into_public_papers_nav() -> None:
 
 
 def test_uspto_source_note_records_verified_source_facts_and_boundaries() -> None:
+    """The patent note records the verified facts and its boundaries without private paths."""
     page = _read(PATENT_PAGE)
 
     assert "US 12,567,738 B1" in page
@@ -43,6 +45,7 @@ def test_uspto_source_note_records_verified_source_facts_and_boundaries() -> Non
 
 
 def test_uspto_source_register_and_paper_bibliography_stay_consistent() -> None:
+    """The source register and the bibliography cite the patent consistently."""
     register = _read("docs/external_sources/README.md")
     bibliography = _read("papers/submissions/001_formally_verified_deterministic_trigger_interlock/references.bib")
 

@@ -155,10 +155,6 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["S", "PT011", "PT012", "E402"]
-# Docstrings are being written tree by tree under
-# PE-20261003/SCPN-MIF-CORE/documentation-scope-waivers; these trees still
-# wait for theirs, and each entry is removed when its tree is done.
-"tests/unit/**/*.py" = ["D"]
 "bench/**/*.py" = ["S"]
 "examples/**/*.py" = ["S"]
 "campaigns/**/*.py" = ["S"]

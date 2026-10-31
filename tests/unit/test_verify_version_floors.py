@@ -62,6 +62,7 @@ def _write_sibling(
 # parse_declared_floors                                                        #
 # --------------------------------------------------------------------------- #
 def test_parse_declared_floors_reads_committed_pyproject() -> None:
+    """The declared sibling floors are read from pyproject.toml."""
     floors = parse_declared_floors()
     assert floors["sc-neurocore"] == "3.16.0"
     assert floors["scpn-phase-orchestrator"] == "1.0.0"
@@ -72,6 +73,7 @@ def test_parse_declared_floors_reads_committed_pyproject() -> None:
 
 
 def test_parse_declared_floors_rejects_non_floor_constraint(tmp_path: Path) -> None:
+    """A constraint that is not a plain floor is refused."""
     pyproject = tmp_path / "pyproject.toml"
     pyproject.write_text(
         '[project]\nname="x"\nversion="0.0.1"\n[project.optional-dependencies]\necosystem = ["sc-neurocore-engine==3.0.0"]\n',
@@ -96,6 +98,7 @@ def test_parse_declared_floors_rejects_non_floor_constraint(tmp_path: Path) -> N
     ],
 )
 def test_meets_floor(live: str, floor: str, expected: bool) -> None:
+    """Each version is compared with its floor as expected."""
     assert meets_floor(live, floor) is expected
 
 
@@ -103,6 +106,7 @@ def test_meets_floor(live: str, floor: str, expected: bool) -> None:
 # verify_floors — live ecosystem                                              #
 # --------------------------------------------------------------------------- #
 def test_live_ecosystem_has_no_violations() -> None:
+    """The present checkout has no floor violation."""
     # Env-agnostic: holds where siblings are present (satisfied) and where they are
     # absent, e.g. MIF-only CI (sibling_absent is not a violation). Every
     # current-gate sibling must carry a declared floor.
@@ -115,6 +119,7 @@ def test_live_ecosystem_has_no_violations() -> None:
 # verify_floors — synthetic fixtures covering every status                     #
 # --------------------------------------------------------------------------- #
 def test_all_floor_present_statuses(tmp_path: Path) -> None:
+    """Every status is reported for siblings that are satisfied, below, absent or unreadable."""
     code_root = tmp_path / "code"
     code_root.mkdir()
     # neurocore satisfied; phase below; control floor present but repo absent;
@@ -149,6 +154,7 @@ def test_all_floor_present_statuses(tmp_path: Path) -> None:
 
 
 def test_deferred_sibling_without_floor_is_absent_not_violation(tmp_path: Path) -> None:
+    """A deferred sibling without a floor is absent, not a violation."""
     # quantum is the only deferred sibling; with no floor it is reported absent.
     assert _CURRENT_GATE["scpn-quantum-control"] is False
     floors = {
@@ -166,6 +172,7 @@ def test_deferred_sibling_without_floor_is_absent_not_violation(tmp_path: Path) 
 
 
 def test_current_gate_sibling_without_floor_is_violation(tmp_path: Path) -> None:
+    """A current-gate sibling without a floor is a violation."""
     # Omit a current-gate sibling's floor entirely.
     assert _CURRENT_GATE["sc-neurocore"] is True
     floors = {
@@ -184,6 +191,7 @@ def test_current_gate_sibling_without_floor_is_violation(tmp_path: Path) -> None
 # FloorResult + violations                                                     #
 # --------------------------------------------------------------------------- #
 def test_floor_result_is_violation_flag() -> None:
+    """Only violating results are listed as violations."""
     bad = FloorResult("p", True, "1.0.0", "0.9.0", STATUS_BELOW_FLOOR, "d")
     good = FloorResult("p", True, "1.0.0", "1.0.0", STATUS_SATISFIED, "d")
     absent = FloorResult("p", False, "1.0.0", None, STATUS_SIBLING_ABSENT, "d")
@@ -194,6 +202,7 @@ def test_floor_result_is_violation_flag() -> None:
 
 
 def test_distribution_name_mismatch_is_a_violation(tmp_path: Path) -> None:
+    """A sibling with the wrong distribution name is a violation."""
     floors = {spec.package: "1.0.0" for spec in SIBLINGS}
     pyproject = _write_pyproject_floors(tmp_path / "pyproject.toml", floors)
     _write_sibling(tmp_path / "code", "sc-neurocore", "3.16.0", project_name="retired-neurocore-name")
@@ -210,10 +219,12 @@ def test_distribution_name_mismatch_is_a_violation(tmp_path: Path) -> None:
 # CLI                                                                          #
 # --------------------------------------------------------------------------- #
 def test_main_passes_on_live_ecosystem() -> None:
+    """The command passes on the present checkout."""
     assert main([]) == 0
 
 
 def test_main_fails_on_violation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """An orphan floor makes the command exit 1."""
     # An orphan floor (a package with no matching sibling) is a violation
     # regardless of whether any sibling tree is present, so this holds in CI too.
     pyproject = _write_pyproject_floors(tmp_path / "pyproject.toml", {"definitely-not-a-sibling": "1.0.0"})

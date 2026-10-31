@@ -29,12 +29,14 @@ def _verify(package: Path) -> subprocess.CompletedProcess[str]:
 
 
 def test_committed_paper_package_is_consistent() -> None:
+    """The committed manuscript package verifies."""
     result = _verify(PACKAGE)
     assert result.returncode == 0, result.stderr
     assert "PASS: canonical manuscript package is internally consistent" in result.stdout
 
 
 def test_verifier_rejects_artifact_tampering(tmp_path: Path) -> None:
+    """A changed manuscript fails its hash check."""
     copied_package = tmp_path / "paper"
     shutil.copytree(PACKAGE, copied_package)
     with (copied_package / "manuscript.md").open("a", encoding="utf-8") as stream:

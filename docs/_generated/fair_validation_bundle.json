@@ -41,8 +41,8 @@
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "pyproject.toml",
-      "sha256": "sha256:74c31d05786b48e4dece07591081c651e06e2ec69776500e4e4839545f88d060",
-      "size_bytes": 12404
+      "sha256": "sha256:2ff6dc6e8f820cff919bf1ecd2b5961f35c1738d183ddf05bd688eef8ff49864",
+      "size_bytes": 12182
     },
     {
       "kind": "supporting-artifact",
@@ -181,29 +181,29 @@
       "kind": "verification-test",
       "media_type": "text/x-python",
       "path": "tests/unit/bench/test_benchmark_dashboard.py",
-      "sha256": "sha256:dff79854c9a7dc7736e90825b144fea150a5606acd2fa99a214d6b43034a0b02",
-      "size_bytes": 19655
+      "sha256": "sha256:3f480b871220bb5cb40b455e5f6f838346508cc5079be5615cb281ffcdbd414c",
+      "size_bytes": 21586
     },
     {
       "kind": "verification-test",
       "media_type": "text/x-python",
       "path": "tests/unit/fpga/test_timing_evidence_package.py",
-      "sha256": "sha256:f004974e14027cfbf85561fb7b18a4f0099013dc90fa0d9854770d22a70d52b9",
-      "size_bytes": 9607
+      "sha256": "sha256:853eb39fcb01b34aa860e3a3d3b5fc305394f32359d0ffb809ef7f9c45421dd2",
+      "size_bytes": 10282
     },
     {
       "kind": "verification-test",
       "media_type": "text/x-python",
       "path": "tests/unit/test_claim_ledger_review.py",
-      "sha256": "sha256:22eeef0258b334057b6f3535f4b9a29590810c2a6cb3bfc9f77c3f4c4c581314",
-      "size_bytes": 9100
+      "sha256": "sha256:cc8738f9d37f950601d42beaad6ebaa04a9fac2d3b8e7555e2e2144a258d8f25",
+      "size_bytes": 10170
     },
     {
       "kind": "verification-test",
       "media_type": "text/x-python",
       "path": "tests/unit/test_fair_validation_bundle.py",
-      "sha256": "sha256:e02911d12dde38f8cec1573c074ec7ae18a5909447332861e951d87c935ebc04",
-      "size_bytes": 9718
+      "sha256": "sha256:7cc1583b45b770eaad7dfe84e56dc3c36b7bd306f66fe0504428da8e68888c53",
+      "size_bytes": 9704
     },
     {
       "kind": "benchmark-result",

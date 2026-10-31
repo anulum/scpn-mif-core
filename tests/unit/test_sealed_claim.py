@@ -5,6 +5,7 @@
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
 # SCPN-MIF-CORE — float-free sealed formal-claim tests.
+"""Tests of the float-free sealed formal claim and its JCS guard."""
 
 from __future__ import annotations
 
@@ -61,6 +62,7 @@ def _fixture(tmp_path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
 
 
 def test_matching_pass_is_admitted_and_float_free(tmp_path: Path) -> None:
+    """A passing proof with matching inputs is an admitted, float-free claim."""
     task, kwargs = _fixture(tmp_path)
     payload = build_formal_proof_sealed_claim(task, **kwargs)
     assert payload["schema"] == SEALED_FORMAL_CLAIM_SCHEMA
@@ -75,6 +77,7 @@ def test_matching_pass_is_admitted_and_float_free(tmp_path: Path) -> None:
 
 
 def test_dependency_drift_degrades_to_rejected(tmp_path: Path) -> None:
+    """Changed dependencies make the claim a rejected validation gap."""
     task, kwargs = _fixture(tmp_path)
     (tmp_path / "hdl/src/triggers/trigger.sv").write_text("module drift; endmodule\n", encoding="utf-8")
     payload = build_formal_proof_sealed_claim(task, **kwargs)
@@ -84,6 +87,7 @@ def test_dependency_drift_degrades_to_rejected(tmp_path: Path) -> None:
 
 
 def test_failed_run_degrades_to_rejected(tmp_path: Path) -> None:
+    """A failed proof run makes the claim a rejected validation gap."""
     task, kwargs = _fixture(tmp_path)
     kwargs["observed_status"] = "fail"
     payload = build_formal_proof_sealed_claim(task, **kwargs)
@@ -123,6 +127,7 @@ def test_failed_run_degrades_to_rejected(tmp_path: Path) -> None:
 def test_property_inventory_validation_fails_closed(
     tmp_path: Path, mutation: Callable[[dict[str, Any]], None], message: str
 ) -> None:
+    """Each invalid property inventory is refused with its message."""
     task, kwargs = _fixture(tmp_path)
     mutated = copy.deepcopy(task)
     mutation(mutated)
@@ -131,6 +136,7 @@ def test_property_inventory_validation_fails_closed(
 
 
 def test_jcs_guard_rejects_floats_unsafe_ints_and_non_json_types() -> None:
+    """The JCS guard refuses floats, integers beyond 2**53-1, non-string keys and non-JSON types."""
     with pytest.raises(ValueError, match="JSON floats"):
         assert_jcs_safe({"x": 0.5})
     with pytest.raises(ValueError, match=r"2\*\*53-1"):
@@ -142,6 +148,7 @@ def test_jcs_guard_rejects_floats_unsafe_ints_and_non_json_types() -> None:
 
 
 def test_render_and_write_are_deterministic(tmp_path: Path) -> None:
+    """Rendering and writing are repeatable and the digest is the file's hash."""
     task, kwargs = _fixture(tmp_path)
     payload = build_formal_proof_sealed_claim(task, **kwargs)
     rendered = render_sealed_claim_json(payload)
@@ -153,6 +160,7 @@ def test_render_and_write_are_deterministic(tmp_path: Path) -> None:
 
 
 def test_dependency_path_escape_fails_closed(tmp_path: Path) -> None:
+    """A dependency path outside the repository is refused."""
     task, kwargs = _fixture(tmp_path)
     task["depends_on"][0]["path"] = "../escape.sby"
     task["sby"] = "../escape.sby"
@@ -177,6 +185,7 @@ def test_core_claim_inputs_fail_closed(
     mutation: Callable[[dict[str, Any], dict[str, Any]], None],
     message: str,
 ) -> None:
+    """Each invalid claim input is refused with its message."""
     task, kwargs = _fixture(tmp_path)
     mutation(task, kwargs)
     with pytest.raises(ValueError, match=message):
@@ -184,6 +193,7 @@ def test_core_claim_inputs_fail_closed(
 
 
 def test_committed_claim_is_float_free_and_bound_to_live_inputs() -> None:
+    """The committed claim is float-free, admitted and bound to the live input hashes."""
     repo_root = Path(__file__).resolve().parents[2]
     artifact_path = repo_root / "docs/_generated/studio_formal_proof_claim.json"
     manifest_path = repo_root / "docs/_generated/formal_manifest.json"

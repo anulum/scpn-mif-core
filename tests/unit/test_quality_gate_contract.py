@@ -25,6 +25,7 @@ def _read(relative_path: str) -> str:
 
 
 def test_required_workflows_expose_stable_aggregate_contexts() -> None:
+    """The CI and formal workflows expose the required aggregate checks."""
     ci = read_ci_workflow_source()
     formal = _read(".github/workflows/formal.yml")
 
@@ -41,6 +42,7 @@ def test_required_workflows_expose_stable_aggregate_contexts() -> None:
 
 
 def test_release_requires_green_source_gate_contexts() -> None:
+    """The release waits for the required core and formal checks and the ledger review."""
     release = _read(".github/workflows/release.yml")
 
     assert 'for required in "Required core gate" "Required formal gate"' in release
@@ -48,6 +50,7 @@ def test_release_requires_green_source_gate_contexts() -> None:
 
 
 def test_ci_python_dependencies_are_hash_locked() -> None:
+    """CI installs Python dependencies from the hash lock only."""
     ci = read_ci_workflow_source()
     lock = _read("requirements/ci.txt")
 
@@ -84,6 +87,7 @@ def test_nightly_benchmark_installs_the_same_hash_lock_as_ci() -> None:
 
 
 def test_full_chain_input_pins_match_the_hash_lock() -> None:
+    """Every full-chain input pin appears in the hash lock."""
     source = _read("requirements/full-chain-ci.in")
     lock = _read("requirements/full-chain-ci.txt")
 
@@ -93,6 +97,7 @@ def test_full_chain_input_pins_match_the_hash_lock() -> None:
 
 
 def test_generated_dependency_locks_preserve_license_headers() -> None:
+    """Generated locks keep their licence headers."""
     for path in (
         "requirements/ci.txt",
         "requirements/full-chain-ci.txt",
@@ -104,6 +109,7 @@ def test_generated_dependency_locks_preserve_license_headers() -> None:
 
 
 def test_dependabot_routes_broad_dev_ranges_to_manual_lock_refresh() -> None:
+    """Dependabot ignores the broad development ranges that need a manual lock refresh."""
     project = tomllib.loads(_read("pyproject.toml"))["project"]
     broad_dev_dependencies = {
         re.split(r"[<>=!~ ]", dependency, maxsplit=1)[0]
@@ -118,6 +124,7 @@ def test_dependabot_routes_broad_dev_ranges_to_manual_lock_refresh() -> None:
 
 
 def test_fusion_nightly_uses_the_full_chain_runtime_lock() -> None:
+    """The FUSION nightly job installs from the right lock for each runtime."""
     workflow = yaml.load(
         _read(".github/workflows/upstream_nightly.yml"),
         Loader=yaml.BaseLoader,
@@ -156,6 +163,7 @@ def test_fusion_nightly_uses_the_full_chain_runtime_lock() -> None:
 
 
 def test_parity_workflow_is_advisory_and_documents_absent_mojo() -> None:
+    """The parity workflow is advisory, records that no Mojo source ships and documents its contract."""
     parity = _read(".github/workflows/polyglot-parity.yml")
     contract = _read("docs/guides/quality_gates.md")
     contract_words = " ".join(contract.split())
@@ -170,6 +178,7 @@ def test_parity_workflow_is_advisory_and_documents_absent_mojo() -> None:
 
 
 def test_formal_preflight_is_implemented_not_a_placeholder() -> None:
+    """The preflight runs the formal manifest and reports missing formal tools."""
     preflight = _read("tools/preflight.py")
 
     assert "gates.append(gate_formal_manifest())" in preflight
@@ -178,6 +187,7 @@ def test_formal_preflight_is_implemented_not_a_placeholder() -> None:
 
 
 def test_local_preflight_runs_the_complete_python_test_tree() -> None:
+    """The preflight runs the whole test tree."""
     preflight = _read("tools/preflight.py")
 
     assert '["pytest", "tests/", "-q"]' in preflight
@@ -185,6 +195,7 @@ def test_local_preflight_runs_the_complete_python_test_tree() -> None:
 
 
 def test_local_preflight_enforces_ci_workflow_modularity() -> None:
+    """The preflight runs the workflow audit and actionlint."""
     preflight = _read("tools/preflight.py")
 
     assert "gates.append(gate_ci_workflow_modularity())" in preflight

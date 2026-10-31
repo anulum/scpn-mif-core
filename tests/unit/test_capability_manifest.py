@@ -5,6 +5,7 @@
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
 # SCPN MIF Core capability manifest tests
+"""Tests of the capability manifest generator, its validation, drift gate and command."""
 
 from __future__ import annotations
 
@@ -43,6 +44,7 @@ TOOL = _load_tool()
 # Real-repository behaviour                                                    #
 # --------------------------------------------------------------------------- #
 def test_manifest_scans_mif_core_polyglot_surfaces() -> None:
+    """The manifest scans every MIF surface and its counts equal its lists."""
     manifest = TOOL.build_capability_manifest(_repo_root())
 
     assert manifest["schema_version"] == TOOL.CAPABILITY_MANIFEST_SCHEMA_VERSION
@@ -77,6 +79,7 @@ def test_manifest_scans_mif_core_polyglot_surfaces() -> None:
 
 
 def test_hdl_rtl_scan_excludes_build_sandbox_and_formal_harness(tmp_path: Path) -> None:
+    """The RTL scan skips build sandboxes and the formal harness."""
     hdl = tmp_path / "hdl"
     (hdl / "src" / "triggers").mkdir(parents=True)
     (hdl / "formal" / "safety").mkdir(parents=True)
@@ -93,6 +96,7 @@ def test_hdl_rtl_scan_excludes_build_sandbox_and_formal_harness(tmp_path: Path) 
 
 
 def test_internal_docs_are_excluded_from_public_inventory() -> None:
+    """Private and generated documents stay out of the public page list."""
     manifest = TOOL.build_capability_manifest(_repo_root())
     public_pages = manifest["documentation"]["public_pages"]
     assert all(not page.startswith("docs/internal/") for page in public_pages)
@@ -100,10 +104,12 @@ def test_internal_docs_are_excluded_from_public_inventory() -> None:
 
 
 def test_generated_outputs_are_current() -> None:
+    """The committed manifest, snapshot and README block are current."""
     TOOL.assert_outputs_current(_repo_root())
 
 
 def test_readme_snapshot_matches_generated_markdown() -> None:
+    """The README block equals the generated snapshot."""
     config = TOOL.load_config(_repo_root())
     readme = (_repo_root() / "README.md").read_text(encoding="utf-8")
     block = (
@@ -114,6 +120,7 @@ def test_readme_snapshot_matches_generated_markdown() -> None:
 
 
 def test_system_map_inventory_matches_manifest() -> None:
+    """The system map's inventory table equals the manifest counts."""
     manifest = TOOL.build_capability_manifest(_repo_root())
     counts = manifest["counts"]
     system_map = (_repo_root() / "docs" / "architecture" / "system_map.md").read_text(encoding="utf-8")
@@ -136,6 +143,7 @@ def test_system_map_inventory_matches_manifest() -> None:
 
 
 def test_manifest_declares_committed_json_schema_contract() -> None:
+    """The manifest names its committed JSON schema, which covers every count and list."""
     manifest = TOOL.build_capability_manifest(_repo_root())
     schema_path = _repo_root() / "schemas" / "capability_manifest.schema.json"
     assert manifest["generated_from"]["schema"] == "schemas/capability_manifest.schema.json"
@@ -147,6 +155,7 @@ def test_manifest_declares_committed_json_schema_contract() -> None:
 
 
 def test_generator_defaults_are_mif_core_specific() -> None:
+    """The generator's defaults point at the MIF trees."""
     config = TOOL.load_config(_repo_root(), Path("missing_capability_manifest.toml"))
     assert config.project_label == "SCPN MIF Core"
     assert config.package_root == Path("src/scpn_mif_core")
@@ -159,6 +168,7 @@ def test_generator_defaults_are_mif_core_specific() -> None:
 
 
 def test_public_generator_files_do_not_retain_sibling_repo_defaults() -> None:
+    """No sibling repository default remains in the public generator files."""
     checked = [
         _repo_root() / "tools" / "capability_manifest.py",
         _repo_root() / "tools" / "capability_manifest.toml",
@@ -177,12 +187,14 @@ def test_public_generator_files_do_not_retain_sibling_repo_defaults() -> None:
 # Validation                                                                   #
 # --------------------------------------------------------------------------- #
 def test_validation_passes_on_freshly_built_manifest() -> None:
+    """A freshly built manifest validates."""
     report = TOOL.validate_manifest(TOOL.build_capability_manifest(_repo_root()))
     assert report["passed"]
     assert report["errors"] == []
 
 
 def test_validation_rejects_count_list_drift() -> None:
+    """A count that differs from its list fails validation."""
     manifest = TOOL.build_capability_manifest(_repo_root())
     manifest["counts"]["lean_proof_modules"] += 1
     report = TOOL.validate_manifest(manifest)
@@ -191,6 +203,7 @@ def test_validation_rejects_count_list_drift() -> None:
 
 
 def test_validation_rejects_schema_type_and_missing_list_drift() -> None:
+    """A wrong schema version, a non-integer count and a missing list fail validation."""
     manifest = TOOL.build_capability_manifest(_repo_root())
     manifest["schema_version"] = "wrong"
     manifest["counts"]["julia_reference_modules"] = "9"
@@ -203,6 +216,7 @@ def test_validation_rejects_schema_type_and_missing_list_drift() -> None:
 
 
 def test_validation_rejects_missing_top_level_keys_and_bad_counts_type() -> None:
+    """A missing top-level key and non-object counts fail validation."""
     report = TOOL.validate_manifest({"schema_version": TOOL.CAPABILITY_MANIFEST_SCHEMA_VERSION})
     assert not report["passed"]
     assert any("missing top-level key: project" in err for err in report["errors"])
@@ -219,6 +233,7 @@ def test_validation_rejects_missing_top_level_keys_and_bad_counts_type() -> None
 
 
 def test_validation_rejects_negative_count() -> None:
+    """A negative count fails validation."""
     manifest = TOOL.build_capability_manifest(_repo_root())
     manifest["counts"]["test_files"] = -1
     report = TOOL.validate_manifest(manifest)
@@ -229,6 +244,7 @@ def test_validation_rejects_negative_count() -> None:
 # Drift gate error paths                                                       #
 # --------------------------------------------------------------------------- #
 def test_assert_outputs_current_reports_missing_and_stale(tmp_path: Path) -> None:
+    """A missing or stale manifest is reported."""
     repo = _build_fixture(tmp_path)
     config = TOOL.load_config(repo)
 
@@ -245,6 +261,7 @@ def test_assert_outputs_current_reports_missing_and_stale(tmp_path: Path) -> Non
 
 
 def test_assert_outputs_current_detects_stale_snapshot_and_readme(tmp_path: Path) -> None:
+    """A stale snapshot or README block is reported unless the README check is off."""
     repo = _build_fixture(tmp_path)
     config = TOOL.load_config(repo)
     TOOL.refresh_outputs(repo, config=config)
@@ -267,6 +284,7 @@ def test_assert_outputs_current_detects_stale_snapshot_and_readme(tmp_path: Path
 
 
 def test_assert_outputs_current_reports_missing_snapshot(tmp_path: Path) -> None:
+    """A missing snapshot is reported."""
     repo = _build_fixture(tmp_path)
     config = TOOL.load_config(repo)
     TOOL.refresh_outputs(repo, config=config)
@@ -276,6 +294,7 @@ def test_assert_outputs_current_reports_missing_snapshot(tmp_path: Path) -> None
 
 
 def test_refresh_readme_block_requires_markers(tmp_path: Path) -> None:
+    """Refreshing a README without markers is refused."""
     repo = _build_fixture(tmp_path)
     config = TOOL.load_config(repo)
     (repo / "README.md").write_text("# No markers here\n", encoding="utf-8")
@@ -284,6 +303,7 @@ def test_refresh_readme_block_requires_markers(tmp_path: Path) -> None:
 
 
 def test_readme_block_matches_handles_missing_file_and_markers(tmp_path: Path) -> None:
+    """A missing README or markers counts as not matching."""
     config = TOOL.load_config(_repo_root())
     assert TOOL._readme_block_matches(tmp_path / "absent.md", "x", config=config) is False
     bare = tmp_path / "bare.md"
@@ -295,6 +315,7 @@ def test_readme_block_matches_handles_missing_file_and_markers(tmp_path: Path) -
 # Static-source helpers and empty-tree behaviour                               #
 # --------------------------------------------------------------------------- #
 def test_empty_repository_yields_zero_polyglot_counts(tmp_path: Path) -> None:
+    """An empty repository gives zero for every count."""
     repo = _minimal_repo(tmp_path)
     config = TOOL.load_config(repo)
     manifest = TOOL.build_capability_manifest(repo, config)
@@ -317,6 +338,7 @@ def test_empty_repository_yields_zero_polyglot_counts(tmp_path: Path) -> None:
 
 
 def test_public_exports_handles_missing_file_and_absent_dunder(tmp_path: Path) -> None:
+    """A missing file, no __all__ or a dynamic one gives no exports."""
     assert TOOL._public_exports(tmp_path / "nope.py") == []
     no_all = tmp_path / "no_all.py"
     no_all.write_text("x = 1\n", encoding="utf-8")
@@ -327,10 +349,12 @@ def test_public_exports_handles_missing_file_and_absent_dunder(tmp_path: Path) -
 
 
 def test_project_extras_handles_non_mapping() -> None:
+    """Optional dependencies that are not a mapping give no extras."""
     assert TOOL._project_extras({"project": {"optional-dependencies": ["bad"]}}) == []
 
 
 def test_rust_crate_without_name_is_skipped(tmp_path: Path) -> None:
+    """A crate without a name is skipped."""
     workspace = tmp_path / "rs"
     (workspace).mkdir()
     (workspace / "Cargo.toml").write_text('[workspace]\nmembers = ["a"]\n', encoding="utf-8")
@@ -341,6 +365,7 @@ def test_rust_crate_without_name_is_skipped(tmp_path: Path) -> None:
 
 
 def test_rust_crate_inventory_uses_workspace_members_not_build_cache(tmp_path: Path) -> None:
+    """Crates come from the workspace members, not the build cache."""
     workspace = tmp_path / "rs"
     crate = workspace / "crates" / "mif-a"
     fuzz = workspace / "fuzz"
@@ -360,6 +385,7 @@ def test_rust_crate_inventory_uses_workspace_members_not_build_cache(tmp_path: P
 
 
 def test_config_path_outside_repo_records_absolute_source(tmp_path: Path) -> None:
+    """A configuration outside the repository is recorded by absolute path."""
     repo = _build_fixture(tmp_path / "repo")
     external = tmp_path / "external_capability_manifest.toml"
     external.write_text('project_label = "External"\n', encoding="utf-8")
@@ -370,6 +396,7 @@ def test_config_path_outside_repo_records_absolute_source(tmp_path: Path) -> Non
 
 
 def test_configured_paths_accepts_string_and_falls_back_on_bad_type() -> None:
+    """A configured path may be a string, and a wrong type falls back to the default."""
     single = TOOL._configured_paths({"k": "one/two"}, key="k", default=())
     assert single == (Path("one/two"),)
     fallback = TOOL._configured_paths({"k": 123}, key="k", default=(Path("d"),))
@@ -380,6 +407,7 @@ def test_configured_paths_accepts_string_and_falls_back_on_bad_type() -> None:
 # Command-line interface                                                       #
 # --------------------------------------------------------------------------- #
 def test_cli_refreshes_outputs_and_reports_polyglot_counts(tmp_path: Path) -> None:
+    """The command refreshes the outputs of a portable project and counts its surfaces."""
     repo = _build_fixture(tmp_path)
     code = TOOL.main(["--repo", str(repo), "--config", "tools/capability_manifest.toml"])
     assert code == 0
@@ -398,6 +426,7 @@ def test_cli_refreshes_outputs_and_reports_polyglot_counts(tmp_path: Path) -> No
 
 
 def test_cli_check_passes_when_in_sync_and_fails_on_drift(tmp_path: Path) -> None:
+    """The --check command exits 0 when current and 1 after drift."""
     repo = _build_fixture(tmp_path)
     TOOL.main(["--repo", str(repo)])
     assert TOOL.main(["--repo", str(repo), "--check"]) == 0
@@ -406,6 +435,7 @@ def test_cli_check_passes_when_in_sync_and_fails_on_drift(tmp_path: Path) -> Non
 
 
 def test_cli_validate_returns_status_codes(tmp_path: Path) -> None:
+    """The --validate command exits 0 for a valid manifest and 1 for an invalid one."""
     repo = _build_fixture(tmp_path)
     TOOL.main(["--repo", str(repo)])
     good = repo / "docs/_generated/capability_manifest.json"
@@ -416,6 +446,7 @@ def test_cli_validate_returns_status_codes(tmp_path: Path) -> None:
 
 
 def test_cli_no_readme_skips_block_refresh(tmp_path: Path) -> None:
+    """The --no-readme command writes outputs without needing README markers."""
     repo = _build_fixture(tmp_path)
     (repo / "README.md").write_text("# No markers\n", encoding="utf-8")
     # Without README refresh the missing markers must not raise.
@@ -424,6 +455,7 @@ def test_cli_no_readme_skips_block_refresh(tmp_path: Path) -> None:
 
 
 def test_cli_subprocess_entry_point(tmp_path: Path) -> None:
+    """The tool runs as a script and reports the refresh."""
     repo = _build_fixture(tmp_path)
     tool_path = _repo_root() / "tools" / "capability_manifest.py"
     result = subprocess.run(
@@ -572,6 +604,7 @@ def _build_fixture(root: Path) -> Path:
 
 
 def test_literal_string_list_returns_empty_for_non_list() -> None:
+    """A node that is not a list gives no strings."""
     import ast
 
     from tools.capability_manifest import _literal_string_list
@@ -582,6 +615,7 @@ def test_literal_string_list_returns_empty_for_non_list() -> None:
 
 @pytest.fixture
 def real_repository_snapshot(tmp_path: Path) -> Path:
+    """Return an extracted git archive of HEAD for the inventory tests."""
     archive = tmp_path / "source.tar"
     subprocess.run(["git", "archive", "--output", str(archive), "HEAD"], cwd=_repo_root(), check=True)
     snapshot = tmp_path / "repository"
@@ -595,6 +629,7 @@ def real_repository_snapshot(tmp_path: Path) -> Path:
 def test_public_inventory_rejects_missing_or_nonlist_workspace_members(
     real_repository_snapshot: Path, missing_manifest: bool
 ) -> None:
+    """Missing or non-list workspace members give no crates."""
     workspace = real_repository_snapshot / "scpn-mif-rs/Cargo.toml"
     if missing_manifest:
         workspace.unlink()
@@ -609,6 +644,7 @@ def test_public_inventory_rejects_missing_or_nonlist_workspace_members(
 def test_public_inventory_excludes_invalid_members_build_artifacts_and_escaped_symlinks(
     real_repository_snapshot: Path, tmp_path: Path
 ) -> None:
+    """Invalid members, build output and escaping symlinks are excluded, and each crate appears once."""
     rust = real_repository_snapshot / "scpn-mif-rs"
     workspace = rust / "Cargo.toml"
     actual_crate = rust / "crates/mif-aer"

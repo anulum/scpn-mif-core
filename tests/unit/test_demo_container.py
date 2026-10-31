@@ -35,12 +35,14 @@ def _instructions() -> list[str]:
 
 
 def test_base_image_is_pinned_by_digest() -> None:
+    """The demo image has one base, pinned by digest."""
     bases = [line for line in _instructions() if line.startswith("FROM ")]
     assert len(bases) == 1
     assert re.fullmatch(r"FROM python:3\.12-slim@sha256:[0-9a-f]{64}", bases[0])
 
 
 def test_demo_runs_as_an_unprivileged_user() -> None:
+    """The demo switches to the unprivileged user before running make demo."""
     instructions = _instructions()
     users = [line for line in instructions if line.startswith("USER ")]
     assert users == ["USER mif"]
@@ -51,6 +53,7 @@ def test_demo_runs_as_an_unprivileged_user() -> None:
 
 
 def test_build_context_is_an_allowlist() -> None:
+    """The build context admits only the allowlisted paths, all existing and none private."""
     entries = [
         line.strip()
         for line in (REPO / ".dockerignore").read_text(encoding="utf-8").splitlines()
@@ -65,5 +68,6 @@ def test_build_context_is_an_allowlist() -> None:
 
 
 def test_dependabot_tracks_the_base_image() -> None:
+    """Dependabot watches the Docker base image."""
     text = (REPO / ".github" / "dependabot.yml").read_text(encoding="utf-8")
     assert '  - package-ecosystem: docker\n    directory: "/"\n' in text

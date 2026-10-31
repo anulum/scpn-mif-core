@@ -36,10 +36,12 @@ def _extra_javascript() -> list[str]:
 
 
 def test_site_scripts_are_listed() -> None:
+    """The site loads exactly the pinned MathJax script."""
     assert _extra_javascript() == ["https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"]
 
 
 def test_site_scripts_avoid_forbidden_hosts() -> None:
+    """No active configuration line names a forbidden script host."""
     text = (REPO / "mkdocs.yml").read_text(encoding="utf-8")
     for line in text.splitlines():
         if line.lstrip().startswith("#"):
@@ -49,6 +51,7 @@ def test_site_scripts_avoid_forbidden_hosts() -> None:
 
 
 def test_site_scripts_pin_exact_versions() -> None:
+    """Every site script comes from an allowed CDN at an exact version."""
     for url in _extra_javascript():
         assert url.startswith(ALLOWED_SCRIPT_PREFIXES), url
         package = url.removeprefix("https://cdn.jsdelivr.net/npm/").split("/", 1)[0]
