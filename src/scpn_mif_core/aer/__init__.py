@@ -14,6 +14,8 @@ These are upstream-pending for SCPN-CONTROL ``AERControlObservation``; see
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from scpn_mif_core._dispatch import is_rust_available, preferred_backend
 from scpn_mif_core.aer.event_integrity import (
     AER_ADDRESS_MAP_SCHEMA_VERSION,
@@ -60,33 +62,56 @@ from scpn_mif_core.aer.spike_buffer import (
     decode_spike_observation,
 )
 
+if TYPE_CHECKING:
+    from scpn_mif_core.aer._rust_adapter import RustBackedSpikeBuffer
+
 _SPIKE_BUFFER_KERNEL = "aer.spike_buffer"
 _DECODE_RATE_KERNEL = "aer.decode_rate"
 
 
-def dispatched_aer_spike_buffer(capacity: int) -> SpikeBuffer:
-    """Return an AER spike buffer backed by the fastest available backend."""
+def dispatched_aer_spike_buffer(capacity: int) -> SpikeBuffer | RustBackedSpikeBuffer:
+    """Return an AER spike buffer backed by the fastest available backend.
+
+    The Rust-backed buffer has the same public methods as :class:`SpikeBuffer`
+    but is a separate class, so the return type names both.
+    """
     if preferred_backend(_SPIKE_BUFFER_KERNEL) == "rust" and is_rust_available():
         try:
             from scpn_mif_core.aer._rust_adapter import RustBackedSpikeBuffer
         except ModuleNotFoundError:
             return SpikeBuffer(capacity)
 
-        return RustBackedSpikeBuffer(capacity)  # type: ignore[return-value]
+        return RustBackedSpikeBuffer(capacity)
     return SpikeBuffer(capacity)
 
 
-def dispatched_decode_spike_features(buffer: SpikeBuffer, spec: AERDecodeSpec) -> FloatArray:
-    """Decode AER features through the fastest available backend for the strategy."""
-    if spec.strategy == "rate" and preferred_backend(_DECODE_RATE_KERNEL) == "rust" and is_rust_available():
-        try:
-            from scpn_mif_core.aer._rust_adapter import RustBackedSpikeBuffer, rust_decode_spike_features
-        except ModuleNotFoundError:
-            return decode_spike_features(buffer, spec)
+def dispatched_decode_spike_features(buffer: SpikeBuffer | RustBackedSpikeBuffer, spec: AERDecodeSpec) -> FloatArray:
+    """Decode AER features through the fastest available backend for the strategy.
 
-        if isinstance(buffer, RustBackedSpikeBuffer):
-            return rust_decode_spike_features(buffer, spec)
-    return decode_spike_features(buffer, spec)
+    A Python :class:`SpikeBuffer` is decoded on the Python floor. A Rust-backed
+    buffer is decoded by the Rust kernel for the ``rate`` strategy when that
+    kernel is preferred and available; for every other case its events are
+    mirrored into a Python buffer and decoded on the Python floor, so each
+    strategy works for either buffer.
+    """
+    if isinstance(buffer, SpikeBuffer):
+        return decode_spike_features(buffer, spec)
+    return _decode_rust_backed_features(buffer, spec)
+
+
+def _decode_rust_backed_features(buffer: object, spec: AERDecodeSpec) -> FloatArray:
+    try:
+        from scpn_mif_core.aer._rust_adapter import RustBackedSpikeBuffer, rust_decode_spike_features
+    except ModuleNotFoundError as error:
+        raise TypeError("buffer must be a SpikeBuffer") from error
+    if not isinstance(buffer, RustBackedSpikeBuffer):
+        raise TypeError("buffer must be a SpikeBuffer or a Rust-backed spike buffer")
+    if spec.strategy == "rate" and preferred_backend(_DECODE_RATE_KERNEL) == "rust" and is_rust_available():
+        return rust_decode_spike_features(buffer, spec)
+    mirror = SpikeBuffer(buffer.capacity)
+    for event in buffer.events:
+        mirror.push(event)
+    return decode_spike_features(mirror, spec)
 
 
 __all__ = [

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 import pytest
 
@@ -90,6 +90,36 @@ def test_rust_adapter_clear_and_dispatched_decode(monkeypatch: pytest.MonkeyPatc
     assert len(buffer) == 0
 
 
+@pytest.mark.parametrize(
+    ("strategy", "preferred"),
+    [("temporal", "rust"), ("isi", "rust"), ("rate", "python")],
+)
+def test_dispatched_decode_mirrors_rust_buffer_onto_the_python_floor(
+    monkeypatch: pytest.MonkeyPatch, strategy: Literal["rate", "temporal", "isi"], preferred: str
+) -> None:
+    """Every strategy decodes a Rust-backed buffer; only rate may use the Rust kernel."""
+    import scpn_mif_core.aer as aer
+    from scpn_mif_core.aer._rust_adapter import RustBackedSpikeBuffer
+
+    monkeypatch.setattr(aer, "preferred_backend", lambda _kernel: preferred)
+    doc = _fixture_doc()
+    spec = AERDecodeSpec(n_channels=int(doc["n_channels"]), window_ns=int(doc["window_ns"]), strategy=strategy)
+    buffer = RustBackedSpikeBuffer(16)
+    for event in _py_buffer().events:
+        buffer.push(event)
+
+    features = aer.dispatched_decode_spike_features(buffer, spec)
+
+    assert features.tolist() == decode_spike_features(_py_buffer(), spec).tolist()
+
+
+def test_dispatched_decode_refuses_a_non_buffer_with_the_extension_present() -> None:
+    import scpn_mif_core.aer as aer
+
+    with pytest.raises(TypeError, match="Rust-backed spike buffer"):
+        aer.dispatched_decode_spike_features(cast(Any, object()), AERDecodeSpec(n_channels=1, window_ns=10))
+
+
 def test_rust_adapter_rejects_invalid_event_object(monkeypatch: pytest.MonkeyPatch) -> None:
     import scpn_mif_core.aer as aer
 
@@ -98,7 +128,7 @@ def test_rust_adapter_rejects_invalid_event_object(monkeypatch: pytest.MonkeyPat
     buffer = aer.dispatched_aer_spike_buffer(capacity=4)
 
     with pytest.raises(TypeError, match="AERSpikeEvent"):
-        buffer.push(object())
+        buffer.push(cast(Any, object()))
 
 
 def test_python_and_rust_reject_window_overflow() -> None:

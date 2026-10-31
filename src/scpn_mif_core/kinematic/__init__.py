@@ -18,6 +18,8 @@ MIF-011 Lean proof surface. These are upstream-pending for SCPN-PHASE-ORCHESTRAT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from numpy.typing import ArrayLike
 
 from scpn_mif_core._dispatch import is_rust_available, preferred_backend
@@ -94,18 +96,26 @@ _SAFETY_CERTIFICATE_KERNEL = "kinematic.sampled_safety_certificate"
 _STREAMING_TRIGGER_KERNEL = "kinematic.streaming_trigger"
 _TRIGGER_PROBABILITY_KERNEL = "kinematic.trigger_probability"
 
+if TYPE_CHECKING:
+    from scpn_mif_core.kinematic._rust_adapter import (
+        RustBackedDopplerKuramoto,
+        RustBackedMergeWindowMonitor,
+        RustBackedMovingFrameUPDE,
+        RustBackedStreamingMergeTrigger,
+    )
+
 
 def dispatched_doppler_kuramoto(
     spec: DopplerKuramotoSpec,
     phases_rad: ArrayLike,
     positions_m: ArrayLike,
     velocities_m_s: ArrayLike,
-) -> DopplerKuramoto:
+) -> DopplerKuramoto | RustBackedDopplerKuramoto:
     """Return a Doppler-Kuramoto engine backed by the fastest available backend."""
     if preferred_backend(_DOPPLER_KERNEL) == "rust" and is_rust_available():
         from scpn_mif_core.kinematic._rust_adapter import RustBackedDopplerKuramoto
 
-        return RustBackedDopplerKuramoto(spec, phases_rad, positions_m, velocities_m_s)  # type: ignore[return-value]
+        return RustBackedDopplerKuramoto(spec, phases_rad, positions_m, velocities_m_s)
     return DopplerKuramoto(spec, phases_rad, positions_m, velocities_m_s)
 
 
@@ -114,30 +124,32 @@ def dispatched_moving_frame_upde(
     phases_rad: ArrayLike,
     positions_m: ArrayLike,
     velocities_m_s: ArrayLike,
-) -> MovingFrameUPDE:
+) -> MovingFrameUPDE | RustBackedMovingFrameUPDE:
     """Return a moving-frame UPDE engine backed by the fastest available backend."""
     if preferred_backend(_MOVING_FRAME_KERNEL) == "rust" and is_rust_available():
         from scpn_mif_core.kinematic._rust_adapter import RustBackedMovingFrameUPDE
 
-        return RustBackedMovingFrameUPDE(spec, phases_rad, positions_m, velocities_m_s)  # type: ignore[return-value]
+        return RustBackedMovingFrameUPDE(spec, phases_rad, positions_m, velocities_m_s)
     return MovingFrameUPDE(spec, phases_rad, positions_m, velocities_m_s)
 
 
-def dispatched_merge_window_monitor(spec: MergeWindowSpec) -> MergeWindowMonitor:
+def dispatched_merge_window_monitor(spec: MergeWindowSpec) -> MergeWindowMonitor | RustBackedMergeWindowMonitor:
     """Return a merge-window monitor backed by the fastest available backend."""
     if preferred_backend(_MERGE_WINDOW_KERNEL) == "rust" and is_rust_available():
         from scpn_mif_core.kinematic._rust_adapter import RustBackedMergeWindowMonitor
 
-        return RustBackedMergeWindowMonitor(spec)  # type: ignore[return-value]
+        return RustBackedMergeWindowMonitor(spec)
     return MergeWindowMonitor(spec)
 
 
-def dispatched_streaming_merge_trigger(spec: StreamingTriggerSpec) -> StreamingMergeTrigger:
+def dispatched_streaming_merge_trigger(
+    spec: StreamingTriggerSpec,
+) -> StreamingMergeTrigger | RustBackedStreamingMergeTrigger:
     """Return a streaming merge-trigger engine backed by the fastest available backend."""
     if preferred_backend(_STREAMING_TRIGGER_KERNEL) == "rust" and is_rust_available():
         from scpn_mif_core.kinematic._rust_adapter import RustBackedStreamingMergeTrigger
 
-        return RustBackedStreamingMergeTrigger(spec)  # type: ignore[return-value]
+        return RustBackedStreamingMergeTrigger(spec)
     return StreamingMergeTrigger(spec)
 
 

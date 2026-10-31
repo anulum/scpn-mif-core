@@ -305,6 +305,17 @@ def test_dispatched_decode_falls_back_when_rust_adapter_is_unavailable(monkeypat
     assert dispatched.tolist() == reference.tolist()
 
 
+def test_dispatched_decode_refuses_a_non_buffer(monkeypatch: pytest.MonkeyPatch) -> None:
+    import sys
+
+    spec = AERDecodeSpec(n_channels=4, window_ns=100)
+    with pytest.raises(TypeError, match="SpikeBuffer"):
+        dispatched_decode_spike_features(cast(Any, object()), spec)
+    monkeypatch.setitem(sys.modules, "scpn_mif_core.aer._rust_adapter", None)
+    with pytest.raises(TypeError, match=r"^buffer must be a SpikeBuffer$"):
+        dispatched_decode_spike_features(cast(Any, object()), spec)
+
+
 def test_spike_event_rejects_non_integer_polarity() -> None:
     with pytest.raises(TypeError, match="polarity must be an integer"):
         AERSpikeEvent(address=0, t_ns=0, polarity=cast(Any, "positive"))

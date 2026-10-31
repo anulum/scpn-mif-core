@@ -120,6 +120,15 @@
 
 ### Fixed
 
+- `dispatched_decode_spike_features` no longer raises `TypeError` for a
+  Rust-backed spike buffer with the `temporal` or `isi` strategy (or with
+  `rate` when the Python kernel is preferred): such a buffer is mirrored into
+  a Python buffer and decoded on the Python floor, and only `rate` with the
+  Rust kernel preferred uses the Rust decoder. The `dispatched_*` factories
+  now declare that they return the Python class or its Rust-backed adapter,
+  instead of hiding the adapter behind `type: ignore`, so a caller that uses
+  a member only one backend has is reported by the type checker.
+
 - `scpn-mif run` and `load_merge_window_predictor_weights` now decode their
   JSON files strictly: a repeated member name (previously the last one won
   silently, so a scenario could run on values a reader did not see), a `NaN`
