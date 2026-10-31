@@ -58,6 +58,7 @@ def _helion_udp_frame(sequence: int = 7, t_ns: int = 1_000) -> RawDaqFrame:
 
 
 def test_helion_and_tae_profiles_are_configured() -> None:
+    """The Helion and TAE profiles carry their four channels and sample periods."""
     helion = helion_descriptor_profile()
     tae = tae_descriptor_profile()
 
@@ -82,6 +83,7 @@ def test_descriptor_profile_rejects_invalid_wire_descriptors(
     profile_factory: Callable[[], DescriptorProfile],
     message: str,
 ) -> None:
+    """Invalid wire descriptors in a profile are refused with their message."""
     with pytest.raises(ValueError, match=message):
         profile_factory()
 
@@ -118,6 +120,7 @@ def test_raw_frame_rejects_invalid_temporal_and_value_contracts(
     frame_factory: Callable[[], RawDaqFrame],
     message: str,
 ) -> None:
+    """A raw frame with invalid timing or values is refused with its message."""
     with pytest.raises(ValueError, match=message):
         frame_factory()
 
@@ -134,11 +137,13 @@ def test_raw_frame_rejects_invalid_temporal_and_value_contracts(
     ],
 )
 def test_replay_config_rejects_invalid_bus_bounds(config_factory: Callable[[], ReplayConfig], message: str) -> None:
+    """A replay configuration with invalid bus bounds is refused with its message."""
     with pytest.raises(ValueError, match=message):
         config_factory()
 
 
 def test_byte_stable_helion_udp_fixture_round_trips() -> None:
+    """The Helion UDP frame encodes to the fixed bytes, starts with the magic and decodes back."""
     frame = _helion_udp_frame()
     encoded = frame.to_bytes()
     decoded = decode_daq_frame(encoded, helion_descriptor_profile())
@@ -152,6 +157,7 @@ def test_byte_stable_helion_udp_fixture_round_trips() -> None:
 
 
 def test_reference_corpus_declares_non_captured_claim_boundary() -> None:
+    """The reference corpus is marked synthetic, not captured from hardware and not calibrated evidence."""
     corpus = _fixture()
 
     assert corpus["schema"] == "scpn-mif-core/daq-reference-corpus/1.0.0"
@@ -161,6 +167,7 @@ def test_reference_corpus_declares_non_captured_claim_boundary() -> None:
 
 
 def test_reference_corpus_decodes_raw_frames_and_calibration_manifest() -> None:
+    """Every corpus frame decodes to its recorded sequence, time and values under a unit calibration."""
     corpus = _fixture()
     profile = helion_descriptor_profile()
 
@@ -181,6 +188,7 @@ def test_reference_corpus_decodes_raw_frames_and_calibration_manifest() -> None:
 
 
 def test_reference_corpus_replays_through_public_daq_api() -> None:
+    """The corpus replays through the public bus as two samples with the recorded values, then nothing."""
     corpus = _fixture()
     bus = DataBusMock(ReplayConfig(mode="udp_multicast", profile=helion_descriptor_profile()))
     bus.bind(corpus["bind_endpoint"])
@@ -198,6 +206,7 @@ def test_reference_corpus_replays_through_public_daq_api() -> None:
 
 
 def test_reference_corpus_negative_frames_fail_closed() -> None:
+    """Corpus frames with bad checksum, profile, sequence or time are refused."""
     corpus = _fixture()
     profile = helion_descriptor_profile()
     negative = corpus["negative_frames"]
@@ -216,6 +225,7 @@ def test_reference_corpus_negative_frames_fail_closed() -> None:
 
 
 def test_udp_multicast_mock_validates_endpoint_and_emits_diagnostic_sample() -> None:
+    """The UDP mock emits the injected sample and refuses non-multicast, malformed and bad-port endpoints."""
     bus = DataBusMock(ReplayConfig(mode="udp_multicast", profile=helion_descriptor_profile()))
     bus.bind("239.10.0.1:5000")
     bus.inject_frame(_helion_udp_frame())
@@ -236,6 +246,7 @@ def test_udp_multicast_mock_validates_endpoint_and_emits_diagnostic_sample() -> 
 
 
 def test_pcie_dma_mock_requires_non_empty_endpoint() -> None:
+    """The PCIe DMA mock refuses an empty endpoint and binds a device path."""
     bus = DataBusMock(ReplayConfig(mode="pcie_dma_ring", profile=helion_descriptor_profile()))
 
     with pytest.raises(ValueError, match="non-empty"):
@@ -246,6 +257,7 @@ def test_pcie_dma_mock_requires_non_empty_endpoint() -> None:
 
 
 def test_pcie_dma_ring_overwrites_oldest_and_counts_drop() -> None:
+    """A full ring overwrites its oldest frame and counts the drop."""
     profile = helion_descriptor_profile()
     bus = DataBusMock(ReplayConfig(mode="pcie_dma_ring", profile=profile, ring_capacity=2))
     for sequence in range(3):
@@ -267,6 +279,7 @@ def test_pcie_dma_ring_overwrites_oldest_and_counts_drop() -> None:
 
 
 def test_replay_throughput_report_preserves_timestamp_semantics() -> None:
+    """Replaying 128 frames keeps their time range and meets the throughput baseline."""
     profile = helion_descriptor_profile()
     frames = tuple(
         RawDaqFrame(
@@ -289,6 +302,7 @@ def test_replay_throughput_report_preserves_timestamp_semantics() -> None:
 
 
 def test_bus_rejects_sequence_replay_and_timestamp_regression() -> None:
+    """The bus refuses a repeated sequence and a backwards timestamp."""
     profile = helion_descriptor_profile()
     bus = DataBusMock(ReplayConfig(mode="udp_multicast", profile=profile))
     bus.inject_frame(_helion_udp_frame(sequence=7, t_ns=1_000))
@@ -300,6 +314,7 @@ def test_bus_rejects_sequence_replay_and_timestamp_regression() -> None:
 
 
 def test_replay_throughput_rejects_sequence_replay() -> None:
+    """Throughput replay refuses repeated sequences."""
     profile = helion_descriptor_profile()
     frames = (
         RawDaqFrame("udp_multicast", profile, 2, 100, (500.0, 2.5e21, 0.0, 1.0e8)),
@@ -312,6 +327,7 @@ def test_replay_throughput_rejects_sequence_replay() -> None:
 
 
 def test_replay_throughput_rejects_timestamp_regression_and_empty_frames() -> None:
+    """Throughput replay refuses no frames and backwards timestamps."""
     profile = helion_descriptor_profile()
     frames = (
         RawDaqFrame("udp_multicast", profile, 2, 150, (500.0, 2.5e21, 0.0, 1.0e8)),
@@ -326,6 +342,7 @@ def test_replay_throughput_rejects_timestamp_regression_and_empty_frames() -> No
 
 
 def test_rejects_corrupt_and_mismatched_frames() -> None:
+    """Decoding refuses a bad checksum, set reserved bits and a mode mismatch."""
     encoded = bytearray(_helion_udp_frame().to_bytes())
     encoded[-1] ^= 1
     with pytest.raises(ValueError, match="checksum"):
@@ -352,6 +369,7 @@ def test_rejects_corrupt_and_mismatched_frames() -> None:
     ],
 )
 def test_decode_rejects_malformed_header_fields(offset: int, value: int, message: str) -> None:
+    """A malformed header field is refused with its message."""
     payload = bytearray(_helion_udp_frame().to_bytes())
     payload[offset] = value
 
@@ -360,6 +378,7 @@ def test_decode_rejects_malformed_header_fields(offset: int, value: int, message
 
 
 def test_decode_rejects_short_payload_length_value_count_and_profile_mismatch() -> None:
+    """Decoding refuses a short frame, a wrong payload length and a profile mismatch."""
     encoded = _helion_udp_frame().to_bytes()
     with pytest.raises(ValueError, match="shorter"):
         decode_daq_frame(encoded[:8], helion_descriptor_profile())
@@ -374,6 +393,7 @@ def test_decode_rejects_short_payload_length_value_count_and_profile_mismatch() 
 
 
 def test_decode_rejects_descriptor_value_count_that_does_not_match_profile() -> None:
+    """A descriptor value count that differs from the profile is refused."""
     payload = b"".join(struct.pack("<d", value) for value in (1.0, 2.0, 3.0))
     encoded = (
         struct.pack(
@@ -397,6 +417,7 @@ def test_decode_rejects_descriptor_value_count_that_does_not_match_profile() -> 
 
 
 def test_dispatched_bus_uses_python_fallback_when_rust_is_not_available(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without the Rust extension the dispatcher returns the Python bus."""
     import scpn_mif_core.daq as daq
 
     monkeypatch.setattr(daq, "preferred_backend", lambda _kernel: "rust")
@@ -409,6 +430,7 @@ def test_dispatched_bus_uses_python_fallback_when_rust_is_not_available(monkeypa
 
 
 def test_dispatched_bus_falls_back_to_python_when_rust_adapter_is_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    """When the Rust adapter cannot load, the dispatcher returns the Python bus."""
     import sys
 
     import scpn_mif_core.daq as daq
@@ -424,6 +446,7 @@ def test_dispatched_bus_falls_back_to_python_when_rust_adapter_is_unavailable(mo
 
 
 def test_profile_by_id_rejects_unknown_profile() -> None:
+    """An unknown profile id is refused."""
     from scpn_mif_core.daq.bus_mock import _profile_by_id
 
     with pytest.raises(ValueError, match="unknown DAQ descriptor profile"):

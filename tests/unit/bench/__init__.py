@@ -5,3 +5,4 @@
 # ORCID: 0009-0009-3560-0851
 # Contact: www.anulum.li | protoscience@anulum.li
 # SCPN-MIF-CORE — benchmark tooling unit-test package.
+"""Unit tests of the benchmark dashboard generator."""

@@ -103,11 +103,13 @@ def _write(directory: Path, name: str, document: object) -> Path:
 
 
 def test_committed_dashboard_is_current() -> None:
+    """The committed dashboard has no drift and equals a fresh render."""
     assert check_dashboard() == ()
     assert DASHBOARD_PATH.read_text(encoding="utf-8") == render(build_dashboard())
 
 
 def test_committed_dashboard_aggregates_real_kernels_honestly() -> None:
+    """The committed dashboard counts 19 kernels and 34 groups, Python on all and Rust on 18."""
     dashboard = build_dashboard()
 
     assert dashboard["schema"] == "scpn-mif-core/benchmark-dashboard/1.0.0"
@@ -135,6 +137,7 @@ def test_committed_dashboard_aggregates_real_kernels_honestly() -> None:
 
 
 def test_environments_surface_real_toolchain_spread() -> None:
+    """The dashboard lists both Go toolchains and both CPython patch levels the runs really used."""
     environments = build_dashboard()["environments"]
     assert isinstance(environments, dict)
     toolchains = environments["toolchains"]
@@ -153,6 +156,7 @@ def test_environments_surface_real_toolchain_spread() -> None:
 
 
 def test_merge_window_ranking_and_runtime_comparability() -> None:
+    """Rust ranks fastest for the merge-window trace; Python is the runtime reference and Julia a non-comparable parity CLI."""
     kernel = _kernel(build_dashboard(), "merge_window")
     assert kernel["dispatch_key"] == "kinematic.merge_window"
     trace = _group(kernel, "merge_window.trace_256")
@@ -168,6 +172,7 @@ def test_merge_window_ranking_and_runtime_comparability() -> None:
 
 
 def test_cosimulation_fixture_never_wins_the_runtime_ranking() -> None:
+    """The SystemVerilog cosimulation fixture is not runtime-comparable, so Python ranks fastest in its group."""
     kernel = _kernel(build_dashboard(), "adc_to_spike_quantiser")
     assert kernel["dispatch_key"] is None
     group = _group(kernel, "adc_to_spike_quantiser.cycle_4096")
@@ -195,15 +200,18 @@ def test_cosimulation_fixture_never_wins_the_runtime_ranking() -> None:
     ],
 )
 def test_backend_of(test_name: str, expected: str) -> None:
+    """Each benchmark test name maps to its backend."""
     assert backend_of(test_name) == expected
 
 
 def test_role_of_known_and_unknown() -> None:
+    """A known backend has its role and an unknown one gets the unknown role."""
     assert role_of("rust") == "runtime"
     assert role_of("mystery") == UNKNOWN_ROLE
 
 
 def test_dispatch_key_for_matches_and_misses() -> None:
+    """Kernel names map to their dispatch keys, and a kernel without one maps to None."""
     keys = ("kinematic.merge_window", "daq.udp_multicast_mock")
     assert dispatch_key_for("merge_window", keys) == "kinematic.merge_window"
     assert dispatch_key_for("daq_udp_multicast_mock", keys) == "daq.udp_multicast_mock"
@@ -211,6 +219,7 @@ def test_dispatch_key_for_matches_and_misses() -> None:
 
 
 def test_is_comparison_result_variants() -> None:
+    """Only a mapping with test entries and benchmark context is a comparison result."""
     assert is_comparison_result(_comparison_result()) is True
     assert is_comparison_result(["not", "a", "dict"]) is False
     assert is_comparison_result({"tests": [], "benchmark_context": {}}) is False
@@ -218,6 +227,7 @@ def test_is_comparison_result_variants() -> None:
 
 
 def test_dispatch_keys_parses_only_the_kernels_table(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Dispatch keys are read only from the kernels table, ignoring comments; no table gives none."""
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text(
         "\n".join(
@@ -247,6 +257,7 @@ def test_dispatch_keys_parses_only_the_kernels_table(tmp_path: Path, monkeypatch
 
 
 def test_all_parity_group_ranks_within_parity_and_handles_zero_mean(tmp_path: Path) -> None:
+    """A group of parity backends ranks among them, omits ratios at zero mean and drops absent optional fields."""
     document = _comparison_result(
         kernel="parity_only",
         tests=[
@@ -275,6 +286,7 @@ def test_all_parity_group_ranks_within_parity_and_handles_zero_mean(tmp_path: Pa
 
 
 def test_provenance_and_environments_ignore_non_string_metadata(tmp_path: Path) -> None:
+    """Non-string host, version and governor metadata become null provenance and empty sets."""
     document = _comparison_result(
         kernel="loose_metadata",
         host=None,
@@ -307,6 +319,7 @@ def test_provenance_and_environments_ignore_non_string_metadata(tmp_path: Path) 
 
 
 def test_environments_aggregate_over_multiple_kernels(tmp_path: Path) -> None:
+    """Hosts and toolchains are collected across several kernels."""
     # First kernel ends its runtime-versions loop on a filtered ("python") entry,
     # so control returns to the outer kernel loop with a second kernel pending.
     first = _comparison_result(
@@ -337,6 +350,7 @@ def test_environments_aggregate_over_multiple_kernels(tmp_path: Path) -> None:
 
 
 def test_duplicate_backend_rows_are_deduplicated_in_the_kernel_summary(tmp_path: Path) -> None:
+    """A backend listed twice appears once in the kernel summary."""
     document = _comparison_result(
         kernel="repeat_backend",
         tests=[
@@ -351,6 +365,7 @@ def test_duplicate_backend_rows_are_deduplicated_in_the_kernel_summary(tmp_path:
 
 
 def test_two_rows_of_one_backend_in_a_group_keep_their_own_means(tmp_path: Path) -> None:
+    """Two rows of one backend in a group keep their own means and ratios."""
     document = _comparison_result(
         kernel="twin_rust",
         tests=[
@@ -373,6 +388,7 @@ def test_two_rows_of_one_backend_in_a_group_keep_their_own_means(tmp_path: Path)
 
 
 def test_exclusion_reasons_cover_schema_and_unrecognised_inputs(tmp_path: Path) -> None:
+    """Files with another schema or none are excluded, each with its reason."""
     _write(tmp_path, "with_schema.json", {"schema": "example/1.0.0", "tiers": []})
     _write(tmp_path, "no_schema.json", {"totals": {}})
     _write(tmp_path, "list_document.json", ["not", "an", "object"])
@@ -394,6 +410,7 @@ def test_exclusion_reasons_cover_schema_and_unrecognised_inputs(tmp_path: Path) 
 
 
 def test_non_object_test_entry_fails_loudly(tmp_path: Path) -> None:
+    """A test entry that is not an object is refused."""
     document = _comparison_result(tests=[123])
     _write(tmp_path, "bad_test_entry.json", document)
     with pytest.raises(ValueError, match="must contain a JSON object"):
@@ -401,6 +418,7 @@ def test_non_object_test_entry_fails_loudly(tmp_path: Path) -> None:
 
 
 def test_missing_mean_fails_loudly(tmp_path: Path) -> None:
+    """A test entry without mean_ns is refused."""
     document = _comparison_result(
         tests=[{"name": "test_bench_rust_a", "group": "k.a", "mean_ns": "fast"}],
     )
@@ -410,6 +428,7 @@ def test_missing_mean_fails_loudly(tmp_path: Path) -> None:
 
 
 def test_non_string_group_fails_loudly(tmp_path: Path) -> None:
+    """A non-string group name is refused."""
     document = _comparison_result(
         tests=[{"name": "test_bench_rust_a", "group": 7, "mean_ns": 10.0}],
     )
@@ -419,6 +438,7 @@ def test_non_string_group_fails_loudly(tmp_path: Path) -> None:
 
 
 def test_non_object_runtime_versions_fails_loudly(tmp_path: Path) -> None:
+    """runtime_versions that is not an object is refused."""
     document = _comparison_result(
         context={"command": "pytest ...", "runtime_versions": ["python", "rust"]},
     )
@@ -433,6 +453,7 @@ def test_non_object_runtime_versions_fails_loudly(tmp_path: Path) -> None:
 
 
 def test_write_and_check_detect_drift(tmp_path: Path) -> None:
+    """A written dashboard passes the check, and an edited one is reported stale."""
     results = tmp_path / "results"
     results.mkdir()
     _write(results, "k.json", _comparison_result(kernel="k"))
@@ -448,12 +469,14 @@ def test_write_and_check_detect_drift(tmp_path: Path) -> None:
 
 
 def test_check_reports_missing_dashboard(tmp_path: Path) -> None:
+    """A missing dashboard is reported."""
     errors = check_dashboard(dashboard_path=tmp_path / "absent.json")
     assert len(errors) == 1
     assert "missing benchmark dashboard" in errors[0]
 
 
 def test_main_write_and_check_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The command writes the dashboard, --check passes, then fails after drift."""
     results = tmp_path / "results"
     results.mkdir()
     _write(results, "k.json", _comparison_result(kernel="k"))
@@ -470,6 +493,7 @@ def test_main_write_and_check_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPa
 
 
 def test_main_write_reports_path_outside_repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The command writes a dashboard outside the repository."""
     results = tmp_path / "results"
     results.mkdir()
     _write(results, "k.json", _comparison_result(kernel="k"))
