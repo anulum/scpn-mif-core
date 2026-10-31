@@ -98,7 +98,9 @@ def test_generated_dependency_locks_preserve_license_headers() -> None:
         "requirements/full-chain-ci.txt",
         "studio-web/pnpm-lock.yaml",
     ):
+        # REUSE-IgnoreStart
         assert _read(path).startswith("# SPDX-License-Identifier: AGPL-3.0-or-later\n")
+        # REUSE-IgnoreEnd
 
 
 def test_dependabot_routes_broad_dev_ranges_to_manual_lock_refresh() -> None:

@@ -1,0 +1,15 @@
+United States Patent and Trademark Office public record
+
+This file is a copy of a United States patent document as published by the
+United States Patent and Trademark Office (USPTO). It is not a work of the
+SCPN-MIF-CORE project and is not licensed under the project licence.
+
+The USPTO terms of use state that, subject to limited exceptions reflected in
+37 CFR 1.71(d) & (e), the text and drawings of a patent are typically not
+subject to copyright restrictions, and that this does not give permission to
+manufacture or use the invention without permission from the inventor. The
+copy is redistributed on that basis as an unmodified public record, for
+reference only.
+
+Terms of use: https://www.uspto.gov/terms-use-uspto-websites (read 2026-10-31)
+Patent record: https://patents.google.com/patent/US12567738B1/en

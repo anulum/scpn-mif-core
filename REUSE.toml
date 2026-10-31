@@ -1,17 +1,31 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
+# Commercial license available
+# © Concepts 1996–2026 Miroslav Šotek. All rights reserved.
+# © Code 2020–2026 Miroslav Šotek. All rights reserved.
+# ORCID: 0009-0009-3560-0851
+# Contact: www.anulum.li | protoscience@anulum.li
+# SCPN-MIF-CORE — REUSE 3.x licensing metadata
+
 version = 1
 
+# Every tracked file belongs to this project under one licence. Files whose
+# own header carries the licence keep it; the annotation supplies what a
+# header cannot carry (JSON, lock files, images, the PDF, empty markers) and
+# the copyright line of headers that state only the licence.
 [[annotations]]
-path = ["*.md", "*.txt", "*.json", "*.yaml", "*.yml", "*.toml", "*.cfg", "*.ini", "*.lock", "*.txt", "*.mod", "*.sh", "*.bat", "*.ps1", ".anulum/project-card.json"]
-SPDX-FileCopyrightText = "1996-2026 Miroslav Šotek"
+path = ["**"]
+precedence = "closest"
+SPDX-FileCopyrightText = [
+    "Concepts 1996-2026 Miroslav Šotek. All rights reserved.",
+    "Code 2020-2026 Miroslav Šotek. All rights reserved.",
+]
 SPDX-License-Identifier = "AGPL-3.0-or-later"
 
+# The committed reference patent is a third-party USPTO publication, not this
+# project's work; see docs/external_sources/README.md. It must never inherit
+# the project licence or copyright above.
 [[annotations]]
-path = ["docs/**", "*.png", "*.svg", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.tif"]
-SPDX-FileCopyrightText = "1996-2026 Miroslav Šotek"
-SPDX-License-Identifier = "AGPL-3.0-or-later"
-
-[[annotations]]
-path = ["src/**/*.py", "tests/**/*.py", "bench/**/*.py", "tools/**/*.py", "scpn-mif-rs/**/*.rs", "go/**/*.go", "lean/**/*.lean", "julia/**/*.jl", "hdl/**/*.v", "hdl/**/*.sv", "hdl/**/*.vh", "hdl/**/*.svh", "bench/**/*.ipynb"]
-SPDX-FileCopyrightText = "1996-2026 Miroslav Šotek"
-SPDX-License-Identifier = "AGPL-3.0-or-later"
+path = ["docs/external_sources/US12567738B1.pdf"]
+precedence = "override"
+SPDX-FileCopyrightText = "No copyright claimed by this project: United States Patent and Trademark Office publication US 12,567,738 B1"
+SPDX-License-Identifier = "LicenseRef-USPTO-Public-Record"

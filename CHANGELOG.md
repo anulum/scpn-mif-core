@@ -1,4 +1,5 @@
-<!-- SPDX-License-Identifier: AGPL-3.0-or-later | Commercial license available -->
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<!-- Commercial license available -->
 <!-- © Concepts 1996–2026 Miroslav Šotek. All rights reserved. -->
 <!-- © Code 2020–2026 Miroslav Šotek. All rights reserved. -->
 <!-- ORCID: 0009-0009-3560-0851 -->
@@ -92,6 +93,14 @@
   distribution name that differs from the sibling's `project.name` metadata.
 
 ### Fixed
+
+- Made the repository compliant with the REUSE 3.3 specification and gated it
+  with the pinned `reuse` pre-commit hook: the AGPL-3.0-or-later licence text is
+  committed under `LICENSES/`, one-line `SPDX-License-Identifier` headers that
+  appended the commercial-route sentence were split so the expression is valid,
+  licence strings emitted by generators are excluded from header detection, and
+  `REUSE.toml` covers every tracked file. The committed USPTO reference patent is
+  annotated as a third-party public record, never under the project licence.
 
 - Restored the 100% branch-coverage contract for the sealed formal-claim,
   private-ledger receipt, formal-manifest, and Studio proof-claim tooling, and

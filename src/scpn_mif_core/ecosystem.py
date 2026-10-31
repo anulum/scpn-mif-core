@@ -331,7 +331,9 @@ def render_compatibility_matrix(report: EcosystemReport) -> str:
     """Render the dynamic ecosystem report as Markdown."""
     year_range = "1996\u20132026"
     lines = [
+        # REUSE-IgnoreStart
         "<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->",
+        # REUSE-IgnoreEnd
         "<!-- Commercial license available -->",
         f"<!-- © Concepts {year_range} Miroslav Šotek. All rights reserved. -->",
         f"<!-- © Code {year_range} Miroslav Šotek. All rights reserved. -->",
