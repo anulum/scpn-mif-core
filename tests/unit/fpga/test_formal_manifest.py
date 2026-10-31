@@ -27,10 +27,12 @@ from tools.formal_manifest import (
 
 
 def test_committed_manifest_is_current() -> None:
+    """The committed formal manifest has no drift."""
     assert check_manifest() == []
 
 
 def test_manifest_covers_every_discovered_sby() -> None:
+    """The manifest lists exactly the discovered .sby tasks."""
     manifest = build_manifest()
     discovered = sorted(sby.stem for suite in SUITES for sby in (formal_manifest.FORMAL_ROOT / suite).glob("*.sby"))
     assert sorted(task["name"] for task in manifest["tasks"]) == discovered
@@ -38,6 +40,7 @@ def test_manifest_covers_every_discovered_sby() -> None:
 
 
 def test_manifest_records_mode_depth_catalogue_and_input_digests() -> None:
+    """Each task records its mode, depth and rationale, engine, expected status and the inputs it depends on."""
     manifest = build_manifest()
     by_name = {task["name"]: task for task in manifest["tasks"]}
 
@@ -67,6 +70,7 @@ def test_manifest_records_mode_depth_catalogue_and_input_digests() -> None:
 
 
 def test_check_detects_input_drift(tmp_path: Path) -> None:
+    """Changing an RTL input after generation makes the check report drift."""
     # Mirror a minimal formal tree into a temp repo, generate a manifest, then
     # mutate the RTL and confirm the drift gate fires.
     formal_root = tmp_path / "hdl" / "formal"
@@ -106,12 +110,14 @@ def test_check_detects_input_drift(tmp_path: Path) -> None:
 
 
 def test_check_reports_missing_manifest(tmp_path: Path) -> None:
+    """A missing manifest is reported."""
     errors = check_manifest(manifest_path=tmp_path / "absent.json")
     assert errors
     assert "missing formal manifest" in errors[0]
 
 
 def test_check_reports_missing_and_stale_catalogue_document(tmp_path: Path) -> None:
+    """A missing or stale property catalogue document is reported."""
     manifest_path = tmp_path / "formal_manifest.json"
     manifest_path.write_text("{}\n", encoding="utf-8")
     catalogue_doc = tmp_path / "formal_property_catalogue.md"
@@ -129,6 +135,7 @@ def test_check_reports_missing_and_stale_catalogue_document(tmp_path: Path) -> N
 
 
 def test_catalogue_validation_fails_closed(tmp_path: Path) -> None:
+    """A missing catalogue, duplicate ids and empty statements are refused."""
     path = tmp_path / "property_catalogue.json"
     with pytest.raises(ValueError, match="missing formal property catalogue"):
         formal_manifest._load_catalogue(path, {"demo"})
@@ -198,6 +205,7 @@ def test_catalogue_validation_fails_closed(tmp_path: Path) -> None:
 
 
 def test_parse_sby_requires_mode_and_depth(tmp_path: Path) -> None:
+    """A .sby file without mode or depth is refused."""
     path = tmp_path / "bad.sby"
     path.write_text("[options]\nmode prove\n", encoding="utf-8")
     with pytest.raises(ValueError, match="must declare mode and depth"):
@@ -205,6 +213,7 @@ def test_parse_sby_requires_mode_and_depth(tmp_path: Path) -> None:
 
 
 def test_catalogue_mode_mismatch_fails_closed(tmp_path: Path) -> None:
+    """A prove task whose properties are not assertions is refused."""
     catalogue = json.loads(formal_manifest.CATALOGUE_PATH.read_text(encoding="utf-8"))
     catalogue["tasks"]["mif_trigger_fabric_safety"]["properties"][0]["kind"] = "cover"
     path = tmp_path / "catalogue.json"
@@ -214,6 +223,7 @@ def test_catalogue_mode_mismatch_fails_closed(tmp_path: Path) -> None:
 
 
 def test_render_is_stable_and_newline_terminated() -> None:
+    """Rendering is repeatable and ends with a newline."""
     manifest = build_manifest()
     text = render(manifest)
     assert text.endswith("\n")
@@ -221,22 +231,26 @@ def test_render_is_stable_and_newline_terminated() -> None:
 
 
 def test_committed_manifest_matches_disk() -> None:
+    """The committed manifest and catalogue document equal fresh renders."""
     assert MANIFEST_PATH.read_text(encoding="utf-8") == render(build_manifest())
     assert formal_manifest.CATALOGUE_DOC_PATH.read_text(encoding="utf-8") == render_catalogue_markdown(build_manifest())
 
 
 def test_main_check_passes_when_clean(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """The --check command exits 0 when nothing drifted."""
     monkeypatch.setattr(formal_manifest, "check_manifest", list)
     assert formal_manifest.main(["--check"]) == 0
 
 
 def test_main_check_reports_drift(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """The --check command exits 1 and prints the drift."""
     monkeypatch.setattr(formal_manifest, "check_manifest", lambda: ["stale: x"])
     assert formal_manifest.main(["--check"]) == 1
     assert "stale: x" in capsys.readouterr().err
 
 
 def test_main_writes_manifest(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """The command without --check writes the manifest."""
     written: dict[str, bool] = {}
     monkeypatch.setattr(formal_manifest, "write_manifest", lambda: written.setdefault("done", True))
     assert formal_manifest.main([]) == 0
@@ -244,6 +258,7 @@ def test_main_writes_manifest(monkeypatch: pytest.MonkeyPatch, capsys: pytest.Ca
 
 
 def test_named_property_progress_is_measured_and_fail_closed() -> None:
+    """Named-property progress counts against the 70-property target and states its basis."""
     manifest = build_manifest()
     progress = manifest["proof_inventory"]
     target = progress["specification_target"]
@@ -256,6 +271,7 @@ def test_named_property_progress_is_measured_and_fail_closed() -> None:
 
 
 def test_every_task_carries_named_properties_and_raw_hygiene_counts() -> None:
+    """Every task has named properties of its mode's kind and raw counts, with unique ids matching the total."""
     manifest = build_manifest()
     property_ids: list[str] = []
     for task in manifest["tasks"]:

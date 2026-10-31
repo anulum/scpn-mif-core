@@ -31,6 +31,7 @@ requires_formal = pytest.mark.skipif(not _FORMAL_TOOLS_PRESENT, reason="SymbiYos
 
 
 def test_discover_tasks_finds_both_suites() -> None:
+    """Discovery finds the safety, liveness and timing tasks of the trigger fabric."""
     tasks = discover_tasks("all")
 
     suites = {task.suite for task in tasks}
@@ -43,17 +44,20 @@ def test_discover_tasks_finds_both_suites() -> None:
 
 
 def test_discover_tasks_single_suite() -> None:
+    """Discovery of one suite returns only its tasks."""
     tasks = discover_tasks("safety")
 
     assert {task.suite for task in tasks} == {"safety"}
 
 
 def test_discover_unknown_suite_raises() -> None:
+    """An unknown suite is refused."""
     with pytest.raises(ValueError, match="unknown formal suite"):
         discover_tasks("nonexistent_suite")
 
 
 def test_discover_skips_absent_suite_dir(tmp_path: Path) -> None:
+    """A formal root without suites gives no tasks."""
     assert discover_tasks("all", formal_root=tmp_path) == []
 
 
@@ -62,10 +66,12 @@ def test_discover_skips_absent_suite_dir(tmp_path: Path) -> None:
     [(0, FormalStatus.PASS), (2, FormalStatus.FAIL), (7, FormalStatus.ERROR), (16, FormalStatus.ERROR)],
 )
 def test_status_from_returncode(returncode: int, expected: FormalStatus) -> None:
+    """Each return code maps to its formal status."""
     assert status_from_returncode(returncode) is expected
 
 
 def test_missing_prerequisite_detects_absent_sby(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A missing SymbiYosys is reported."""
     monkeypatch.setattr(shutil, "which", lambda _name: None)
     message = missing_prerequisite()
     assert message is not None
@@ -73,6 +79,7 @@ def test_missing_prerequisite_detects_absent_sby(monkeypatch: pytest.MonkeyPatch
 
 
 def test_missing_prerequisite_none_when_present(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With every tool present no prerequisite is missing."""
     monkeypatch.setattr(shutil, "which", lambda name: f"/usr/bin/{name}")
     assert missing_prerequisite() is None
 
@@ -80,12 +87,14 @@ def test_missing_prerequisite_none_when_present(monkeypatch: pytest.MonkeyPatch)
 def test_main_gates_non_zero_when_sby_missing(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
+    """Without SymbiYosys the command exits 2 and says the proofs are gated."""
     monkeypatch.setattr(shutil, "which", lambda _name: None)
     assert main(["--suite", "all"]) == 2
     assert "roadmap-gated" in capsys.readouterr().out
 
 
 def test_main_reports_no_tasks(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """With no tasks the command exits 2."""
     monkeypatch.setattr(shutil, "which", lambda name: f"/usr/bin/{name}")
     monkeypatch.setattr(run_formal, "FORMAL_ROOT", tmp_path)
     monkeypatch.setattr(run_formal, "discover_tasks", lambda _suite: [])
@@ -94,6 +103,7 @@ def test_main_reports_no_tasks(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) 
 
 @requires_formal
 def test_real_proofs_pass(tmp_path: Path) -> None:
+    """Every real proof task passes."""
     results = run_suite("all", build_root=tmp_path / "build")
 
     assert results, "expected at least one proof task"
@@ -104,15 +114,18 @@ def test_real_proofs_pass(tmp_path: Path) -> None:
 
 @requires_formal
 def test_main_returns_zero_for_real_safety_suite() -> None:
+    """The real safety suite exits 0."""
     assert main(["--suite", "safety"]) == 0
 
 
 def test_formal_root_points_at_repo_tree() -> None:
+    """The formal root holds the safety and liveness suites."""
     assert (FORMAL_ROOT / "safety").is_dir()
     assert (FORMAL_ROOT / "liveness").is_dir()
 
 
 def test_missing_prerequisite_detects_absent_yosys(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A missing Yosys is reported."""
     monkeypatch.setattr(shutil, "which", lambda name: None if name == "yosys" else "/usr/bin/sby")
     message = run_formal.missing_prerequisite()
     assert message is not None
@@ -120,6 +133,7 @@ def test_missing_prerequisite_detects_absent_yosys(monkeypatch: pytest.MonkeyPat
 
 
 def test_main_reports_failures(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """A failing task makes the command exit 1 and report 0 of 1 passed."""
     task = run_formal.FormalTask(suite="safety", name="demo", sby_path=Path("demo.sby"))
     monkeypatch.setattr(run_formal, "missing_prerequisite", lambda: None)
     monkeypatch.setattr(run_formal, "discover_tasks", lambda _suite: [task])
@@ -133,6 +147,7 @@ def test_main_reports_failures(monkeypatch: pytest.MonkeyPatch, capsys: pytest.C
 
 
 def test_main_reports_all_passing(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
+    """A passing task makes the command exit 0 and report 1 of 1 passed."""
     task = run_formal.FormalTask(suite="safety", name="demo", sby_path=Path("demo.sby"))
     monkeypatch.setattr(run_formal, "missing_prerequisite", lambda: None)
     monkeypatch.setattr(run_formal, "discover_tasks", lambda _suite: [task])
@@ -146,6 +161,7 @@ def test_main_reports_all_passing(monkeypatch: pytest.MonkeyPatch, capsys: pytes
 
 
 def test_run_task_builds_sby_command_and_maps_returncode(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A task runs sby on its file from its directory and maps return code 2 to FAIL."""
     sby = tmp_path / "demo.sby"
     sby.write_text("[tasks]\n", encoding="utf-8")
     task = run_formal.FormalTask(suite="safety", name="demo", sby_path=sby)
@@ -168,6 +184,7 @@ def test_run_task_builds_sby_command_and_maps_returncode(tmp_path: Path, monkeyp
 
 
 def test_run_suite_runs_every_discovered_task(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A suite run executes every discovered task."""
     task = run_formal.FormalTask(suite="safety", name="demo", sby_path=tmp_path / "demo.sby")
     monkeypatch.setattr(run_formal, "discover_tasks", lambda _suite, formal_root=None: [task])
     monkeypatch.setattr(

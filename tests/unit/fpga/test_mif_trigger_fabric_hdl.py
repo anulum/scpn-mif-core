@@ -21,6 +21,7 @@ COSIM_PATH = REPO / "hdl" / "sim" / "mif_trigger_fabric_tb.cpp"
 
 
 def test_trigger_fabric_declares_required_public_ports() -> None:
+    """The trigger-fabric RTL declares its ports and guards the hold counter against underflow."""
     text = RTL_PATH.read_text(encoding="utf-8")
 
     assert "module mif_trigger_fabric" in text
@@ -49,6 +50,7 @@ def test_trigger_fabric_declares_required_public_ports() -> None:
 
 
 def test_trigger_fabric_synthesises_with_yosys() -> None:
+    """The trigger-fabric RTL synthesises with Yosys; skip without Yosys."""
     yosys = shutil.which("yosys")
     if yosys is None:
         pytest.skip("Yosys is not installed in this environment.")
@@ -66,6 +68,7 @@ def test_trigger_fabric_synthesises_with_yosys() -> None:
 
 
 def test_trigger_fabric_lints_clean_with_verilator() -> None:
+    """The trigger-fabric RTL lints clean with Verilator; skip without Verilator."""
     verilator = shutil.which("verilator")
     if verilator is None:
         pytest.skip("Verilator is not installed in this environment.")
@@ -82,6 +85,7 @@ def test_trigger_fabric_lints_clean_with_verilator() -> None:
 
 
 def test_trigger_fabric_verilator_passes_builtin_self_check(tmp_path: Path) -> None:
+    """The Verilated trigger fabric passes its built-in self-check."""
     binary = build_trigger_fabric_cosim(tmp_path / "selfcheck")
 
     result = subprocess.run(

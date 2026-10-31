@@ -31,6 +31,7 @@ def _load_reference() -> ModuleType:
 
 
 def test_quantises_signed_16_bit_adc_samples_to_q8_8_without_bias() -> None:
+    """16-bit samples map to Q8.8 unchanged at zero and both limits; out-of-range samples are refused."""
     reference = _load_reference()
     config = reference.AdcToSpikeConfig()
 
@@ -43,6 +44,7 @@ def test_quantises_signed_16_bit_adc_samples_to_q8_8_without_bias() -> None:
 
 
 def test_quantises_wider_adc_samples_with_sign_symmetric_downshift() -> None:
+    """Wider samples are down-shifted symmetrically about zero."""
     reference = _load_reference()
     config = reference.AdcToSpikeConfig(adc_width=18, q_int=8, q_frac=8)
 
@@ -53,6 +55,7 @@ def test_quantises_wider_adc_samples_with_sign_symmetric_downshift() -> None:
 
 
 def test_rate_coding_accumulates_q8_8_magnitude_and_encodes_polarity() -> None:
+    """Rate coding accumulates magnitude and emits spikes on the polarity addresses."""
     reference = _load_reference()
     config = reference.AdcToSpikeConfig()
 
@@ -68,6 +71,7 @@ def test_rate_coding_accumulates_q8_8_magnitude_and_encodes_polarity() -> None:
 
 
 def test_cycle_reference_matches_default_valid_ready_sequence() -> None:
+    """The cycle reference emits both spikes on the default valid/ready sequence without drops."""
     reference = _load_reference()
     config = reference.AdcToSpikeConfig()
 
@@ -86,6 +90,7 @@ def test_cycle_reference_matches_default_valid_ready_sequence() -> None:
 
 
 def test_cycle_reference_models_backpressure_and_counter_saturation() -> None:
+    """Backpressure holds spikes pending and a saturated counter drops one."""
     reference = _load_reference()
     config = reference.AdcToSpikeConfig(rate_threshold_q8_8=1, spike_counter_width=1)
 
@@ -105,6 +110,7 @@ def test_cycle_reference_models_backpressure_and_counter_saturation() -> None:
 
 
 def test_million_sample_campaign_reports_no_dropped_samples_without_retaining_events() -> None:
+    """A million full-scale samples are all accepted with the exact spike count and remainder."""
     reference = _load_reference()
     config = reference.AdcToSpikeConfig()
 
@@ -129,36 +135,42 @@ def test_million_sample_campaign_reports_no_dropped_samples_without_retaining_ev
     ],
 )
 def test_config_rejects_invalid_fields(kwargs: dict[str, int], message: str) -> None:
+    """Each invalid configuration field is refused with its message."""
     reference = _load_reference()
     with pytest.raises(ValueError, match=message):
         reference.AdcToSpikeConfig(**kwargs)
 
 
 def test_config_rejects_out_of_range_aer_address() -> None:
+    """An AER address out of range is refused."""
     reference = _load_reference()
     with pytest.raises(ValueError):
         reference.AdcToSpikeConfig(aer_base_address=0x1_0000)
 
 
 def test_rtl_reference_rejects_empty_ready_pattern() -> None:
+    """An empty ready pattern is refused."""
     reference = _load_reference()
     with pytest.raises(ValueError, match="ready_pattern must not be empty"):
         reference.run_adc_to_spike_rtl_reference([0], ready_pattern=[])
 
 
 def test_rtl_reference_rejects_negative_drain_cycles() -> None:
+    """Negative drain cycles are refused."""
     reference = _load_reference()
     with pytest.raises(ValueError, match="drain_cycles must be non-negative"):
         reference.run_adc_to_spike_rtl_reference([0], drain_cycles=-1)
 
 
 def test_rtl_reference_rejects_boolean_drain_cycles() -> None:
+    """A boolean drain-cycle count is refused."""
     reference = _load_reference()
     with pytest.raises(TypeError, match="drain_cycles must be an integer"):
         reference.run_adc_to_spike_rtl_reference([0], drain_cycles=True)
 
 
 def test_rtl_reference_drops_negative_spikes_when_pending_counter_saturates() -> None:
+    """With the sink never ready, the negative pending counter saturates and drops spikes."""
     reference = _load_reference()
     config = reference.AdcToSpikeConfig(spike_counter_width=1)
     # Sustained maximal-magnitude negative samples spike every cycle; with the
@@ -173,6 +185,7 @@ def test_rtl_reference_drops_negative_spikes_when_pending_counter_saturates() ->
 
 
 def test_rtl_reference_without_retained_cycles_still_reports() -> None:
+    """Without retained cycles the reference still reports its counts."""
     reference = _load_reference()
     report = reference.run_adc_to_spike_rtl_reference([-32_768, 32_767], retain_cycles=False)
     assert report.cycles == ()

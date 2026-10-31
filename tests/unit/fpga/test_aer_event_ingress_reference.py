@@ -34,6 +34,7 @@ from tools.aer_event_ingress_reference import AerEventStreamConfig, run_aer_even
     ],
 )
 def test_reference_rejects_invalid_hardware_configuration(field: str, value: int) -> None:
+    """Each invalid hardware configuration value is refused."""
     with pytest.raises(ValueError):
         AerEventStreamConfig(**{field: value})
 
@@ -42,22 +43,26 @@ def test_reference_rejects_invalid_hardware_configuration(field: str, value: int
     ("sample", "error"), [(True, TypeError), (1.5, TypeError), (32768, ValueError), (-32769, ValueError)]
 )
 def test_reference_rejects_non_wire_adc_samples(sample: Any, error: type[Exception]) -> None:
+    """Each sample outside the ADC wire domain is refused."""
     with pytest.raises(error):
         run_aer_event_stream_reference([sample])
 
 
 @pytest.mark.parametrize(("cycles", "error"), [(True, TypeError), (1.5, TypeError), (-1, ValueError)])
 def test_reference_rejects_invalid_drain_duration(cycles: Any, error: type[Exception]) -> None:
+    """Each invalid drain duration is refused."""
     with pytest.raises(error):
         run_aer_event_stream_reference([], drain_cycles=cycles)
 
 
 def test_reference_requires_a_nonempty_ready_pattern() -> None:
+    """An empty ready pattern is refused."""
     with pytest.raises(ValueError, match="ready_pattern"):
         run_aer_event_stream_reference([32767], ready_pattern=[])
 
 
 def test_reference_captures_threshold_edges_and_complete_source_identity() -> None:
+    """Threshold crossings produce identified events that are all accepted, conserving counts."""
     report = run_aer_event_stream_reference([0, 16384, 16384, -32768], drain_cycles=2)
     assert [
         (event.raw_address, event.polarity, event.source_tick, event.sequence) for event in report.accepted_events
@@ -75,6 +80,7 @@ def test_reference_captures_threshold_edges_and_complete_source_identity() -> No
 
 @pytest.mark.parametrize(("width", "samples"), [(16, [16384, -32768]), (8, [64, -128]), (18, [65536, -131072])])
 def test_reference_quantization_preserves_signed_threshold_counts(width: int, samples: list[int]) -> None:
+    """For each ADC width the signed threshold crossings and remainder are preserved."""
     config = AerEventStreamConfig(adc_width=width, rate_threshold_q8_8=16384)
     report = run_aer_event_stream_reference(samples, config, drain_cycles=2)
     assert [event.polarity for event in report.accepted_events] == [1, -1]
@@ -82,6 +88,7 @@ def test_reference_quantization_preserves_signed_threshold_counts(width: int, sa
 
 
 def test_reference_rejects_newest_and_preserves_queued_event_under_stall() -> None:
+    """Under a stalled sink the queued event stays and newer ones are dropped, conserving counts."""
     config = AerEventStreamConfig(queue_depth=1, rate_threshold_q8_8=1)
     report = run_aer_event_stream_reference([1, -1, 1], config, ready_pattern=[False], drain_cycles=1)
     assert [event.sequence for event in report.queued_events] == [0]
@@ -100,6 +107,7 @@ def test_reference_rejects_newest_and_preserves_queued_event_under_stall() -> No
 
 
 def test_reference_flags_sequence_wrap_and_counter_saturation_without_losing_trace() -> None:
+    """Sequence wrap and counter saturation are flagged while every event stays in the trace."""
     config = AerEventStreamConfig(rate_threshold_q8_8=1, sequence_width=1, telemetry_width=1)
     report = run_aer_event_stream_reference([1, -1, 1, -1], config, drain_cycles=2)
     assert [event.sequence for event in report.accepted_events] == [0, 1, 0, 1]

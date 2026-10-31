@@ -21,6 +21,7 @@ COSIM_PATH = REPO / "hdl" / "sim" / "adc_to_spike_quantiser_tb.cpp"
 
 
 def test_adc_to_spike_quantiser_declares_required_public_ports() -> None:
+    """The quantiser RTL declares its module, every public port and the symmetric shift function."""
     text = RTL_PATH.read_text(encoding="utf-8")
 
     assert "module adc_to_spike_quantiser" in text
@@ -44,6 +45,7 @@ def test_adc_to_spike_quantiser_declares_required_public_ports() -> None:
 
 
 def test_adc_to_spike_quantiser_synthesises_with_yosys() -> None:
+    """The quantiser RTL synthesises with Yosys; skip without Yosys."""
     yosys = shutil.which("yosys")
     if yosys is None:
         pytest.skip("Yosys is not installed in this environment.")
@@ -61,6 +63,7 @@ def test_adc_to_spike_quantiser_synthesises_with_yosys() -> None:
 
 
 def test_adc_to_spike_quantiser_verilator_matches_default_reference(tmp_path: Path) -> None:
+    """The Verilated quantiser passes its self-check against the default reference."""
     binary = _build_verilator_cosim(tmp_path / "default")
 
     result = subprocess.run(
@@ -75,6 +78,7 @@ def test_adc_to_spike_quantiser_verilator_matches_default_reference(tmp_path: Pa
 
 
 def test_adc_to_spike_quantiser_verilator_uses_symmetric_downshift(tmp_path: Path) -> None:
+    """The Verilated quantiser applies the sign-symmetric down-shift for wider ADCs."""
     binary = _build_verilator_cosim(
         tmp_path / "narrow",
         parameters=("ADC_WIDTH=18", "Q_INT=8", "Q_FRAC=8", "RATE_THRESHOLD_Q8_8=2"),

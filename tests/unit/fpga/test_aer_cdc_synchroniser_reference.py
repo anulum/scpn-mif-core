@@ -17,6 +17,7 @@ from tools.aer_cdc_synchroniser_reference import run_aer_cdc_synchroniser_refere
 
 
 def test_two_cycle_delay_after_reset() -> None:
+    """After reset sync_out lags the input by two cycles and meta_q by one."""
     cycles = run_aer_cdc_synchroniser_reference([True, False, False, False])
     # sync_out is async_in delayed by two cycles; the first two cycles are 0.
     assert [c.sync_out for c in cycles] == [False, False, True, False]
@@ -25,11 +26,13 @@ def test_two_cycle_delay_after_reset() -> None:
 
 
 def test_sustained_high_fills_after_two_cycles() -> None:
+    """A sustained high input appears at sync_out from the third cycle."""
     cycles = run_aer_cdc_synchroniser_reference([True] * 5)
     assert [c.sync_out for c in cycles] == [False, False, True, True, True]
 
 
 def test_sync_out_equals_input_two_cycles_earlier() -> None:
+    """For any stimulus sync_out and meta_q equal the input two and one cycles earlier."""
     stimulus = [True, False, True, True, False, True, False, False]
     cycles = run_aer_cdc_synchroniser_reference(stimulus)
     for idx, cycle in enumerate(cycles):
@@ -38,14 +41,17 @@ def test_sync_out_equals_input_two_cycles_earlier() -> None:
 
 
 def test_cycle_indices_are_sequential() -> None:
+    """Cycle indices count from zero."""
     cycles = run_aer_cdc_synchroniser_reference([False, True, False])
     assert [c.cycle_index for c in cycles] == [0, 1, 2]
 
 
 def test_empty_sequence() -> None:
+    """An empty stimulus gives no cycles."""
     assert run_aer_cdc_synchroniser_reference([]) == ()
 
 
 def test_non_bool_input_rejected() -> None:
+    """A non-boolean input is refused."""
     with pytest.raises(TypeError, match="async_in must be a bool"):
         run_aer_cdc_synchroniser_reference([cast(Any, 0)])

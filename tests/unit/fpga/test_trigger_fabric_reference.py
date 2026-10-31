@@ -31,6 +31,7 @@ def _idle() -> TriggerFabricInput:
 
 
 def test_config_defaults_match_rtl_parameters() -> None:
+    """The default configuration equals the RTL parameters."""
     config = TriggerFabricConfig()
 
     assert config.spike_count_width == 16
@@ -55,6 +56,7 @@ def test_config_defaults_match_rtl_parameters() -> None:
     ],
 )
 def test_config_rejects_invalid_parameters(kwargs: dict[str, int], message: str) -> None:
+    """Each invalid parameter is refused with its message."""
     with pytest.raises(ValueError, match=message):
         TriggerFabricConfig(**kwargs)
 
@@ -66,6 +68,7 @@ def test_config_rejects_invalid_parameters(kwargs: dict[str, int], message: str)
 def test_sustained_lock_fires_after_required_consecutive_cycles(
     lock_hold_cycles: int, expected_width: int, expected_trigger_cycle: int
 ) -> None:
+    """Sustained lock triggers once, on the cycle the hold count requires."""
     config = TriggerFabricConfig(lock_hold_cycles=lock_hold_cycles)
     report = run_trigger_fabric_reference([_lock() for _ in range(lock_hold_cycles + 3)], config)
 
@@ -76,6 +79,7 @@ def test_sustained_lock_fires_after_required_consecutive_cycles(
 
 
 def test_threshold_boundary_is_inclusive() -> None:
+    """Evidence exactly at the thresholds locks and triggers."""
     report = run_trigger_fabric_reference([_lock(spike=8, confidence=128) for _ in range(3)])
     assert report.trigger_count == 1
 
@@ -88,6 +92,7 @@ def test_threshold_boundary_is_inclusive() -> None:
     ],
 )
 def test_sub_threshold_evidence_never_locks(stimulus_kwargs: dict[str, int]) -> None:
+    """Evidence below either threshold never locks."""
     report = run_trigger_fabric_reference([_lock(**stimulus_kwargs) for _ in range(6)])
 
     assert report.trigger_count == 0
@@ -95,6 +100,7 @@ def test_sub_threshold_evidence_never_locks(stimulus_kwargs: dict[str, int]) -> 
 
 
 def test_bank_not_ready_blocks_lock() -> None:
+    """A bank that is not ready blocks the trigger."""
     stimulus = [
         TriggerFabricInput(arm=True, spike_count=8, confidence_q8_8=128, bank_ready=False, safety_veto=False)
         for _ in range(6)
@@ -105,6 +111,7 @@ def test_bank_not_ready_blocks_lock() -> None:
 
 
 def test_safety_veto_dominates_every_cycle() -> None:
+    """A veto on every cycle prevents lock and keeps the hold counter loaded."""
     stimulus = [
         TriggerFabricInput(arm=True, spike_count=255, confidence_q8_8=256, bank_ready=True, safety_veto=True)
         for _ in range(6)
@@ -117,6 +124,7 @@ def test_safety_veto_dominates_every_cycle() -> None:
 
 
 def test_one_shot_emits_at_most_one_trigger_per_arming() -> None:
+    """One arming triggers once and stays fired."""
     report = run_trigger_fabric_reference([_lock() for _ in range(20)])
 
     assert report.trigger_count == 1
@@ -124,6 +132,7 @@ def test_one_shot_emits_at_most_one_trigger_per_arming() -> None:
 
 
 def test_disarm_then_rearm_emits_a_second_trigger() -> None:
+    """Disarming and re-arming allows a second trigger."""
     stimulus = [*[_lock() for _ in range(4)], _idle(), *[_lock() for _ in range(4)]]
     report = run_trigger_fabric_reference(stimulus)
 
@@ -131,6 +140,7 @@ def test_disarm_then_rearm_emits_a_second_trigger() -> None:
 
 
 def test_broken_lock_restarts_the_consecutive_debounce() -> None:
+    """A veto between two short lock runs restarts the count, so neither triggers."""
     # Two lock cycles, one veto break, then a fresh run must start the count over.
     veto = TriggerFabricInput(arm=True, spike_count=8, confidence_q8_8=128, bank_ready=True, safety_veto=True)
     stimulus = [_lock(), _lock(), veto, _lock(), _lock()]
@@ -141,6 +151,7 @@ def test_broken_lock_restarts_the_consecutive_debounce() -> None:
 
 
 def test_hold_remaining_never_underflows_or_exceeds_reload() -> None:
+    """The hold counter stays between 0 and its reload value."""
     config = TriggerFabricConfig(lock_hold_cycles=4)
     report = run_trigger_fabric_reference([_lock() for _ in range(50)], config)
 
@@ -149,6 +160,7 @@ def test_hold_remaining_never_underflows_or_exceeds_reload() -> None:
 
 
 def test_retain_cycles_false_keeps_counts_without_trace() -> None:
+    """Without retained cycles the trigger counts remain and the trace is empty."""
     report = run_trigger_fabric_reference([_lock() for _ in range(6)], retain_cycles=False)
 
     # Trigger accounting is tracked live, so counts survive without the trace;
@@ -160,6 +172,7 @@ def test_retain_cycles_false_keeps_counts_without_trace() -> None:
 
 
 def test_no_inputs_reports_reset_state() -> None:
+    """No input leaves the reset state."""
     report = run_trigger_fabric_reference([])
 
     assert report.trigger_count == 0
@@ -176,6 +189,7 @@ def test_no_inputs_reports_reset_state() -> None:
     ],
 )
 def test_out_of_range_inputs_raise(field: str, value: int, message: str) -> None:
+    """Each out-of-range input is refused with its message."""
     base: dict[str, Any] = {
         "arm": True,
         "spike_count": 8,
@@ -189,6 +203,7 @@ def test_out_of_range_inputs_raise(field: str, value: int, message: str) -> None
 
 
 def test_bool_inputs_rejected_for_count_fields() -> None:
+    """A boolean count is refused."""
     stimulus = TriggerFabricInput(arm=True, spike_count=True, confidence_q8_8=128, bank_ready=True, safety_veto=False)
     with pytest.raises(TypeError, match="spike_count"):
         run_trigger_fabric_reference([stimulus])

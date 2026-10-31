@@ -25,6 +25,7 @@ IngressTrace = tuple[Path, tuple[AerFullEvent, ...], cosim.DutSummary]
 
 @pytest.fixture(scope="module")
 def ingress_trace(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, tuple[AerFullEvent, ...], cosim.DutSummary]:
+    """Run the 4096-event ingress cosimulation once and return its directory, events and summary."""
     directory = tmp_path_factory.mktemp("aer-ingress-dut")
     evidence = cosim.run(4096, directory)
     assert evidence["status"] == "PASS"
@@ -39,6 +40,7 @@ def ingress_trace(tmp_path_factory: pytest.TempPathFactory) -> tuple[Path, tuple
 
 
 def test_real_ingress_evidence_preserves_raw_payload_and_digests(ingress_trace: IngressTrace) -> None:
+    """The ingress evidence covers both boundary addresses, accepts every event and hashes its trace."""
     directory, events, summary = ingress_trace
     assert {event.raw_address for event in events} == {0, 65535}
     assert summary.accepted == summary.generated == 4096
@@ -61,12 +63,14 @@ def test_real_ingress_evidence_preserves_raw_payload_and_digests(ingress_trace: 
 def test_ingress_refuses_corrupted_hardware_telemetry(
     ingress_trace: IngressTrace, field: str, value: int, message: str
 ) -> None:
+    """Each corrupted hardware telemetry field fails the equivalence check with its message."""
     _, events, summary = ingress_trace
     with pytest.raises(AssertionError, match=message):
         cosim.assert_equivalent(events, replace(summary, **{field: value}), events)
 
 
 def test_ingress_refuses_payload_loss_and_reordering(ingress_trace: IngressTrace) -> None:
+    """A lost or reordered event fails the equivalence check."""
     _, events, summary = ingress_trace
     for corrupted in (events[:-1], events + events[-1:], (events[1], events[0], *events[2:])):
         with pytest.raises(AssertionError, match="trace mismatch"):
@@ -74,6 +78,7 @@ def test_ingress_refuses_payload_loss_and_reordering(ingress_trace: IngressTrace
 
 
 def test_ingress_rejects_incomplete_boundary_address_and_polarity_corpora(ingress_trace: IngressTrace) -> None:
+    """A corpus missing a boundary address or a polarity is refused."""
     _, events, summary = ingress_trace
     one_address = tuple(replace(event, raw_address=0) for event in events)
     with pytest.raises(AssertionError, match="boundary raw addresses"):
@@ -84,6 +89,7 @@ def test_ingress_rejects_incomplete_boundary_address_and_polarity_corpora(ingres
 
 
 def test_trace_reader_rejects_missing_summary_and_unknown_rows(ingress_trace: IngressTrace, tmp_path: Path) -> None:
+    """A trace without summary or with unknown rows is refused."""
     directory, _, _ = ingress_trace
     original = (directory / "aer_ingress_verilator_trace.csv").read_text().splitlines()
     path = tmp_path / "truncated.csv"
@@ -96,11 +102,13 @@ def test_trace_reader_rejects_missing_summary_and_unknown_rows(ingress_trace: In
 
 
 def test_stimulus_rejects_empty_event_count() -> None:
+    """A zero event count is refused."""
     with pytest.raises(ValueError, match="positive"):
         cosim.deterministic_samples(0)
 
 
 def test_cli_refuses_a_shortened_fidelity_corpus(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The command exits 2 for a corpus shorter than the fidelity minimum."""
     monkeypatch.setattr(sys, "argv", ["aer-ingress", "--events", "4095"])
     with pytest.raises(SystemExit) as error:
         cosim.main()
@@ -111,6 +119,7 @@ def test_cli_refuses_a_shortened_fidelity_corpus(monkeypatch: pytest.MonkeyPatch
 def test_cli_executes_real_full_corpus(
     explicit_directory: bool, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capfd: pytest.CaptureFixture[str]
 ) -> None:
+    """The command runs the full 4096-event corpus and reports PASS."""
     args = ["aer-ingress", "--events", "4096"]
     if explicit_directory:
         args.extend(["--artifacts-dir", str(tmp_path)])

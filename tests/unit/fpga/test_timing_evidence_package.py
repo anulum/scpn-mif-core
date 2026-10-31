@@ -32,11 +32,13 @@ from tools.timing_evidence_package import (
 
 
 def test_committed_timing_evidence_package_is_current() -> None:
+    """The committed timing package has no drift and equals a fresh render."""
     assert check_package() == ()
     assert PACKAGE_PATH.read_text(encoding="utf-8") == render(build_package())
 
 
 def test_package_splits_formal_timing_and_blocked_hardware_evidence() -> None:
+    """The package allows no public timing claim and keeps cycle-formal evidence apart from wall-clock timing."""
     package = build_package()
     sections = _sections_by_id(package)
 
@@ -65,6 +67,7 @@ def test_package_splits_formal_timing_and_blocked_hardware_evidence() -> None:
 
 
 def test_required_post_route_fields_are_fail_closed() -> None:
+    """A post-route entry lists every missing field and an empty report hash."""
     assert validate_post_route_timing_entry({}) == POST_ROUTE_REQUIRED_FIELDS
 
     complete = {
@@ -86,6 +89,7 @@ def test_required_post_route_fields_are_fail_closed() -> None:
 
 
 def test_required_hil_fields_are_fail_closed() -> None:
+    """A hardware-in-the-loop entry lists every missing field."""
     assert validate_end_to_end_hil_entry({}) == HIL_REQUIRED_FIELDS
 
     complete = {
@@ -107,6 +111,7 @@ def test_required_hil_fields_are_fail_closed() -> None:
 
 
 def test_write_and_check_package_detect_drift(tmp_path: Path) -> None:
+    """A written package passes the check, and an edited one is reported stale."""
     target = tmp_path / "timing_evidence_package.json"
     write_package(package_path=target)
     assert check_package(package_path=target) == ()
@@ -118,12 +123,14 @@ def test_write_and_check_package_detect_drift(tmp_path: Path) -> None:
 
 
 def test_check_reports_missing_package(tmp_path: Path) -> None:
+    """A missing package is reported."""
     errors = check_package(package_path=tmp_path / "absent.json")
     assert len(errors) == 1
     assert "missing timing evidence package" in errors[0]
 
 
 def test_main_check_and_write_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The command writes the package, --check passes, then fails after drift."""
     target = tmp_path / "timing_evidence_package.json"
     monkeypatch.setattr(timing_evidence_package, "PACKAGE_PATH", target)
 
@@ -136,6 +143,7 @@ def test_main_check_and_write_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPa
 
 
 def test_invalid_formal_or_budget_inputs_fail_loudly(tmp_path: Path) -> None:
+    """Formal or budget inputs that are not the expected objects are refused."""
     formal = tmp_path / "formal.json"
     budget = tmp_path / "budget.json"
     formal.write_text("[]\n", encoding="utf-8")
@@ -153,6 +161,7 @@ def test_invalid_formal_or_budget_inputs_fail_loudly(tmp_path: Path) -> None:
 
 
 def test_invalid_metric_fields_fail_loudly(tmp_path: Path) -> None:
+    """Each invalid metric field is refused."""
     formal = tmp_path / "formal.json"
     budget = tmp_path / "budget.json"
     formal.write_text(json.dumps({"task_count": True, "verifier": "run", "tasks": []}), encoding="utf-8")

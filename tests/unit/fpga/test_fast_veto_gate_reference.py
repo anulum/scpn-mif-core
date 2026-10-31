@@ -55,6 +55,7 @@ def _expected(stimulus: FastVetoGateInput, config: FastVetoGateConfig) -> tuple[
 # Config validation                                                           #
 # --------------------------------------------------------------------------- #
 def test_default_config_thresholds() -> None:
+    """The default gate needs 8 spikes and Q8.8 confidence 128 on 16-bit fields."""
     config = FastVetoGateConfig()
     assert config.spike_threshold == 8
     assert config.confidence_threshold_q8_8 == 128
@@ -64,22 +65,26 @@ def test_default_config_thresholds() -> None:
 
 @pytest.mark.parametrize("width", [0, 33, -1])
 def test_invalid_spike_width_rejected(width: int) -> None:
+    """A spike-count width outside 1 to 32 is refused."""
     with pytest.raises(ValueError, match="spike_count_width must be between 1 and 32"):
         FastVetoGateConfig(spike_count_width=width)
 
 
 @pytest.mark.parametrize("width", [0, 33])
 def test_invalid_confidence_width_rejected(width: int) -> None:
+    """A confidence width outside 1 to 32 is refused."""
     with pytest.raises(ValueError, match="confidence_width must be between 1 and 32"):
         FastVetoGateConfig(confidence_width=width)
 
 
 def test_spike_threshold_must_fit_width() -> None:
+    """A spike threshold too large for its width is refused."""
     with pytest.raises(ValueError, match="spike_threshold must fit"):
         FastVetoGateConfig(spike_count_width=3, spike_threshold=8)
 
 
 def test_confidence_threshold_must_fit_width() -> None:
+    """A confidence threshold too large for its width is refused."""
     with pytest.raises(ValueError, match="confidence_threshold_q8_8 must fit"):
         FastVetoGateConfig(confidence_width=4, confidence_threshold_q8_8=128)
 
@@ -88,6 +93,7 @@ def test_confidence_threshold_must_fit_width() -> None:
 # Combinational behaviour                                                      #
 # --------------------------------------------------------------------------- #
 def test_qualified_fire_with_full_evidence_passes() -> None:
+    """A qualified fire with full evidence and no veto passes."""
     out = evaluate_fast_veto_gate(_input())
     assert out.fast_fire
     assert out.fast_permit
@@ -95,6 +101,7 @@ def test_qualified_fire_with_full_evidence_passes() -> None:
 
 
 def test_veto_dominates_over_qualified_fire() -> None:
+    """A veto blocks fire and permit."""
     out = evaluate_fast_veto_gate(_input(safety_veto=True))
     assert not out.fast_fire
     assert not out.fast_permit
@@ -102,6 +109,7 @@ def test_veto_dominates_over_qualified_fire() -> None:
 
 
 def test_lane_is_subtractive_without_qualified_fire() -> None:
+    """Without an upstream fire the gate permits but does not fire."""
     out = evaluate_fast_veto_gate(_input(qualified_fire=False))
     assert out.fast_permit
     assert not out.fast_fire
@@ -112,24 +120,28 @@ def test_lane_is_subtractive_without_qualified_fire() -> None:
     [(8, 128, True), (7, 128, False), (8, 127, False), (7, 127, False), (255, 256, True)],
 )
 def test_threshold_edges(spike_count: int, confidence_q8_8: int, permit: bool) -> None:
+    """Permit and fire switch exactly at the spike and confidence thresholds."""
     out = evaluate_fast_veto_gate(_input(spike_count=spike_count, confidence_q8_8=confidence_q8_8))
     assert out.fast_permit is permit
     assert out.fast_fire is permit
 
 
 def test_disarm_drops_permit() -> None:
+    """Disarming drops permit and fire."""
     out = evaluate_fast_veto_gate(_input(arm=False))
     assert not out.fast_permit
     assert not out.fast_fire
 
 
 def test_bank_not_ready_drops_permit() -> None:
+    """A bank that is not ready drops permit and fire."""
     out = evaluate_fast_veto_gate(_input(bank_ready=False))
     assert not out.fast_permit
     assert not out.fast_fire
 
 
 def test_exhaustive_boolean_truth_table() -> None:
+    """Every combination of the boolean inputs gives the expected outputs."""
     config = FastVetoGateConfig()
     for arm, bank, veto, qualified in itertools.product([False, True], repeat=4):
         for spike, conf in itertools.product([7, 8], [127, 128]):
@@ -146,11 +158,13 @@ def test_exhaustive_boolean_truth_table() -> None:
 
 
 def test_cycle_index_is_preserved() -> None:
+    """The output keeps the input cycle index."""
     out = evaluate_fast_veto_gate(_input(), cycle_index=7)
     assert out.cycle_index == 7
 
 
 def test_run_reference_indexes_each_cycle() -> None:
+    """A run numbers its cycles and fires only where evidence allows."""
     stimulus = [_input(qualified_fire=True), _input(safety_veto=True), _input(qualified_fire=False)]
     outputs = run_fast_veto_gate_reference(stimulus)
     assert [out.cycle_index for out in outputs] == [0, 1, 2]
@@ -160,12 +174,14 @@ def test_run_reference_indexes_each_cycle() -> None:
 
 
 def test_run_reference_with_explicit_config() -> None:
+    """A run accepts an explicit configuration."""
     config = FastVetoGateConfig(spike_threshold=4, confidence_threshold_q8_8=64)
     outputs = run_fast_veto_gate_reference([_input(spike_count=4, confidence_q8_8=64)], config)
     assert outputs[0].fast_fire
 
 
 def test_run_reference_empty_sequence() -> None:
+    """An empty run gives no outputs."""
     assert run_fast_veto_gate_reference([]) == ()
 
 
@@ -173,17 +189,20 @@ def test_run_reference_empty_sequence() -> None:
 # Input range guards                                                           #
 # --------------------------------------------------------------------------- #
 def test_bool_spike_count_rejected() -> None:
+    """A boolean spike count is refused."""
     with pytest.raises(TypeError, match="spike_count must be an integer, not a bool"):
         evaluate_fast_veto_gate(_input(spike_count=True))
 
 
 def test_out_of_range_spike_count_rejected() -> None:
+    """A spike count beyond its width is refused."""
     config = FastVetoGateConfig(spike_count_width=4)
     with pytest.raises(ValueError, match=r"spike_count must lie in \[0, 15\]"):
         evaluate_fast_veto_gate(_input(spike_count=16), config)
 
 
 def test_out_of_range_confidence_rejected() -> None:
+    """A confidence beyond its width is refused."""
     config = FastVetoGateConfig(confidence_width=8, confidence_threshold_q8_8=128)
     with pytest.raises(ValueError, match=r"confidence_q8_8 must lie in \[0, 255\]"):
         evaluate_fast_veto_gate(_input(confidence_q8_8=256), config)
