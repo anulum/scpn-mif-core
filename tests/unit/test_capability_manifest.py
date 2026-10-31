@@ -663,3 +663,37 @@ def test_public_inventory_excludes_invalid_members_build_artifacts_and_escaped_s
     assert {"name": "mif-aer", "path": "scpn-mif-rs/crates/mif-aer"} in rows
     assert len([row for row in rows if row["path"] == "scpn-mif-rs/crates/mif-aer"]) == 1
     assert not any(part in row["path"] for row in rows for part in ("outside", "escaped", "target"))
+
+
+def _git(repo: Path, *args: str) -> None:
+    git = shutil.which("git")
+    assert git is not None, "git is required for the tracked-file tests"
+    subprocess.run([git, "-C", str(repo), *args], check=True, capture_output=True)
+
+
+def test_untracked_modules_do_not_change_the_counts_of_a_git_checkout(tmp_path: Path) -> None:
+    """In a git checkout only tracked modules are counted; an untracked scratch module is not."""
+    repo = _minimal_repo(tmp_path)
+    _write(repo / "src/minimal_mif/core/tracked.py", "class Tracked:\n    pass\n")
+    _write(repo / "src/minimal_mif/core/scratch.py", "class Scratch:\n    pass\n")
+    _git(repo, "init", "-q")
+    _git(repo, "add", "pyproject.toml", "README.md", "tools", "src/minimal_mif/core/tracked.py")
+
+    manifest = TOOL.build_capability_manifest(repo, TOOL.load_config(repo))
+
+    assert manifest["capabilities"]["python_source_modules"] == ["src/minimal_mif/core/tracked.py"]
+    assert [row["name"] for row in manifest["capabilities"]["python_classes"]] == ["Tracked"]
+
+
+def test_a_project_inside_another_checkout_is_not_filtered(tmp_path: Path) -> None:
+    """A project that is not the top level of its own checkout counts every file."""
+    outer = tmp_path / "outer"
+    outer.mkdir()
+    _git(outer, "init", "-q")
+    repo = _minimal_repo(outer)
+    _write(repo / "src/minimal_mif/core/one.py", "class One:\n    pass\n")
+    _write(repo / "src/minimal_mif/core/two.py", "class Two:\n    pass\n")
+
+    manifest = TOOL.build_capability_manifest(repo, TOOL.load_config(repo))
+
+    assert manifest["counts"]["python_capability_source_modules"] == 2

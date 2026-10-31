@@ -21,7 +21,10 @@ from __future__ import annotations
 
 import argparse
 import ast
+import functools
 import json
+import shutil
+import subprocess
 import sys
 import tomllib
 from collections.abc import Iterable
@@ -520,7 +523,9 @@ def _python_capability_sources(roots: tuple[Path, ...], *, repo: Path) -> list[s
     for root in roots:
         if not root.exists():
             continue
-        rows.update(_rel(path, repo) for path in sorted(root.rglob("*.py")) if path.name != "__init__.py")
+        rows.update(
+            _rel(path, repo) for path in sorted(root.rglob("*.py")) if path.name != "__init__.py" and _keep(path, repo)
+        )
     return sorted(rows)
 
 
@@ -532,7 +537,7 @@ def _python_capability_classes(roots: tuple[Path, ...], *, repo: Path) -> list[d
             continue
         for path in sorted(root.rglob("*.py")):
             resolved = path.resolve()
-            if path.name == "__init__.py" or resolved in seen_paths:
+            if path.name == "__init__.py" or resolved in seen_paths or not _keep(path, repo):
                 continue
             seen_paths.add(resolved)
             tree = ast.parse(path.read_text(encoding="utf-8"))
@@ -564,10 +569,14 @@ def _rust_workspace_crates(root: Path, *, repo: Path) -> list[dict[str, str]]:
             if not resolved_member.is_relative_to(resolved_root):
                 continue
             manifest = member_path / "Cargo.toml"
-            if manifest.is_file():
+            if manifest.is_file() and _keep(manifest, repo):
                 manifests.add(manifest)
     for manifest in root.glob("*/Cargo.toml"):
-        if manifest.parent.name != "target" and manifest.resolve().is_relative_to(resolved_root):
+        if (
+            manifest.parent.name != "target"
+            and manifest.resolve().is_relative_to(resolved_root)
+            and _keep(manifest, repo)
+        ):
             manifests.add(manifest)
     for manifest in sorted(manifests):
         payload = tomllib.loads(manifest.read_text(encoding="utf-8"))
@@ -583,20 +592,28 @@ def _julia_reference_modules(roots: tuple[Path, ...], *, repo: Path) -> list[str
     for root in roots:
         if not root.exists():
             continue
-        rows.update(_rel(path, repo) for path in sorted(root.rglob("*.jl")))
+        rows.update(_rel(path, repo) for path in sorted(root.rglob("*.jl")) if _keep(path, repo))
     return sorted(rows)
 
 
 def _go_parity_sources(root: Path, *, repo: Path) -> list[str]:
     if not root.exists():
         return []
-    return [_rel(path, repo) for path in sorted(root.rglob("*.go")) if not path.name.endswith("_test.go")]
+    return [
+        _rel(path, repo)
+        for path in sorted(root.rglob("*.go"))
+        if not path.name.endswith("_test.go") and _keep(path, repo)
+    ]
 
 
 def _lean_proof_modules(root: Path, *, repo: Path) -> list[str]:
     if not root.exists():
         return []
-    return [_rel(path, repo) for path in sorted(root.rglob("*.lean")) if path.name not in LEAN_BUILD_FILES]
+    return [
+        _rel(path, repo)
+        for path in sorted(root.rglob("*.lean"))
+        if path.name not in LEAN_BUILD_FILES and _keep(path, repo)
+    ]
 
 
 def _hdl_rtl_modules(root: Path, *, repo: Path) -> list[str]:
@@ -605,7 +622,7 @@ def _hdl_rtl_modules(root: Path, *, repo: Path) -> list[str]:
     rows: set[str] = set()
     for suffix in HDL_SUFFIXES:
         for path in sorted(root.rglob(f"*{suffix}")):
-            if _HDL_EXCLUDED_PARTS.intersection(path.parts):
+            if _HDL_EXCLUDED_PARTS.intersection(path.parts) or not _keep(path, repo):
                 continue
             rows.add(_rel(path, repo))
     return sorted(rows)
@@ -622,14 +639,16 @@ def _workflow_files(workflows_root: Path, *, repo: Path) -> list[str]:
     if not workflows_root.exists():
         return []
     return [
-        _rel(path, repo) for path in sorted(list(workflows_root.glob("*.yml")) + list(workflows_root.glob("*.yaml")))
+        _rel(path, repo)
+        for path in sorted(list(workflows_root.glob("*.yml")) + list(workflows_root.glob("*.yaml")))
+        if _keep(path, repo)
     ]
 
 
 def _python_files(root: Path, *, repo: Path) -> list[str]:
     if not root.exists():
         return []
-    return [_rel(path, repo) for path in sorted(root.rglob("*.py"))]
+    return [_rel(path, repo) for path in sorted(root.rglob("*.py")) if _keep(path, repo)]
 
 
 def _markdown_docs(
@@ -643,8 +662,36 @@ def _markdown_docs(
     return [
         _rel(path, repo)
         for path in sorted(root.rglob("*.md"))
-        if not set(path.relative_to(root).parts).intersection(exclude_parts)
+        if not set(path.relative_to(root).parts).intersection(exclude_parts) and _keep(path, repo)
     ]
+
+
+@functools.cache
+def _tracked(repo: Path) -> frozenset[str] | None:
+    """Return the repository-relative paths git tracks, or None outside a git checkout.
+
+    The manifest is a public statement of what the repository contains, so in
+    a git checkout it counts tracked files only: an untracked scratch module in
+    a working tree must not change the published counts. ``None`` (no
+    filtering) is returned when git is missing or ``repo`` is not the top level
+    of its own checkout, e.g. a portable project or an extracted archive.
+    """
+    git = shutil.which("git")
+    if git is None:
+        return None
+    top = subprocess.run(
+        [git, "-C", str(repo), "rev-parse", "--show-toplevel"], check=False, capture_output=True, text=True
+    )  # nosec B603  # executable resolved locally; fixed arguments, no shell
+    if top.returncode != 0 or Path(top.stdout.strip()).resolve() != repo.resolve():
+        return None
+    listed = subprocess.run([git, "-C", str(repo), "ls-files", "-z"], check=True, capture_output=True)  # nosec B603  # executable resolved locally; fixed arguments, no shell
+    return frozenset(path for path in listed.stdout.decode("utf-8", errors="surrogateescape").split("\0") if path)
+
+
+def _keep(path: Path, repo: Path) -> bool:
+    """Return whether ``path`` counts: always outside git, else only when tracked."""
+    tracked = _tracked(repo.resolve())
+    return tracked is None or _rel(path, repo) in tracked
 
 
 def _rel(path: Path, root: Path) -> str:
