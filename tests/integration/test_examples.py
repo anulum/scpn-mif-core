@@ -35,17 +35,20 @@ def _load(path: Path) -> ModuleType:
 
 
 def test_examples_directory_is_populated() -> None:
+    """examples/ contains at least one script."""
     assert EXAMPLE_FILES, "no example scripts found under examples/"
 
 
 @pytest.mark.parametrize("path", EXAMPLE_FILES, ids=lambda p: p.stem)
 def test_example_runs_to_zero_exit(path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """Each example's main returns 0 and prints output."""
     module = _load(path)
     assert module.main() == 0
     assert capsys.readouterr().out.strip()
 
 
 def test_merge_trigger_example_shows_both_outcomes(capsys: pytest.CaptureFixture[str]) -> None:
+    """The merge-trigger example prints both a fire and an abort-unsafe outcome."""
     _load(EXAMPLES_DIR / "frc_merge_trigger.py").main()
     out = capsys.readouterr().out
     assert "fire" in out
@@ -53,6 +56,7 @@ def test_merge_trigger_example_shows_both_outcomes(capsys: pytest.CaptureFixture
 
 
 def test_lifecycle_example_traverses_the_full_ring(capsys: pytest.CaptureFixture[str]) -> None:
+    """The lifecycle example ends idle after eight transitions."""
     _load(EXAMPLES_DIR / "pulsed_shot_lifecycle.py").main()
     out = capsys.readouterr().out
     assert "final state: idle" in out

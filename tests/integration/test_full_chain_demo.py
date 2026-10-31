@@ -62,6 +62,7 @@ def _assert_no_json_float(value: Any) -> None:
 
 
 def test_nominal_case_causes_exactly_one_rtl_trigger_then_fusion_actuation(evidence: Path) -> None:
+    """The nominal case fires through the Rust permit gate, keeps the diagnostic without authority, and actuates FUSION once."""
     nominal = _load(evidence / "nominal.json")
     assert nominal["mif_outcome"] == "fire"
     assert nominal["control_neuro_symbolic"]["backend"] == "rust"
@@ -95,6 +96,7 @@ def test_nominal_case_causes_exactly_one_rtl_trigger_then_fusion_actuation(evide
 
 
 def test_safety_fault_vetoes_every_rtl_cycle_and_never_invokes_fusion(evidence: Path) -> None:
+    """The safety-fault case aborts, vetoes every RTL cycle, never triggers and never invokes the FUSION actuator."""
     veto = _load(evidence / "safety_veto.json")
     assert veto["mif_outcome"] == "abort_unsafe"
     assert veto["mif_safety_passed"] is False
@@ -117,6 +119,7 @@ def test_safety_fault_vetoes_every_rtl_cycle_and_never_invokes_fusion(evidence: 
 
 
 def test_manifest_binds_all_artifacts_and_preserves_claim_boundaries(evidence: Path) -> None:
+    """The manifest hashes every artefact, records bit-identical replays, four repositories and the hardware-gated claims."""
     manifest = _load(evidence / "chain_manifest.json")
     for name, digest in manifest["artifacts"].items():
         assert _sha256(evidence / name) == digest
@@ -133,6 +136,7 @@ def test_manifest_binds_all_artifacts_and_preserves_claim_boundaries(evidence: P
 
 
 def test_evidence_json_is_float_free_and_trajectory_is_pickle_free(evidence: Path) -> None:
+    """Evidence JSON holds no floats and the trajectory loads without pickle, with rising time and a compressing radius."""
     for name in ("nominal.json", "safety_veto.json", "chain_manifest.json"):
         _assert_no_json_float(_load(evidence / name))
     with np.load(evidence / "fusion_trajectory.npz", allow_pickle=False) as trajectory:
@@ -151,11 +155,13 @@ def test_cli_refuses_to_overwrite_existing_evidence(
     evidence: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
+    """The full-chain command exits 2 when the output directory is not empty."""
     assert main(["full-chain", "--output", str(evidence)]) == 2
     assert "output directory must be empty" in capsys.readouterr().err
 
 
 def test_public_runtime_rejects_file_output_and_wrong_checkout_root(tmp_path: Path) -> None:
+    """The runtime refuses a file as output and a code root that is not the imported checkout."""
     output_file = tmp_path / "not-a-directory"
     output_file.write_text("occupied", encoding="utf-8")
     with pytest.raises(ValueError, match="not a directory"):
@@ -165,6 +171,7 @@ def test_public_runtime_rejects_file_output_and_wrong_checkout_root(tmp_path: Pa
 
 
 def test_public_runtime_rejects_an_unrunnable_verilator(tmp_path: Path) -> None:
+    """The runtime refuses a Verilator path that cannot run."""
     empty_output = tmp_path / "empty-output"
     empty_output.mkdir()
     with pytest.raises(RuntimeError, match="not runnable"):
@@ -172,6 +179,7 @@ def test_public_runtime_rejects_an_unrunnable_verilator(tmp_path: Path) -> None:
 
 
 def test_public_control_admissions_fail_closed_on_a_real_no_lock_report() -> None:
+    """A report without lock gets no neuro-symbolic or scheduler permit."""
     scenario_data = deepcopy(DEMO_SCENARIO)
     scenario_data["merge_window"]["consecutive_samples"] = 300
     report = evaluate_merge_trigger(scenario_from_mapping(scenario_data))
@@ -204,12 +212,14 @@ def test_control_transition_gate_does_not_accumulate_membrane_state_between_call
 
 
 def test_public_neuro_symbolic_admission_rejects_non_rust_execution() -> None:
+    """The dense permit path refuses a non-Rust backend."""
     report = evaluate_merge_trigger(scenario_from_mapping(DEMO_SCENARIO))
     with pytest.raises(FullChainError, match="dense permit path requires the SC-NeuroCore Rust backend"):
         evaluate_neuro_symbolic_admission(report, backend_name="numpy")
 
 
 def test_verilator_builder_rejects_missing_and_malformed_tracked_sources(tmp_path: Path) -> None:
+    """The trigger-fabric build refuses missing RTL and fails on malformed RTL."""
     verilator = shutil.which("verilator")
     assert verilator is not None
     with pytest.raises(RuntimeError, match="tracked RTL source is missing"):
@@ -227,6 +237,7 @@ def test_verilator_builder_rejects_missing_and_malformed_tracked_sources(tmp_pat
 
 
 def test_verilator_builder_rejects_success_without_the_expected_binary(tmp_path: Path) -> None:
+    """A build tool that succeeds without producing the binary is refused."""
     true = shutil.which("true")
     assert true is not None
     repo = Path(__file__).resolve().parents[2]
@@ -235,6 +246,7 @@ def test_verilator_builder_rejects_success_without_the_expected_binary(tmp_path:
 
 
 def test_replay_verifier_rejects_tampered_real_evidence(evidence: Path) -> None:
+    """The replay check accepts identical evidence and refuses a changed payload, trajectory presence or channel set."""
     payload = _load(evidence / "nominal.json")
     with np.load(evidence / "fusion_trajectory.npz", allow_pickle=False) as loaded:
         arrays = {name: loaded[name].copy() for name in loaded.files}
@@ -264,6 +276,7 @@ def test_cli_json_mode_runs_the_same_real_chain(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
+    """The --json mode runs the chain and prints the manifest it writes."""
     output = tmp_path / "json-evidence"
     code_root = default_code_root()
     assert main(["full-chain", "--output", str(output), "--code-root", str(code_root), "--json"]) == 0

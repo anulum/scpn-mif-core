@@ -45,6 +45,7 @@ def _packet(execution: AerExactCurrentExecution) -> dict[str, Any]:
 
 
 def test_real_public_control_runtime_preserves_state_and_complete_sc_packets() -> None:
+    """Through the installed CONTROL runtime, LIF state carries across packets, misuse is refused, and spikes match a refined exact reference."""
     address_map = AerAddressMap(
         "mif007-polarity-v1",
         (AerAddressBinding(0x4100, 0, 1), AerAddressBinding(0x4101, 0, -1)),
@@ -240,6 +241,7 @@ def test_real_aer_control_sc_state_trace_against_independent_decimal_oracle(fami
 
 
 def test_real_bridge_rejects_contract_mismatch_and_exhausted_sequence_epoch() -> None:
+    """The bridge refuses a calibration-order or shot mismatch and an exhausted 64-bit sequence epoch until reset."""
     address_map = AerAddressMap("mif007", (AerAddressBinding(0x4100, 0, 1),))
     spec = AerExactCurrentProjectionSpec(
         address_map.digest,

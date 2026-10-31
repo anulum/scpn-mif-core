@@ -51,6 +51,7 @@ def coupled() -> tuple[ModuleType, Any, Any]:
 
 
 def test_stroke_is_a_real_fusion_compression(coupled: tuple[ModuleType, Any, Any]) -> None:
+    """The FUSION stroke has rising time, a compressing radius and a positive external field."""
     _module, _report, stroke = coupled
     # The stroke is a genuine FUSION compression: strictly-increasing time, an actual
     # radius compression, and a positive external field throughout.
@@ -63,6 +64,7 @@ def test_stroke_is_a_real_fusion_compression(coupled: tuple[ModuleType, Any, Any
 def test_field_rate_is_the_finite_difference_of_the_fusion_field(
     coupled: tuple[ModuleType, Any, Any],
 ) -> None:
+    """The field-rate channel equals the central finite difference of the FUSION field."""
     module, _report, stroke = coupled
     # The one non-exact channel: central finite difference of FUSION B_ext(t).
     expansion = module.expansion_from_stroke(stroke)
@@ -75,6 +77,7 @@ def test_field_rate_is_the_finite_difference_of_the_fusion_field(
 def test_decision_fires_with_a_fusion_driven_recovery(
     coupled: tuple[ModuleType, Any, Any],
 ) -> None:
+    """The coupled decision fires, safe and bank-feasible, with positive recovered energy over the FUSION stroke."""
     _module, report, _stroke = coupled
     # The locked, safe, bank-feasible approach fires, and the Faraday recovery runs
     # over the FUSION stroke (not the analytic one).
@@ -89,6 +92,7 @@ def test_decision_fires_with_a_fusion_driven_recovery(
 def test_payload_is_json_safe_and_labels_the_source_honestly(
     coupled: tuple[ModuleType, Any, Any],
 ) -> None:
+    """The payload serialises to JSON, names the coupled source and labels the finite-difference channel."""
     module, report, stroke = coupled
     payload = module.report_payload(report, stroke)
     json.dumps(payload)  # must be serialisable

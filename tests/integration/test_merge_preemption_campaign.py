@@ -49,12 +49,14 @@ CAMPAIGN = _campaign()
 
 
 def test_campaign_is_seed_deterministic() -> None:
+    """Two campaign runs with the same seed give the same result."""
     first = CAMPAIGN.run_campaign(seed=_FAST_SEED, trials_per_point=_FAST_TRIALS, half_separations_m=_FAST_SEPARATIONS)
     second = CAMPAIGN.run_campaign(seed=_FAST_SEED, trials_per_point=_FAST_TRIALS, half_separations_m=_FAST_SEPARATIONS)
     assert first.to_dict() == second.to_dict()
 
 
 def test_unsafe_separation_is_preempted() -> None:
+    """The near point fires more often than the far one, which always aborts as unsafe."""
     result = CAMPAIGN.run_campaign(seed=_FAST_SEED, trials_per_point=_FAST_TRIALS, half_separations_m=_FAST_SEPARATIONS)
     near, far = result.points
     # A tight approach mostly fires; an approach past the safety envelope never fires.
@@ -64,6 +66,7 @@ def test_unsafe_separation_is_preempted() -> None:
 
 
 def test_outcome_fractions_sum_to_one() -> None:
+    """The four outcome fractions of each point sum to one."""
     result = CAMPAIGN.run_campaign(seed=_FAST_SEED, trials_per_point=_FAST_TRIALS, half_separations_m=_FAST_SEPARATIONS)
     for point in result.points:
         total = (
@@ -73,6 +76,7 @@ def test_outcome_fractions_sum_to_one() -> None:
 
 
 def test_committed_result_artifact_is_coherent() -> None:
+    """The committed result falls from first to last point, ends at zero fire and puts the boundary inside the safety tolerance."""
     payload = json.loads(RESULT_PATH.read_text(encoding="utf-8"))
     points = payload["points"]
     assert points, "committed campaign result has no points"
@@ -85,6 +89,7 @@ def test_committed_result_artifact_is_coherent() -> None:
 
 
 def test_render_figure_writes_a_png(tmp_path: Path) -> None:
+    """The campaign figure is written as a PNG; skip without matplotlib."""
     # The `make demo` path renders the campaign figure; matplotlib is the `demo`
     # extra, so skip cleanly where it is absent and exercise the path where present.
     pytest.importorskip("matplotlib")
