@@ -160,7 +160,6 @@ ignore = [
 # wait for theirs, and each entry is removed when its tree is done.
 "tests/unit/**/*.py" = ["D"]
 "tests/integration/**/*.py" = ["D"]
-"tests/physics_parity/**/*.py" = ["D"]
 "bench/**/*.py" = ["S"]
 "examples/**/*.py" = ["S"]
 "campaigns/**/*.py" = ["S"]
