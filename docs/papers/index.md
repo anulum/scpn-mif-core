@@ -84,8 +84,6 @@ the internal external-source register under `docs/external_sources/`.
 - Verschueren, R., et al. (2022). *acados — a modular open-source framework
   for fast embedded optimal control.* Mathematical Programming Computation
   14, 147–183.
-- Maron, Y., et al. (2018). *Pulsed power and ultra-high-current discharge
-  dynamics.* Physical Review X 8, 041018.
 - Kirtley, D. (2019). *Helion Energy: pulsed FRC fusion architecture.*
   AIAA SciTech plenary.
 - Roggen, D., et al. (2016). *Sub-100 ns FPGA control loops for hybrid AMO

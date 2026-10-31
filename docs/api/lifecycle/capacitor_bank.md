@@ -4,8 +4,9 @@
 **Module ID:** MIF-005.
 **Sync state:** `upstream-pending` for SCPN-CONTROL v0.21.0 (`CON-C.2`); see
 the bidirectional sync protocol (internal, `docs/internal/bidirectional_sync_protocol.md`).
-**Reference:** Maron, Y., *et al.* (2018). *Pulsed power and ultra-high-current
-discharge dynamics.* Physical Review X **8**, 041018.
+**Provenance:** standard series-RLC circuit theory, derived from Kirchhoff's
+voltage law and the capacitor and inductor laws; no numerical value is taken
+from an external source.
 
 The capacitor-bank model is the energy reservoir behind every pulsed-shot
 trigger in SCPN-MIF-CORE. It tracks the bank voltage `v_C(t)` and inductor
@@ -235,5 +236,8 @@ rejection paths.
 
 ## References
 
-1. Maron, Y., *et al.* (2018). *Pulsed power and ultra-high-current discharge
-   dynamics.* Physical Review X **8**, 041018.
+The model uses no external source: its equations are the series-RLC loop
+equations and their closed-form solutions derived above. An earlier version of
+this page cited "Maron et al. (2018), Physical Review X 8, 041018"; that
+article number belongs to an unrelated paper on semiconductor qubits, so the
+citation was removed (2026-10-31).

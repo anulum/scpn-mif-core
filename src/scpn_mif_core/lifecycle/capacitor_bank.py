@@ -20,10 +20,12 @@ through the three classical damping regimes (overdamped, critically
 damped, underdamped) and an unconditionally stable Crank-Nicolson
 semi-implicit integrator over the (v_C, i_L) state pair.
 
-Reference
----------
-Maron, Y., et al. (2018). *Pulsed power and ultra-high-current discharge
-dynamics.* Physical Review X 8, 041018.
+Provenance
+----------
+The carrier equations below are standard series-RLC circuit theory: they
+follow from Kirchhoff's voltage law around the loop and the capacitor and
+inductor constitutive laws, and every closed form here is derived from them
+in this module. No numerical value is taken from an external source.
 
 Carrier equations
 -----------------
