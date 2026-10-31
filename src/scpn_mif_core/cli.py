@@ -39,6 +39,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from scpn_mif_core._strict_json import loads_strict_object
 from scpn_mif_core._version import __version__
 from scpn_mif_core.ecosystem import (
     compatibility_report_json,
@@ -136,8 +137,13 @@ def _cmd_ecosystem(args: argparse.Namespace) -> int:
 
 
 def _cmd_run(args: argparse.Namespace) -> int:
-    data = json.loads(Path(args.scenario).read_text(encoding="utf-8"))
-    scenario = scenario_from_mapping(data)
+    data = loads_strict_object(Path(args.scenario).read_text(encoding="utf-8"), what="scenario")
+    try:
+        scenario = scenario_from_mapping(data)
+    except KeyError as error:
+        raise ValueError(f"scenario is missing the required member {error}") from error
+    except TypeError as error:
+        raise ValueError(f"scenario has a member of the wrong shape: {error}") from error
     report = evaluate_merge_trigger(scenario)
     if args.json:
         print(json.dumps(report_to_dict(report), indent=2, sort_keys=True))

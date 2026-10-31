@@ -657,7 +657,7 @@
     "python_capability_classes": 116,
     "python_capability_source_modules": 28,
     "rust_workspace_crates": 10,
-    "test_files": 132
+    "test_files": 133
   },
   "documentation": {
     "public_pages": [
@@ -1158,6 +1158,7 @@
       "tests/unit/test_quality_gate_contract.py",
       "tests/unit/test_sealed_claim.py",
       "tests/unit/test_security_documentation.py",
+      "tests/unit/test_strict_json.py",
       "tests/unit/test_studio_manifest.py",
       "tests/unit/test_update_dispatch.py",
       "tests/unit/test_uspto_patent_documentation.py",

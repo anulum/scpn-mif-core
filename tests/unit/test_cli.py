@@ -133,6 +133,46 @@ def test_run_malformed_json_returns_two(capsys: pytest.CaptureFixture[str], tmp_
     assert "error" in capsys.readouterr().err
 
 
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [
+        ('{"steps": 1, "steps": 2}', "duplicate JSON member: 'steps'"),
+        ('{"dt_s": NaN}', "non-standard JSON literal NaN"),
+        ("[1]", "scenario JSON must be an object"),
+        ("NaN", "non-standard JSON literal NaN"),
+        ("{}", "scenario is missing the required member 'moving_frame'"),
+    ],
+)
+def test_run_refuses_ambiguous_or_incomplete_documents(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path, text: str, message: str
+) -> None:
+    path = tmp_path / "scenario.json"
+    path.write_text(text, encoding="utf-8")
+    assert main(["run", str(path)]) == 2
+    assert message in capsys.readouterr().err
+
+
+def test_run_refuses_a_repeated_member_that_would_change_the_decision(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    text = json.dumps(_FIRE_SCENARIO)[:-1] + ', "initial_phases_rad": [0.0, 0.5]}'
+    path = tmp_path / "scenario.json"
+    path.write_text(text, encoding="utf-8")
+    assert main(["run", str(path)]) == 2
+    assert "duplicate JSON member: 'initial_phases_rad'" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("moving_frame", [{"bogus": 1}, 5])
+def test_run_refuses_a_member_of_the_wrong_shape(
+    capsys: pytest.CaptureFixture[str], tmp_path: Path, moving_frame: object
+) -> None:
+    broken = dict(_FIRE_SCENARIO)
+    broken["moving_frame"] = moving_frame
+    path = _write(tmp_path / "scenario.json", broken)
+    assert main(["run", str(path)]) == 2
+    assert "scenario has a member of the wrong shape" in capsys.readouterr().err
+
+
 def test_missing_subcommand_exits() -> None:
     with pytest.raises(SystemExit):
         main([])

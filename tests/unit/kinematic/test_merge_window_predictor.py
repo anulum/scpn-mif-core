@@ -204,6 +204,23 @@ def test_load_merge_window_predictor_weights_from_runtime_json(tmp_path: Path) -
     assert weights == _weights()
 
 
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [
+        ('{"intercept": -0.5, "intercept": 9.0}', "duplicate JSON member: 'intercept'"),
+        ('{"intercept": NaN}', "non-standard JSON literal NaN"),
+        ('{"intercept": -Infinity}', "non-standard JSON literal -Infinity"),
+    ],
+)
+def test_load_merge_window_predictor_weights_refuses_ambiguous_documents(
+    tmp_path: Path, text: str, message: str
+) -> None:
+    path = tmp_path / "weights.json"
+    path.write_text(text, encoding="utf-8")
+    with pytest.raises(ValueError, match=message):
+        load_merge_window_predictor_weights(path)
+
+
 def test_load_merge_window_predictor_weights_rejects_bad_json_payloads(tmp_path: Path) -> None:
     list_path = tmp_path / "weights-list.json"
     list_path.write_text("[]", encoding="utf-8")

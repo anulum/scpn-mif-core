@@ -16,13 +16,13 @@ guards already permit.
 
 from __future__ import annotations
 
-import json
 import math
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from scpn_mif_core._strict_json import loads_strict_object
 from scpn_mif_core.kinematic.merge_window_features import (
     MergeWindowFeatureVector,
     validate_merge_window_features,
@@ -130,11 +130,14 @@ def load_merge_window_predictor_weights(path: str | Path) -> MergeWindowPredicto
     Raises
     ------
     ValueError
-        If the JSON payload is not an object or any field is invalid.
+        If the JSON payload is not one unambiguous object (a repeated member
+        name or a ``NaN`` or infinity literal is refused) or any field is
+        invalid.
     """
-    payload = json.loads(Path(path).read_text(encoding="utf-8"))
-    if not isinstance(payload, Mapping):
-        raise ValueError("merge-window predictor weights JSON must be an object")
+    payload = loads_strict_object(
+        Path(path).read_text(encoding="utf-8"),
+        what="merge-window predictor weights",
+    )
     return MergeWindowPredictorWeights(
         intercept=_number_field(payload, "intercept"),
         phase_lock_error_weight=_number_field(payload, "phase_lock_error_weight"),

@@ -99,6 +99,14 @@
 
 ### Fixed
 
+- `scpn-mif run` and `load_merge_window_predictor_weights` now decode their
+  JSON files strictly: a repeated member name (previously the last one won
+  silently, so a scenario could run on values a reader did not see), a `NaN`
+  or infinity literal, a non-object document or nesting too deep to decode is
+  refused with a `ValueError`. A scenario missing a required member or with a
+  member of the wrong shape now exits with code 2 and a diagnostic instead of
+  a traceback.
+
 - Made the repository compliant with the REUSE 3.3 specification and gated it
   with the pinned `reuse` pre-commit hook: the AGPL-3.0-or-later licence text is
   committed under `LICENSES/`, one-line `SPDX-License-Identifier` headers that
