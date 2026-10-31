@@ -36,6 +36,7 @@ def _frame(mode: str, sequence: int = 7) -> RawDaqFrame:
 
 
 def test_bench_python_udp_multicast_frame_round_trip(benchmark) -> None:
+    """Time one Python UDP-multicast mock round trip: bind, inject and emit one frame."""
     frame = _frame("udp_multicast")
 
     def call() -> None:
@@ -49,6 +50,7 @@ def test_bench_python_udp_multicast_frame_round_trip(benchmark) -> None:
 
 
 def test_bench_rust_udp_multicast_frame_round_trip(benchmark) -> None:
+    """Time one Rust UDP-multicast mock round trip on an encoded frame."""
     payload = rust.encode_daq_frame("udp_multicast", "helion_v1", 7, 350, VALUES)
 
     def call() -> None:
@@ -62,6 +64,7 @@ def test_bench_rust_udp_multicast_frame_round_trip(benchmark) -> None:
 
 
 def test_bench_go_udp_multicast_probe(benchmark) -> None:
+    """Time the Go mock probe through go run, process start included; skip without Go."""
     if GO_BIN is None:
         pytest.skip("Go executable not available")
 
@@ -79,6 +82,7 @@ def test_bench_go_udp_multicast_probe(benchmark) -> None:
 
 
 def test_bench_python_pcie_dma_ring_256(benchmark) -> None:
+    """Time the Python PCIe DMA ring mock: inject 256 frames and drain them."""
     profile = helion_descriptor_profile()
     frames = tuple(
         RawDaqFrame(
@@ -103,6 +107,7 @@ def test_bench_python_pcie_dma_ring_256(benchmark) -> None:
 
 
 def test_bench_rust_pcie_dma_ring_256(benchmark) -> None:
+    """Time the Rust PCIe DMA ring mock: inject 256 encoded frames and drain them."""
     payloads = [
         rust.encode_daq_frame("pcie_dma_ring", "helion_v1", idx, idx * 50, [500.0, 2.5e21, 0.0, 1.0e8])
         for idx in range(256)
@@ -121,6 +126,7 @@ def test_bench_rust_pcie_dma_ring_256(benchmark) -> None:
 
 
 def test_bench_go_pcie_dma_ring_256(benchmark) -> None:
+    """Time the Go ring probe and check its sequence sum 32640; skip without Go."""
     if GO_BIN is None:
         pytest.skip("Go executable not available")
 

@@ -26,6 +26,7 @@ SAMPLES = tuple(16_384 if idx % 2 == 0 else -16_384 for idx in range(4096))
 
 @pytest.fixture(scope="module")
 def reference():
+    """Load the MIF-007 reference model from tools/ as a module."""
     spec = importlib.util.spec_from_file_location("adc_to_spike_reference", REFERENCE_PATH)
     assert spec is not None
     assert spec.loader is not None
@@ -37,6 +38,7 @@ def reference():
 
 @pytest.fixture(scope="module")
 def verilated_binary(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Build the Verilated ADC-to-spike benchmark binary once per module; skip without Verilator."""
     verilator = shutil.which("verilator")
     if verilator is None:
         pytest.skip("Verilator is not installed in this environment.")
@@ -68,6 +70,7 @@ def verilated_binary(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 
 def test_bench_python_streaming_reference_4096(benchmark, reference) -> None:
+    """Time the streaming reference over 4096 alternating samples and check 2048 spikes."""
     config = reference.AdcToSpikeConfig()
 
     def call() -> int:
@@ -78,6 +81,7 @@ def test_bench_python_streaming_reference_4096(benchmark, reference) -> None:
 
 
 def test_bench_python_cycle_reference_4096(benchmark, reference) -> None:
+    """Time the cycle-accurate reference over the same samples and check 2048 emitted spikes."""
     config = reference.AdcToSpikeConfig()
 
     def call() -> int:
@@ -94,6 +98,8 @@ def test_bench_python_cycle_reference_4096(benchmark, reference) -> None:
 
 
 def test_bench_systemverilog_verilated_cosim_4096(benchmark, verilated_binary: Path) -> None:
+    """Time the Verilated RTL over the same samples and check 2048 spikes."""
+
     def call() -> int:
         result = subprocess.run(
             [str(verilated_binary), "benchmark"],

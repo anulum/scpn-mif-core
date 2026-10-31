@@ -67,12 +67,14 @@ _STEADY_POSITIONS = [-0.002, 0.002]
 
 @pytest.fixture(scope="module")
 def session_trace() -> tuple[np.ndarray, np.ndarray]:
+    """Return a 512-sample steady trace of phases and positions."""
     phases = np.tile(np.asarray(_STEADY_PHASES, dtype=np.float64), (SESSION_SAMPLES, 1))
     positions = np.tile(np.asarray(_STEADY_POSITIONS, dtype=np.float64), (SESSION_SAMPLES, 1))
     return phases, positions
 
 
 def test_bench_python_push_single(benchmark) -> None:
+    """Time one Python streaming push and check the hold-no-lock decision."""
     engine = StreamingMergeTrigger(_spec())
     phases = _STEADY_PHASES
     positions = _STEADY_POSITIONS
@@ -85,6 +87,7 @@ def test_bench_python_push_single(benchmark) -> None:
 
 
 def test_bench_rust_push_single(benchmark) -> None:
+    """Time one Rust streaming push and check the same decision."""
     engine = _rust_engine()
     phases = _STEADY_PHASES
     positions = _STEADY_POSITIONS
@@ -97,6 +100,7 @@ def test_bench_rust_push_single(benchmark) -> None:
 
 
 def test_bench_python_session_512(benchmark, session_trace: tuple[np.ndarray, np.ndarray]) -> None:
+    """Time a fresh Python session over the 512-sample trace and check the final decision."""
     phases, positions = session_trace
 
     def call() -> str:
@@ -110,6 +114,7 @@ def test_bench_python_session_512(benchmark, session_trace: tuple[np.ndarray, np
 
 
 def test_bench_rust_session_512(benchmark, session_trace: tuple[np.ndarray, np.ndarray]) -> None:
+    """Time a fresh Rust session over the 512-sample trace and check the final decision."""
     phases, positions = session_trace
 
     def call() -> str:

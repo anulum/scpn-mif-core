@@ -56,6 +56,7 @@ AFFINE_STEPS = 1_000
 
 @pytest.fixture(scope="module")
 def py_spec() -> DopplerKuramotoSpec:
+    """Return the Python three-oscillator Doppler-Kuramoto specification."""
     return DopplerKuramotoSpec(
         omega_rad_s=OMEGA,
         coupling_rad_s=COUPLING,
@@ -68,10 +69,13 @@ def py_spec() -> DopplerKuramotoSpec:
 
 @pytest.fixture(scope="module")
 def rust_spec() -> rust.DopplerKuramotoSpec:
+    """Return the Rust specification with the same parameters."""
     return rust.DopplerKuramotoSpec(OMEGA, COUPLING, 0.05, 2.0e6, 1.0, 1.0)
 
 
 def test_bench_python_derivatives_3(benchmark, py_spec: DopplerKuramotoSpec) -> None:
+    """Time one Python derivative evaluation for three oscillators."""
+
     def call() -> float:
         return float(py_doppler_derivatives(py_spec, PHASES, POSITIONS, VELOCITIES)[0])
 
@@ -80,6 +84,8 @@ def test_bench_python_derivatives_3(benchmark, py_spec: DopplerKuramotoSpec) -> 
 
 
 def test_bench_rust_derivatives_3(benchmark, rust_spec: rust.DopplerKuramotoSpec) -> None:
+    """Time one Rust derivative evaluation for three oscillators."""
+
     def call() -> float:
         return float(rust.doppler_derivatives(rust_spec, PHASES, POSITIONS, VELOCITIES)[0])
 
@@ -88,6 +94,8 @@ def test_bench_rust_derivatives_3(benchmark, rust_spec: rust.DopplerKuramotoSpec
 
 
 def test_bench_python_trace_120(benchmark, py_spec: DopplerKuramotoSpec) -> None:
+    """Time a 120-step Python trace."""
+
     def call() -> float:
         return float(
             evaluate_doppler_kuramoto(
@@ -105,6 +113,8 @@ def test_bench_python_trace_120(benchmark, py_spec: DopplerKuramotoSpec) -> None
 
 
 def test_bench_rust_trace_120(benchmark, rust_spec: rust.DopplerKuramotoSpec) -> None:
+    """Time 120 Rust engine steps."""
+
     def call() -> float:
         engine = rust.DopplerKuramoto(rust_spec, PHASES, POSITIONS, VELOCITIES)
         state = (0.0, [], [], 0.0, 0.0)
@@ -117,6 +127,7 @@ def test_bench_rust_trace_120(benchmark, rust_spec: rust.DopplerKuramotoSpec) ->
 
 
 def test_bench_julia_cli_trace_120(benchmark) -> None:
+    """Time a Julia process that evaluates the 120-step trace; skip without Julia."""
     if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
         pytest.skip("Julia executable not available")
 
@@ -155,6 +166,7 @@ def test_bench_julia_cli_trace_120(benchmark) -> None:
 
 
 def test_bench_python_affine_trace_1000(benchmark) -> None:
+    """Time a 1000-step Python trace of one oscillator with an affine frequency ramp."""
     spec = DopplerKuramotoSpec(
         omega_rad_s=AFFINE_OMEGA,
         coupling_rad_s=AFFINE_COUPLING,
@@ -178,6 +190,7 @@ def test_bench_python_affine_trace_1000(benchmark) -> None:
 
 
 def test_bench_rust_affine_trace_1000(benchmark) -> None:
+    """Time 1000 Rust engine steps of the affine-ramp case."""
     spec = rust.DopplerKuramotoSpec(
         AFFINE_OMEGA,
         AFFINE_COUPLING,
@@ -196,6 +209,7 @@ def test_bench_rust_affine_trace_1000(benchmark) -> None:
 
 
 def test_bench_julia_cli_affine_trace_1000(benchmark) -> None:
+    """Time a Julia process that evaluates the affine-ramp trace; skip without Julia."""
     if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
         pytest.skip("Julia executable not available")
 
@@ -260,6 +274,7 @@ def _write_mojo_problem(path: Path, spec: DopplerKuramotoSpec) -> None:
 
 
 def test_bench_python_derivative_3(benchmark, py_spec: DopplerKuramotoSpec) -> None:
+    """Time the Python derivative in the same group as the Mojo case (50 rounds of 100 calls)."""
     benchmark.group = "doppler_kuramoto.derivative_3"
     benchmark.pedantic(
         lambda: py_doppler_derivatives(py_spec, PHASES, POSITIONS, VELOCITIES),
@@ -269,6 +284,7 @@ def test_bench_python_derivative_3(benchmark, py_spec: DopplerKuramotoSpec) -> N
 
 
 def test_bench_mojo_cli_derivative_3(benchmark, py_spec: DopplerKuramotoSpec, tmp_path: Path) -> None:
+    """Time the Mojo derivative binary on the written problem, process start included; skip without Mojo."""
     if not _mojo_available():
         pytest.skip("Mojo toolchain not available")
     binary = tmp_path / "doppler_kuramoto"

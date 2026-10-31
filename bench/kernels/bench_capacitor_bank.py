@@ -60,6 +60,7 @@ DT = 1e-7
 
 @pytest.fixture(scope="module")
 def py_spec() -> PyCapacitorBankSpec:
+    """Return the Python capacitor-bank specification used by every case."""
     return PyCapacitorBankSpec(
         capacitance_F=CAPACITANCE_F,
         inductance_H=INDUCTANCE_H,
@@ -71,6 +72,7 @@ def py_spec() -> PyCapacitorBankSpec:
 
 @pytest.fixture(scope="module")
 def rust_spec() -> rust.CapacitorBankSpec:
+    """Return the Rust capacitor-bank specification with the same parameters."""
     return rust.CapacitorBankSpec(
         CAPACITANCE_F,
         INDUCTANCE_H,
@@ -86,6 +88,7 @@ def rust_spec() -> rust.CapacitorBankSpec:
 
 
 def test_bench_python_step_single(benchmark, py_spec: PyCapacitorBankSpec) -> None:
+    """Time one Python Crank-Nicolson step."""
     bank = PyCapacitorBank(py_spec, initial_voltage_V=INITIAL_VOLTAGE_V)
 
     def step_once() -> None:
@@ -96,6 +99,7 @@ def test_bench_python_step_single(benchmark, py_spec: PyCapacitorBankSpec) -> No
 
 
 def test_bench_rust_step_single(benchmark, rust_spec: rust.CapacitorBankSpec) -> None:
+    """Time one Rust Crank-Nicolson step."""
     bank = rust.CapacitorBank(rust_spec, INITIAL_VOLTAGE_V)
 
     def step_once() -> None:
@@ -106,6 +110,7 @@ def test_bench_rust_step_single(benchmark, rust_spec: rust.CapacitorBankSpec) ->
 
 
 def test_bench_julia_cli_step_single(benchmark) -> None:
+    """Time a Julia process that takes one step, process start included; skip without Julia."""
     if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
         pytest.skip("Julia executable not available")
 
@@ -142,6 +147,8 @@ def test_bench_julia_cli_step_single(benchmark) -> None:
 
 
 def test_bench_python_step_batch_1000(benchmark, py_spec: PyCapacitorBankSpec) -> None:
+    """Time 1000 Python steps from a fresh bank."""
+
     def step_batch() -> None:
         bank = PyCapacitorBank(py_spec, initial_voltage_V=INITIAL_VOLTAGE_V)
         for _ in range(1000):
@@ -152,6 +159,8 @@ def test_bench_python_step_batch_1000(benchmark, py_spec: PyCapacitorBankSpec) -
 
 
 def test_bench_rust_step_batch_1000(benchmark, rust_spec: rust.CapacitorBankSpec) -> None:
+    """Time 1000 Rust steps from a fresh bank."""
+
     def step_batch() -> None:
         bank = rust.CapacitorBank(rust_spec, INITIAL_VOLTAGE_V)
         for _ in range(1000):
@@ -162,6 +171,7 @@ def test_bench_rust_step_batch_1000(benchmark, rust_spec: rust.CapacitorBankSpec
 
 
 def test_bench_julia_cli_step_batch_1000(benchmark) -> None:
+    """Time a Julia process that takes 1000 steps, process start included; skip without Julia."""
     if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
         pytest.skip("Julia executable not available")
 
@@ -201,6 +211,8 @@ def test_bench_julia_cli_step_batch_1000(benchmark) -> None:
 
 
 def test_bench_python_free_response(benchmark, py_spec: PyCapacitorBankSpec) -> None:
+    """Time one Python analytical free-response evaluation."""
+
     def call() -> None:
         py_free_response(py_spec, 1e-5, INITIAL_VOLTAGE_V)
 
@@ -209,6 +221,8 @@ def test_bench_python_free_response(benchmark, py_spec: PyCapacitorBankSpec) -> 
 
 
 def test_bench_rust_free_response(benchmark, rust_spec: rust.CapacitorBankSpec) -> None:
+    """Time one Rust analytical free-response evaluation."""
+
     def call() -> None:
         rust.free_response(rust_spec, 1e-5, INITIAL_VOLTAGE_V)
 
@@ -217,6 +231,7 @@ def test_bench_rust_free_response(benchmark, rust_spec: rust.CapacitorBankSpec) 
 
 
 def test_bench_julia_cli_free_response(benchmark) -> None:
+    """Time a Julia process that evaluates the free response; skip without Julia."""
     if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
         pytest.skip("Julia executable not available")
 

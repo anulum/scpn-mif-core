@@ -26,16 +26,19 @@ rust = pytest.importorskip(
 
 @pytest.fixture(scope="module")
 def py_spec() -> PulsedShotSpec:
+    """Return the Python pulsed-shot specification."""
     return PulsedShotSpec(100.0, 2.0e6, 0.01, 0.002, 1.0e3, 2.0e6, 1.0e3, 40.0, 0.95, 20.0, 1.0e3, 0.0)
 
 
 @pytest.fixture(scope="module")
 def rust_spec() -> rust.PulsedShotSpec:
+    """Return the Rust specification with the same parameters."""
     return rust.PulsedShotSpec(100.0, 2.0e6, 0.01, 0.002, 1.0e3, 2.0e6, 1.0e3, 40.0, 0.95, 20.0, 1.0e3, 0.0)
 
 
 @pytest.fixture(scope="module")
 def py_campaign() -> tuple[tuple[float, PlasmaState, BankTelemetry], ...]:
+    """Return the eight-step Python shot campaign."""
     return (
         (0.0, PlasmaState(0.0, 10.0, 0.02, 0.01, 0.0, 0.0), BankTelemetry(9800.0, 10_000.0, 200.0)),
         (1.0e-3, PlasmaState(2.5e6, 10.0, 0.02, 0.01, 0.0, 0.0), BankTelemetry(9800.0, 10_000.0, 200.0)),
@@ -52,6 +55,7 @@ def py_campaign() -> tuple[tuple[float, PlasmaState, BankTelemetry], ...]:
 def rust_campaign(
     py_campaign: tuple[tuple[float, PlasmaState, BankTelemetry], ...],
 ) -> tuple[tuple[float, object, object], ...]:
+    """Return the same campaign as Rust plasma states and bank telemetry."""
     return tuple(
         (
             t_s,
@@ -74,6 +78,8 @@ def test_bench_python_campaign_8(
     py_spec: PulsedShotSpec,
     py_campaign: tuple[tuple[float, PlasmaState, BankTelemetry], ...],
 ) -> None:
+    """Time the Python FSM over the campaign and check it returns to idle."""
+
     def call() -> str:
         fsm = PulsedShotFSM(py_spec)
         state = ""
@@ -90,6 +96,8 @@ def test_bench_rust_campaign_8(
     rust_spec: rust.PulsedShotSpec,
     rust_campaign: tuple[tuple[float, object, object], ...],
 ) -> None:
+    """Time the Rust FSM over the campaign and check it returns to idle."""
+
     def call() -> str:
         fsm = rust.PulsedShotFSM(rust_spec)
         state = ""

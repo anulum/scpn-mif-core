@@ -51,6 +51,8 @@ def _rust_liveness() -> Callable[..., MergerVerificationReport]:
 
 
 def test_bench_python_boundedness_100x500(benchmark) -> None:
+    """Time the Python seeded boundedness campaign (100 x 500) and check it passes."""
+
     def call() -> bool:
         return verify_merger_boundedness_seeded(_SPEC, trials=100, steps_per_trial=500, seed=42).passed
 
@@ -59,6 +61,7 @@ def test_bench_python_boundedness_100x500(benchmark) -> None:
 
 
 def test_bench_rust_boundedness_100x500(benchmark) -> None:
+    """Time the Rust seeded boundedness campaign (100 x 500) and check it passes."""
     campaign = _rust_boundedness()
 
     def call() -> bool:
@@ -69,6 +72,8 @@ def test_bench_rust_boundedness_100x500(benchmark) -> None:
 
 
 def test_bench_python_liveness_1000x200(benchmark) -> None:
+    """Time the Python seeded liveness campaign (1000 x 200) and check it passes."""
+
     def call() -> bool:
         return verify_merger_liveness_seeded(_SPEC, trials=1000, steps_per_trial=200, seed=42).passed
 
@@ -77,6 +82,7 @@ def test_bench_python_liveness_1000x200(benchmark) -> None:
 
 
 def test_bench_rust_liveness_1000x200(benchmark) -> None:
+    """Time the Rust seeded liveness campaign (1000 x 200) and check it passes."""
     campaign = _rust_liveness()
 
     def call() -> bool:

@@ -50,15 +50,19 @@ MAGNETIC_FIELD_RATE_LIST = MAGNETIC_FIELD_RATE_T_S.tolist()
 
 @pytest.fixture(scope="module")
 def py_spec() -> PyFaradayRecoverySpec:
+    """Return the Python Faraday-recovery specification (64 turns, 4 ohm load, 0.9 coupling)."""
     return PyFaradayRecoverySpec(turns=64.0, load_resistance_ohm=4.0, coupling_efficiency=0.9)
 
 
 @pytest.fixture(scope="module")
 def rust_spec() -> rust.FaradayRecoverySpec:
+    """Return the Rust specification with the same parameters."""
     return rust.FaradayRecoverySpec(64.0, 4.0, 0.9)
 
 
 def test_bench_python_scalar_emf(benchmark) -> None:
+    """Time one Python back-EMF evaluation."""
+
     def call() -> float:
         return py_faraday_back_emf(0.2, -320.0, 5.0, 2.5e5, 64.0)
 
@@ -67,6 +71,8 @@ def test_bench_python_scalar_emf(benchmark) -> None:
 
 
 def test_bench_rust_scalar_emf(benchmark) -> None:
+    """Time one Rust back-EMF evaluation."""
+
     def call() -> float:
         return rust.faraday_back_emf(0.2, -320.0, 5.0, 2.5e5, 64.0)
 
@@ -75,6 +81,8 @@ def test_bench_rust_scalar_emf(benchmark) -> None:
 
 
 def test_bench_python_waveform_batch_4096(benchmark, py_spec: PyFaradayRecoverySpec) -> None:
+    """Time Python recovery evaluation over the 4096-sample waveform."""
+
     def call() -> float:
         return py_evaluate_faraday_recovery(
             py_spec,
@@ -90,6 +98,8 @@ def test_bench_python_waveform_batch_4096(benchmark, py_spec: PyFaradayRecoveryS
 
 
 def test_bench_rust_waveform_batch_4096(benchmark, rust_spec: rust.FaradayRecoverySpec) -> None:
+    """Time Rust recovery evaluation over the same waveform, passed as NumPy arrays."""
+
     # The FFI batch contract is zero-copy NumPy views; pass the arrays directly.
     def call() -> float:
         return rust.evaluate_faraday_recovery(
@@ -106,6 +116,7 @@ def test_bench_rust_waveform_batch_4096(benchmark, rust_spec: rust.FaradayRecove
 
 
 def test_bench_julia_cli_waveform_batch_4096(benchmark) -> None:
+    """Time a Julia process that builds and evaluates the waveform; skip without Julia."""
     if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
         pytest.skip("Julia executable not available")
 
@@ -153,6 +164,7 @@ def _mojo_available() -> bool:
 
 
 def test_bench_mojo_cli_waveform_batch_4096(benchmark, py_spec: PyFaradayRecoverySpec, tmp_path: Path) -> None:
+    """Time the Mojo recovery binary on the written waveform, process start included; skip without Mojo."""
     if not _mojo_available():
         pytest.skip("Mojo toolchain not available")
     binary = tmp_path / "faraday_recovery"

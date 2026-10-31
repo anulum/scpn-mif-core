@@ -26,16 +26,19 @@ rust = pytest.importorskip(
 
 @pytest.fixture(scope="module")
 def py_spec() -> PlasmoidMergerSpec:
+    """Return the default Python plasmoid-merger specification."""
     return PlasmoidMergerSpec()
 
 
 @pytest.fixture(scope="module")
 def rust_spec() -> rust.PlasmoidMergerSpec:
+    """Return the Rust specification with the default parameters spelled out."""
     return rust.PlasmoidMergerSpec(0.002, 3.0e5, 0.72, 0.12, 0.01, 5.0e4, 1, 2, 2, 3, 1.0, 0.35)
 
 
 @pytest.fixture(scope="module")
 def py_campaign() -> tuple[MergerObservation, ...]:
+    """Return the eight-observation Python merger campaign."""
     return (
         MergerObservation(0.0015, 3.0e5, 0.2, 0.0, 0.25, 1.0e3),
         MergerObservation(0.0014, 3.0e5, 0.2, 0.80, 0.25, 1.0e3),
@@ -50,6 +53,7 @@ def py_campaign() -> tuple[MergerObservation, ...]:
 
 @pytest.fixture(scope="module")
 def rust_campaign(py_campaign: tuple[MergerObservation, ...]) -> tuple[object, ...]:
+    """Return the same campaign as Rust observations."""
     return tuple(
         rust.MergerObservation(
             observation.separation_m,
@@ -68,6 +72,8 @@ def test_bench_python_campaign_8(
     py_spec: PlasmoidMergerSpec,
     py_campaign: tuple[MergerObservation, ...],
 ) -> None:
+    """Time the Python net over the campaign and check it ends phase locked."""
+
     def call() -> str:
         net = PlasmoidMergerPetriNet(py_spec, seed=101)
         place = ""
@@ -84,6 +90,8 @@ def test_bench_rust_campaign_8(
     rust_spec: object,
     rust_campaign: tuple[object, ...],
 ) -> None:
+    """Time the Rust net over the campaign and check it ends phase locked."""
+
     def call() -> str:
         net = rust.PlasmoidMergerPetriNet(rust_spec, 101)
         place = ""
@@ -96,6 +104,8 @@ def test_bench_rust_campaign_8(
 
 
 def test_bench_python_boundedness_100x500(benchmark, py_spec: PlasmoidMergerSpec) -> None:
+    """Time the Python boundedness check (100 trials of 500 steps) and check it passes."""
+
     def call() -> bool:
         return verify_merger_boundedness(py_spec, trials=100, steps_per_trial=500, seed=103).passed
 
@@ -104,6 +114,8 @@ def test_bench_python_boundedness_100x500(benchmark, py_spec: PlasmoidMergerSpec
 
 
 def test_bench_rust_boundedness_100x500(benchmark, rust_spec: object) -> None:
+    """Time the Rust boundedness check (100 trials of 500 steps) and check it passes."""
+
     def call() -> bool:
         return bool(rust.verify_merger_boundedness(rust_spec, 100, 500, 103)[0])
 

@@ -58,15 +58,18 @@ def _trace(samples: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
 
 @pytest.fixture(scope="module")
 def trace_64() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return the 64-row error and separation trace."""
     return _trace(64)
 
 
 @pytest.fixture(scope="module")
 def trace_4096() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return the 4096-row error and separation trace."""
     return _trace(4096)
 
 
 def test_bench_python_trace_64(benchmark, trace_64: tuple[np.ndarray, np.ndarray, np.ndarray]) -> None:
+    """Time Python probability propagation over 64 rows and check the fire probability is in [0, 1]."""
     phase_errors, reference_errors, separations = trace_64
 
     def call() -> float:
@@ -79,6 +82,7 @@ def test_bench_python_trace_64(benchmark, trace_64: tuple[np.ndarray, np.ndarray
 
 
 def test_bench_rust_trace_64(benchmark, trace_64: tuple[np.ndarray, np.ndarray, np.ndarray]) -> None:
+    """Time Rust probability propagation over 64 rows and check the fire probability is in [0, 1]."""
     phase_errors, reference_errors, separations = trace_64
     propagate = _rust_propagate()
 
@@ -90,6 +94,7 @@ def test_bench_rust_trace_64(benchmark, trace_64: tuple[np.ndarray, np.ndarray, 
 
 
 def test_bench_python_trace_4096(benchmark, trace_4096: tuple[np.ndarray, np.ndarray, np.ndarray]) -> None:
+    """Time Python probability propagation over 4096 rows and check the fire probability is in [0, 1]."""
     phase_errors, reference_errors, separations = trace_4096
 
     def call() -> float:
@@ -102,6 +107,7 @@ def test_bench_python_trace_4096(benchmark, trace_4096: tuple[np.ndarray, np.nda
 
 
 def test_bench_rust_trace_4096(benchmark, trace_4096: tuple[np.ndarray, np.ndarray, np.ndarray]) -> None:
+    """Time Rust probability propagation over 4096 rows and check the fire probability is in [0, 1]."""
     phase_errors, reference_errors, separations = trace_4096
     propagate = _rust_propagate()
 

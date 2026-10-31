@@ -60,11 +60,13 @@ def _frame(index: int = 0) -> DiagnosticFrame:
 
 @pytest.fixture(scope="module")
 def py_stream() -> DegradedSensorStream:
+    """Return the Python degraded-sensor stream for the seeded configuration."""
     return DegradedSensorStream(_config())
 
 
 @pytest.fixture(scope="module")
 def rust_config() -> object:
+    """Return the Rust stress-injection configuration with the same parameters."""
     return rust.StressInjectionConfig(
         7,
         CHANNELS,
@@ -78,6 +80,7 @@ def rust_config() -> object:
 
 
 def test_bench_python_single_frame(benchmark, py_stream: DegradedSensorStream) -> None:
+    """Time Python stress injection of one frame."""
     frame = _frame()
 
     def call() -> None:
@@ -88,6 +91,8 @@ def test_bench_python_single_frame(benchmark, py_stream: DegradedSensorStream) -
 
 
 def test_bench_rust_single_frame(benchmark, rust_config: object) -> None:
+    """Time Rust stress injection of one frame."""
+
     def call() -> None:
         rust_config.stress_inject_frame(CHANNELS, VALUES, 1_000, 0)
 
@@ -96,6 +101,7 @@ def test_bench_rust_single_frame(benchmark, rust_config: object) -> None:
 
 
 def test_bench_julia_cli_single_frame(benchmark) -> None:
+    """Time a Julia process that stress-injects one frame; skip without Julia."""
     if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
         pytest.skip("Julia executable not available")
 
@@ -137,6 +143,7 @@ def test_bench_julia_cli_single_frame(benchmark) -> None:
 
 
 def test_bench_python_batch_4096(benchmark, py_stream: DegradedSensorStream) -> None:
+    """Time Python stress injection of 4096 frames in one call."""
     frames = tuple(_frame(index) for index in range(4096))
 
     def call() -> None:
@@ -147,6 +154,7 @@ def test_bench_python_batch_4096(benchmark, py_stream: DegradedSensorStream) -> 
 
 
 def test_bench_rust_batch_4096(benchmark, rust_config: object) -> None:
+    """Time Rust stress injection of 4096 frames, one call each."""
     values = [[VALUES[0] + index, VALUES[1], VALUES[2], VALUES[3]] for index in range(4096)]
 
     def call() -> None:

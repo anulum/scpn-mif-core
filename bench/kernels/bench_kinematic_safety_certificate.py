@@ -30,10 +30,13 @@ SEPARATION = [0.0018 * (0.75**idx) for idx in range(TRACE_ROWS)]
 
 @pytest.fixture(scope="module")
 def py_spec() -> KinematicSafetySpec:
+    """Return the kinematic safety specification (2 mm tolerance, contraction 0.75)."""
     return KinematicSafetySpec(tolerance_m=0.002, contraction=0.75, disturbance_ratio=0.2)
 
 
 def test_bench_python_trace_512(benchmark, py_spec: KinematicSafetySpec) -> None:
+    """Time the Python certificate over the 512-row contracting trace and check it passes."""
+
     def call() -> bool:
         return certify_sampled_kinematic_safety(SEPARATION, py_spec).passed
 
@@ -42,6 +45,8 @@ def test_bench_python_trace_512(benchmark, py_spec: KinematicSafetySpec) -> None
 
 
 def test_bench_rust_trace_512(benchmark, py_spec: KinematicSafetySpec) -> None:
+    """Time the Rust certificate over the same trace and check it passes."""
+
     def call() -> bool:
         return bool(
             rust.certify_sampled_kinematic_safety(
@@ -58,6 +63,7 @@ def test_bench_rust_trace_512(benchmark, py_spec: KinematicSafetySpec) -> None:
 
 
 def test_bench_julia_cli_trace_512(benchmark) -> None:
+    """Time a Julia process that certifies the same trace; skip without Julia."""
     if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
         pytest.skip("Julia executable not available")
 

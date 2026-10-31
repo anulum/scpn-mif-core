@@ -52,6 +52,7 @@ AFFINE_STEPS = 1_000
 
 @pytest.fixture(scope="module")
 def py_spec() -> MovingFrameUPDESpec:
+    """Return the Python two-oscillator moving-frame UPDE specification."""
     return MovingFrameUPDESpec(
         omega_rad_s=OMEGA,
         coupling_rad_s=COUPLING,
@@ -65,10 +66,13 @@ def py_spec() -> MovingFrameUPDESpec:
 
 @pytest.fixture(scope="module")
 def rust_spec() -> rust.MovingFrameUPDESpec:
+    """Return the Rust specification with the same parameters."""
     return rust.MovingFrameUPDESpec(OMEGA, COUPLING, 0.0, 2.0e6, 1.0, 1.0, 0.0)
 
 
 def test_bench_python_derivatives_2(benchmark, py_spec: MovingFrameUPDESpec) -> None:
+    """Time one Python derivative evaluation for two oscillators."""
+
     def call() -> float:
         return float(py_moving_frame_derivatives(py_spec, PHASES, POSITIONS, VELOCITIES)[0])
 
@@ -77,6 +81,8 @@ def test_bench_python_derivatives_2(benchmark, py_spec: MovingFrameUPDESpec) -> 
 
 
 def test_bench_rust_derivatives_2(benchmark, rust_spec: rust.MovingFrameUPDESpec) -> None:
+    """Time one Rust derivative evaluation for two oscillators."""
+
     def call() -> float:
         return float(rust.moving_frame_derivatives(rust_spec, PHASES, POSITIONS, VELOCITIES)[0])
 
@@ -85,6 +91,8 @@ def test_bench_rust_derivatives_2(benchmark, rust_spec: rust.MovingFrameUPDESpec
 
 
 def test_bench_python_trace_120(benchmark, py_spec: MovingFrameUPDESpec) -> None:
+    """Time a 120-step Python trace."""
+
     def call() -> float:
         return float(
             evaluate_moving_frame_upde(
@@ -102,6 +110,8 @@ def test_bench_python_trace_120(benchmark, py_spec: MovingFrameUPDESpec) -> None
 
 
 def test_bench_rust_trace_120(benchmark, rust_spec: rust.MovingFrameUPDESpec) -> None:
+    """Time 120 Rust engine steps."""
+
     def call() -> float:
         engine = rust.MovingFrameUPDE(rust_spec, PHASES, POSITIONS, VELOCITIES)
         state = (0.0, [], [], [], 0.0, 0.0, 0.0, 0.0, 0.0)
@@ -114,6 +124,7 @@ def test_bench_rust_trace_120(benchmark, rust_spec: rust.MovingFrameUPDESpec) ->
 
 
 def test_bench_julia_cli_trace_120(benchmark) -> None:
+    """Time a Julia process that evaluates the 120-step trace; skip without Julia."""
     if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
         pytest.skip("Julia executable not available")
 
@@ -153,6 +164,7 @@ def test_bench_julia_cli_trace_120(benchmark) -> None:
 
 
 def test_bench_python_affine_trace_1000(benchmark) -> None:
+    """Time a 1000-step Python trace of one oscillator with an affine frequency ramp."""
     spec = MovingFrameUPDESpec(
         omega_rad_s=AFFINE_OMEGA,
         coupling_rad_s=AFFINE_COUPLING,
@@ -176,6 +188,7 @@ def test_bench_python_affine_trace_1000(benchmark) -> None:
 
 
 def test_bench_rust_affine_trace_1000(benchmark) -> None:
+    """Time 1000 Rust engine steps of the affine-ramp case."""
     spec = rust.MovingFrameUPDESpec(
         AFFINE_OMEGA,
         AFFINE_COUPLING,
@@ -194,6 +207,7 @@ def test_bench_rust_affine_trace_1000(benchmark) -> None:
 
 
 def test_bench_julia_cli_affine_trace_1000(benchmark) -> None:
+    """Time a Julia process that evaluates the affine-ramp trace; skip without Julia."""
     if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
         pytest.skip("Julia executable not available")
 

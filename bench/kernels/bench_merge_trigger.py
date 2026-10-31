@@ -55,6 +55,7 @@ def _fire_scenario() -> MergeTriggerScenario:
 
 
 def test_bench_python_evaluate_merge_trigger(benchmark) -> None:
+    """Time the Python merge-trigger evaluation of the fire scenario and check it fires."""
     scenario = _fire_scenario()
     benchmark.group = f"merge_trigger.evaluate_{STEPS}"
     report = benchmark(evaluate_merge_trigger, scenario)

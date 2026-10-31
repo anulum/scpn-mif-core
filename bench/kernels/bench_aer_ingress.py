@@ -30,16 +30,19 @@ JULIA_EVENTS = "[AERSpikeEvent(idx % 16, idx * 10, idx % 5 == 0 ? -1 : 1) for id
 
 @pytest.fixture(scope="module")
 def py_rate_spec() -> AERDecodeSpec:
+    """Return the Python 16-channel, 4096 ns rate-decode specification."""
     return AERDecodeSpec(n_channels=16, window_ns=4096, strategy="rate", start_ns=0)
 
 
 @pytest.fixture(scope="module")
 def rust_rate_spec() -> rust.AERDecodeSpec:
+    """Return the Rust rate-decode specification with the same parameters."""
     return rust.AERDecodeSpec(16, 4096, "rate", start_ns=0)
 
 
 @pytest.fixture(scope="module")
 def py_buffer() -> SpikeBuffer:
+    """Return a Python spike buffer of capacity 512 filled with the benchmark events."""
     buffer = SpikeBuffer(capacity=512)
     for address, t_ns, polarity in EVENTS:
         buffer.push(AERSpikeEvent(address, t_ns, polarity))
@@ -48,6 +51,7 @@ def py_buffer() -> SpikeBuffer:
 
 @pytest.fixture(scope="module")
 def rust_buffer() -> rust.AERSpikeBuffer:
+    """Return a Rust spike buffer of capacity 512 filled with the benchmark events."""
     buffer = rust.AERSpikeBuffer(512)
     for address, t_ns, polarity in EVENTS:
         buffer.push(address, t_ns, polarity)
@@ -55,6 +59,8 @@ def rust_buffer() -> rust.AERSpikeBuffer:
 
 
 def test_bench_python_push_256(benchmark) -> None:
+    """Time pushing the benchmark events into a fresh Python spike buffer and check the count."""
+
     def call() -> int:
         buffer = SpikeBuffer(capacity=512)
         for address, t_ns, polarity in EVENTS:
@@ -66,6 +72,8 @@ def test_bench_python_push_256(benchmark) -> None:
 
 
 def test_bench_rust_push_256(benchmark) -> None:
+    """Time pushing the benchmark events into a fresh Rust spike buffer and check the count."""
+
     def call() -> int:
         buffer = rust.AERSpikeBuffer(512)
         for address, t_ns, polarity in EVENTS:
@@ -77,6 +85,8 @@ def test_bench_rust_push_256(benchmark) -> None:
 
 
 def test_bench_python_decode_rate(benchmark, py_buffer: SpikeBuffer, py_rate_spec: AERDecodeSpec) -> None:
+    """Time Python rate decoding of the filled buffer and check the first feature."""
+
     def call() -> list[float]:
         return decode_spike_features(py_buffer, py_rate_spec).tolist()
 
@@ -87,6 +97,8 @@ def test_bench_python_decode_rate(benchmark, py_buffer: SpikeBuffer, py_rate_spe
 def test_bench_rust_decode_rate(
     benchmark, rust_buffer: rust.AERSpikeBuffer, rust_rate_spec: rust.AERDecodeSpec
 ) -> None:
+    """Time Rust rate decoding of the filled buffer and check the first feature."""
+
     def call() -> list[float]:
         return rust.decode_aer_features(rust_buffer, rust_rate_spec)
 
@@ -95,6 +107,7 @@ def test_bench_rust_decode_rate(
 
 
 def test_bench_julia_cli_push_256(benchmark) -> None:
+    """Time a Julia process that pushes the benchmark events and prints the count; skip without Julia."""
     if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
         pytest.skip("Julia executable not available")
 
@@ -122,6 +135,7 @@ def test_bench_julia_cli_push_256(benchmark) -> None:
 
 
 def test_bench_julia_cli_decode_rate(benchmark) -> None:
+    """Time a Julia process that fills a buffer and rate-decodes it; skip without Julia."""
     if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
         pytest.skip("Julia executable not available")
 
@@ -162,6 +176,7 @@ def _mojo_available() -> bool:
 
 
 def test_bench_mojo_cli_decode_rate(benchmark, py_rate_spec: AERDecodeSpec, tmp_path: Path) -> None:
+    """Time the Mojo rate decoder on the windowed events, process start included; skip without Mojo."""
     if not _mojo_available():
         pytest.skip("Mojo toolchain not available")
     binary = tmp_path / "aer_decode_rate"

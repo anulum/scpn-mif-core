@@ -39,6 +39,7 @@ TRACE_ROWS = 256
 
 @pytest.fixture(scope="module")
 def py_spec() -> MergeWindowSpec:
+    """Return the Python merge-window specification."""
     return MergeWindowSpec(
         phase_tolerance_rad=PHASE_TOLERANCE_RAD,
         spatial_tolerance_m=SPATIAL_TOLERANCE_M,
@@ -49,11 +50,13 @@ def py_spec() -> MergeWindowSpec:
 
 @pytest.fixture(scope="module")
 def rust_spec() -> rust.MergeWindowSpec:
+    """Return the Rust merge-window specification with the same tolerances."""
     return rust.MergeWindowSpec(PHASE_TOLERANCE_RAD, SPATIAL_TOLERANCE_M, CONSECUTIVE_SAMPLES, 0.0)
 
 
 @pytest.fixture(scope="module")
 def trace_inputs() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return the 256-row trace: a phase outlier on row 0 and a spatial outlier on row 1, locked after."""
     time_s = np.arange(TRACE_ROWS, dtype=np.float64) * 1.0e-9
     phases = np.tile(np.asarray(PHASES, dtype=np.float64), (TRACE_ROWS, 1))
     positions = np.tile(np.asarray(POSITIONS, dtype=np.float64), (TRACE_ROWS, 1))
@@ -63,6 +66,8 @@ def trace_inputs() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
 
 
 def test_bench_python_evaluate_single(benchmark, py_spec: MergeWindowSpec) -> None:
+    """Time one Python evaluation from a fresh monitor and check a candidate lock without lock."""
+
     def call() -> tuple[bool, bool, int]:
         sample = MergeWindowMonitor(py_spec).evaluate(PHASES, POSITIONS, t_s=0.0)
         return sample.candidate_lock, sample.lock_achieved, sample.streak
@@ -72,6 +77,8 @@ def test_bench_python_evaluate_single(benchmark, py_spec: MergeWindowSpec) -> No
 
 
 def test_bench_rust_evaluate_single(benchmark, rust_spec: rust.MergeWindowSpec) -> None:
+    """Time one Rust evaluation from a fresh monitor and check the same result."""
+
     def call() -> tuple[bool, bool, int]:
         sample = rust.MergeWindowMonitor(rust_spec).evaluate(PHASES, POSITIONS, 0.0)
         return bool(sample[4]), bool(sample[5]), int(sample[6])
@@ -85,6 +92,7 @@ def test_bench_python_trace_256(
     py_spec: MergeWindowSpec,
     trace_inputs: tuple[np.ndarray, np.ndarray, np.ndarray],
 ) -> None:
+    """Time the Python trace evaluation and check lock time and final streak."""
     time_s, phases, positions = trace_inputs
 
     def call() -> tuple[bool, float | None, int]:
@@ -103,6 +111,7 @@ def test_bench_rust_trace_256(
     rust_spec: rust.MergeWindowSpec,
     trace_inputs: tuple[np.ndarray, np.ndarray, np.ndarray],
 ) -> None:
+    """Time 256 Rust monitor evaluations and check lock time and final streak."""
     time_s, phases, positions = trace_inputs
 
     def call() -> tuple[bool, float | None, int]:
@@ -124,6 +133,7 @@ def test_bench_rust_trace_256(
 
 
 def test_bench_julia_cli_trace_256(benchmark) -> None:
+    """Time a Julia process that evaluates the same trace; skip without Julia."""
     if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
         pytest.skip("Julia executable not available")
 

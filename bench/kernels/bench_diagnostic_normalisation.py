@@ -61,11 +61,13 @@ def _values() -> list[float]:
 
 @pytest.fixture(scope="module")
 def py_state() -> DiagnosticNormalisationState:
+    """Return the Python four-channel normalisation state at a 50 ns sample period."""
     return DiagnosticNormalisationState(_calibrations(), sample_period_ns=50)
 
 
 @pytest.fixture(scope="module")
 def rust_state() -> object:
+    """Return the Rust normalisation state built from the same four calibrations."""
     rust_calibrations = [
         rust.DiagnosticChannelCalibration(
             cal.name,
@@ -82,6 +84,7 @@ def rust_state() -> object:
 
 
 def test_bench_python_single_4ch(benchmark, py_state: DiagnosticNormalisationState) -> None:
+    """Time Python normalisation of one four-channel sample."""
     sample = _sample()
 
     def call() -> None:
@@ -92,6 +95,7 @@ def test_bench_python_single_4ch(benchmark, py_state: DiagnosticNormalisationSta
 
 
 def test_bench_rust_single_4ch(benchmark, rust_state: object) -> None:
+    """Time Rust normalisation of one four-channel feature vector."""
     values = _values()
 
     def call() -> None:
@@ -102,6 +106,7 @@ def test_bench_rust_single_4ch(benchmark, rust_state: object) -> None:
 
 
 def test_bench_julia_cli_single_4ch(benchmark) -> None:
+    """Time a Julia process that normalises one four-channel sample; skip without Julia."""
     if shutil.which(JULIA_BIN) is None and not Path(JULIA_BIN).is_file():
         pytest.skip("Julia executable not available")
 
@@ -136,6 +141,7 @@ def test_bench_julia_cli_single_4ch(benchmark) -> None:
 
 
 def test_bench_python_batch_4096x4(benchmark, py_state: DiagnosticNormalisationState) -> None:
+    """Time Python normalisation of 4096 varied samples, one call each."""
     sample = _sample()
     samples = [
         {
@@ -155,6 +161,7 @@ def test_bench_python_batch_4096x4(benchmark, py_state: DiagnosticNormalisationS
 
 
 def test_bench_rust_batch_4096x4(benchmark, rust_state: object) -> None:
+    """Time Rust normalisation of 4096 varied feature vectors, one call each."""
     base = _values()
     samples = [
         [base[0] + (idx % 17), base[1] + (idx % 19) * 1.0e18, base[2] + (idx % 5) * 0.1, base[3] - (idx % 11) * 1.0e6]
@@ -170,6 +177,7 @@ def test_bench_rust_batch_4096x4(benchmark, rust_state: object) -> None:
 
 
 def test_bench_python_matrix_4096x4(benchmark, py_state: DiagnosticNormalisationState) -> None:
+    """Time one Python normalisation of a 4096 x 4 matrix."""
     base = _values()
     matrix = np.asarray(
         [
@@ -192,6 +200,7 @@ def test_bench_python_matrix_4096x4(benchmark, py_state: DiagnosticNormalisation
 
 
 def test_bench_rust_matrix_4096x4(benchmark) -> None:
+    """Time one normalisation of a 4096 x 4 matrix through the Rust-backed adapter."""
     from scpn_mif_core.diagnostics._rust_adapter import RustBackedDiagnosticNormalisationState
 
     state = RustBackedDiagnosticNormalisationState(_calibrations(), sample_period_ns=50)
