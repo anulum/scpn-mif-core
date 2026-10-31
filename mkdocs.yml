@@ -115,6 +115,7 @@ nav:
   - Architecture:
       - architecture/index.md
       - System architecture map: architecture/system_map.md
+      - Threat model: THREAT_MODEL.md
       - Dynamic compatibility matrix: generated/compatibility_matrix.md
       - Decision records:
           - adr/index.md

@@ -26,6 +26,9 @@ Reporters are credited in the published advisory unless they request anonymity.
 
 ## Scope
 
+The [threat model](docs/THREAT_MODEL.md) lists the assets, trust boundaries,
+misuse paths, mitigations and residual risks this policy rests on.
+
 SCPN-MIF-CORE is a simulation, formal-verification, and FPGA synthesis
 library targeting pulsed magneto-inertial fusion control. It does not handle
 user authentication, financial data, or production network services in its

@@ -69,7 +69,7 @@ The passed cycle class has `wall_clock_claim_allowed = false`.
 | Lean 4 proof modules | 8 | `lean_proof_modules` |
 | HDL RTL modules | 7 | `hdl_rtl_modules` |
 | Dispatch kernels (multi-backend) | 15 | `bench/dispatch.toml` |
-| Capability documentation pages | 65 | `documentation_pages` |
+| Capability documentation pages | 66 | `documentation_pages` |
 | GitHub workflows | 25 | `quality_gates` |
 | Optional install extras | 7 | `accelerated, demo, dev, docs, ecosystem, formal, studio` |
 

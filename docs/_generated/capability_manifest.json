@@ -2,6 +2,7 @@
   "SPDX-License-Identifier": "AGPL-3.0-or-later",
   "capabilities": {
     "documentation_pages": [
+      "docs/THREAT_MODEL.md",
       "docs/adr/0001-repository-scope-and-ownership-boundaries.md",
       "docs/adr/0002-multi-language-acceleration-and-dispatch.md",
       "docs/adr/0003-upstream-pending-carriers-and-prescribed-inputs.md",
@@ -645,7 +646,7 @@
     ]
   },
   "counts": {
-    "capability_documentation_pages": 65,
+    "capability_documentation_pages": 66,
     "github_workflows": 25,
     "go_parity_sources": 4,
     "hdl_rtl_modules": 7,
@@ -653,7 +654,7 @@
     "lean_proof_modules": 8,
     "optional_extras": 7,
     "public_api_exports": 230,
-    "public_documentation_pages": 65,
+    "public_documentation_pages": 66,
     "python_capability_classes": 116,
     "python_capability_source_modules": 28,
     "rust_workspace_crates": 10,
@@ -661,6 +662,7 @@
   },
   "documentation": {
     "public_pages": [
+      "docs/THREAT_MODEL.md",
       "docs/adr/0001-repository-scope-and-ownership-boundaries.md",
       "docs/adr/0002-multi-language-acceleration-and-dispatch.md",
       "docs/adr/0003-upstream-pending-carriers-and-prescribed-inputs.md",

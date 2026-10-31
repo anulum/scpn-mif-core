@@ -13,6 +13,10 @@
 
 ### Added
 
+- Added `SUPPORT.md` (help, security, commercial-licence and sponsorship
+  routes) and `docs/THREAT_MODEL.md` (assets, trust boundaries, misuse paths
+  with their mitigations, fail-closed behaviour and residual risks), linked
+  from `SECURITY.md` and the documentation navigation.
 - Added the source-bound Fusion-to-Fire demo: a causal nominal and safety-veto
   replay through MIF merge/safety/bank evaluation, CONTROL Petri-net compilation
   and Rust stochastic inference, CONTROL's pulsed scheduler, bit-true Verilator
