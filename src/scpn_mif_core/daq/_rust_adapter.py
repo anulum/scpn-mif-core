@@ -39,14 +39,17 @@ class RustBackedDataBusMock(DataBusMock):
         self._inner = _rust.DataBusMock(config.mode, config.profile.profile_id, config.ring_capacity)
 
     def bind(self, bind_addr: str) -> None:
+        """Bind the Rust bus to an endpoint and record it as the bound endpoint."""
         self._inner.bind(bind_addr)
         self._bound_endpoint = bind_addr
 
     def inject_frame(self, frame: RawDaqFrame | bytes) -> None:
+        """Inject a frame, or its encoded bytes, into the Rust ring."""
         payload = frame.to_bytes() if isinstance(frame, RawDaqFrame) else bytes(frame)
         self._inner.inject_bytes(payload)
 
     def emit_frame(self) -> RawDaqFrame | None:
+        """Return the oldest frame decoded from the Rust ring, or None when it is empty."""
         payload = self._inner.emit_bytes()
         if payload is None:
             return None
@@ -54,6 +57,7 @@ class RustBackedDataBusMock(DataBusMock):
 
     @property
     def dropped_frames(self) -> int:
+        """Return the number of frames the Rust ring has overwritten."""
         return int(self._inner.dropped_frames)
 
     def __len__(self) -> int:

@@ -349,10 +349,13 @@ def _phase_lock_fixture(frames_per_campaign: int, dt_ns: int) -> tuple[Diagnosti
 
 
 class _SplitMix64:
+    """SplitMix64 generator for reproducible stress injection."""
+
     def __init__(self, seed: int) -> None:
         self._state = seed & _MASK64
 
     def next_u64(self) -> int:
+        """Return the next 64-bit output."""
         self._state = (self._state + _GOLDEN_GAMMA) & _MASK64
         z = self._state
         z = ((z ^ (z >> 30)) * 0xBF58476D1CE4E5B9) & _MASK64
@@ -360,9 +363,11 @@ class _SplitMix64:
         return (z ^ (z >> 31)) & _MASK64
 
     def uniform(self) -> float:
+        """Return a float uniform on [0, 1) from the top 53 bits."""
         return (self.next_u64() >> 11) * (1.0 / (1 << 53))
 
     def normal(self) -> float:
+        """Return a standard normal sample by the Box-Muller transform."""
         u1 = max(self.uniform(), 1.0e-300)
         u2 = self.uniform()
         return math.sqrt(-2.0 * math.log(u1)) * math.cos(2.0 * math.pi * u2)

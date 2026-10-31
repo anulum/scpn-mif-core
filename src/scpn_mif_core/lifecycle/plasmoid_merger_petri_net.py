@@ -615,19 +615,23 @@ class _Lcg:
         self._state = (base + 0x9E3779B97F4A7C15) & self._MASK
 
     def copy(self) -> _Lcg:
+        """Return an independent generator in the same state."""
         other = self.__class__(0)
         other._state = self._state
         return other
 
     def randrange(self, stop: int) -> int:
+        """Return an integer in [0, stop); refuse a stop below 1."""
         if stop < 1:
             raise ValueError("stop must be at least 1")
         return self._next_u64() % stop
 
     def random(self) -> float:
+        """Return a float uniform on [0, 1) from the top 53 bits."""
         return (self._next_u64() >> 11) * (1.0 / float(1 << 53))
 
     def uniform(self, low: float, high: float) -> float:
+        """Return a float uniform on [low, high)."""
         return low + (high - low) * self.random()
 
     def _next_u64(self) -> int:

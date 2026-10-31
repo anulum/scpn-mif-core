@@ -658,7 +658,7 @@
     "python_capability_classes": 116,
     "python_capability_source_modules": 28,
     "rust_workspace_crates": 10,
-    "test_files": 137
+    "test_files": 138
   },
   "documentation": {
     "public_pages": [
@@ -1140,6 +1140,7 @@
       "tests/unit/test_demo_container.py",
       "tests/unit/test_dispatch.py",
       "tests/unit/test_docs_site_scripts.py",
+      "tests/unit/test_documentation_presence.py",
       "tests/unit/test_dysco_documentation.py",
       "tests/unit/test_ecosystem_dynamic_matrix.py",
       "tests/unit/test_emit_studio_formal_claim.py",

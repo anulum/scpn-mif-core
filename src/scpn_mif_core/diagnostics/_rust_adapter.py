@@ -67,6 +67,7 @@ class RustBackedDiagnosticNormalisationState(DiagnosticNormalisationState):
         self._inner = _rust.DiagnosticNormalisationState(rust_calibrations, sample_period_ns)
 
     def normalise_sample(self, sample: Mapping[str, float]) -> NormalisedDiagnosticSample:
+        """Normalise one sample in Rust and return the same record as the Python state."""
         values = [float(sample[name]) for name in self.channel_names]
         features, clip_mask, out_of_range = self._inner.normalise_features(values)
         array = np.asarray(features, dtype=np.float64)
@@ -131,6 +132,7 @@ class RustBackedDegradedSensorStream(DegradedSensorStream):
         )
 
     def apply(self, sample_stream: Sequence[DiagnosticFrame]) -> tuple[DiagnosticFrame, ...]:
+        """Stress-inject each frame in Rust, keep the audit log and return the emitted frames."""
         frames: list[DiagnosticFrame] = []
         records: list[StressInjectionRecord] = []
         for frame_index, frame in enumerate(sample_stream):

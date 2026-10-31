@@ -247,6 +247,7 @@ class _StreakStateRecursion:
 
     @property
     def locked_probability(self) -> float:
+        """Return the probability absorbed into the locked state so far."""
         return self._locked
 
     def advance(self, candidate_probability: float) -> float:

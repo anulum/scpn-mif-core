@@ -87,6 +87,7 @@ class RustBackedCapacitorBank(_PythonCapacitorBank):
 
     @property
     def state(self) -> CapacitorBankState:
+        """Return the bank state read from the Rust engine."""
         return CapacitorBankState(
             t=self._inner.t,
             voltage_V=self._inner.voltage_v,
@@ -100,10 +101,12 @@ class RustBackedCapacitorBank(_PythonCapacitorBank):
         )
 
     def reset(self, voltage_V: float = 0.0) -> None:
+        """Reset both the Python bookkeeping and the Rust engine to ``voltage_V``."""
         super().reset(voltage_V)
         self._inner.reset(voltage_V)
 
     def step(self, dt: float, external_load_current_A: float = 0.0) -> CapacitorBankState:
+        """Take one Rust step and mirror it into the Python bookkeeping."""
         # The Rust step validates dt; the Python parent's slot mirror keeps
         # the bookkeeping helpers (`discharge`, `feasibility`,
         # `recharge_status`) reading consistent values.
@@ -124,20 +127,25 @@ class RustBackedPulsedShotFSM:
 
     @property
     def state(self) -> ShotState:
+        """Return the current shot state."""
         return ShotState(self._inner.state)
 
     @property
     def audit_log(self) -> tuple[TransitionRecord, ...]:
+        """Return the audit log as Python transition records."""
         return tuple(_transition_record_from_tuple(record) for record in self._inner.audit_log())
 
     def reset(self) -> None:
+        """Return the FSM to idle and clear its audit log."""
         self._inner.reset()
 
     def transition_to(self, next_state: ShotState | str, t_s: float, reason: str) -> TransitionRecord:
+        """Move to the next state by hand, as the Python FSM does, and return the record."""
         state = ShotState(next_state)
         return _transition_record_from_tuple(self._inner.transition_to(state.value, t_s, reason))
 
     def step(self, t_s: float, plasma: PlasmaState, bank: BankTelemetry) -> SchedulerCommand:
+        """Advance the FSM on one telemetry sample and return the scheduler command."""
         return _scheduler_command_from_tuple(
             self._inner.step(
                 t_s,
@@ -147,6 +155,7 @@ class RustBackedPulsedShotFSM:
         )
 
     def audit_log_jsonl(self) -> str:
+        """Return the audit log as JSON lines."""
         return str(self._inner.audit_log_jsonl())
 
 
@@ -159,21 +168,26 @@ class RustBackedPlasmoidMergerPetriNet:
 
     @property
     def place(self) -> MergerPlace:
+        """Return the place that holds the token."""
         return MergerPlace(self._inner.place)
 
     @property
     def audit_log(self) -> tuple[MergerTransitionRecord, ...]:
+        """Return the audit log as Python transition records."""
         return tuple(_merger_transition_record_from_tuple(record) for record in self._inner.audit_log())
 
     def reset(self, seed: int | None = None) -> None:
+        """Return to the approach place and clear the log; the Rust generator is reseeded with ``seed``, or 0 when it is None."""
         self._inner.reset(0 if seed is None else seed)
 
     def marking(self) -> MergerMarking:
+        """Return the one-token marking of the current place."""
         tokens = dict.fromkeys(MergerPlace, 0)
         tokens[self.place] = 1
         return MergerMarking(tokens=tokens, total_tokens=1)
 
     def step(self, observation: MergerObservation) -> MergerStep:
+        """Advance the net on one observation and return the step."""
         return _merger_step_from_tuple(self._inner.step(_rust_merger_observation(observation)))
 
 
