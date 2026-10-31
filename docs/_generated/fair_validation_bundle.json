@@ -6,7 +6,7 @@
       "kind": "project-documentation",
       "media_type": "text/markdown",
       "path": "README.md",
-      "sha256": "sha256:3677e79a83e3048341acd02374a35ad9b6ce8fcf12188db5b9ea4e7eb446fe51",
+      "sha256": "sha256:cf52164058f6cc4e94c22bd0aab0331f6b52cc47bc17132775a603808a458143",
       "size_bytes": 26519
     },
     {
@@ -41,8 +41,8 @@
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "pyproject.toml",
-      "sha256": "sha256:c644f2663e0dc72e89b75d7943d1f0ead4b70873d0d6a2ae994f5f6def602912",
-      "size_bytes": 12040
+      "sha256": "sha256:15397936209ac2c262df2c48fe917d7d5fc05332a775657c4643685389487129",
+      "size_bytes": 12210
     },
     {
       "kind": "supporting-artifact",
@@ -69,8 +69,8 @@
       "kind": "generated-dashboard",
       "media_type": "application/json",
       "path": "docs/_generated/capability_manifest.json",
-      "sha256": "sha256:0851f94e10c37cbb93be7977520550c7323cd15f72bc417a3877b60e9e83d673",
-      "size_bytes": 40881
+      "sha256": "sha256:77320d81dd97816fa2ef797e635ff365bdd5a962fe204507c829d714493de5f6",
+      "size_bytes": 41203
     },
     {
       "kind": "generated-dashboard",
@@ -153,8 +153,8 @@
       "kind": "reproduction-tool",
       "media_type": "text/x-python",
       "path": "tools/formal_manifest.py",
-      "sha256": "sha256:fe82cbd1921cabc9292e945ebce0b77d8d28e0ba3dbd825788556af8e16a264b",
-      "size_bytes": 17334
+      "sha256": "sha256:7fc54395183b636fa7999baba0b6788f1c19e0a790b76322daf41ce5158cbf40",
+      "size_bytes": 17442
     },
     {
       "kind": "reproduction-tool",
