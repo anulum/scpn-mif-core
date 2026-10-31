@@ -13,6 +13,9 @@
 
 ### Added
 
+- `tests/unit/test_readme_badges.py` binds the README badge block to the
+  set audited on 2026-10-31 and the Python, Rust, Julia, Lean and Go badges
+  to the toolchain files they cite.
 - Added `SUPPORT.md` (help, security, commercial-licence and sponsorship
   routes) and `docs/THREAT_MODEL.md` (assets, trust boundaries, misuse paths
   with their mitigations, fail-closed behaviour and residual risks), linked
