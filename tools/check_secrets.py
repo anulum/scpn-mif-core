@@ -134,6 +134,7 @@ _TEXT_SUFFIXES = {
 
 
 def scan(paths: list[Path], repo_root: Path) -> list[str]:
+    """Return one finding per secret-pattern match in the text files of ``paths`` that are not allowlisted."""
     findings: list[str] = []
     for path in paths:
         rel = path.relative_to(repo_root) if path.is_absolute() else path
@@ -152,6 +153,7 @@ def scan(paths: list[Path], repo_root: Path) -> list[str]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Scan the staged files, or a whole tree with ``--tree``; return 1 on any finding."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tree", default=None, help="Scan this tree instead of the staged diff")
     args = parser.parse_args(argv)

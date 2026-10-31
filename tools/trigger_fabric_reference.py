@@ -57,6 +57,7 @@ class TriggerFabricConfig:
     lock_hold_cycles: int = 3
 
     def __post_init__(self) -> None:
+        """Refuse a configuration whose widths or thresholds are out of range."""
         for name in ("spike_count_width", "confidence_width"):
             width = int(getattr(self, name))
             if not 1 <= width <= 32:

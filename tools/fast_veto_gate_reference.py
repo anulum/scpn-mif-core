@@ -49,6 +49,7 @@ class FastVetoGateConfig:
     confidence_threshold_q8_8: int = 128
 
     def __post_init__(self) -> None:
+        """Refuse a configuration whose widths or thresholds are out of range."""
         for name in ("spike_count_width", "confidence_width"):
             width = int(getattr(self, name))
             if not 1 <= width <= 32:

@@ -52,6 +52,8 @@ REPO = Path(__file__).resolve().parent.parent
 
 @dataclass
 class GateResult:
+    """Outcome of one gate: its name, pass flag, wall time and captured output."""
+
     name: str
     ok: bool
     duration_s: float
@@ -88,26 +90,32 @@ def _run(
 
 
 def gate_sync_tags() -> GateResult:
+    """Validate the cross-repository sync tags of this checkout."""
     return _run("sync-tags", [sys.executable, str(REPO / "tools" / "check_sync_tags.py"), "--root", str(REPO)])
 
 
 def gate_secrets() -> GateResult:
+    """Scan the whole tree for secret patterns."""
     return _run("secrets", [sys.executable, str(REPO / "tools" / "check_secrets.py"), "--tree", str(REPO)])
 
 
 def gate_ruff() -> GateResult:
+    """Lint the repository with Ruff."""
     return _run("ruff", ["ruff", "check", "."])
 
 
 def gate_ruff_format() -> GateResult:
+    """Check that Ruff formatting would leave every file unchanged."""
     return _run("ruff-format", ["ruff", "format", "--check", "."])
 
 
 def gate_mypy() -> GateResult:
+    """Type-check the configured cohort with strict mypy."""
     return _run("mypy", ["mypy"])
 
 
 def gate_bandit() -> GateResult:
+    """Run the Bandit security lint over the package source."""
     return _run("bandit", ["bandit", "-r", "src/scpn_mif_core/", "-c", "pyproject.toml", "-q"])
 
 
@@ -142,6 +150,7 @@ def gate_aer_ingress_cosim() -> GateResult:
 
 
 def gate_samsung_workspace() -> GateResult:
+    """Validate the Samsung GOTM workspace layout."""
     return _run(
         "samsung-workspace",
         [sys.executable, str(REPO / "tools" / "check_samsung_workspace.py")],
@@ -149,6 +158,7 @@ def gate_samsung_workspace() -> GateResult:
 
 
 def gate_ci_workflow_modularity() -> GateResult:
+    """Audit workflow ownership, size, local parity and fail-closed aggregation."""
     return _run(
         "ci-workflow-modularity",
         [sys.executable, str(REPO / "tools" / "audit_ci_workflow_modularity.py")],
@@ -156,14 +166,17 @@ def gate_ci_workflow_modularity() -> GateResult:
 
 
 def gate_actionlint() -> GateResult:
+    """Lint every GitHub Actions workflow with actionlint."""
     return _run("actionlint", ["actionlint", "-color"])
 
 
 def gate_cargo_fmt() -> GateResult:
+    """Check Rust formatting across the workspace."""
     return _run("cargo-fmt", ["cargo", "fmt", "--all", "--", "--check"], cwd=REPO / "scpn-mif-rs")
 
 
 def gate_cargo_clippy() -> GateResult:
+    """Run Clippy on every workspace target with warnings denied."""
     return _run(
         "cargo-clippy",
         ["cargo", "clippy", "--workspace", "--all-targets", "--", "-D", "warnings"],
@@ -172,6 +185,7 @@ def gate_cargo_clippy() -> GateResult:
 
 
 def gate_cargo_doc() -> GateResult:
+    """Build the Rust API documentation with warnings and missing docs denied."""
     return _run(
         "cargo-doc",
         [
@@ -187,10 +201,12 @@ def gate_cargo_doc() -> GateResult:
 
 
 def gate_cargo_test() -> GateResult:
+    """Run the Rust workspace tests with all features."""
     return _run("cargo-test", ["cargo", "test", "--workspace", "--all-features"], cwd=REPO / "scpn-mif-rs")
 
 
 def gate_go_doc() -> GateResult:
+    """Check Go documentation coverage, then render ``go doc -all`` for every listed package; an empty package list fails."""
     import time
 
     t0 = time.monotonic()
@@ -224,6 +240,7 @@ def gate_go_doc() -> GateResult:
 
 
 def gate_julia_doc() -> GateResult:
+    """Build the Julia API documentation with Documenter.jl."""
     package = REPO / "julia" / "SCPNMIFCore"
     return _run(
         "julia-doc",
@@ -238,6 +255,7 @@ def gate_julia_doc() -> GateResult:
 
 
 def gate_studio_doc() -> GateResult:
+    """Build the Studio TypeDoc API reference."""
     return _run("studio-doc", ["pnpm", "docs:api"], cwd=REPO / "studio-web")
 
 
@@ -256,26 +274,32 @@ def gate_studio(name: str, command: tuple[str, ...]) -> GateResult:
 
 
 def gate_mkdocs_build() -> GateResult:
+    """Build the documentation site in strict mode."""
     return _run("mkdocs", ["mkdocs", "build", "--strict"])
 
 
 def gate_formal_manifest() -> GateResult:
+    """Check that the formal-property manifest matches its sources."""
     return _run("formal-manifest", [sys.executable, str(REPO / "tools" / "formal_manifest.py"), "--check"])
 
 
 def gate_symbiyosys() -> GateResult:
+    """Run every SymbiYosys proof suite."""
     return _run("symbiyosys", [sys.executable, str(REPO / "tools" / "run_formal.py"), "--suite", "all"])
 
 
 def gate_lean() -> GateResult:
+    """Build the Lean SCPNMIF library."""
     return _run("lean", ["lake", "build", "+SCPNMIF:olean"])
 
 
 def gate_missing_tool(name: str, executable: str) -> GateResult:
+    """Return a failed gate for a required executable that is not installed."""
     return GateResult(name=name, ok=False, duration_s=0.0, output=f"required executable not found: {executable}\n")
 
 
 def gate_authorship() -> GateResult:
+    """Require the authorship line in the last commit message."""
     import time
 
     t0 = time.monotonic()
@@ -291,6 +315,7 @@ def gate_authorship() -> GateResult:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run the selected gates, print a summary and return 1 if any gate failed."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--no-tests", action="store_true", help="skip pytest + cargo test")
     parser.add_argument("--no-rust", action="store_true", help="skip cargo gates")

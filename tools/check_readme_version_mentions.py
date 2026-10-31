@@ -55,7 +55,6 @@ class ReadmeVersionFinding:
 
     def format(self, expected_version: str) -> str:
         """Return a stable human-readable diagnostic line."""
-
         return f"README.md:{self.line_number}: found {self.version}, expected {expected_version}: {self.text}"
 
 
@@ -65,7 +64,6 @@ def strip_generated_capability_snapshot(text: str) -> str:
     Blank replacement preserves line numbers for diagnostics while excluding
     the manifest-gated package-version table from this prose-specific gate.
     """
-
     start = text.find(SNAPSHOT_START)
     end = text.find(SNAPSHOT_END)
     if start == -1 or end == -1 or end < start:
@@ -77,7 +75,6 @@ def strip_generated_capability_snapshot(text: str) -> str:
 
 def find_readme_version_findings(text: str, *, expected_version: str) -> tuple[ReadmeVersionFinding, ...]:
     """Return stale release-status version mentions from README prose."""
-
     findings: list[ReadmeVersionFinding] = []
     searchable = strip_generated_capability_snapshot(text)
     for line_number, line in enumerate(searchable.splitlines(), start=1):
@@ -99,7 +96,6 @@ def find_readme_version_findings(text: str, *, expected_version: str) -> tuple[R
 
 def read_expected_version(repo: Path) -> str:
     """Read the canonical package version from ``src/scpn_mif_core/_version.py``."""
-
     version_source = repo / VERSION_SOURCE
     tree = ast.parse(version_source.read_text(encoding="utf-8"), filename=version_source.as_posix())
     for node in tree.body:
@@ -119,7 +115,6 @@ def check_readme_version_mentions(
     expected_version: str | None = None,
 ) -> tuple[ReadmeVersionFinding, ...]:
     """Check README release-status prose against the canonical package version."""
-
     expected = expected_version or read_expected_version(repo)
     readme = repo / README_PATH
     return find_readme_version_findings(readme.read_text(encoding="utf-8"), expected_version=expected)
@@ -127,7 +122,6 @@ def check_readme_version_mentions(
 
 def _parser() -> argparse.ArgumentParser:
     """Build the command-line parser."""
-
     parser = argparse.ArgumentParser(
         description="Check README release-status prose for stale package-version mentions.",
     )
@@ -143,7 +137,6 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the README version drift gate."""
-
     args = _parser().parse_args(argv)
     repo = args.repo.resolve()
     expected = read_expected_version(repo)

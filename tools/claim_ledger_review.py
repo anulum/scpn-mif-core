@@ -51,7 +51,6 @@ def _load_object(path: Path) -> dict[str, Any]:
 
 def build_review_receipt(ledger_path: Path, *, repo: Path) -> dict[str, Any]:
     """Validate a private ledger and build its non-sensitive public receipt."""
-
     findings = validate_ledger_path(ledger_path, repo=repo, check_references=True)
     if findings:
         details = "; ".join(finding.format() for finding in findings)
@@ -108,7 +107,6 @@ def validate_review_receipt(
     now: datetime | None = None,
 ) -> tuple[str, ...]:
     """Return deterministic findings for a public review receipt."""
-
     if not isinstance(document, Mapping) or not all(isinstance(key, str) for key in document):
         return ("receipt root must be an object",)
     findings: list[str] = []
@@ -190,7 +188,6 @@ def validate_review_receipt(
 
 def render_review_receipt(receipt: Mapping[str, Any]) -> str:
     """Render a deterministic review receipt."""
-
     findings = validate_review_receipt(receipt)
     if findings:
         raise ValueError("invalid review receipt: " + "; ".join(findings))
@@ -213,7 +210,6 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Emit or verify a claim-ledger review receipt."""
-
     args = _parser().parse_args(argv)
     if args.command == "emit":
         try:

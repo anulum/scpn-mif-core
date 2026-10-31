@@ -85,7 +85,7 @@ def _rank_backends(test_records: list[dict[str, object]]) -> list[str]:
 
 
 def _kernel_qualified_name(json_doc: dict[str, object], default: str) -> str:
-    """The dispatch table keys are ``<domain>.<kernel>``; this routes back to that form.
+    """Return the dispatch-table key ``<domain>.<kernel>`` for a benchmark document.
 
     The benchmark JSON only carries the short kernel name (``capacitor_bank``),
     so the caller passes the well-known domain prefix derived from the
@@ -184,6 +184,7 @@ def rewrite_dispatch(
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Rewrite the dispatch table from the benchmark rankings, or with ``--check`` report whether it is stale."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--check",

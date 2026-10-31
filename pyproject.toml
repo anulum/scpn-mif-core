@@ -158,7 +158,7 @@ ignore = [
 "bench/**/*.py" = ["S", "D"]
 "examples/**/*.py" = ["S"]
 "campaigns/**/*.py" = ["S"]
-"tools/**/*.py" = ["S", "D"]
+"tools/**/*.py" = ["S"]
 # Cosimulation harnesses and their tests drive external simulators by subprocess
 # and follow the test-style docstring convention, like tools/ and bench/.
 "cosim/**/*.py" = ["S", "D"]

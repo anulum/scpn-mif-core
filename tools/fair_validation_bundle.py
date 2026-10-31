@@ -130,7 +130,6 @@ REPRODUCTION_COMMANDS = (
 
 def _load_json(path: Path) -> Mapping[str, object]:
     """Load a JSON object from ``path``."""
-
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
         raise ValueError(f"{path} must contain a JSON object")
@@ -139,13 +138,11 @@ def _load_json(path: Path) -> Mapping[str, object]:
 
 def _display_path(path: Path) -> str:
     """Return ``path`` relative to the repository root."""
-
     return path.relative_to(REPO_ROOT).as_posix()
 
 
 def validate_public_artifact_path(path: str) -> None:
     """Raise when ``path`` is not allowed in the public FAIR bundle manifest."""
-
     candidate = Path(path)
     if candidate.is_absolute() or ".." in candidate.parts:
         raise ValueError(f"{path} is not allowed in the public FAIR bundle")
@@ -158,7 +155,6 @@ def validate_public_artifact_path(path: str) -> None:
 
 def artifact_kind(path: str) -> str:
     """Classify a public bundle artifact for downstream filtering."""
-
     candidate = Path(path)
     if path == "CITATION.cff" or path == ".zenodo.json":
         return "citation-metadata"
@@ -183,7 +179,6 @@ def artifact_kind(path: str) -> str:
 
 def _sha256(path: Path) -> str:
     """Return the SHA-256 digest for ``path``."""
-
     digest = hashlib.sha256()
     with path.open("rb") as handle:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
@@ -193,7 +188,6 @@ def _sha256(path: Path) -> str:
 
 def _media_type(path: str) -> str:
     """Return a conservative media type for a public artifact path."""
-
     suffix = Path(path).suffix
     if suffix == ".json":
         return "application/json"
@@ -210,7 +204,6 @@ def _media_type(path: str) -> str:
 
 def _artifact_entry(path: Path) -> dict[str, JsonValue]:
     """Return the checksum manifest entry for one public artifact."""
-
     display = _display_path(path)
     validate_public_artifact_path(display)
     return {
@@ -224,7 +217,6 @@ def _artifact_entry(path: Path) -> dict[str, JsonValue]:
 
 def _unique_existing(paths: Iterable[Path]) -> tuple[Path, ...]:
     """Return existing paths once, preserving first-seen order."""
-
     seen: set[Path] = set()
     rows: list[Path] = []
     for path in paths:
@@ -240,7 +232,6 @@ def _unique_existing(paths: Iterable[Path]) -> tuple[Path, ...]:
 
 def public_artifact_paths() -> tuple[Path, ...]:
     """Return the deterministic public artifact inventory for the FAIR bundle."""
-
     configured = [REPO_ROOT / relative for relative in CORE_ARTIFACTS]
     benchmark_results = sorted((REPO_ROOT / "bench" / "results").glob("*.json"))
     return _unique_existing([*configured, *benchmark_results])
@@ -248,7 +239,6 @@ def public_artifact_paths() -> tuple[Path, ...]:
 
 def _strip_quotes(value: str) -> str:
     """Remove one layer of single or double quotes from a scalar string."""
-
     value = value.strip()
     if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
         return value[1:-1]
@@ -257,7 +247,6 @@ def _strip_quotes(value: str) -> str:
 
 def _cff_metadata() -> dict[str, JsonValue]:
     """Extract stable citation fields from ``CITATION.cff`` without a YAML dependency."""
-
     metadata: dict[str, JsonValue] = {"identifiers": []}
     identifiers: list[JsonValue] = []
     for raw in CITATION_PATH.read_text(encoding="utf-8").splitlines():
@@ -282,7 +271,6 @@ def _cff_metadata() -> dict[str, JsonValue]:
 
 def _citation_metadata() -> dict[str, JsonValue]:
     """Return public Zenodo and CFF metadata for the bundle."""
-
     zenodo = _load_json(ZENODO_PATH)
     return {
         "zenodo": {
@@ -301,7 +289,6 @@ def _citation_metadata() -> dict[str, JsonValue]:
 
 def _project_environment() -> dict[str, JsonValue]:
     """Return project dependency and Python-version metadata from ``pyproject.toml``."""
-
     pyproject = tomllib.loads(PYPROJECT_PATH.read_text(encoding="utf-8"))
     project = pyproject["project"]
     optional = project.get("optional-dependencies", {})
@@ -317,7 +304,6 @@ def _project_environment() -> dict[str, JsonValue]:
 
 def _benchmark_environment() -> dict[str, JsonValue]:
     """Return benchmark context lifted from the generated benchmark dashboard."""
-
     dashboard = _load_json(BENCHMARK_DASHBOARD_PATH)
     environments = dashboard.get("environments", {})
     env_map = environments if isinstance(environments, dict) else {}
@@ -335,7 +321,6 @@ def _benchmark_environment() -> dict[str, JsonValue]:
 
 def _environment_manifest() -> dict[str, JsonValue]:
     """Return the FAIR bundle environment manifest."""
-
     return {
         "project": _project_environment(),
         "benchmark_dashboard": _benchmark_environment(),
@@ -344,7 +329,6 @@ def _environment_manifest() -> dict[str, JsonValue]:
 
 def _fair4rs_metadata() -> dict[str, JsonValue]:
     """Return a compact FAIR4RS-oriented metadata block."""
-
     return {
         "findable": {
             "metadata_files": ["CITATION.cff", ".zenodo.json"],
@@ -370,7 +354,6 @@ def _fair4rs_metadata() -> dict[str, JsonValue]:
 
 def build_bundle() -> dict[str, Any]:
     """Build the deterministic public FAIR validation/benchmark bundle manifest."""
-
     artifacts = [_artifact_entry(path) for path in public_artifact_paths()]
     return {
         "SPDX-License-Identifier": "AGPL-3.0-or-later",
@@ -404,13 +387,11 @@ def build_bundle() -> dict[str, Any]:
 
 def render(bundle: Mapping[str, Any]) -> str:
     """Render a FAIR bundle manifest as stable JSON."""
-
     return json.dumps(bundle, indent=2, sort_keys=True) + "\n"
 
 
 def write_bundle(*, bundle_path: Path | None = None) -> Path:
     """Write the FAIR bundle manifest and return the written path."""
-
     target = BUNDLE_PATH if bundle_path is None else bundle_path
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(render(build_bundle()), encoding="utf-8")
@@ -419,7 +400,6 @@ def write_bundle(*, bundle_path: Path | None = None) -> Path:
 
 def check_bundle(*, bundle_path: Path | None = None) -> tuple[str, ...]:
     """Return drift errors between the committed bundle and a fresh build."""
-
     target = BUNDLE_PATH if bundle_path is None else bundle_path
     if not target.is_file():
         return (f"missing FAIR validation bundle: {target}",)
@@ -431,7 +411,6 @@ def check_bundle(*, bundle_path: Path | None = None) -> tuple[str, ...]:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Generate the FAIR bundle manifest, or check it for drift."""
-
     parser = argparse.ArgumentParser(description="Generate or check the FAIR validation bundle manifest.")
     parser.add_argument("--check", action="store_true", help="fail on drift instead of writing")
     args = parser.parse_args(list(argv) if argv is not None else None)

@@ -41,8 +41,8 @@
       "kind": "supporting-artifact",
       "media_type": "application/toml",
       "path": "pyproject.toml",
-      "sha256": "sha256:15397936209ac2c262df2c48fe917d7d5fc05332a775657c4643685389487129",
-      "size_bytes": 12210
+      "sha256": "sha256:02e257c78a80573e26c43f385bb075b9dfeef4f7ad80421ca0efcc50d1ada517",
+      "size_bytes": 12205
     },
     {
       "kind": "supporting-artifact",
@@ -139,15 +139,15 @@
       "kind": "reproduction-tool",
       "media_type": "text/x-python",
       "path": "tools/claim_ledger_review.py",
-      "sha256": "sha256:28589fc70e17ef32275273cef2128f5012a243d3c1bc87aa1f076756edf1a9d0",
-      "size_bytes": 10878
+      "sha256": "sha256:f5d7afe5549c0e26a9cfa48b86af0a2b46a726ed7b540e86cb19e248edd5943a",
+      "size_bytes": 10874
     },
     {
       "kind": "reproduction-tool",
       "media_type": "text/x-python",
       "path": "tools/fair_validation_bundle.py",
-      "sha256": "sha256:ee666986938adf1338aa1cb57ba8542def6b43d8cb37d8ad6201f9b1aafa3e31",
-      "size_bytes": 17078
+      "sha256": "sha256:8510f72199dd2340eea788af63791c30afdc10dd8a832dca196da87f1d7f4830",
+      "size_bytes": 17057
     },
     {
       "kind": "reproduction-tool",
@@ -174,8 +174,8 @@
       "kind": "reproduction-tool",
       "media_type": "text/x-python",
       "path": "tools/validate_claim_evidence_ledger.py",
-      "sha256": "sha256:17361f786e6cc956fb2378e2821054fff13f4cda4b1dcf471f84d62e8cf2c0ae",
-      "size_bytes": 13182
+      "sha256": "sha256:b738761210fa929cb75bf4ccb26ca76787cb5a7e529e548965ccfa6bfffe36a0",
+      "size_bytes": 13168
     },
     {
       "kind": "verification-test",

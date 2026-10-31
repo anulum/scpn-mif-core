@@ -1,2 +1,3 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # SCPN-MIF-CORE — repository tooling.
+"""Repository tooling: local gates, generators and hardware reference models."""

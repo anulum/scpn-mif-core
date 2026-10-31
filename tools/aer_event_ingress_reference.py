@@ -37,6 +37,7 @@ class AerEventStreamConfig:
     telemetry_width: int = 32
 
     def __post_init__(self) -> None:
+        """Refuse a configuration whose widths or thresholds are out of range."""
         if self.adc_width < 2:
             raise ValueError("adc_width must be at least 2")
         if self.q_int < 1 or self.q_frac < 0:

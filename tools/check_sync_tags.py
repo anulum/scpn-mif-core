@@ -127,6 +127,7 @@ def validate_file(path: Path, repo_root: Path) -> list[str]:
 
 
 def iter_candidate_files(repo_root: Path) -> list[Path]:
+    """Return the tracked source files to check for sync tags, outside build and environment directories."""
     git = shutil.which("git")
     if git is None:
         raise SyncTagError("cannot enumerate tracked files: git executable not found")
@@ -156,6 +157,7 @@ def iter_candidate_files(repo_root: Path) -> list[Path]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Validate the sync tags of every candidate file; return 1 on a violation and 2 when the files cannot be listed."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", default=".", help="Repository root (default: cwd)")
     parser.add_argument("--strict", action="store_true", help="Fail on any warning")

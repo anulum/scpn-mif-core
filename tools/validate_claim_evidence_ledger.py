@@ -63,13 +63,11 @@ class LedgerFinding:
 
     def format(self) -> str:
         """Return a deterministic human-readable diagnostic."""
-
         return f"{self.path}: {self.message}"
 
 
 def _mapping(value: object) -> JsonMapping | None:
     """Return ``value`` as a string-keyed mapping when possible."""
-
     if not isinstance(value, Mapping):
         return None
     if not all(isinstance(key, str) for key in value):
@@ -79,7 +77,6 @@ def _mapping(value: object) -> JsonMapping | None:
 
 def _sequence(value: object) -> Sequence[object] | None:
     """Return ``value`` as a JSON-like sequence, excluding strings."""
-
     if isinstance(value, str) or not isinstance(value, Sequence):
         return None
     return value
@@ -87,7 +84,6 @@ def _sequence(value: object) -> Sequence[object] | None:
 
 def _string_field(mapping: JsonMapping, field: str, path: str, findings: list[LedgerFinding]) -> str:
     """Read a required non-empty string field."""
-
     value = mapping.get(field)
     if not isinstance(value, str) or not value.strip():
         findings.append(LedgerFinding(path, f"{field!r} must be a non-empty string"))
@@ -97,7 +93,6 @@ def _string_field(mapping: JsonMapping, field: str, path: str, findings: list[Le
 
 def _bool_field(mapping: JsonMapping, field: str, path: str, findings: list[LedgerFinding]) -> bool:
     """Read a required boolean field."""
-
     value = mapping.get(field)
     if not isinstance(value, bool):
         findings.append(LedgerFinding(path, f"{field!r} must be a boolean"))
@@ -114,7 +109,6 @@ def _string_list_field(
     allow_empty: bool,
 ) -> tuple[str, ...]:
     """Read a string-list field and optionally require at least one item."""
-
     value = mapping.get(field)
     sequence = _sequence(value)
     if sequence is None:
@@ -140,7 +134,6 @@ def _evidence_statuses(
     check_references: bool,
 ) -> tuple[tuple[str, str], ...]:
     """Read evidence entries as ``(type, status)`` pairs."""
-
     value = claim.get("evidence")
     sequence = _sequence(value)
     if sequence is None:
@@ -177,7 +170,6 @@ def _claim_findings(
     check_references: bool,
 ) -> tuple[LedgerFinding, ...]:
     """Validate one claim object from the ledger."""
-
     findings: list[LedgerFinding] = []
     missing = [field for field in REQUIRED_CLAIM_FIELDS if field not in claim]
     for field in missing:
@@ -215,7 +207,6 @@ def _claim_findings(
 
 def _reference_exists(reference: str, repo: Path | None) -> bool:
     """Return whether an evidence reference resolves locally or is remote."""
-
     if reference.startswith(REMOTE_REFERENCE_PREFIXES):
         return True
     root = repo or Path.cwd()
@@ -224,7 +215,6 @@ def _reference_exists(reference: str, repo: Path | None) -> bool:
 
 def parse_utc_timestamp(value: str) -> datetime | None:
     """Parse a canonical second-resolution UTC timestamp."""
-
     if not value.endswith("Z"):
         return None
     try:
@@ -243,7 +233,6 @@ def validate_ledger_document(
     check_references: bool = False,
 ) -> tuple[LedgerFinding, ...]:
     """Validate a decoded claim evidence ledger document."""
-
     root = _mapping(document)
     if root is None:
         return (LedgerFinding("$", "ledger root must be an object"),)
@@ -288,7 +277,6 @@ def validate_ledger_path(
     now: datetime | None = None,
 ) -> tuple[LedgerFinding, ...]:
     """Load and validate a ledger JSON file."""
-
     try:
         document: object = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
@@ -314,7 +302,6 @@ def validate_ledger_path(
 
 def _parser() -> argparse.ArgumentParser:
     """Build the command-line parser."""
-
     parser = argparse.ArgumentParser(description="Validate a claim evidence ledger JSON file.")
     parser.add_argument("ledger", type=Path, help="path to the claim evidence ledger JSON file")
     parser.add_argument(
@@ -339,7 +326,6 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the claim evidence-ledger validator."""
-
     args = _parser().parse_args(argv)
     findings = validate_ledger_path(
         args.ledger,
