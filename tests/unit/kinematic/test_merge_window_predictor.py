@@ -65,6 +65,7 @@ def _certificate(passed: bool = True) -> KinematicSafetyCertificate:
 
 
 def test_predictor_emits_conformal_advisory_when_safety_and_veto_permit() -> None:
+    """With safety and veto passing the predictor gives a conformal lock probability and permits the advisory."""
     prediction = predict_merge_window(_features(), _weights(), _certificate(), veto_permit=True)
 
     assert prediction.boundary_validated
@@ -78,6 +79,7 @@ def test_predictor_emits_conformal_advisory_when_safety_and_veto_permit() -> Non
 
 
 def test_predictor_stays_subordinate_to_safety_and_veto() -> None:
+    """A veto or a failed certificate blocks the advisory."""
     safe_but_vetoed = predict_merge_window(_features(), _weights(), _certificate(), veto_permit=False)
     unsafe = predict_merge_window(_features(), _weights(), _certificate(passed=False), veto_permit=True)
 
@@ -88,6 +90,7 @@ def test_predictor_stays_subordinate_to_safety_and_veto() -> None:
 
 
 def test_predictor_declines_when_conformal_lower_bound_misses_threshold() -> None:
+    """A conformal lower bound below the threshold declines the advisory."""
     weights = MergeWindowPredictorWeights(
         intercept=-3.0,
         phase_lock_error_weight=0.0,
@@ -109,6 +112,7 @@ def test_predictor_declines_when_conformal_lower_bound_misses_threshold() -> Non
 
 
 def test_predictor_requires_the_closed_lock_window_feature_boundary() -> None:
+    """Features beyond the lock-window boundary are refused."""
     features = _features().to_mapping()
     features["plasma_temperature_keV"] = 5.0
 
@@ -117,6 +121,7 @@ def test_predictor_requires_the_closed_lock_window_feature_boundary() -> None:
 
 
 def test_predictor_rejects_invalid_feature_values() -> None:
+    """Invalid streak, order parameter and separation are refused."""
     fractional_streak = _features().to_mapping()
     fractional_streak["streak"] = 1.5
     with pytest.raises(ValueError, match="streak"):
@@ -134,6 +139,7 @@ def test_predictor_rejects_invalid_feature_values() -> None:
 
 
 def test_predictor_rejects_unverified_or_invalid_weights() -> None:
+    """Unverified weights and invalid threshold, radius or intercept are refused."""
     with pytest.raises(ValueError, match="verified-surrogate"):
         MergeWindowPredictorWeights(
             intercept=0.0,
@@ -185,6 +191,7 @@ def test_predictor_rejects_unverified_or_invalid_weights() -> None:
 
 
 def test_load_merge_window_predictor_weights_from_runtime_json(tmp_path: Path) -> None:
+    """Weights load from a runtime JSON file."""
     payload = {
         "intercept": -0.5,
         "phase_lock_error_weight": -20.0,
@@ -215,6 +222,7 @@ def test_load_merge_window_predictor_weights_from_runtime_json(tmp_path: Path) -
 def test_load_merge_window_predictor_weights_refuses_ambiguous_documents(
     tmp_path: Path, text: str, message: str
 ) -> None:
+    """Each ambiguous weights document is refused with its message."""
     path = tmp_path / "weights.json"
     path.write_text(text, encoding="utf-8")
     with pytest.raises(ValueError, match=message):
@@ -222,6 +230,7 @@ def test_load_merge_window_predictor_weights_refuses_ambiguous_documents(
 
 
 def test_load_merge_window_predictor_weights_rejects_bad_json_payloads(tmp_path: Path) -> None:
+    """A non-object document and bad intercept or provenance are refused."""
     list_path = tmp_path / "weights-list.json"
     list_path.write_text("[]", encoding="utf-8")
     with pytest.raises(ValueError, match="must be an object"):

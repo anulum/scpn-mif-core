@@ -81,6 +81,7 @@ def _time_varying_rust_spec() -> Any:
 
 
 def test_rust_derivative_parity() -> None:
+    """Rust and Python derivatives agree within the parity tolerance."""
     phases = [0.0, 0.25, -0.1]
     positions = [-0.03, 0.03, 0.12]
     velocities = [300_000.0, -300_000.0, 0.0]
@@ -92,6 +93,7 @@ def test_rust_derivative_parity() -> None:
 
 
 def test_rust_adapter_doppler_derivatives_matches_python() -> None:
+    """The Rust adapter's derivatives equal Python's."""
     from scpn_mif_core.kinematic._rust_adapter import rust_doppler_derivatives
 
     phases = [0.0, 0.25, -0.1]
@@ -107,6 +109,7 @@ def test_rust_adapter_doppler_derivatives_matches_python() -> None:
 
 
 def test_rust_time_varying_derivative_and_step_parity() -> None:
+    """With a frequency ramp Rust and Python agree on derivatives and steps."""
     phases = [0.0, 0.2]
     positions = [0.0, 0.0]
     velocities = [0.0, 0.0]
@@ -129,6 +132,7 @@ def test_rust_time_varying_derivative_and_step_parity() -> None:
 
 
 def test_rust_rk4_step_parity() -> None:
+    """One RK4 step agrees between Rust and Python in phases, positions and lock error."""
     py_engine = DopplerKuramoto(
         _py_spec(),
         phases_rad=[0.0, 0.25, -0.1],
@@ -152,6 +156,7 @@ def test_rust_rk4_step_parity() -> None:
 
 
 def test_dispatched_doppler_kuramoto_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With Rust preferred the dispatched engine advances as expected."""
     import scpn_mif_core.kinematic as kinematic
 
     monkeypatch.setattr(kinematic, "preferred_backend", lambda _kernel: "rust")
@@ -168,6 +173,7 @@ def test_dispatched_doppler_kuramoto_uses_rust_when_preferred(monkeypatch: pytes
 
 
 def test_rust_backed_doppler_adapter_state() -> None:
+    """The Rust-backed adapter reports positions and a high order parameter."""
     from scpn_mif_core.kinematic._rust_adapter import RustBackedDopplerKuramoto
 
     engine = RustBackedDopplerKuramoto(

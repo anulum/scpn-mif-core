@@ -75,6 +75,7 @@ def _time_varying_rust_spec() -> Any:
 
 
 def test_rust_derivative_parity() -> None:
+    """Rust and Python derivatives agree within the parity tolerance."""
     phases = [0.0, 0.25]
     positions = [-0.03, 0.03]
     velocities = [300_000.0, -300_000.0]
@@ -86,6 +87,7 @@ def test_rust_derivative_parity() -> None:
 
 
 def test_rust_time_varying_moving_frame_parity() -> None:
+    """With a frequency ramp Rust and Python agree on derivatives, steps and error estimate."""
     phases = [0.0, 0.2]
     positions = [0.0, 0.0]
     velocities = [0.0, 0.0]
@@ -109,6 +111,7 @@ def test_rust_time_varying_moving_frame_parity() -> None:
 
 
 def test_rust_adapter_derivative_parity() -> None:
+    """The Rust adapter's derivatives equal Python's."""
     from scpn_mif_core.kinematic._rust_adapter import rust_moving_frame_derivatives
 
     phases = [0.0, 0.25]
@@ -122,6 +125,7 @@ def test_rust_adapter_derivative_parity() -> None:
 
 
 def test_rust_step_parity_and_reference_observables() -> None:
+    """One step agrees between Rust and Python, reference error and error estimate included."""
     py_engine = MovingFrameUPDE(_py_spec(), [0.0, 0.25], [-0.03, 0.03], [300_000.0, -300_000.0])
     rust_engine = rust.MovingFrameUPDE(_rust_spec(), [0.0, 0.25], [-0.03, 0.03], [300_000.0, -300_000.0])
 
@@ -136,6 +140,7 @@ def test_rust_step_parity_and_reference_observables() -> None:
 
 
 def test_dispatched_moving_frame_upde_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With Rust preferred the dispatched engine advances as expected."""
     import scpn_mif_core.kinematic as kinematic
 
     monkeypatch.setattr(kinematic, "preferred_backend", lambda _kernel: "rust")
@@ -152,6 +157,7 @@ def test_dispatched_moving_frame_upde_uses_rust_when_preferred(monkeypatch: pyte
 
 
 def test_rust_backed_moving_frame_adapter_helpers() -> None:
+    """The Rust-backed adapter reports reference error, time to reference and no imminent collision."""
     from scpn_mif_core.kinematic._rust_adapter import RustBackedMovingFrameUPDE
 
     engine = RustBackedMovingFrameUPDE(

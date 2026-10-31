@@ -36,7 +36,10 @@ def _valid_mapping() -> dict[str, float]:
 
 
 class TestFeatureKeys:
+    """The lock-window feature key set."""
+
     def test_keys_are_exactly_the_five_lock_window_observables(self) -> None:
+        """The keys are exactly the five lock-window observables."""
         assert {
             "phase_lock_error_rad",
             "reference_error_m",
@@ -46,19 +49,25 @@ class TestFeatureKeys:
         } == MERGE_WINDOW_FEATURE_KEYS
 
     def test_key_set_is_immutable(self) -> None:
+        """The key set is a frozenset."""
         assert isinstance(MERGE_WINDOW_FEATURE_KEYS, frozenset)
 
 
 class TestValidate:
+    """Validation of a feature mapping against the lock-window boundary."""
+
     def test_accepts_the_exact_lock_window_set(self) -> None:
+        """The exact key set is accepted."""
         validate_merge_window_features(_valid_mapping())
 
     def test_rejects_a_fusion_internal_key_as_boundary_creep(self) -> None:
+        """A FUSION-internal key is refused as crossing the boundary."""
         creep = {**_valid_mapping(), "plasma_temperature_keV": 5.0}
         with pytest.raises(MergeWindowFeatureBoundaryError, match="cross the lock-window boundary"):
             validate_merge_window_features(creep)
 
     def test_boundary_error_names_every_offending_key(self) -> None:
+        """The error names every key that crosses the boundary."""
         creep = {**_valid_mapping(), "equilibrium_flux_wb": 1.0, "mhd_growth_rate": 2.0}
         with pytest.raises(MergeWindowFeatureBoundaryError) as exc:
             validate_merge_window_features(creep)
@@ -66,12 +75,14 @@ class TestValidate:
         assert "mhd_growth_rate" in str(exc.value)
 
     def test_rejects_an_underspecified_vector_missing_a_key(self) -> None:
+        """A mapping missing a key is refused as underspecified."""
         partial = _valid_mapping()
         del partial["order_parameter"]
         with pytest.raises(MergeWindowFeatureBoundaryError, match="underspecified"):
             validate_merge_window_features(partial)
 
     def test_boundary_creep_is_reported_before_a_missing_key(self) -> None:
+        """An extra key is reported before a missing one."""
         both_wrong = _valid_mapping()
         del both_wrong["streak"]
         both_wrong["plasma_beta"] = 0.1
@@ -80,20 +91,28 @@ class TestValidate:
 
 
 class TestIsWithin:
+    """The boolean boundary check."""
+
     def test_true_for_the_exact_set(self) -> None:
+        """The exact set is within the boundary."""
         assert is_within_merge_window_boundary(_valid_mapping()) is True
 
     def test_false_for_an_extra_key(self) -> None:
+        """An extra key is outside the boundary."""
         assert is_within_merge_window_boundary({**_valid_mapping(), "x": 1.0}) is False
 
     def test_false_for_a_missing_key(self) -> None:
+        """A missing key is outside the boundary."""
         partial = _valid_mapping()
         del partial["separation_m"]
         assert is_within_merge_window_boundary(partial) is False
 
 
 class TestFeatureVector:
+    """The typed feature vector."""
+
     def test_to_mapping_round_trips_and_widens_streak_to_float(self) -> None:
+        """The vector maps to the valid mapping, with the streak as a float."""
         vector = MergeWindowFeatureVector(
             phase_lock_error_rad=0.004,
             reference_error_m=0.001,
@@ -108,13 +127,17 @@ class TestFeatureVector:
         validate_merge_window_features(mapping)
 
     def test_vector_is_frozen(self) -> None:
+        """The vector cannot be changed."""
         vector = MergeWindowFeatureVector(0.0, 0.0, 0.0, 0, 1.0)
         with pytest.raises(dataclasses.FrozenInstanceError):
             setattr(vector, "order_parameter", 0.5)  # noqa: B010 - the frozen guard is the subject
 
 
 class TestExtraction:
+    """Feature extraction from monitor and engine output."""
+
     def test_extracts_the_lock_window_features_from_real_monitor_output(self) -> None:
+        """Extraction from real monitor output gives the valid mapping."""
         sample = MergeWindowSample(
             t_s=1.0,
             phase_lock_error_rad=0.004,
@@ -136,6 +159,7 @@ class TestExtraction:
         assert vector.to_mapping() == _valid_mapping()
 
     def test_extraction_never_leaks_the_states_physics_arrays(self) -> None:
+        """Extraction keeps only the lock-window keys and none of the state arrays."""
         # The Doppler state carries phase/position/velocity arrays; none may appear in
         # the lock-window feature vector — only the scalar order parameter does.
         sample = MergeWindowSample(

@@ -44,6 +44,7 @@ def _assert_bit_exact(args: tuple[Any, ...]) -> None:
 
 
 def test_parity_mid_range_noise() -> None:
+    """Rust and Python agree bit for bit with mid-range noise."""
     noise = MeasurementNoiseSpec(
         phase_lock_error_sigma_rad=0.02, reference_error_sigma_m=0.004, separation_sigma_m=0.0003
     )
@@ -54,6 +55,7 @@ def test_parity_mid_range_noise() -> None:
 
 
 def test_parity_noiseless_indicators() -> None:
+    """Rust and Python agree bit for bit with zero noise."""
     noise = MeasurementNoiseSpec(phase_lock_error_sigma_rad=0.0, reference_error_sigma_m=0.0, separation_sigma_m=0.0)
     _assert_bit_exact(
         (
@@ -68,6 +70,7 @@ def test_parity_noiseless_indicators() -> None:
 
 
 def test_parity_deep_tail_probabilities() -> None:
+    """Rust and Python agree bit for bit in the deep tails."""
     # Observables many sigmas from their thresholds exercise the erfc tails,
     # where an implementation divergence would show first.
     noise = MeasurementNoiseSpec(
@@ -86,6 +89,7 @@ def test_parity_deep_tail_probabilities() -> None:
 
 
 def test_parity_exact_boundary_values() -> None:
+    """Rust and Python agree bit for bit exactly at the thresholds."""
     # Binary-representable observables exactly at their thresholds pin the
     # Phi(0) = 1/2 path and the sigma=0 comparison direction on both backends.
     window = MergeWindowSpec(phase_tolerance_rad=0.5, spatial_tolerance_m=0.25, consecutive_samples=1)
@@ -97,6 +101,7 @@ def test_parity_exact_boundary_values() -> None:
 
 
 def test_parity_negative_separations_fold_identically() -> None:
+    """Rust and Python fold negative separations identically."""
     noise = MeasurementNoiseSpec(
         phase_lock_error_sigma_rad=0.01, reference_error_sigma_m=0.002, separation_sigma_m=0.0005
     )
@@ -113,6 +118,7 @@ def test_parity_negative_separations_fold_identically() -> None:
 
 
 def test_parity_at_the_platform_erfc_divergence_point() -> None:
+    """Rust and Python agree where the platform erfc implementations differ by one ULP."""
     # z = -1/2 puts the CDF argument at 0.5/sqrt(2), where glibc's erfc and the
     # musl-derived Rust libm crate return values one ulp apart — the input that
     # forced the shared vendored fdlibm port. Pinned so a regression to either
@@ -126,6 +132,7 @@ def test_parity_at_the_platform_erfc_divergence_point() -> None:
 
 
 def test_rust_rejects_invalid_inputs_like_python() -> None:
+    """Rust refuses the same invalid inputs as Python."""
     noise = MeasurementNoiseSpec(phase_lock_error_sigma_rad=0.0, reference_error_sigma_m=0.0, separation_sigma_m=0.0)
     with pytest.raises(ValueError, match="must not be empty"):
         rust_propagate_trigger_probabilities(_WINDOW, _SAFETY, noise, [], [], [])
@@ -134,6 +141,7 @@ def test_rust_rejects_invalid_inputs_like_python() -> None:
 
 
 def test_dispatched_trigger_probabilities_uses_rust_and_agrees() -> None:
+    """The dispatched propagation uses Rust and equals Python."""
     noise = MeasurementNoiseSpec(
         phase_lock_error_sigma_rad=0.02, reference_error_sigma_m=0.004, separation_sigma_m=0.0003
     )

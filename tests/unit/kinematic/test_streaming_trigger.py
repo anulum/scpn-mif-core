@@ -72,6 +72,7 @@ def _locked_sample(offset_m: float) -> tuple[list[float], list[float]]:
 
 
 def test_fires_after_sustained_lock_and_latches() -> None:
+    """Sustained lock fires and later samples cannot undo the fire."""
     engine = StreamingMergeTrigger(_spec(consecutive=3))
     decisions = []
     for idx in range(3):
@@ -89,6 +90,7 @@ def test_fires_after_sustained_lock_and_latches() -> None:
 
 
 def test_envelope_violation_latches_dominant_abort() -> None:
+    """An envelope violation latches the unsafe abort."""
     engine = StreamingMergeTrigger(_spec(consecutive=2))
     engine.push([0.0, 0.0], [-0.005, 0.005])
     # envelope = 0.9*0.01 + 0.05*0.02 = 0.010 < separation 0.03 -> violation.
@@ -100,6 +102,7 @@ def test_envelope_violation_latches_dominant_abort() -> None:
 
 
 def test_initial_sample_outside_tolerance_aborts_at_index_zero() -> None:
+    """A first sample outside tolerance aborts at index zero."""
     engine = StreamingMergeTrigger(_spec())
     sample = engine.push([0.0, 0.0], [-0.02, 0.02])
     assert sample.decision is StreamingTriggerDecision.ABORT_UNSAFE
@@ -107,6 +110,7 @@ def test_initial_sample_outside_tolerance_aborts_at_index_zero() -> None:
 
 
 def test_sustained_lock_without_feasible_bank_latches_bank_abort() -> None:
+    """Sustained lock with an infeasible bank latches the bank abort."""
     engine = StreamingMergeTrigger(_spec(consecutive=2, bank_feasible=False))
     for _ in range(2):
         phases, positions = _locked_sample(0.002)
@@ -115,12 +119,14 @@ def test_sustained_lock_without_feasible_bank_latches_bank_abort() -> None:
 
 
 def test_unarmed_engine_never_fires() -> None:
+    """An unarmed engine holds."""
     engine = StreamingMergeTrigger(_spec(consecutive=1, armed=False))
     phases, positions = _locked_sample(0.002)
     assert engine.push(phases, positions).decision is StreamingTriggerDecision.HOLD_NO_LOCK
 
 
 def test_reset_restores_post_construction_state() -> None:
+    """Reset returns the engine to its initial state."""
     engine = StreamingMergeTrigger(_spec(consecutive=1))
     phases, positions = _locked_sample(0.002)
     fired = engine.push(phases, positions, t_s=1.0).decision
@@ -134,12 +140,14 @@ def test_reset_restores_post_construction_state() -> None:
 
 
 def test_shape_mismatch_raises() -> None:
+    """Phases and positions of different lengths are refused."""
     engine = StreamingMergeTrigger(_spec())
     with pytest.raises(ValueError, match="same number"):
         engine.push([0.0, 0.0], [0.0])
 
 
 def test_non_monotone_time_raises() -> None:
+    """A time that does not increase is refused."""
     engine = StreamingMergeTrigger(_spec())
     engine.push([0.0, 0.0], [-0.001, 0.001], t_s=1.0)
     with pytest.raises(ValueError, match="strictly increasing"):
@@ -152,6 +160,7 @@ def test_non_monotone_time_raises() -> None:
 
 
 def test_incremental_envelope_matches_batch_certificate_on_violation_index() -> None:
+    """The streaming envelope finds the same violation as the batch certificate."""
     spec = _spec(consecutive=99)  # never lock; isolate the safety arithmetic
     rng = np.random.default_rng(seed=7)
     # A wandering two-channel trace with one engineered envelope break.
@@ -246,6 +255,7 @@ _OUTCOME_BY_DECISION = {
 
 
 def test_streaming_agrees_with_batch_on_fire() -> None:
+    """Streaming and batch agree on a fire."""
     scenario = _batch_scenario()
     batch = evaluate_merge_trigger(scenario)
     assert batch.outcome is MergeTriggerOutcome.FIRE  # fixture sanity
@@ -254,6 +264,7 @@ def test_streaming_agrees_with_batch_on_fire() -> None:
 
 
 def test_streaming_agrees_with_batch_on_hold() -> None:
+    """Streaming and batch agree on a hold."""
     scenario = _batch_scenario(initial_phases_rad=[0.0, 2.5])
     batch = evaluate_merge_trigger(scenario)
     assert batch.outcome is MergeTriggerOutcome.HOLD_NO_LOCK  # fixture sanity
@@ -262,6 +273,7 @@ def test_streaming_agrees_with_batch_on_hold() -> None:
 
 
 def test_streaming_agrees_with_batch_on_abort_unsafe() -> None:
+    """Streaming and batch agree on an unsafe abort."""
     # Diverging channels: separation grows beyond the envelope early.
     scenario = _batch_scenario(
         initial_positions_m=[-0.009, 0.009],
@@ -274,6 +286,7 @@ def test_streaming_agrees_with_batch_on_abort_unsafe() -> None:
 
 
 def test_streaming_agrees_with_batch_on_bank_infeasible() -> None:
+    """Streaming and batch agree on a bank abort."""
     from scpn_mif_core.lifecycle import PulseSpec
 
     scenario = _batch_scenario(
@@ -317,6 +330,7 @@ def test_documented_causal_divergence_violation_after_first_lock() -> None:
 
 
 def test_dispatched_streaming_merge_trigger_returns_working_engine() -> None:
+    """The dispatched engine fires on a locked sample."""
     engine = dispatched_streaming_merge_trigger(_spec(consecutive=1))
     phases, positions = _locked_sample(0.002)
     sample = engine.push(phases, positions)
@@ -327,6 +341,7 @@ def test_dispatched_streaming_merge_trigger_returns_working_engine() -> None:
 def test_dispatched_streaming_trigger_uses_python_floor_when_rust_is_not_available(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Without Rust the dispatched engine is the Python one."""
     import scpn_mif_core.kinematic as kinematic
 
     monkeypatch.setattr(kinematic, "preferred_backend", lambda _kernel: "rust")

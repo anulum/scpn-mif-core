@@ -83,6 +83,7 @@ def _run_mojo(binary: Path, problem: Path) -> list[float]:
 
 
 def test_mojo_matches_python_within_tolerance(mojo_binary: Path, tmp_path: Path) -> None:
+    """On a coupled Doppler problem Mojo matches Python to about one ULP."""
     # On a coupled, Doppler-driven problem the agreement is tolerance-aware, not
     # bit-exact: the transcendental sin and the decimal text round-trip each cost up to
     # one ULP across the toolchains. Observed max error here is ~1 ULP (<1e-15).
@@ -110,6 +111,7 @@ def test_mojo_matches_python_within_tolerance(mojo_binary: Path, tmp_path: Path)
 
 
 def test_mojo_matches_python_on_a_quiescent_problem(mojo_binary: Path, tmp_path: Path) -> None:
+    """Without coupling or Doppler both return the natural frequencies exactly."""
     # Zero coupling and zero doppler: every derivative must equal its natural frequency.
     n = 4
     spec = DopplerKuramotoSpec(

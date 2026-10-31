@@ -75,20 +75,24 @@ def _assert_engines_agree(spec: StreamingTriggerSpec, trace: list[tuple[list[flo
 
 @pytest.mark.parametrize("seed", [1, 7, 42, 1234])
 def test_random_trace_decision_sequences_are_identical(seed: int) -> None:
+    """Rust and Python give identical decisions on seeded random traces."""
     _assert_engines_agree(_spec(), _random_trace(seed))
 
 
 def test_fire_latch_parity() -> None:
+    """Both engines latch the same fire."""
     trace = [([0.0, 0.01], [-0.002, 0.002], float(i)) for i in range(5)]
     _assert_engines_agree(_spec(consecutive=3), trace)
 
 
 def test_bank_infeasible_latch_parity() -> None:
+    """Both engines latch the same bank abort."""
     trace = [([0.0, 0.01], [-0.002, 0.002], float(i)) for i in range(4)]
     _assert_engines_agree(_spec(consecutive=2, bank_feasible=False), trace)
 
 
 def test_abort_unsafe_latch_parity() -> None:
+    """Both engines latch the same unsafe abort."""
     trace = [
         ([0.0, 0.0], [-0.005, 0.005], 0.0),
         ([0.0, 0.0], [-0.015, 0.015], 1.0),  # envelope break
@@ -98,11 +102,13 @@ def test_abort_unsafe_latch_parity() -> None:
 
 
 def test_unarmed_parity() -> None:
+    """Both engines hold when unarmed."""
     trace = [([0.0, 0.01], [-0.002, 0.002], float(i)) for i in range(3)]
     _assert_engines_agree(_spec(consecutive=1, armed=False), trace)
 
 
 def test_reset_parity() -> None:
+    """Both engines reset identically and accept a new session."""
     spec = _spec(consecutive=1)
     py_engine = StreamingMergeTrigger(spec)
     rust_engine = RustBackedStreamingMergeTrigger(spec)
@@ -126,6 +132,7 @@ def _assert_engines_agree_after_reset(
 
 
 def test_error_parity_shape_mismatch() -> None:
+    """Both engines refuse mismatched shapes."""
     spec = _spec()
     py_engine = StreamingMergeTrigger(spec)
     rust_engine = RustBackedStreamingMergeTrigger(spec)

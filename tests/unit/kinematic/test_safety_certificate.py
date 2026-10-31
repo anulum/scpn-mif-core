@@ -21,6 +21,7 @@ from scpn_mif_core.kinematic import (
 
 
 def test_certificate_passes_when_sampled_envelope_matches_lean_contract() -> None:
+    """A trace inside the contracting envelope passes with the expected margins."""
     spec = KinematicSafetySpec(tolerance_m=0.002, contraction=0.75, disturbance_ratio=0.2)
     cert = certify_sampled_kinematic_safety([0.0018, 0.0014, 0.00105, 0.0008], spec)
 
@@ -34,6 +35,7 @@ def test_certificate_passes_when_sampled_envelope_matches_lean_contract() -> Non
 
 
 def test_certificate_reports_initial_and_step_violations() -> None:
+    """An initial or step violation fails and is located."""
     initial = certify_sampled_kinematic_safety(
         [0.0025, 0.001],
         KinematicSafetySpec(contraction=0.9, disturbance_ratio=0.05, numerical_tolerance_m=0.0),
@@ -52,6 +54,7 @@ def test_certificate_reports_initial_and_step_violations() -> None:
 
 
 def test_positions_certificate_uses_max_min_separation() -> None:
+    """From positions the certificate uses the largest separation."""
     positions = np.asarray(
         [
             [-0.0009, 0.0009],
@@ -70,6 +73,7 @@ def test_positions_certificate_uses_max_min_separation() -> None:
 
 
 def test_rejects_invalid_spec_and_trace_inputs() -> None:
+    """Invalid specification and trace inputs are refused."""
     with pytest.raises(ValueError, match="tolerance_m"):
         KinematicSafetySpec(tolerance_m=0.0)
     with pytest.raises(ValueError, match="contraction"):
@@ -95,6 +99,7 @@ def test_rejects_invalid_spec_and_trace_inputs() -> None:
 
 
 def test_single_sample_certificate_has_no_step_slack() -> None:
+    """A single sample passes without step slack."""
     cert = certify_sampled_kinematic_safety([0.001], KinematicSafetySpec())
 
     assert cert.passed
@@ -105,6 +110,7 @@ def test_single_sample_certificate_has_no_step_slack() -> None:
 
 
 def test_dispatched_certificate_falls_back_to_python(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without Rust the dispatched certificate uses Python."""
     import scpn_mif_core.kinematic as kinematic
 
     monkeypatch.setattr(kinematic, "preferred_backend", lambda _kernel: "python")

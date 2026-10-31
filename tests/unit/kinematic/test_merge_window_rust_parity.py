@@ -30,6 +30,7 @@ def _rust_spec() -> Any:
 
 
 def test_rust_monitor_parity() -> None:
+    """Rust and Python monitors agree sample by sample and on first lock time."""
     py_monitor = MergeWindowMonitor(_py_spec())
     rust_monitor = rust.MergeWindowMonitor(_rust_spec())
     samples = [
@@ -51,6 +52,7 @@ def test_rust_monitor_parity() -> None:
 
 
 def test_rust_monitor_rejects_backwards_sample_time() -> None:
+    """The Rust monitor refuses a sample time that goes back."""
     rust_monitor = rust.MergeWindowMonitor(_rust_spec())
     rust_monitor.evaluate([0.0, 0.001], [-0.001, 0.001], 1.0)
 
@@ -59,6 +61,7 @@ def test_rust_monitor_rejects_backwards_sample_time() -> None:
 
 
 def test_dispatched_merge_window_monitor_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With Rust preferred the dispatched monitor finds the candidate lock."""
     import scpn_mif_core.kinematic as kinematic
 
     monkeypatch.setattr(kinematic, "preferred_backend", lambda _kernel: "rust")

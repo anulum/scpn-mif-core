@@ -58,6 +58,7 @@ def _certificate(trace: MergeWindowTrace) -> KinematicSafetyCertificate:
 
 
 def test_first_lock_matches_trace_and_streaming_trigger() -> None:
+    """The first-lock policy fires at the trace's first lock, as the streaming trigger does."""
     phase_errors = [0.2, 0.04, 0.03, 0.02, 0.03]
     offsets = [0.009, 0.004, 0.0038, 0.0036, 0.0034]
     trace = _trace(phase_errors, offsets)
@@ -86,6 +87,7 @@ def test_first_lock_matches_trace_and_streaming_trigger() -> None:
 
 
 def test_max_window_margin_picks_widest_locked_sample() -> None:
+    """The margin policy picks the locked sample with the widest window margin."""
     # Locks at indices 2, 3, 4; index 3 has the widest normalised margin.
     phase_errors = [0.2, 0.04, 0.03, 0.01, 0.045]
     offsets = [0.009, 0.006, 0.005, 0.002, 0.0028]
@@ -103,6 +105,7 @@ def test_max_window_margin_picks_widest_locked_sample() -> None:
 
 
 def test_max_window_margin_tie_breaks_to_earliest() -> None:
+    """Equal margins break the tie to the earliest locked sample."""
     # Identical locked samples: the earliest must win the tie.
     phase_errors = [0.03, 0.03, 0.03, 0.03]
     offsets = [0.004, 0.004, 0.004, 0.004]
@@ -117,6 +120,7 @@ def test_max_window_margin_tie_breaks_to_earliest() -> None:
 
 
 def test_optimiser_never_selects_an_unlocked_sample() -> None:
+    """The optimiser ignores a wider margin on a sample that is not locked."""
     # Index 0 has by far the widest margin but no streak yet; only index 3
     # is locked. The optimiser must ignore the unlocked optimum.
     phase_errors = [0.005, 0.2, 0.04, 0.045]
@@ -143,6 +147,7 @@ def _locked_trace() -> MergeWindowTrace:
 
 
 def test_unarmed_lane_never_fires() -> None:
+    """An unarmed lane never fires under any policy."""
     trace = _locked_trace()
     for policy in FireTimePolicy:
         decision = select_fire_time(trace, _WINDOW, _certificate(trace), bank_feasible=True, armed=False, policy=policy)
@@ -152,6 +157,7 @@ def test_unarmed_lane_never_fires() -> None:
 
 
 def test_failed_certificate_blocks_every_policy() -> None:
+    """A failed safety certificate blocks every policy."""
     trace = _locked_trace()
     failed = certify_sampled_kinematic_safety([0.005, 0.019, 0.005], _SAFETY)
     assert not failed.passed
@@ -163,6 +169,7 @@ def test_failed_certificate_blocks_every_policy() -> None:
 
 
 def test_infeasible_bank_blocks_every_policy() -> None:
+    """An infeasible bank blocks every policy."""
     trace = _locked_trace()
     for policy in FireTimePolicy:
         decision = select_fire_time(trace, _WINDOW, _certificate(trace), bank_feasible=False, policy=policy)
@@ -171,6 +178,7 @@ def test_infeasible_bank_blocks_every_policy() -> None:
 
 
 def test_no_lock_reports_zero_eligible() -> None:
+    """A trace without lock reports no eligible sample."""
     trace = _trace([0.2, 0.3], [0.009, 0.009])
     decision = select_fire_time(trace, _WINDOW, _certificate(trace), bank_feasible=True)
     assert not decision.fired
@@ -184,6 +192,7 @@ def test_no_lock_reports_zero_eligible() -> None:
 
 
 def test_window_margin_exact_on_binary_representable_values() -> None:
+    """The window margin is exact on binary-representable inputs, zero on a binding edge and negative outside."""
     spec = MergeWindowSpec(phase_tolerance_rad=0.5, spatial_tolerance_m=0.25, consecutive_samples=1)
     assert window_margin(spec, 0.25, 0.125) == 0.5
     assert window_margin(spec, 0.5, 0.0) == 0.0  # binding phase constraint
@@ -192,9 +201,12 @@ def test_window_margin_exact_on_binary_representable_values() -> None:
 
 
 def test_seeded_sweep_optimiser_stays_subordinate() -> None:
-    """On 50 seeded random traces the optimiser only ever picks locked
+    """The fire-time optimiser stays subordinate to the gates on seeded random traces.
+
+    On 50 seeded random traces the optimiser only ever picks locked
     samples, matches the exhaustive argmax, and fires exactly when the
-    deterministic gates permit."""
+    deterministic gates permit.
+    """
     rng = np.random.default_rng(20260707)
     for _ in range(50):
         count = int(rng.integers(3, 12))
@@ -222,6 +234,7 @@ def test_seeded_sweep_optimiser_stays_subordinate() -> None:
 
 
 def test_fire_time_is_none_without_sample_times() -> None:
+    """Without sample times the decision fires with no fire time."""
     monitor = MergeWindowMonitor(_WINDOW)
     samples = tuple(monitor.evaluate([0.0, 0.03], [0.0, 0.004]) for _ in range(3))
     trace = MergeWindowTrace(lock_achieved=True, first_lock_time_s=None, samples=samples)

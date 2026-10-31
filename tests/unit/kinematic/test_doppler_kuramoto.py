@@ -38,6 +38,7 @@ def _acceptance_spec(doppler_strength_rad_s: float) -> DopplerKuramotoSpec:
 
 
 def test_derivative_matches_distance_weighted_doppler_formula() -> None:
+    """Each phase derivative equals the distance-weighted Doppler-Kuramoto formula."""
     spec = DopplerKuramotoSpec(
         omega_rad_s=[1.0, -1.0],
         coupling_rad_s=[[0.0, 3.0], [5.0, 0.0]],
@@ -58,6 +59,7 @@ def test_derivative_matches_distance_weighted_doppler_formula() -> None:
 
 
 def test_relative_velocity_doppler_is_pair_antisymmetric_for_unequal_speeds() -> None:
+    """The relative-velocity Doppler term is antisymmetric in the pair for unequal speeds."""
     spec = DopplerKuramotoSpec(
         omega_rad_s=[0.0, 0.0],
         coupling_rad_s=[[0.0, 0.0], [0.0, 0.0]],
@@ -77,6 +79,7 @@ def test_relative_velocity_doppler_is_pair_antisymmetric_for_unequal_speeds() ->
 
 
 def test_global_phase_shift_leaves_derivatives_invariant() -> None:
+    """Shifting every phase by the same amount leaves the derivatives unchanged."""
     spec = DopplerKuramotoSpec(
         omega_rad_s=[0.1, -0.2, 0.05],
         coupling_rad_s=[[0.0, 2.0, 0.5], [1.5, 0.0, 0.7], [0.2, 1.0, 0.0]],
@@ -99,6 +102,7 @@ def test_global_phase_shift_leaves_derivatives_invariant() -> None:
 
 
 def test_time_varying_omega_matches_affine_analytic_solution() -> None:
+    """With an affine frequency ramp the integrated phase matches the analytic solution."""
     omega_0 = 1_200.0
     omega_rate = -20_000.0
     dt_s = 1.0e-6
@@ -130,6 +134,7 @@ def test_time_varying_omega_matches_affine_analytic_solution() -> None:
 
 
 def test_spec_rejects_omega_rate_shape_mismatch() -> None:
+    """A frequency-rate vector of the wrong length is refused."""
     with pytest.raises(ValueError, match="omega_rate_rad_s2"):
         DopplerKuramotoSpec(
             omega_rad_s=[1.0, 2.0],
@@ -139,12 +144,14 @@ def test_spec_rejects_omega_rate_shape_mismatch() -> None:
 
 
 def test_order_parameter_and_phase_lock_error_are_circular() -> None:
+    """The order parameter and phase-lock error are computed on the circle."""
     phases = np.array([math.pi - 0.01, -math.pi + 0.01])
     assert order_parameter(phases) > 0.999
     assert phase_lock_error(phases) == pytest.approx(0.02, rel=1e-15)
 
 
 def test_rk4_step_updates_phase_and_linear_axial_positions() -> None:
+    """An RK4 step advances time, moves positions linearly and keeps phases close."""
     spec = DopplerKuramotoSpec(
         omega_rad_s=[0.0, 0.0],
         coupling_rad_s=[[0.0, 10.0], [10.0, 0.0]],
@@ -167,6 +174,7 @@ def test_rk4_step_updates_phase_and_linear_axial_positions() -> None:
 
 
 def test_counter_propagating_mach_equivalent_reaches_lock_at_chamber_centre() -> None:
+    """Counter-propagating plasmoids lock in phase at the chamber centre."""
     report = evaluate_doppler_kuramoto(
         _acceptance_spec(doppler_strength_rad_s=2.0e6),
         phases_rad=[0.0, 0.25],
@@ -184,6 +192,7 @@ def test_counter_propagating_mach_equivalent_reaches_lock_at_chamber_centre() ->
 
 
 def test_counter_propagating_scenario_without_doppler_misses_phase_window() -> None:
+    """Without the Doppler term the same approach reaches the centre outside the phase window."""
     report = evaluate_doppler_kuramoto(
         _acceptance_spec(doppler_strength_rad_s=0.0),
         phases_rad=[0.0, 0.25],
@@ -199,6 +208,7 @@ def test_counter_propagating_scenario_without_doppler_misses_phase_window() -> N
 
 
 def test_spec_rejects_shape_mismatch() -> None:
+    """A coupling matrix that does not match the frequencies is refused."""
     with pytest.raises(ValueError, match="coupling_rad_s"):
         DopplerKuramotoSpec(
             omega_rad_s=[0.0, 0.0],
@@ -207,6 +217,7 @@ def test_spec_rejects_shape_mismatch() -> None:
 
 
 def test_spec_rejects_non_positive_distance_scale() -> None:
+    """A non-positive distance scale is refused."""
     with pytest.raises(ValueError, match="distance_scale_m"):
         DopplerKuramotoSpec(
             omega_rad_s=[0.0, 0.0],
@@ -216,6 +227,7 @@ def test_spec_rejects_non_positive_distance_scale() -> None:
 
 
 def test_engine_rejects_non_positive_dt() -> None:
+    """A non-positive step is refused."""
     engine = DopplerKuramoto(
         DopplerKuramotoSpec(omega_rad_s=[0.0], coupling_rad_s=[[0.0]]),
         phases_rad=[0.0],
@@ -227,12 +239,14 @@ def test_engine_rejects_non_positive_dt() -> None:
 
 
 def test_evaluate_rejects_negative_steps() -> None:
+    """A negative step count is refused."""
     spec = DopplerKuramotoSpec(omega_rad_s=[0.0], coupling_rad_s=[[0.0]])
     with pytest.raises(ValueError, match="steps"):
         evaluate_doppler_kuramoto(spec, [0.0], [0.0], [0.0], dt_s=1e-6, steps=-1)
 
 
 def test_dispatched_doppler_kuramoto_falls_back_to_python(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without Rust the dispatched engine is the Python one."""
     import scpn_mif_core.kinematic as kinematic
 
     monkeypatch.setattr(kinematic, "preferred_backend", lambda _kernel: "python")
@@ -247,6 +261,7 @@ def test_dispatched_doppler_kuramoto_falls_back_to_python(monkeypatch: pytest.Mo
 
 
 def test_spec_rejects_coupling_shape_mismatch() -> None:
+    """A coupling that is not n by n is refused."""
     with pytest.raises(ValueError, match="n-by-n matrix"):
         DopplerKuramotoSpec(
             omega_rad_s=[1.0, 2.0],
@@ -255,31 +270,37 @@ def test_spec_rejects_coupling_shape_mismatch() -> None:
 
 
 def test_spec_rejects_non_positive_velocity_epsilon() -> None:
+    """A non-positive velocity epsilon is refused."""
     with pytest.raises(ValueError, match="velocity_epsilon_m_s must be strictly positive"):
         DopplerKuramotoSpec(omega_rad_s=[1.0], coupling_rad_s=[[0.0]], velocity_epsilon_m_s=0.0)
 
 
 def test_spec_rejects_two_dimensional_omega() -> None:
+    """A two-dimensional frequency array is refused."""
     with pytest.raises(ValueError, match="one-dimensional"):
         DopplerKuramotoSpec(omega_rad_s=[[1.0, 2.0]], coupling_rad_s=[[0.0]])
 
 
 def test_spec_rejects_empty_coupling_matrix() -> None:
+    """An empty coupling matrix is refused."""
     with pytest.raises(ValueError, match="must not be empty"):
         DopplerKuramotoSpec(omega_rad_s=[1.0], coupling_rad_s=np.empty((0, 0)))
 
 
 def test_spec_rejects_non_finite_coupling() -> None:
+    """A non-finite coupling is refused."""
     with pytest.raises(ValueError, match="must contain only finite values"):
         DopplerKuramotoSpec(omega_rad_s=[1.0, 1.0], coupling_rad_s=[[0.0, float("inf")], [0.0, 0.0]])
 
 
 def test_omega_at_rejects_negative_time() -> None:
+    """Frequencies at a negative time are refused."""
     with pytest.raises(ValueError, match="t_s must be non-negative"):
         _acceptance_spec(0.0).omega_at(-1.0)
 
 
 def test_engine_exposes_read_only_state_properties() -> None:
+    """The engine exposes time, phases, positions and velocities read-only."""
     spec = _acceptance_spec(0.0)
     engine = DopplerKuramoto(spec, phases_rad=[0.1, 0.2], positions_m=[0.0, 1.0], velocities_m_s=[10.0, -10.0])
 
@@ -292,6 +313,7 @@ def test_engine_exposes_read_only_state_properties() -> None:
 
 
 def test_engine_derivatives_default_and_explicit_match_function() -> None:
+    """Engine derivatives equal the function, with default and explicit state."""
     spec = _acceptance_spec(1.0e3)
     phases, positions, velocities = [0.1, 0.4], [0.0, 0.5], [3.0e5, -3.0e5]
     engine = DopplerKuramoto(spec, phases_rad=phases, positions_m=positions, velocities_m_s=velocities)
@@ -304,6 +326,7 @@ def test_engine_derivatives_default_and_explicit_match_function() -> None:
 
 
 def test_engine_copy_is_independent() -> None:
+    """A copied engine advances without changing the original."""
     spec = _acceptance_spec(0.0)
     engine = DopplerKuramoto(spec, phases_rad=[0.1, 0.2], positions_m=[0.0, 1.0], velocities_m_s=[5.0, -5.0])
     engine.step(1.0e-4)
@@ -318,15 +341,18 @@ def test_engine_copy_is_independent() -> None:
 
 
 def test_spec_rejects_non_finite_scalar_parameter() -> None:
+    """A non-finite scalar parameter is refused."""
     with pytest.raises(ValueError, match="must be finite"):
         DopplerKuramotoSpec(omega_rad_s=[1.0], coupling_rad_s=[[0.0]], phase_lag_rad=float("inf"))
 
 
 def test_spec_rejects_empty_omega() -> None:
+    """An empty frequency vector is refused."""
     with pytest.raises(ValueError, match="must not be empty"):
         DopplerKuramotoSpec(omega_rad_s=[], coupling_rad_s=np.empty((0, 0)))
 
 
 def test_spec_rejects_non_finite_omega() -> None:
+    """A non-finite frequency is refused."""
     with pytest.raises(ValueError, match="must contain only finite values"):
         DopplerKuramotoSpec(omega_rad_s=[float("inf"), 1.0], coupling_rad_s=[[0.0, 0.0], [0.0, 0.0]])

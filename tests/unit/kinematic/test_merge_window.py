@@ -21,6 +21,7 @@ from scpn_mif_core.kinematic import (
 
 
 def test_monitor_requires_phase_and_spatial_lock_for_three_consecutive_samples() -> None:
+    """Lock needs three consecutive samples inside both the phase and the spatial window."""
     monitor = MergeWindowMonitor(MergeWindowSpec(consecutive_samples=3))
     samples = [
         monitor.evaluate([0.0, 0.02], [-0.001, 0.001], t_s=0.0),  # phase miss
@@ -36,6 +37,7 @@ def test_monitor_requires_phase_and_spatial_lock_for_three_consecutive_samples()
 
 
 def test_monitor_resets_streak_on_miss_and_reset_clears_state() -> None:
+    """A miss resets the streak and reset clears the monitor."""
     monitor = MergeWindowMonitor(MergeWindowSpec(consecutive_samples=2))
     assert not monitor.evaluate([0.0, 0.001], [-0.001, 0.001]).lock_achieved
     assert monitor.evaluate([0.0, 0.02], [-0.001, 0.001]).streak == 0
@@ -48,6 +50,7 @@ def test_monitor_resets_streak_on_miss_and_reset_clears_state() -> None:
 
 
 def test_trace_reports_first_lock_time_and_samples() -> None:
+    """A trace reports its first lock time and each sample."""
     spec = MergeWindowSpec(consecutive_samples=3)
     time_s = np.arange(5, dtype=np.float64)
     phases = np.array(
@@ -78,6 +81,7 @@ def test_trace_reports_first_lock_time_and_samples() -> None:
 
 
 def test_trace_rejects_non_monotone_sample_time() -> None:
+    """Sample times that do not increase are refused."""
     phases = np.array([[0.0, 0.001], [0.0, 0.001], [0.0, 0.001]])
     positions = np.array([[-0.001, 0.001], [-0.001, 0.001], [-0.001, 0.001]])
 
@@ -99,6 +103,7 @@ def test_trace_rejects_non_monotone_sample_time() -> None:
 
 
 def test_monitor_rejects_backwards_sample_time() -> None:
+    """The monitor refuses a sample time that goes back."""
     monitor = MergeWindowMonitor(MergeWindowSpec(consecutive_samples=2))
     monitor.evaluate([0.0, 0.001], [-0.001, 0.001], t_s=1.0)
 
@@ -107,6 +112,7 @@ def test_monitor_rejects_backwards_sample_time() -> None:
 
 
 def test_trace_rejects_sample_shape_mismatch() -> None:
+    """Phases and positions of different shapes are refused."""
     with pytest.raises(ValueError, match="same shape"):
         evaluate_merge_window_trace(
             MergeWindowSpec(),
@@ -117,6 +123,7 @@ def test_trace_rejects_sample_shape_mismatch() -> None:
 
 
 def test_spec_rejects_invalid_tolerances_and_streak() -> None:
+    """Invalid tolerances and streak lengths are refused."""
     with pytest.raises(ValueError, match="phase_tolerance_rad"):
         MergeWindowSpec(phase_tolerance_rad=0.0)
     with pytest.raises(ValueError, match="spatial_tolerance_m"):
@@ -126,6 +133,7 @@ def test_spec_rejects_invalid_tolerances_and_streak() -> None:
 
 
 def test_dispatched_merge_window_monitor_falls_back_to_python(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without Rust the dispatched monitor is the Python one."""
     import scpn_mif_core.kinematic as kinematic
 
     monkeypatch.setattr(kinematic, "preferred_backend", lambda _kernel: "python")
@@ -135,33 +143,39 @@ def test_dispatched_merge_window_monitor_falls_back_to_python(monkeypatch: pytes
 
 
 def test_evaluate_rejects_position_phase_size_mismatch() -> None:
+    """Phases and positions of different lengths are refused."""
     monitor = MergeWindowMonitor(MergeWindowSpec())
     with pytest.raises(ValueError, match="same number of samples"):
         monitor.evaluate(phases_rad=[0.0, 0.1], positions_m=[0.0])
 
 
 def test_evaluate_single_oscillator_reports_zero_separation() -> None:
+    """A single oscillator has zero separation."""
     sample = MergeWindowMonitor(MergeWindowSpec()).evaluate(phases_rad=[0.0], positions_m=[0.005])
     assert isinstance(sample, MergeWindowSample)
     assert sample.separation_m == 0.0
 
 
 def test_trace_rejects_one_dimensional_phases() -> None:
+    """One-dimensional trace phases are refused."""
     with pytest.raises(ValueError, match="phases_rad must be a two-dimensional array"):
         evaluate_merge_window_trace(MergeWindowSpec(), time_s=[0.0], phases_rad=[0.0, 0.1], positions_m=[[0.0, 0.1]])
 
 
 def test_trace_rejects_one_dimensional_positions() -> None:
+    """One-dimensional trace positions are refused."""
     with pytest.raises(ValueError, match="positions_m must be a two-dimensional array"):
         evaluate_merge_window_trace(MergeWindowSpec(), time_s=[0.0], phases_rad=[[0.0, 0.1]], positions_m=[0.0, 0.1])
 
 
 def test_trace_rejects_shape_mismatch() -> None:
+    """Trace phases and positions of different shapes are refused."""
     with pytest.raises(ValueError, match="same shape"):
         evaluate_merge_window_trace(MergeWindowSpec(), time_s=[0.0], phases_rad=[[0.0, 0.1]], positions_m=[[0.0]])
 
 
 def test_trace_rejects_row_count_mismatch() -> None:
+    """A time vector with a different row count is refused."""
     with pytest.raises(ValueError, match="same number of rows"):
         evaluate_merge_window_trace(
             MergeWindowSpec(), time_s=[0.0, 1.0e-6], phases_rad=[[0.0, 0.1]], positions_m=[[0.0, 0.1]]
@@ -169,6 +183,7 @@ def test_trace_rejects_row_count_mismatch() -> None:
 
 
 def test_trace_rejects_non_finite_phases() -> None:
+    """Non-finite trace phases are refused."""
     with pytest.raises(ValueError, match="phases_rad must contain only finite values"):
         evaluate_merge_window_trace(
             MergeWindowSpec(), time_s=[0.0], phases_rad=[[0.0, float("inf")]], positions_m=[[0.0, 0.1]]
@@ -176,6 +191,7 @@ def test_trace_rejects_non_finite_phases() -> None:
 
 
 def test_trace_rejects_non_finite_positions() -> None:
+    """Non-finite trace positions are refused."""
     with pytest.raises(ValueError, match="positions_m must contain only finite values"):
         evaluate_merge_window_trace(
             MergeWindowSpec(), time_s=[0.0], phases_rad=[[0.0, 0.1]], positions_m=[[0.0, float("inf")]]
@@ -183,6 +199,7 @@ def test_trace_rejects_non_finite_positions() -> None:
 
 
 def test_rust_backed_merge_window_monitor_exposes_full_api(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The Rust-backed monitor exposes streak, first lock time and reset; skip without Rust."""
     from scpn_mif_core._dispatch import is_rust_available
 
     if not is_rust_available():

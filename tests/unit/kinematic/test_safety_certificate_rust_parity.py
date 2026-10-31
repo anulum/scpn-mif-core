@@ -21,6 +21,7 @@ from scpn_mif_core.kinematic._rust_adapter import rust_certify_sampled_kinematic
 
 
 def test_rust_certificate_matches_python_for_passing_trace() -> None:
+    """Rust and Python certificates are equal for a passing trace."""
     spec = KinematicSafetySpec(tolerance_m=0.002, contraction=0.75, disturbance_ratio=0.2)
     trace = [0.0018, 0.0014, 0.00105, 0.0008]
 
@@ -28,6 +29,7 @@ def test_rust_certificate_matches_python_for_passing_trace() -> None:
 
 
 def test_rust_certificate_matches_python_for_failed_trace() -> None:
+    """Rust and Python certificates are equal for a step violation."""
     spec = KinematicSafetySpec(tolerance_m=0.002, contraction=0.5, disturbance_ratio=0.1, numerical_tolerance_m=0.0)
     trace = [0.001, 0.0015]
 
@@ -40,6 +42,7 @@ def test_rust_certificate_matches_python_for_failed_trace() -> None:
 
 
 def test_rust_certificate_matches_python_for_initial_violation() -> None:
+    """Rust and Python certificates are equal for an initial violation."""
     spec = KinematicSafetySpec(tolerance_m=0.002, contraction=0.5, disturbance_ratio=0.1, numerical_tolerance_m=0.0)
     trace = [0.0025, 0.001]
 
@@ -52,6 +55,7 @@ def test_rust_certificate_matches_python_for_initial_violation() -> None:
 
 
 def test_dispatched_certificate_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With Rust preferred the dispatched certificate passes the trace."""
     import scpn_mif_core.kinematic as kinematic
 
     monkeypatch.setattr(kinematic, "preferred_backend", lambda _kernel: "rust")
@@ -67,5 +71,6 @@ def test_dispatched_certificate_uses_rust_when_preferred(monkeypatch: pytest.Mon
 
 
 def test_rust_rejects_invalid_trace() -> None:
+    """Rust refuses a non-finite trace."""
     with pytest.raises(ValueError, match="finite"):
         rust.certify_sampled_kinematic_safety([0.0, float("nan")])

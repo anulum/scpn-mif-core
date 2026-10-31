@@ -37,6 +37,7 @@ def _spec() -> MovingFrameUPDESpec:
 
 
 def test_combined_derivative_contains_phase_and_absolute_position_rates() -> None:
+    """The combined derivative holds the phase rates followed by the position rates."""
     spec = MovingFrameUPDESpec(
         omega_rad_s=[1.0, -1.0],
         coupling_rad_s=[[0.0, 3.0], [5.0, 0.0]],
@@ -59,6 +60,7 @@ def test_combined_derivative_contains_phase_and_absolute_position_rates() -> Non
 
 
 def test_rk45_step_matches_independent_dormand_prince_reference() -> None:
+    """One RK45 step matches an independent Dormand-Prince reference, error estimate included."""
     spec = _spec()
     phases = np.array([0.0, 0.25], dtype=np.float64)
     positions = np.array([-0.03, 0.03], dtype=np.float64)
@@ -75,6 +77,7 @@ def test_rk45_step_matches_independent_dormand_prince_reference() -> None:
 
 
 def test_rk45_local_error_uses_circular_phase_delta_across_wrap() -> None:
+    """Across the phase wrap the local error uses the circular difference."""
     spec = MovingFrameUPDESpec(
         omega_rad_s=[10.0],
         coupling_rad_s=[[0.0]],
@@ -94,6 +97,7 @@ def test_rk45_local_error_uses_circular_phase_delta_across_wrap() -> None:
 
 
 def test_time_varying_omega_matches_affine_solution_through_upde() -> None:
+    """With an affine frequency ramp the phase matches the analytic solution."""
     omega_0 = 1_200.0
     omega_rate = -20_000.0
     dt_s = 1.0e-6
@@ -118,6 +122,7 @@ def test_time_varying_omega_matches_affine_solution_through_upde() -> None:
 
 
 def test_time_to_reference_and_collision_window_at_chamber_centre() -> None:
+    """Time to reference and the collision window agree at the chamber centre."""
     engine = MovingFrameUPDE(
         _spec(),
         phases_rad=[0.0, 0.25],
@@ -135,6 +140,7 @@ def test_time_to_reference_and_collision_window_at_chamber_centre() -> None:
 
 
 def test_engine_derivatives_overrides_and_copy_preserve_state() -> None:
+    """Derivatives accept overrides and a copy keeps the state."""
     engine = MovingFrameUPDE(
         _spec(),
         phases_rad=[0.0, 0.25],
@@ -150,6 +156,7 @@ def test_engine_derivatives_overrides_and_copy_preserve_state() -> None:
 
 
 def test_reference_helpers_cover_stationary_and_passed_channels() -> None:
+    """Reference helpers handle a body at, moving away from or past the reference, and refuse a negative epsilon."""
     spec = MovingFrameUPDESpec(omega_rad_s=[0.0], coupling_rad_s=[[0.0]])
     at_reference = MovingFrameUPDE(spec, [0.0], [0.0], [0.0])
     away_stationary = MovingFrameUPDE(spec, [0.0], [1.0], [0.0])
@@ -165,6 +172,7 @@ def test_reference_helpers_cover_stationary_and_passed_channels() -> None:
 
 
 def test_report_records_absolute_reference_error() -> None:
+    """The report records the absolute reference error at the centre."""
     report = evaluate_moving_frame_upde(
         _spec(),
         phases_rad=[0.0, 0.25],
@@ -183,6 +191,7 @@ def test_report_records_absolute_reference_error() -> None:
 
 
 def test_spec_rejects_non_finite_reference_point() -> None:
+    """A non-finite reference point is refused."""
     with pytest.raises(ValueError, match="reference_point_m"):
         MovingFrameUPDESpec(
             omega_rad_s=[0.0],
@@ -192,16 +201,19 @@ def test_spec_rejects_non_finite_reference_point() -> None:
 
 
 def test_engine_rejects_position_shape_mismatch() -> None:
+    """Positions of the wrong length are refused."""
     with pytest.raises(ValueError, match="positions_m"):
         MovingFrameUPDE(_spec(), [0.0, 0.25], [-0.03], [300_000.0, -300_000.0])
 
 
 def test_evaluate_rejects_negative_steps() -> None:
+    """A negative step count is refused."""
     with pytest.raises(ValueError, match="steps"):
         evaluate_moving_frame_upde(_spec(), [0.0, 0.25], [-0.03, 0.03], [1.0, -1.0], dt_s=1e-9, steps=-1)
 
 
 def test_dispatched_moving_frame_upde_falls_back_to_python(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without Rust the dispatched engine is the Python one."""
     import scpn_mif_core.kinematic as kinematic
 
     monkeypatch.setattr(kinematic, "preferred_backend", lambda _kernel: "python")
@@ -216,6 +228,7 @@ def test_dispatched_moving_frame_upde_falls_back_to_python(monkeypatch: pytest.M
 
 
 def test_embedded_local_error_handles_degenerate_phases_only_state() -> None:
+    """For a state without positions the local error is the phase error alone."""
     from scpn_mif_core.kinematic.moving_frame_upde import _embedded_local_error
 
     # The shared embedded-error helper falls back to the pure phase error when the

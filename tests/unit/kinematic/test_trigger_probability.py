@@ -58,6 +58,7 @@ def _normal_cdf(z: float) -> float:
 
 @pytest.mark.parametrize("field", ["phase_lock_error_sigma_rad", "reference_error_sigma_m", "separation_sigma_m"])
 def test_noise_spec_rejects_negative_sigma(field: str) -> None:
+    """A negative sigma is refused."""
     kwargs = {
         "phase_lock_error_sigma_rad": 0.01,
         "reference_error_sigma_m": 0.001,
@@ -69,11 +70,13 @@ def test_noise_spec_rejects_negative_sigma(field: str) -> None:
 
 
 def test_noise_spec_rejects_non_finite_sigma() -> None:
+    """A non-finite sigma is refused."""
     with pytest.raises(ValueError, match="finite"):
         MeasurementNoiseSpec(phase_lock_error_sigma_rad=math.nan, reference_error_sigma_m=0.0, separation_sigma_m=0.0)
 
 
 def test_from_noise_spec_reads_named_channels() -> None:
+    """The noise specification is read from the named sensor channels."""
     noise = NoiseSpec(
         sigma_by_channel={
             "phase_lock_error_rad": 0.02,
@@ -88,6 +91,7 @@ def test_from_noise_spec_reads_named_channels() -> None:
 
 
 def test_from_noise_spec_fails_closed_on_missing_channel() -> None:
+    """A missing channel sigma is refused."""
     noise = NoiseSpec(sigma_by_channel={"phase_lock_error_rad": 0.02})
     with pytest.raises(ValueError, match="no sigma for channel reference_error_m"):
         MeasurementNoiseSpec.from_noise_spec(noise)
@@ -99,16 +103,19 @@ def test_from_noise_spec_fails_closed_on_missing_channel() -> None:
 
 
 def test_rejects_empty_trace() -> None:
+    """An empty trace is refused."""
     with pytest.raises(ValueError, match="must not be empty"):
         propagate_trigger_probabilities(_WINDOW, _SAFETY, _NOISELESS, [], [], [])
 
 
 def test_rejects_unequal_lengths() -> None:
+    """Observables of different lengths are refused."""
     with pytest.raises(ValueError, match="same number of samples"):
         propagate_trigger_probabilities(_WINDOW, _SAFETY, _NOISELESS, [0.01, 0.01], [0.001], [0.01])
 
 
 def test_rejects_non_finite_observables() -> None:
+    """Non-finite observables are refused."""
     with pytest.raises(ValueError, match="finite"):
         propagate_trigger_probabilities(_WINDOW, _SAFETY, _NOISELESS, [math.inf], [0.001], [0.01])
 
@@ -119,6 +126,7 @@ def test_rejects_non_finite_observables() -> None:
 
 
 def test_noiseless_trace_pins_monitor_and_certificate() -> None:
+    """With zero noise the probabilities equal the monitor and certificate verdicts."""
     time_s = np.arange(1, 9, dtype=np.float64) * 1.0e-6
     phases = np.array([[0.0, 0.2], [0.0, 0.04], [0.0, 0.03], [0.0, 0.02]] * 2, dtype=np.float64)
     offsets = np.array([0.009, 0.004, 0.0036, 0.0033, 0.003, 0.0028, 0.0026, 0.0024], dtype=np.float64)
@@ -146,6 +154,7 @@ def test_noiseless_trace_pins_monitor_and_certificate() -> None:
 
 
 def test_noiseless_boundary_uses_monitor_comparisons() -> None:
+    """With zero noise, samples exactly at tolerance follow the monitor's comparisons."""
     # Exactly-at-tolerance samples: the monitor accepts <=, the certificate
     # rejects only strictly beyond the numerical tolerance. Values are
     # binary-representable so the comparisons are exact.
@@ -164,6 +173,7 @@ def test_noiseless_boundary_uses_monitor_comparisons() -> None:
 
 
 def test_single_sample_operating_point_at_tolerances() -> None:
+    """At the tolerances the probabilities take their exact closed-form values."""
     # Both window observables sit exactly at tolerance (Phi(0) = 1/2 each) and
     # the separation sits exactly at tolerance + numerical tolerance, so the
     # candidate probability is exactly 1/4 and the violation exactly 1/2.
@@ -225,6 +235,7 @@ def _enumerate_reference(
 
 
 def test_streak_recursion_matches_enumeration_without_violation() -> None:
+    """The streak recursion equals full enumeration when nothing violates."""
     phase_errors = [0.03, 0.06, 0.04, 0.05, 0.02, 0.07]
     sigma = 0.02
     window = MergeWindowSpec(phase_tolerance_rad=0.05, spatial_tolerance_m=0.01, consecutive_samples=2)
@@ -241,6 +252,7 @@ def test_streak_recursion_matches_enumeration_without_violation() -> None:
 
 
 def test_fire_chronology_matches_enumeration_with_deterministic_violation() -> None:
+    """With a violation at index 3, only earlier locks fire, as enumeration shows."""
     # A sigma=0 separation trace violating exactly at index 3: only locks strictly
     # before index 3 fire; a lock at index 3 loses the same-sample tie.
     phase_errors = [0.04, 0.05, 0.06, 0.045, 0.03, 0.05]
@@ -383,6 +395,7 @@ def test_monte_carlo_per_sample_candidate_calibration() -> None:
 def test_dispatched_trigger_probabilities_uses_python_floor_when_rust_is_not_available(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Without Rust the dispatched propagation equals Python."""
     import scpn_mif_core.kinematic as kinematic
 
     monkeypatch.setattr(kinematic, "preferred_backend", lambda _kernel: "rust")
@@ -398,6 +411,7 @@ def test_dispatched_trigger_probabilities_uses_python_floor_when_rust_is_not_ava
 
 
 def test_from_trace_equals_propagation_on_extracted_observables() -> None:
+    """Propagation from a trace equals propagation of its observables."""
     time_s = np.arange(1, 5, dtype=np.float64) * 1.0e-6
     phases = np.array([[0.0, 0.04], [0.0, 0.03], [0.0, 0.05], [0.0, 0.02]], dtype=np.float64)
     offsets = np.array([0.004, 0.0038, 0.0036, 0.0034], dtype=np.float64)

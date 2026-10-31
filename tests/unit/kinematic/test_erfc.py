@@ -42,6 +42,7 @@ def _ulp_distance(a: float, b: float) -> int:
 
 
 def test_special_cases() -> None:
+    """The function is 1 at zero, 0 and 2 at the infinities and NaN at NaN."""
     assert erfc(0.0) == 1.0
     assert erfc(math.inf) == 0.0
     assert erfc(-math.inf) == 2.0
@@ -49,6 +50,7 @@ def test_special_cases() -> None:
 
 
 def test_tiny_arguments_short_circuit() -> None:
+    """Below 2**-56 erfc returns 1 - x exactly."""
     # |x| < 2**-56 returns 1 - x exactly.
     assert erfc(1.0e-60) == 1.0
     assert erfc(-1.0e-60) == 1.0
@@ -56,6 +58,7 @@ def test_tiny_arguments_short_circuit() -> None:
 
 
 def test_saturation_beyond_28() -> None:
+    """Beyond 28 erfc saturates to 0 or to 2 minus the smallest step."""
     tiny = struct.unpack("<d", struct.pack("<Q", 0x0010000000000000))[0]
     assert erfc(28.0) == 0.0  # tiny * tiny underflows to zero
     assert erfc(30.0) == 0.0
@@ -86,6 +89,7 @@ def test_saturation_beyond_28() -> None:
     ],
 )
 def test_branch_pins(argument: float, expected: float) -> None:
+    """Each branch argument gives the exact value the Rust port also asserts."""
     assert erfc(argument) == expected
 
 
@@ -95,9 +99,12 @@ def test_branch_pins(argument: float, expected: float) -> None:
 
 
 def test_dense_sweep_stays_within_two_ulp_of_platform() -> None:
-    """fdlibm and glibc both claim about one-ulp accuracy, so any pair of
+    """Across [-15, 15] in steps of 0.001 erfc stays within two ULP of the platform.
+
+    fdlibm and glibc both claim about one-ulp accuracy, so any pair of
     values may differ by at most two ulp; a larger gap would mean a broken
-    port (wrong constant, wrong branch cut), not a rounding difference."""
+    port (wrong constant, wrong branch cut), not a rounding difference.
+    """
     worst = 0
     for step in range(30001):
         x = step * 0.001 - 15.0
@@ -106,6 +113,7 @@ def test_dense_sweep_stays_within_two_ulp_of_platform() -> None:
 
 
 def test_branch_interior_and_boundary_pins() -> None:
+    """Interior and boundary points of the branches give pinned exact values."""
     # Interior points of the [0.84375, 1.25) Taylor band with s != 0 (x = 1.0
     # has s = |x|-1 = 0 and sees only the leading coefficient), plus the exact
     # branch-cut arguments pinning each range comparison at its boundary.
@@ -121,6 +129,7 @@ def test_branch_interior_and_boundary_pins() -> None:
 
 
 def test_range_cut_families_pin_the_comparison_direction() -> None:
+    """Arguments on the range cuts give pinned values that fix each comparison's direction."""
     # Arguments whose high word sits exactly on a range-cut boundary, chosen
     # (by scan) so the two neighbouring approximations differ in the last bit
     # there; the Rust twin pins the same values, so a flipped comparison in
@@ -134,6 +143,7 @@ def test_range_cut_families_pin_the_comparison_direction() -> None:
 
 
 def test_dense_grid_checksums_are_pinned() -> None:
+    """Ordered sums over dense one-sided grids equal pinned values."""
     # Ordered sums over dense one-sided grids, pinned exactly; the Rust twin
     # asserts the same two values, so the ports cannot drift silently. The
     # grids are one-sided because the symmetric sum telescopes to the grid
@@ -150,6 +160,7 @@ def test_dense_grid_checksums_are_pinned() -> None:
 
 
 def test_complementarity_identity() -> None:
+    """The identity erfc(-x) = 2 - erfc(x) holds exactly on every finite branch."""
     # erfc(-x) + erfc(x) == 2 holds exactly for representative points of every
     # finite branch in this port (both sides compute the same magnitudes).
     for x in [1.0e-60, 0.1, 0.3, 0.5, 1.0, 2.0, 4.0, 10.0, 27.5]:
