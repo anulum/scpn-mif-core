@@ -86,12 +86,14 @@ def overdamped_spec() -> CapacitorBankSpec:
 
 
 def test_spec_is_immutable() -> None:
+    """A bank specification cannot be changed after construction."""
     spec = underdamped_spec()
     with pytest.raises(AttributeError):
         setattr(spec, "capacitance_F", 1.0)  # noqa: B010 - the frozen guard is the subject
 
 
 def test_bank_spec_property_exposes_validated_spec() -> None:
+    """The bank exposes its specification and the derived critical resistance."""
     spec = underdamped_spec()
     bank = CapacitorBank(spec, initial_voltage_V=5000.0)
 
@@ -100,6 +102,7 @@ def test_bank_spec_property_exposes_validated_spec() -> None:
 
 
 def test_spec_rejects_non_positive_capacitance() -> None:
+    """Non-positive capacitance is refused."""
     with pytest.raises(ValueError, match="capacitance_F"):
         CapacitorBankSpec(
             capacitance_F=-1.0,
@@ -111,6 +114,7 @@ def test_spec_rejects_non_positive_capacitance() -> None:
 
 
 def test_spec_rejects_non_positive_inductance() -> None:
+    """Non-positive inductance is refused."""
     with pytest.raises(ValueError, match="inductance_H"):
         CapacitorBankSpec(
             capacitance_F=100e-6,
@@ -122,6 +126,7 @@ def test_spec_rejects_non_positive_inductance() -> None:
 
 
 def test_spec_rejects_negative_series_resistance() -> None:
+    """Negative series resistance is refused."""
     with pytest.raises(ValueError, match="series_resistance_ohm"):
         CapacitorBankSpec(
             capacitance_F=100e-6,
@@ -133,6 +138,7 @@ def test_spec_rejects_negative_series_resistance() -> None:
 
 
 def test_spec_rejects_non_positive_voltage_max() -> None:
+    """A non-positive maximum voltage is refused."""
     with pytest.raises(ValueError, match="voltage_max_V"):
         CapacitorBankSpec(
             capacitance_F=100e-6,
@@ -144,6 +150,7 @@ def test_spec_rejects_non_positive_voltage_max() -> None:
 
 
 def test_spec_rejects_negative_recharge_power() -> None:
+    """Negative recharge power is refused."""
     with pytest.raises(ValueError, match="recharge_power_kW"):
         CapacitorBankSpec(
             capacitance_F=100e-6,
@@ -155,6 +162,7 @@ def test_spec_rejects_negative_recharge_power() -> None:
 
 
 def test_spec_rejects_non_finite_parameters() -> None:
+    """A non-finite parameter is refused."""
     with pytest.raises(ValueError, match="capacitance_F"):
         CapacitorBankSpec(
             capacitance_F=float("nan"),
@@ -166,6 +174,7 @@ def test_spec_rejects_non_finite_parameters() -> None:
 
 
 def test_spec_rejects_non_finite_max_capacitor_energy() -> None:
+    """Parameters whose maximum stored energy overflows are refused."""
     with pytest.raises(ValueError, match="max_capacitor_energy"):
         CapacitorBankSpec(
             capacitance_F=1.0e308,
@@ -182,35 +191,41 @@ def test_spec_rejects_non_finite_max_capacitor_energy() -> None:
 
 
 def test_regime_underdamped() -> None:
+    """Resistance below critical gives the underdamped regime."""
     spec = underdamped_spec()
     assert spec.regime is RLCRegime.UNDERDAMPED
     assert spec.series_resistance_ohm < spec.critical_resistance
 
 
 def test_regime_critically_damped_at_exact_threshold() -> None:
+    """Resistance exactly at critical gives the critically damped regime."""
     spec = critically_damped_spec()
     assert spec.regime is RLCRegime.CRITICALLY_DAMPED
 
 
 def test_regime_overdamped() -> None:
+    """Resistance above critical gives the overdamped regime."""
     spec = overdamped_spec()
     assert spec.regime is RLCRegime.OVERDAMPED
     assert spec.series_resistance_ohm > spec.critical_resistance
 
 
 def test_damping_factor_formula_correct() -> None:
+    """The damping factor equals R over 2L."""
     spec = underdamped_spec()
     expected = spec.series_resistance_ohm / (2.0 * spec.inductance_H)
     assert spec.damping_factor == pytest.approx(expected)
 
 
 def test_resonant_frequency_formula_correct() -> None:
+    """The resonant frequency equals 1 over the square root of LC."""
     spec = underdamped_spec()
     expected = 1.0 / math.sqrt(spec.inductance_H * spec.capacitance_F)
     assert spec.resonant_frequency == pytest.approx(expected)
 
 
 def test_natural_peak_current_matches_characteristic_impedance_bound() -> None:
+    """The natural peak current equals the voltage over the characteristic impedance."""
     spec = underdamped_spec()
     bank = CapacitorBank(spec, initial_voltage_V=5000.0)
     expected = 5000.0 / math.sqrt(spec.inductance_H / spec.capacitance_F)
@@ -224,6 +239,7 @@ def test_natural_peak_current_matches_characteristic_impedance_bound() -> None:
 
 
 def test_analytical_underdamped_at_t0_equals_v0() -> None:
+    """The underdamped closed form starts at the initial voltage with zero current."""
     spec = underdamped_spec()
     v0 = 5000.0
     assert analytical_voltage_underdamped(spec, 0.0, v0) == pytest.approx(v0)
@@ -231,6 +247,7 @@ def test_analytical_underdamped_at_t0_equals_v0() -> None:
 
 
 def test_analytical_critically_damped_at_t0_equals_v0() -> None:
+    """The critically damped closed form starts at the initial voltage with zero current."""
     spec = critically_damped_spec()
     v0 = 5000.0
     assert analytical_voltage_critically_damped(spec, 0.0, v0) == pytest.approx(v0)
@@ -238,6 +255,7 @@ def test_analytical_critically_damped_at_t0_equals_v0() -> None:
 
 
 def test_analytical_overdamped_at_t0_equals_v0() -> None:
+    """The overdamped closed form starts at the initial voltage with zero current."""
     spec = overdamped_spec()
     v0 = 5000.0
     assert analytical_voltage_overdamped(spec, 0.0, v0) == pytest.approx(v0, rel=1e-12)
@@ -250,6 +268,7 @@ def test_analytical_overdamped_at_t0_equals_v0() -> None:
 
 
 def test_free_response_underdamped_dispatch_matches_closed_form() -> None:
+    """The free response of an underdamped bank equals its closed form."""
     spec = underdamped_spec()
     t = 1e-4
     v0 = 5000.0
@@ -259,6 +278,7 @@ def test_free_response_underdamped_dispatch_matches_closed_form() -> None:
 
 
 def test_free_response_overdamped_dispatch_matches_closed_form() -> None:
+    """The free response of an overdamped bank equals its closed form."""
     spec = overdamped_spec()
     t = 1e-4
     v0 = 5000.0
@@ -268,6 +288,7 @@ def test_free_response_overdamped_dispatch_matches_closed_form() -> None:
 
 
 def test_free_response_rejects_negative_t() -> None:
+    """A negative time is refused."""
     with pytest.raises(ValueError, match="t must be non-negative"):
         free_response(underdamped_spec(), -1e-9, 5000.0)
 
@@ -291,6 +312,7 @@ def test_step_matches_analytical_free_response(
     dt: float,
     n_steps: int,
 ) -> None:
+    """In each regime the Crank-Nicolson steps follow the closed-form voltage and current."""
     spec = spec_factory()
     bank = CapacitorBank(spec, initial_voltage_V=5000.0)
     for _ in range(n_steps):
@@ -316,7 +338,6 @@ def test_rlc_acceptance_table_stays_below_one_percent_error(
     n_steps: int,
 ) -> None:
     """MIF-005 acceptance: Crank-Nicolson free response stays within 1% of closed form."""
-
     spec = spec_factory()
     v0 = 5000.0
     bank = CapacitorBank(spec, initial_voltage_V=v0)
@@ -333,6 +354,7 @@ def test_rlc_acceptance_table_stays_below_one_percent_error(
 
 
 def test_step_underdamped_oscillates_below_zero_within_half_period() -> None:
+    """An underdamped bank swings well below zero within the first half period."""
     spec = underdamped_spec()
     alpha = spec.damping_factor
     omega0 = spec.resonant_frequency
@@ -349,6 +371,7 @@ def test_step_underdamped_oscillates_below_zero_within_half_period() -> None:
 
 
 def test_step_overdamped_voltage_monotonically_decays() -> None:
+    """An overdamped bank's voltage never rises while it decays."""
     spec = overdamped_spec()
     bank = CapacitorBank(spec, initial_voltage_V=5000.0)
     last_v = bank.state.voltage_V
@@ -365,17 +388,20 @@ def test_step_overdamped_voltage_monotonically_decays() -> None:
 
 
 def test_constructor_rejects_voltage_above_max() -> None:
+    """An initial voltage above the maximum is refused."""
     spec = underdamped_spec()
     with pytest.raises(ValueError, match="exceeds bank max"):
         CapacitorBank(spec, initial_voltage_V=spec.voltage_max_V + 1.0)
 
 
 def test_constructor_rejects_negative_voltage() -> None:
+    """A negative initial voltage is refused."""
     with pytest.raises(ValueError, match="non-negative"):
         CapacitorBank(underdamped_spec(), initial_voltage_V=-1.0)
 
 
 def test_constructor_default_voltage_is_zero() -> None:
+    """A bank built without voltage starts empty."""
     bank = CapacitorBank(underdamped_spec())
     state = bank.state
     assert state.voltage_V == 0.0
@@ -384,6 +410,7 @@ def test_constructor_default_voltage_is_zero() -> None:
 
 
 def test_initial_energy_matches_half_c_v_squared() -> None:
+    """The initial energy is one half C V squared, all in the capacitor."""
     spec = underdamped_spec()
     v0 = 5000.0
     bank = CapacitorBank(spec, initial_voltage_V=v0)
@@ -393,6 +420,7 @@ def test_initial_energy_matches_half_c_v_squared() -> None:
 
 
 def test_state_energy_includes_capacitor_and_inductor_storage_after_current_builds() -> None:
+    """Once current flows the state energy includes the inductor's share."""
     spec = underdamped_spec()
     bank = CapacitorBank(spec, initial_voltage_V=5000.0)
     bank.step(1e-6)
@@ -407,6 +435,7 @@ def test_state_energy_includes_capacitor_and_inductor_storage_after_current_buil
 
 
 def test_state_is_immutable() -> None:
+    """A bank state cannot be changed."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=5000.0)
     state = bank.state
     with pytest.raises(AttributeError):
@@ -414,11 +443,13 @@ def test_state_is_immutable() -> None:
 
 
 def test_state_is_a_capacitor_bank_state_instance() -> None:
+    """The bank state has the state type."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=5000.0)
     assert isinstance(bank.state, CapacitorBankState)
 
 
 def test_reset_clears_time_and_current() -> None:
+    """Reset sets the voltage and clears time, current and its rate."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=5000.0)
     bank.step(1e-5)
     assert bank.state.t > 0.0
@@ -432,6 +463,7 @@ def test_reset_clears_time_and_current() -> None:
 
 
 def test_reset_rejects_voltage_above_max() -> None:
+    """Reset refuses a voltage above the maximum."""
     spec = underdamped_spec()
     bank = CapacitorBank(spec)
     with pytest.raises(ValueError, match="exceeds bank max"):
@@ -439,18 +471,21 @@ def test_reset_rejects_voltage_above_max() -> None:
 
 
 def test_reset_rejects_negative_voltage() -> None:
+    """Reset refuses a negative voltage."""
     bank = CapacitorBank(underdamped_spec())
     with pytest.raises(ValueError, match="non-negative"):
         bank.reset(-1.0)
 
 
 def test_step_rejects_zero_dt() -> None:
+    """A zero step is refused."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=5000.0)
     with pytest.raises(ValueError, match="dt must be strictly positive"):
         bank.step(0.0)
 
 
 def test_step_rejects_negative_dt() -> None:
+    """A negative step is refused."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=5000.0)
     with pytest.raises(ValueError, match="dt must be strictly positive"):
         bank.step(-1e-6)
@@ -462,16 +497,19 @@ def test_step_rejects_negative_dt() -> None:
 
 
 def test_pulse_spec_rejects_non_positive_peak_current() -> None:
+    """A non-positive pulse peak current is refused."""
     with pytest.raises(ValueError, match="peak_current_A"):
         PulseSpec(peak_current_A=0.0, duration_s=1e-3)
 
 
 def test_pulse_spec_rejects_non_positive_duration() -> None:
+    """A non-positive pulse duration is refused."""
     with pytest.raises(ValueError, match="duration_s"):
         PulseSpec(peak_current_A=1000.0, duration_s=0.0)
 
 
 def test_pulse_spec_default_waveform_is_half_sine() -> None:
+    """The default pulse waveform is a half sine."""
     pulse = PulseSpec(peak_current_A=1000.0, duration_s=1e-3)
     assert pulse.waveform == "half_sine"
 
@@ -503,6 +541,7 @@ def test_property_voltage_stays_within_envelope_for_natural_response(initial_v: 
 
 
 def test_waveform_rect_returns_peak_current_within_duration() -> None:
+    """A rectangular pulse holds its peak over its whole duration."""
     from scpn_mif_core.lifecycle.capacitor_bank import _sample_waveform
 
     pulse = PulseSpec(peak_current_A=1000.0, duration_s=1e-3, waveform="rect")
@@ -512,6 +551,7 @@ def test_waveform_rect_returns_peak_current_within_duration() -> None:
 
 
 def test_waveform_zero_outside_duration() -> None:
+    """Every waveform is zero outside its duration."""
     from scpn_mif_core.lifecycle.capacitor_bank import _sample_waveform
 
     pulse = PulseSpec(peak_current_A=1000.0, duration_s=1e-3, waveform="rect")
@@ -520,6 +560,7 @@ def test_waveform_zero_outside_duration() -> None:
 
 
 def test_waveform_half_sine_peak_at_midpoint() -> None:
+    """A half-sine pulse is zero at its ends and peaks at its midpoint."""
     from scpn_mif_core.lifecycle.capacitor_bank import _sample_waveform
 
     pulse = PulseSpec(peak_current_A=1000.0, duration_s=1e-3, waveform="half_sine")
@@ -529,6 +570,7 @@ def test_waveform_half_sine_peak_at_midpoint() -> None:
 
 
 def test_waveform_exp_decay_starts_at_peak_and_falls() -> None:
+    """An exponential pulse starts at its peak and falls but stays positive."""
     from scpn_mif_core.lifecycle.capacitor_bank import _sample_waveform
 
     pulse = PulseSpec(peak_current_A=1000.0, duration_s=1e-3, waveform="exp_decay")
@@ -540,6 +582,7 @@ def test_waveform_exp_decay_starts_at_peak_and_falls() -> None:
 
 
 def test_waveform_rejects_unknown_waveform_name() -> None:
+    """An unknown waveform name is refused."""
     from scpn_mif_core.lifecycle.capacitor_bank import _sample_waveform
 
     # Use object.__setattr__ to bypass the frozen-dataclass check and inject an invalid name.
@@ -555,6 +598,7 @@ def test_waveform_rejects_unknown_waveform_name() -> None:
 
 
 def test_discharge_energy_conservation_machine_eps() -> None:
+    """Delivered plus remaining energy equals the initial energy to 1e-12."""
     spec = overdamped_spec()
     bank = CapacitorBank(spec, initial_voltage_V=5000.0)
     energy_initial = bank.state.energy_J
@@ -564,6 +608,7 @@ def test_discharge_energy_conservation_machine_eps() -> None:
 
 
 def test_discharge_records_rlc_regime() -> None:
+    """The discharge report records the circuit regime."""
     spec = overdamped_spec()
     bank = CapacitorBank(spec, initial_voltage_V=5000.0)
     pulse = PulseSpec(peak_current_A=100.0, duration_s=1e-3, waveform="half_sine")
@@ -572,6 +617,7 @@ def test_discharge_records_rlc_regime() -> None:
 
 
 def test_discharge_records_duration() -> None:
+    """The discharge report records its duration."""
     spec = overdamped_spec()
     bank = CapacitorBank(spec, initial_voltage_V=5000.0)
     pulse = PulseSpec(peak_current_A=100.0, duration_s=1e-3, waveform="rect")
@@ -580,6 +626,7 @@ def test_discharge_records_duration() -> None:
 
 
 def test_discharge_records_non_zero_peak_current() -> None:
+    """The discharge report records a peak current."""
     spec = overdamped_spec()
     bank = CapacitorBank(spec, initial_voltage_V=5000.0)
     pulse = PulseSpec(peak_current_A=500.0, duration_s=1e-3, waveform="rect")
@@ -603,6 +650,7 @@ def test_discharge_rect_drains_more_energy_than_no_load() -> None:
 
 
 def test_discharge_rejects_zero_n_steps() -> None:
+    """A discharge of zero steps is refused."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=5000.0)
     pulse = PulseSpec(peak_current_A=100.0, duration_s=1e-3)
     with pytest.raises(ValueError, match="n_steps"):
@@ -610,6 +658,7 @@ def test_discharge_rejects_zero_n_steps() -> None:
 
 
 def test_discharge_rejects_zero_dt() -> None:
+    """A discharge with a zero step is refused."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=5000.0)
     pulse = PulseSpec(peak_current_A=100.0, duration_s=1e-3)
     with pytest.raises(ValueError, match="dt"):
@@ -622,6 +671,7 @@ def test_discharge_rejects_zero_dt() -> None:
 
 
 def test_feasibility_passes_for_modest_pulse() -> None:
+    """A modest pulse is feasible."""
     spec = underdamped_spec()
     bank = CapacitorBank(spec, initial_voltage_V=9000.0)
     pulse = PulseSpec(peak_current_A=100.0, duration_s=1e-4, waveform="half_sine")
@@ -631,6 +681,7 @@ def test_feasibility_passes_for_modest_pulse() -> None:
 
 
 def test_feasibility_rejects_pulse_exceeding_bank_energy() -> None:
+    """A pulse whose dissipation exceeds the stored energy is infeasible."""
     spec = underdamped_spec()
     # V0 = 100, Z0 = sqrt(L/C) = 1 ohm -> max natural current is 100 A, so a
     # peak of 80 A passes the Z0 check. The long rect duration is then enough
@@ -644,6 +695,7 @@ def test_feasibility_rejects_pulse_exceeding_bank_energy() -> None:
 
 
 def test_feasibility_rejects_peak_exceeding_natural_current() -> None:
+    """A peak above the natural current limit is infeasible."""
     spec = underdamped_spec()
     bank = CapacitorBank(spec, initial_voltage_V=5000.0)
     # Z0 = sqrt(L / C) = 1 ohm; max natural at V=5000 is 5000 A.
@@ -654,6 +706,7 @@ def test_feasibility_rejects_peak_exceeding_natural_current() -> None:
 
 
 def test_feasibility_returns_tuple_with_string_reason() -> None:
+    """Feasibility returns a flag and a reason."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=5000.0)
     pulse = PulseSpec(peak_current_A=100.0, duration_s=1e-4)
     result = bank.feasibility(pulse)
@@ -668,24 +721,28 @@ def test_feasibility_returns_tuple_with_string_reason() -> None:
 
 
 def test_recharge_status_returns_target_voltage_field() -> None:
+    """The recharge status targets the maximum voltage."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=2000.0)
     status = bank.recharge_status(1.0)
     assert status["target_voltage_V"] == underdamped_spec().voltage_max_V
 
 
 def test_recharge_status_zero_t_returns_current_voltage() -> None:
+    """At zero time the projection is the present voltage."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=2000.0)
     status = bank.recharge_status(0.0)
     assert status["projected_voltage_V"] == pytest.approx(2000.0)
 
 
 def test_recharge_status_long_t_caps_at_voltage_max() -> None:
+    """Long recharge stops at the maximum voltage."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=2000.0)
     status = bank.recharge_status(1e6)  # well beyond time_to_full
     assert status["projected_voltage_V"] == underdamped_spec().voltage_max_V
 
 
 def test_recharge_status_linear_energy_growth() -> None:
+    """Stored energy grows linearly with recharge power."""
     spec = underdamped_spec()
     bank = CapacitorBank(spec, initial_voltage_V=0.0)
     p_w = spec.recharge_power_kW * 1000.0
@@ -696,12 +753,14 @@ def test_recharge_status_linear_energy_growth() -> None:
 
 
 def test_recharge_status_rejects_negative_t() -> None:
+    """A negative recharge time is refused."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=2000.0)
     with pytest.raises(ValueError, match="non-negative"):
         bank.recharge_status(-1e-3)
 
 
 def test_recharge_status_zero_power_returns_infinite_time() -> None:
+    """Without recharge power the time to full is infinite."""
     spec = CapacitorBankSpec(
         capacitance_F=100e-6,
         inductance_H=100e-6,
@@ -716,6 +775,7 @@ def test_recharge_status_zero_power_returns_infinite_time() -> None:
 
 
 def test_feasibility_rejects_pulse_exceeding_natural_peak_current() -> None:
+    """A pulse above the natural peak current is infeasible."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=10_000.0)
 
     ok, reason = bank.feasibility(PulseSpec(peak_current_A=1.0e12, duration_s=1.0e-6))
@@ -725,6 +785,7 @@ def test_feasibility_rejects_pulse_exceeding_natural_peak_current() -> None:
 
 
 def test_feasibility_accepts_exp_decay_waveform_within_budget() -> None:
+    """Feasibility evaluates an exponential pulse."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=10_000.0)
 
     ok, _ = bank.feasibility(PulseSpec(peak_current_A=1.0, duration_s=1.0e-6, waveform="exp_decay"))
@@ -733,6 +794,7 @@ def test_feasibility_accepts_exp_decay_waveform_within_budget() -> None:
 
 
 def test_waveform_rms_fraction_rejects_unknown_waveform() -> None:
+    """The RMS fraction refuses an unknown waveform."""
     from scpn_mif_core.lifecycle.capacitor_bank import _waveform_rms_squared_fraction
 
     with pytest.raises(ValueError, match="unknown waveform"):
@@ -740,6 +802,7 @@ def test_waveform_rms_fraction_rejects_unknown_waveform() -> None:
 
 
 def test_waveform_rms_squared_fraction_matches_closed_form() -> None:
+    """The squared RMS fractions are 1, 1/2 and the closed form, cross-checked numerically."""
     # RMS²/i_peak² over the pulse: rect = 1, half-sine = mean(sin²) = 1/2,
     # exp_decay (tau = duration/5) = mean(exp(-2t/tau)) = (1 - exp(-10))/10 ≈ 0.1.
     from scpn_mif_core.lifecycle.capacitor_bank import _waveform_rms_squared_fraction
@@ -757,6 +820,7 @@ def test_waveform_rms_squared_fraction_matches_closed_form() -> None:
 
 
 def test_dispatched_capacitor_bank_falls_back_to_python(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without Rust the dispatched bank is the Python one."""
     import sys
 
     import scpn_mif_core.lifecycle as lifecycle
@@ -771,6 +835,7 @@ def test_dispatched_capacitor_bank_falls_back_to_python(monkeypatch: pytest.Monk
 
 
 def test_feasibility_with_empty_bank_skips_natural_peak_check() -> None:
+    """An empty bank skips the natural-peak check and fails on stored energy."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=0.0)
     pulse = PulseSpec(peak_current_A=100.0, duration_s=1e-4, waveform="half_sine")
 

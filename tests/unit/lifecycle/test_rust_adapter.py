@@ -48,12 +48,14 @@ def _spec() -> CapacitorBankSpec:
 
 
 def test_factory_returns_rust_backed_instance() -> None:
+    """The factory returns a Rust-backed bank that is still a CapacitorBank."""
     bank = dispatched_capacitor_bank(_spec(), initial_voltage_V=5000.0)
     assert isinstance(bank, RustBackedCapacitorBank)
     assert isinstance(bank, CapacitorBank)  # subclass relationship preserved
 
 
 def test_factory_initial_state_matches_inputs() -> None:
+    """The Rust-backed bank starts at the given voltage with no current or time."""
     bank = dispatched_capacitor_bank(_spec(), initial_voltage_V=5000.0)
     assert bank.state.voltage_V == pytest.approx(5000.0)
     assert bank.state.current_A == 0.0
@@ -61,6 +63,7 @@ def test_factory_initial_state_matches_inputs() -> None:
 
 
 def test_factory_state_returns_python_dataclass() -> None:
+    """The Rust-backed bank returns the Python state type."""
     bank = dispatched_capacitor_bank(_spec(), initial_voltage_V=5000.0)
     state = bank.state
     assert isinstance(state, CapacitorBankState)
@@ -76,6 +79,7 @@ def test_factory_step_advances_python_slot_mirror() -> None:
 
 
 def test_factory_reset_synchronises_both_paths() -> None:
+    """Reset sets the voltage on both the Rust and the Python side."""
     bank = RustBackedCapacitorBank(_spec(), initial_voltage_V=5000.0)
     for _ in range(10):
         bank.step(1e-6)
@@ -97,6 +101,7 @@ def test_inherited_discharge_works_through_rust_step() -> None:
 
 
 def test_inherited_feasibility_passes_through_rust_state() -> None:
+    """Inherited feasibility uses the Rust state."""
     bank = RustBackedCapacitorBank(_spec(), initial_voltage_V=9000.0)
     pulse = PulseSpec(peak_current_A=100.0, duration_s=1e-4, waveform="half_sine")
     feasible, reason = bank.feasibility(pulse)
@@ -105,6 +110,7 @@ def test_inherited_feasibility_passes_through_rust_state() -> None:
 
 
 def test_inherited_recharge_status_uses_rust_voltage() -> None:
+    """Inherited recharge status uses the Rust voltage."""
     bank = RustBackedCapacitorBank(_spec(), initial_voltage_V=2000.0)
     status = bank.recharge_status(0.0)
     assert status["projected_voltage_V"] == pytest.approx(2000.0)

@@ -37,6 +37,7 @@ from scpn_mif_core.lifecycle._rust_adapter import (
 
 @pytest.mark.parametrize(("trials", "steps", "seed"), [(1, 1, 0), (25, 40, 7), (100, 500, 42)])
 def test_boundedness_parallel_matches_python(trials: int, steps: int, seed: int) -> None:
+    """The parallel Rust boundedness campaign equals Python for each budget and seed."""
     spec = PlasmoidMergerSpec()
     assert rust_verify_merger_boundedness_parallel(
         spec, trials=trials, steps_per_trial=steps, seed=seed
@@ -45,6 +46,7 @@ def test_boundedness_parallel_matches_python(trials: int, steps: int, seed: int)
 
 @pytest.mark.parametrize(("trials", "steps", "seed"), [(1, 200, 0), (50, 200, 3), (200, 200, 9)])
 def test_liveness_parallel_matches_python(trials: int, steps: int, seed: int) -> None:
+    """The parallel Rust liveness campaign equals Python for each budget and seed."""
     spec = PlasmoidMergerSpec()
     assert rust_verify_merger_liveness_parallel(
         spec, trials=trials, steps_per_trial=steps, seed=seed
@@ -52,6 +54,7 @@ def test_liveness_parallel_matches_python(trials: int, steps: int, seed: int) ->
 
 
 def test_failure_messages_match_bit_for_bit() -> None:
+    """With one step per trial both backends report the same six failures in order."""
     # One step per trial cannot reach phase_locked: every trial fails and the
     # failure strings must match the Python reference exactly, in order.
     spec = PlasmoidMergerSpec()
@@ -63,6 +66,7 @@ def test_failure_messages_match_bit_for_bit() -> None:
 
 
 def test_rust_rejects_invalid_budgets_like_python() -> None:
+    """Rust refuses the same invalid budgets as Python."""
     spec = PlasmoidMergerSpec()
     with pytest.raises(ValueError):
         rust_verify_merger_boundedness_parallel(spec, trials=0, steps_per_trial=10, seed=0)
@@ -71,6 +75,7 @@ def test_rust_rejects_invalid_budgets_like_python() -> None:
 
 
 def test_dispatched_campaigns_use_rust_and_agree() -> None:
+    """The dispatched campaigns use Rust and equal the Python results."""
     assert dispatched_merger_boundedness_campaign(
         trials=20, steps_per_trial=50, seed=5
     ) == verify_merger_boundedness_seeded(trials=20, steps_per_trial=50, seed=5)

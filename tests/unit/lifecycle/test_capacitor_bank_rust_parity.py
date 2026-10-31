@@ -99,18 +99,21 @@ def _approx_equal(a: float, b: float) -> bool:
 
 @pytest.mark.parametrize("seed", SEEDS)
 def test_regime_classification_parity(seed: int) -> None:
+    """Rust and Python classify the same circuit regime for seeded specifications."""
     py_spec, rust_spec, _ = _random_spec(seed)
     assert py_spec.regime.value == rust_spec.regime
 
 
 @pytest.mark.parametrize("seed", SEEDS)
 def test_damping_factor_parity(seed: int) -> None:
+    """Rust and Python agree on the damping factor."""
     py_spec, rust_spec, _ = _random_spec(seed)
     assert _approx_equal(py_spec.damping_factor, rust_spec.damping_factor)
 
 
 @pytest.mark.parametrize("seed", SEEDS)
 def test_resonant_frequency_parity(seed: int) -> None:
+    """Rust and Python agree on the resonant frequency."""
     py_spec, rust_spec, _ = _random_spec(seed)
     assert _approx_equal(py_spec.resonant_frequency, rust_spec.resonant_frequency)
 
@@ -139,6 +142,7 @@ _T_GRID = [1e-7, 1e-6, 1e-5, 5e-5, 1e-4]
 
 @pytest.mark.parametrize("t", _T_GRID)
 def test_analytical_voltage_underdamped_parity(t: float) -> None:
+    """Rust and Python agree on the underdamped voltage at each time."""
     py_spec, rust_spec = _regime_specs()["underdamped"]
     v0 = 5000.0
     assert _approx_equal(py_voltage_under(py_spec, t, v0), rust.analytical_voltage_underdamped(rust_spec, t, v0))
@@ -146,6 +150,7 @@ def test_analytical_voltage_underdamped_parity(t: float) -> None:
 
 @pytest.mark.parametrize("t", _T_GRID)
 def test_analytical_current_underdamped_parity(t: float) -> None:
+    """Rust and Python agree on the underdamped current at each time."""
     py_spec, rust_spec = _regime_specs()["underdamped"]
     v0 = 5000.0
     assert _approx_equal(py_current_under(py_spec, t, v0), rust.analytical_current_underdamped(rust_spec, t, v0))
@@ -153,6 +158,7 @@ def test_analytical_current_underdamped_parity(t: float) -> None:
 
 @pytest.mark.parametrize("t", _T_GRID)
 def test_analytical_voltage_critically_damped_parity(t: float) -> None:
+    """Rust and Python agree on the critically damped voltage at each time."""
     py_spec, rust_spec = _regime_specs()["critically_damped"]
     v0 = 5000.0
     assert _approx_equal(py_voltage_crit(py_spec, t, v0), rust.analytical_voltage_critically_damped(rust_spec, t, v0))
@@ -160,6 +166,7 @@ def test_analytical_voltage_critically_damped_parity(t: float) -> None:
 
 @pytest.mark.parametrize("t", _T_GRID)
 def test_analytical_current_critically_damped_parity(t: float) -> None:
+    """Rust and Python agree on the critically damped current at each time."""
     py_spec, rust_spec = _regime_specs()["critically_damped"]
     v0 = 5000.0
     assert _approx_equal(py_current_crit(py_spec, t, v0), rust.analytical_current_critically_damped(rust_spec, t, v0))
@@ -167,6 +174,7 @@ def test_analytical_current_critically_damped_parity(t: float) -> None:
 
 @pytest.mark.parametrize("t", _T_GRID)
 def test_analytical_voltage_overdamped_parity(t: float) -> None:
+    """Rust and Python agree on the overdamped voltage at each time."""
     py_spec, rust_spec = _regime_specs()["overdamped"]
     v0 = 5000.0
     assert _approx_equal(py_voltage_over(py_spec, t, v0), rust.analytical_voltage_overdamped(rust_spec, t, v0))
@@ -174,6 +182,7 @@ def test_analytical_voltage_overdamped_parity(t: float) -> None:
 
 @pytest.mark.parametrize("t", _T_GRID)
 def test_analytical_current_overdamped_parity(t: float) -> None:
+    """Rust and Python agree on the overdamped current at each time."""
     py_spec, rust_spec = _regime_specs()["overdamped"]
     v0 = 5000.0
     assert _approx_equal(py_current_over(py_spec, t, v0), rust.analytical_current_overdamped(rust_spec, t, v0))
@@ -181,6 +190,7 @@ def test_analytical_current_overdamped_parity(t: float) -> None:
 
 @pytest.mark.parametrize("seed", SEEDS)
 def test_free_response_dispatch_parity(seed: int) -> None:
+    """Rust and Python free responses agree for seeded specifications."""
     py_spec, rust_spec, v0 = _random_spec(seed)
     t = (seed + 1) * 1e-6
     py_v, py_i = py_free_response(py_spec, t, v0)
@@ -209,7 +219,6 @@ def test_step_natural_response_parity_over_200_steps(seed: int) -> None:
 @pytest.mark.parametrize("name", ["underdamped", "critically_damped", "overdamped"])
 def test_rlc_acceptance_table_python_rust_parity(name: str) -> None:
     """The named MIF-005 <1% acceptance cases use Python/Rust-identical dynamics."""
-
     py_spec, rust_spec = _regime_specs()[name]
     py_bank = PyCapacitorBank(py_spec, initial_voltage_V=5000.0)
     rust_bank = rust.CapacitorBank(rust_spec, 5000.0)
@@ -241,6 +250,7 @@ def test_step_driven_load_parity_over_100_steps(seed: int) -> None:
 
 @pytest.mark.parametrize("seed", SEEDS)
 def test_energy_parity_after_natural_decay(seed: int) -> None:
+    """After natural decay Rust and Python agree on total, capacitor and inductor energy."""
     py_spec, rust_spec, v0 = _random_spec(seed)
     py_bank = PyCapacitorBank(py_spec, initial_voltage_V=v0)
     rust_bank = rust.CapacitorBank(rust_spec, v0)
@@ -255,6 +265,7 @@ def test_energy_parity_after_natural_decay(seed: int) -> None:
 
 
 def test_python_and_rust_reject_non_finite_spec_parameters() -> None:
+    """Both backends refuse a non-finite capacitance."""
     with pytest.raises(ValueError, match="capacitance"):
         PyCapacitorBankSpec(float("nan"), 1e-3, 0.1, 1000.0, 10.0)
     with pytest.raises(ValueError, match="capacitance"):
@@ -262,6 +273,7 @@ def test_python_and_rust_reject_non_finite_spec_parameters() -> None:
 
 
 def test_python_and_rust_reject_non_finite_max_capacitor_energy() -> None:
+    """Both backends refuse an overflowing maximum energy."""
     with pytest.raises(ValueError, match="max_capacitor_energy"):
         PyCapacitorBankSpec(1.0e308, 1.0, 0.0, 1.0e154, 0.0)
     with pytest.raises(ValueError, match="max_capacitor_energy"):

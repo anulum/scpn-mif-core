@@ -72,6 +72,7 @@ def _bank(voltage_V: float, energy_J: float) -> BankTelemetry:
 
 
 def test_rust_fsm_matches_python_state_sequence() -> None:
+    """The Rust FSM gives the same states, actions, reasons and transitions as Python."""
     py_fsm = PulsedShotFSM(_py_spec())
     rust_fsm = rust.PulsedShotFSM(_rust_spec())
     samples = [
@@ -106,6 +107,7 @@ def test_rust_fsm_matches_python_state_sequence() -> None:
 
 
 def test_python_and_rust_reject_duplicate_timestamps() -> None:
+    """Both backends refuse a repeated timestamp."""
     plasma = _plasma(0.0, 10.0, 0.02, 0.01, 0.0, 0.0)
     bank = _bank(9800.0, 200.0)
     py_fsm = PulsedShotFSM(_py_spec())
@@ -143,6 +145,7 @@ def test_python_and_rust_reject_duplicate_timestamps() -> None:
 
 
 def test_dispatched_fsm_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With Rust preferred the dispatched FSM is Rust-backed."""
     import scpn_mif_core.lifecycle as lifecycle
 
     monkeypatch.setattr(lifecycle, "preferred_backend", lambda _kernel: "rust")
@@ -154,6 +157,7 @@ def test_dispatched_fsm_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch
 
 
 def test_rust_backed_adapter_exposes_audit_reset_and_manual_transition() -> None:
+    """The Rust-backed FSM exposes its log, JSONL export, reset and manual transition."""
     fsm = RustBackedPulsedShotFSM(_py_spec())
 
     command = fsm.step(0.0, _plasma(0.0, 10.0, 0.02, 0.01, 0.0, 0.0), _bank(9800.0, 200.0))

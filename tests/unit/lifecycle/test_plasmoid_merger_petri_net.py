@@ -82,6 +82,7 @@ def _nominal_campaign() -> tuple[MergerObservation, ...]:
 
 
 def test_nominal_campaign_reaches_phase_locked_with_one_safe_marking() -> None:
+    """The nominal campaign reaches phase lock through the expected transitions with one token throughout."""
     net = PlasmoidMergerPetriNet(_spec(), seed=7)
 
     steps = [net.step(observation) for observation in _nominal_campaign()]
@@ -100,6 +101,7 @@ def test_nominal_campaign_reaches_phase_locked_with_one_safe_marking() -> None:
 
 
 def test_reconnection_delay_requires_consecutive_guard_satisfaction() -> None:
+    """Reconnection fires only after its guard holds for the delay."""
     net = PlasmoidMergerPetriNet(_spec(), seed=11)
     net.step(_obs(separation_m=0.0015))
 
@@ -114,6 +116,7 @@ def test_reconnection_delay_requires_consecutive_guard_satisfaction() -> None:
 
 
 def test_coalescence_delay_requires_consecutive_density_window_satisfaction() -> None:
+    """Coalescence fires only after the density window holds for the delay."""
     net = PlasmoidMergerPetriNet(_spec(), seed=14)
     net.step(_obs(separation_m=0.0015))
     net.step(_obs(separation_m=0.0014, reconnection_flux_norm=0.80))
@@ -131,6 +134,7 @@ def test_coalescence_delay_requires_consecutive_density_window_satisfaction() ->
 
 
 def test_phase_lock_delay_requires_consecutive_spatial_phase_density_satisfaction() -> None:
+    """Phase lock fires only after its spatial, phase and density guards hold for the delay."""
     net = PlasmoidMergerPetriNet(_spec(), seed=15)
     for observation in _nominal_campaign()[:5]:
         net.step(observation)
@@ -154,6 +158,7 @@ def test_phase_lock_delay_requires_consecutive_spatial_phase_density_satisfactio
 
 
 def test_guard_drop_clears_pending_transition_and_stalls() -> None:
+    """A guard that drops clears the pending transition and the net stalls."""
     net = PlasmoidMergerPetriNet(_spec(), seed=12)
     net.step(_obs(separation_m=0.0015))
     pending = net.step(_obs(separation_m=0.0014, reconnection_flux_norm=0.80))
@@ -169,6 +174,7 @@ def test_guard_drop_clears_pending_transition_and_stalls() -> None:
 
 
 def test_unsafe_tilt_or_asymmetry_routes_to_abort_sink() -> None:
+    """Unsafe tilt or asymmetry moves the token to the abort sink."""
     net = PlasmoidMergerPetriNet(_spec(), seed=13)
 
     step = net.step(_obs(separation_m=0.0015, density_asymmetry=0.40, tilt_growth_rate_s=8.0e4))
@@ -180,6 +186,7 @@ def test_unsafe_tilt_or_asymmetry_routes_to_abort_sink() -> None:
 
 
 def test_stochastic_hold_preserves_place_until_fire_probability_allows() -> None:
+    """A stochastic hold keeps the place until the fire probability allows the transition."""
     spec = replace(_spec(), firing_probability=0.000001)
     net = PlasmoidMergerPetriNet(spec, seed=31)
 
@@ -192,6 +199,7 @@ def test_stochastic_hold_preserves_place_until_fire_probability_allows() -> None
 
 
 def test_reset_copy_and_terminal_places_are_stable() -> None:
+    """A terminal place stays put, and reset returns to approach with an empty log."""
     net = PlasmoidMergerPetriNet(_spec(), seed=37)
     for observation in _nominal_campaign():
         net.step(observation)
@@ -209,6 +217,7 @@ def test_reset_copy_and_terminal_places_are_stable() -> None:
 
 
 def test_reset_without_seed_clears_state_without_reseeding_rng() -> None:
+    """Reset without a seed clears the state but keeps the random stream."""
     spec = replace(_spec(), firing_probability=0.5)
     net = PlasmoidMergerPetriNet(spec, seed=37)
     net.step(_obs(separation_m=0.0015))
@@ -223,6 +232,7 @@ def test_reset_without_seed_clears_state_without_reseeding_rng() -> None:
 
 
 def test_boundedness_verification_passes_required_budget() -> None:
+    """Boundedness holds over 100 trials of 500 steps."""
     report = verify_merger_boundedness(_spec(), trials=100, steps_per_trial=500, seed=17)
 
     assert report.passed is True
@@ -233,6 +243,8 @@ def test_boundedness_verification_passes_required_budget() -> None:
 
 
 def test_boundedness_verification_reports_broken_one_safe_marking(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A broken net that holds two tokens is reported."""
+
     class BrokenMergerPetriNet:
         place = MergerPlace.APPROACH
 
@@ -264,6 +276,7 @@ def test_boundedness_verification_reports_broken_one_safe_marking(monkeypatch: p
 
 
 def test_liveness_verification_passes_required_budget() -> None:
+    """Liveness reaches phase lock in all 1000 trials of 200 steps."""
     report = verify_merger_liveness(_spec(), trials=1000, steps_per_trial=200, seed=19)
 
     assert report.passed is True
@@ -274,6 +287,7 @@ def test_liveness_verification_passes_required_budget() -> None:
 
 
 def test_liveness_reports_failure_when_budget_is_too_short() -> None:
+    """Too short a budget leaves trials in contact and is reported."""
     report = verify_merger_liveness(_spec(), trials=2, steps_per_trial=1, seed=43)
 
     assert report.passed is False
@@ -298,6 +312,7 @@ def test_step_preserves_one_safe_marking_for_finite_observations(
     density_asymmetry: float,
     tilt_growth_rate_s: float,
 ) -> None:
+    """Any finite observation keeps exactly one token."""
     net = PlasmoidMergerPetriNet(_spec(), seed=23)
 
     step = net.step(
@@ -316,6 +331,7 @@ def test_step_preserves_one_safe_marking_for_finite_observations(
 
 
 def test_validation_rejects_invalid_probabilities_thresholds_and_observations() -> None:
+    """Invalid thresholds, probabilities, delays and observations are refused."""
     with pytest.raises(ValueError, match="contact_separation_m must be strictly positive"):
         replace(_spec(), contact_separation_m=0.0)
     with pytest.raises(ValueError, match="max_tilt_growth_rate_s must be non-negative"):
@@ -343,6 +359,8 @@ def test_validation_rejects_invalid_probabilities_thresholds_and_observations() 
 
 
 def test_control_petri_net_builder_uses_pinned_surface_calls() -> None:
+    """The CONTROL net builder creates the places and transitions with the pinned calls and validates."""
+
     class DummyControlNet:
         def __init__(self) -> None:
             self.places: list[tuple[str, int]] = []
@@ -385,6 +403,8 @@ def test_control_petri_net_builder_uses_pinned_surface_calls() -> None:
 
 
 def test_control_petri_net_builder_uses_default_control_import(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without an explicit module the builder imports the CONTROL structure module."""
+
     class DummyControlNet:
         def __init__(self) -> None:
             self.places: list[tuple[str, int]] = []
@@ -421,6 +441,7 @@ def test_control_petri_net_builder_uses_default_control_import(monkeypatch: pyte
 
 
 def test_dispatched_merger_falls_back_to_python_when_rust_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without Rust the dispatched net is the Python one."""
     import scpn_mif_core.lifecycle as lifecycle
 
     monkeypatch.setattr(lifecycle, "preferred_backend", lambda _kernel: "rust")
@@ -435,6 +456,7 @@ def test_dispatched_merger_falls_back_to_python_when_rust_unavailable(monkeypatc
 def test_dispatched_merger_falls_back_to_python_when_rust_adapter_is_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """When the Rust adapter cannot load, the dispatched net is the Python one."""
     import sys
 
     import scpn_mif_core.lifecycle as lifecycle
@@ -450,6 +472,7 @@ def test_dispatched_merger_falls_back_to_python_when_rust_adapter_is_unavailable
 
 
 def test_rust_backed_plasmoid_merger_exposes_full_api(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The Rust-backed net exposes place, log, marking and reset; skip without Rust."""
     from scpn_mif_core._dispatch import is_rust_available
 
     if not is_rust_available():
@@ -469,6 +492,7 @@ def test_rust_backed_plasmoid_merger_exposes_full_api(monkeypatch: pytest.Monkey
 
 
 def test_lcg_randrange_rejects_non_positive_stop() -> None:
+    """The generator refuses a non-positive range end."""
     from scpn_mif_core.lifecycle.plasmoid_merger_petri_net import _Lcg
 
     with pytest.raises(ValueError, match="at least 1"):
@@ -485,6 +509,7 @@ def _advance_to_place(net: PlasmoidMergerPetriNet, place: MergerPlace) -> None:
 
 
 def test_reconnection_place_holds_when_coalescence_guard_unmet() -> None:
+    """Low reconnection flux leaves coalescence disabled."""
     net = PlasmoidMergerPetriNet(_spec(), seed=7)
     _advance_to_place(net, MergerPlace.RECONNECTION)
 
@@ -496,6 +521,7 @@ def test_reconnection_place_holds_when_coalescence_guard_unmet() -> None:
 
 
 def test_coalescence_place_holds_when_phase_lock_guard_unmet() -> None:
+    """Phase error above tolerance leaves phase lock disabled."""
     net = PlasmoidMergerPetriNet(_spec(), seed=7)
     _advance_to_place(net, MergerPlace.COALESCENCE)
 

@@ -89,6 +89,7 @@ def _campaign() -> tuple[MergerObservation, ...]:
 
 
 def test_rust_merger_matches_python_nominal_campaign() -> None:
+    """Every Rust step of the nominal campaign equals the Python step."""
     py_net = PlasmoidMergerPetriNet(_py_spec(), seed=31)
     rust_net = rust.PlasmoidMergerPetriNet(_rust_spec(), 31)
 
@@ -106,6 +107,7 @@ def test_rust_merger_matches_python_nominal_campaign() -> None:
 
 
 def test_rust_adapter_returns_python_dataclasses() -> None:
+    """The Rust adapter returns Python step and log types."""
     adapter = RustBackedPlasmoidMergerPetriNet(_py_spec(), seed=37)
 
     step = adapter.step(_campaign()[0])
@@ -116,6 +118,7 @@ def test_rust_adapter_returns_python_dataclasses() -> None:
 
 
 def test_rust_verifiers_match_python_budget_summaries() -> None:
+    """The Rust verifiers report the same budgets and results as Python."""
     py_bounded = PlasmoidMergerPetriNet(_py_spec()).marking().total_tokens
     rust_bounded = rust.verify_merger_boundedness(_rust_spec(), 20, 40, 41)
     rust_live = rust.verify_merger_liveness(_rust_spec(), 50, 40, 43)
@@ -130,6 +133,7 @@ def test_rust_verifiers_match_python_budget_summaries() -> None:
 
 
 def test_python_and_rust_reject_non_integral_delay_ticks() -> None:
+    """Both backends refuse a non-integer delay."""
     with pytest.raises(ValueError, match="contact_delay_ticks must be an integer tick count"):
         PlasmoidMergerSpec(
             0.002,
@@ -151,6 +155,7 @@ def test_python_and_rust_reject_non_integral_delay_ticks() -> None:
 
 
 def test_dispatched_merger_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With Rust preferred the dispatched net is Rust-backed."""
     import scpn_mif_core.lifecycle as lifecycle
 
     monkeypatch.setattr(lifecycle, "preferred_backend", lambda _kernel: "rust")

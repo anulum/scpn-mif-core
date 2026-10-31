@@ -117,6 +117,7 @@ def _enter_cool_down(fsm: PulsedShotFSM) -> None:
 
 
 def test_campaign_traverses_all_eight_states_with_monotone_audit_log() -> None:
+    """A campaign passes all eight states with a time-ordered, reasoned audit log ending idle."""
     fsm = PulsedShotFSM(_spec())
     samples = [
         (0.0, _plasma(), _bank()),
@@ -171,6 +172,7 @@ def test_campaign_traverses_all_eight_states_with_monotone_audit_log() -> None:
 
 
 def test_flat_top_waits_for_phase_and_spatial_lock() -> None:
+    """Flat-top waits for phase and spatial lock."""
     fsm = PulsedShotFSM(_spec())
     _enter_flat_top(fsm)
 
@@ -186,6 +188,7 @@ def test_flat_top_waits_for_phase_and_spatial_lock() -> None:
 
 
 def test_idle_waits_for_precharge_energy() -> None:
+    """Idle waits for precharge energy without logging."""
     fsm = PulsedShotFSM(_spec())
 
     command = fsm.step(0.0, _plasma(), _bank(energy_J=20.0))
@@ -197,6 +200,7 @@ def test_idle_waits_for_precharge_energy() -> None:
 
 
 def test_burn_waits_for_minimum_dwell() -> None:
+    """Burn waits for its minimum dwell."""
     fsm = PulsedShotFSM(replace(_spec(), min_burn_duration_s=2.0e-3))
     _enter_burn(fsm)
 
@@ -218,6 +222,7 @@ def test_burn_waits_for_minimum_dwell() -> None:
 
 
 def test_dump_waits_for_bank_energy_floor() -> None:
+    """Dump waits for the bank energy floor."""
     fsm = PulsedShotFSM(_spec())
     _enter_dump(fsm)
 
@@ -229,6 +234,7 @@ def test_dump_waits_for_bank_energy_floor() -> None:
 
 
 def test_ramp_up_waits_for_current() -> None:
+    """Ramp-up waits for coil current."""
     fsm = PulsedShotFSM(_spec())
     fsm.step(0.0, _plasma(), _bank())
 
@@ -240,6 +246,7 @@ def test_ramp_up_waits_for_current() -> None:
 
 
 def test_flat_top_waits_for_temperature() -> None:
+    """Flat-top waits for burn temperature."""
     fsm = PulsedShotFSM(_spec())
     _enter_flat_top(fsm)
 
@@ -260,6 +267,7 @@ def test_flat_top_waits_for_temperature() -> None:
 
 
 def test_burn_waits_for_fusion_power() -> None:
+    """Burn waits for fusion power."""
     fsm = PulsedShotFSM(_spec())
     _enter_burn(fsm)
 
@@ -281,6 +289,7 @@ def test_burn_waits_for_fusion_power() -> None:
 
 
 def test_expansion_waits_for_radial_velocity() -> None:
+    """Expansion waits for radial expansion."""
     fsm = PulsedShotFSM(_spec())
     _enter_expansion(fsm)
 
@@ -292,6 +301,7 @@ def test_expansion_waits_for_radial_velocity() -> None:
 
 
 def test_recharge_waits_for_voltage_fraction() -> None:
+    """Recharge waits for the bank voltage fraction."""
     fsm = PulsedShotFSM(_spec())
     _enter_recharge(fsm)
 
@@ -303,6 +313,7 @@ def test_recharge_waits_for_voltage_fraction() -> None:
 
 
 def test_cool_down_waits_for_plasma_clear() -> None:
+    """Cool-down waits for the plasma to clear."""
     fsm = PulsedShotFSM(_spec())
     _enter_cool_down(fsm)
 
@@ -314,6 +325,7 @@ def test_cool_down_waits_for_plasma_clear() -> None:
 
 
 def test_timestamp_must_be_strictly_increasing() -> None:
+    """Repeated or earlier timestamps are refused."""
     fsm = PulsedShotFSM(_spec())
     fsm.step(1.0, _plasma(), _bank())
 
@@ -324,6 +336,7 @@ def test_timestamp_must_be_strictly_increasing() -> None:
 
 
 def test_timestamp_must_be_non_negative() -> None:
+    """A negative timestamp is refused."""
     fsm = PulsedShotFSM(_spec())
 
     with pytest.raises(ValueError, match="non-negative"):
@@ -331,6 +344,7 @@ def test_timestamp_must_be_non_negative() -> None:
 
 
 def test_reset_clears_state_and_audit_log() -> None:
+    """Reset returns to idle with an empty log."""
     fsm = PulsedShotFSM(_spec())
     fsm.step(0.0, _plasma(), _bank())
 
@@ -342,6 +356,7 @@ def test_reset_clears_state_and_audit_log() -> None:
 
 
 def test_manual_transition_rejects_non_adjacent_state() -> None:
+    """A manual jump to a non-adjacent state is refused."""
     fsm = PulsedShotFSM(_spec())
 
     with pytest.raises(ValueError, match="invalid transition"):
@@ -349,6 +364,7 @@ def test_manual_transition_rejects_non_adjacent_state() -> None:
 
 
 def test_manual_transition_records_adjacent_state_and_rejects_empty_reason() -> None:
+    """A manual move to the next state is logged, and an empty reason is refused."""
     fsm = PulsedShotFSM(_spec())
 
     record = fsm.transition_to("ramp_up", t_s=0.0, reason="operator precharge")
@@ -371,6 +387,7 @@ def test_manual_transition_records_adjacent_state_and_rejects_empty_reason() -> 
     ],
 )
 def test_spec_rejects_invalid_thresholds(field: str, value: float, match: str) -> None:
+    """Each invalid threshold is refused with its message."""
     kwargs = asdict(_spec())
     kwargs[field] = value
 
@@ -389,6 +406,7 @@ def test_spec_rejects_invalid_thresholds(field: str, value: float, match: str) -
     ],
 )
 def test_plasma_state_rejects_invalid_telemetry(field: str, value: float, match: str) -> None:
+    """Each invalid plasma telemetry value is refused with its message."""
     kwargs = asdict(_plasma())
     kwargs[field] = value
 
@@ -407,11 +425,13 @@ def test_plasma_state_rejects_invalid_telemetry(field: str, value: float, match:
     ],
 )
 def test_bank_telemetry_rejects_invalid_values(kwargs: dict[str, float], match: str) -> None:
+    """Each invalid bank telemetry value is refused with its message."""
     with pytest.raises(ValueError, match=match):
         BankTelemetry(**kwargs)
 
 
 def test_dispatchers_fall_back_to_python(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without Rust the bank and FSM dispatchers return the Python classes."""
     import scpn_mif_core.lifecycle as lifecycle
 
     monkeypatch.setattr(lifecycle, "preferred_backend", lambda _kernel: "python")
@@ -430,6 +450,7 @@ def test_dispatchers_fall_back_to_python(monkeypatch: pytest.MonkeyPatch) -> Non
 def test_dispatched_pulsed_shot_fsm_falls_back_to_python_when_rust_adapter_is_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """When the Rust adapter cannot load, the dispatched FSM is the Python one."""
     import sys
 
     import scpn_mif_core.lifecycle as lifecycle

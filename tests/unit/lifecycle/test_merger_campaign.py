@@ -35,6 +35,7 @@ from scpn_mif_core.lifecycle.plasmoid_merger_petri_net import (
 
 
 def test_seeded_boundedness_is_deterministic_per_seed() -> None:
+    """Two seeded boundedness campaigns with one seed are equal."""
     a = verify_merger_boundedness_seeded(trials=20, steps_per_trial=40, seed=7)
     b = verify_merger_boundedness_seeded(trials=20, steps_per_trial=40, seed=7)
     assert a == b
@@ -43,6 +44,7 @@ def test_seeded_boundedness_is_deterministic_per_seed() -> None:
 
 
 def test_seeded_liveness_reaches_phase_lock_on_nominal_stimuli() -> None:
+    """Every nominal liveness trial reaches phase lock."""
     report = verify_merger_liveness_seeded(trials=25, steps_per_trial=200, seed=3)
     assert report.passed
     assert report.terminal_counts[MergerPlace.PHASE_LOCKED] == 25
@@ -50,9 +52,12 @@ def test_seeded_liveness_reaches_phase_lock_on_nominal_stimuli() -> None:
 
 
 def test_campaign_equals_fold_of_standalone_trials() -> None:
-    """The execution-order-invariance contract: the campaign report is the
+    """The campaign report equals the fold of independently reproduced trials.
+
+    The execution-order-invariance contract: the campaign report is the
     fold of independently reproduced per-trial outcomes, which is exactly
-    what allows the Rust lane to run the trials on a thread pool."""
+    what allows the Rust lane to run the trials on a thread pool.
+    """
     spec = PlasmoidMergerSpec()
     report = verify_merger_boundedness_seeded(spec, trials=8, steps_per_trial=30, seed=11)
     outcomes = [_boundedness_trial(spec, 30, trial, _trial_seed(11, trial)) for trial in range(8)]
@@ -60,10 +65,13 @@ def test_campaign_equals_fold_of_standalone_trials() -> None:
 
 
 def test_seeded_differs_from_shared_stream_verifier_by_design() -> None:
-    """The seeded campaign is a different (order-invariant) stimulus design,
+    """The seeded campaign and the shared-stream verifier both uphold one-safety.
+
+    The seeded campaign is a different (order-invariant) stimulus design,
     not a re-implementation of the shared-stream verifier: the per-trial
     generator states diverge from the threaded stream, so the two surfaces
-    are separate documented contracts rather than interchangeable outputs."""
+    are separate documented contracts rather than interchangeable outputs.
+    """
     seeded = verify_merger_boundedness_seeded(trials=10, steps_per_trial=50, seed=0)
     shared = verify_merger_boundedness(trials=10, steps_per_trial=50, seed=0)
     assert seeded.trials == shared.trials
@@ -75,6 +83,7 @@ def test_seeded_differs_from_shared_stream_verifier_by_design() -> None:
 
 
 def test_liveness_failures_keep_trial_order() -> None:
+    """Liveness failures are listed in trial order."""
     report = verify_merger_liveness_seeded(trials=4, steps_per_trial=1, seed=0)
     assert not report.passed
     assert len(report.failures) == 4
@@ -83,9 +92,12 @@ def test_liveness_failures_keep_trial_order() -> None:
 
 
 def test_seeded_boundedness_reports_broken_one_safe_marking(monkeypatch: pytest.MonkeyPatch) -> None:
-    """The one-safety failure branch, unreachable through the proven net, is
+    """A broken net that violates one-safety is reported by the seeded campaign.
+
+    The one-safety failure branch, unreachable through the proven net, is
     exercised through an injected broken net exactly like the shared-stream
-    verifier's failure-path test."""
+    verifier's failure-path test.
+    """
     from scpn_mif_core.lifecycle import plasmoid_merger_petri_net as merger_module
     from scpn_mif_core.lifecycle.plasmoid_merger_petri_net import (
         MergerMarking,
@@ -126,12 +138,14 @@ def test_seeded_boundedness_reports_broken_one_safe_marking(monkeypatch: pytest.
 
 
 def test_trial_seed_varies_with_seed_and_trial() -> None:
+    """The per-trial seed changes with both the campaign seed and the trial."""
     assert _trial_seed(1, 0) != _trial_seed(2, 0)
     assert _trial_seed(1, 0) != _trial_seed(1, 1)
 
 
 @pytest.mark.parametrize(("trials", "steps"), [(0, 10), (10, 0)])
 def test_rejects_empty_budgets(trials: int, steps: int) -> None:
+    """A zero trial or step budget is refused."""
     with pytest.raises(ValueError, match="at least 1"):
         verify_merger_boundedness_seeded(trials=trials, steps_per_trial=steps)
     with pytest.raises(ValueError, match="at least 1"):
@@ -141,6 +155,7 @@ def test_rejects_empty_budgets(trials: int, steps: int) -> None:
 def test_dispatched_campaigns_use_python_floor_when_rust_is_not_available(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Without Rust the dispatched campaigns equal the Python ones."""
     import scpn_mif_core.lifecycle as lifecycle
 
     monkeypatch.setattr(lifecycle, "preferred_backend", lambda _kernel: "rust")
@@ -153,6 +168,7 @@ def test_dispatched_campaigns_use_python_floor_when_rust_is_not_available(
 
 
 def test_dispatched_campaigns_return_reports() -> None:
+    """The dispatched campaigns return reports for the requested trials."""
     bounded = dispatched_merger_boundedness_campaign(trials=5, steps_per_trial=20, seed=2)
     live = dispatched_merger_liveness_campaign(trials=5, steps_per_trial=200, seed=2)
     assert bounded.trials == 5
