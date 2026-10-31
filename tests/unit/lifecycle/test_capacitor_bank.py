@@ -785,12 +785,18 @@ def test_feasibility_rejects_pulse_exceeding_natural_peak_current() -> None:
 
 
 def test_feasibility_accepts_exp_decay_waveform_within_budget() -> None:
-    """Feasibility evaluates an exponential pulse."""
+    """An exponential pulse within the energy budget is feasible where rect and half-sine are not."""
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=10_000.0)
 
-    ok, _ = bank.feasibility(PulseSpec(peak_current_A=1.0, duration_s=1.0e-6, waveform="exp_decay"))
-
-    assert isinstance(ok, bool)
+    assert bank.feasibility(PulseSpec(peak_current_A=1.0, duration_s=1.0e-6, waveform="exp_decay")) == (True, "ok")
+    # 5 kJ stored; R * I_peak^2 * duration = 0.5 * 1000^2 * 0.05 = 25 kJ for a
+    # rectangular pulse, half of that for a half sine, and about a tenth for the
+    # exponential decay, so only the exponential pulse fits the budget.
+    assert bank.feasibility(PulseSpec(peak_current_A=1000.0, duration_s=0.05, waveform="exp_decay")) == (True, "ok")
+    for waveform in ("rect", "half_sine"):
+        ok, reason = bank.feasibility(PulseSpec(peak_current_A=1000.0, duration_s=0.05, waveform=waveform))
+        assert ok is False
+        assert "exceeds available" in reason
 
 
 def test_waveform_rms_fraction_rejects_unknown_waveform() -> None:
