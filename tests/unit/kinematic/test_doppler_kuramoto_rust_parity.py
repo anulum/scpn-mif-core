@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import pytest
 
@@ -42,7 +44,7 @@ def _py_spec() -> DopplerKuramotoSpec:
     )
 
 
-def _rust_spec() -> rust.DopplerKuramotoSpec:
+def _rust_spec() -> Any:
     return rust.DopplerKuramotoSpec(
         [-4.0e6, 4.0e6, 0.2e6],
         [
@@ -66,7 +68,7 @@ def _time_varying_py_spec() -> DopplerKuramotoSpec:
     )
 
 
-def _time_varying_rust_spec() -> rust.DopplerKuramotoSpec:
+def _time_varying_rust_spec() -> Any:
     return rust.DopplerKuramotoSpec(
         [1_200.0, -400.0],
         [[0.0, 0.0], [0.0, 0.0]],

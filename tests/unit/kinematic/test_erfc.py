@@ -31,8 +31,8 @@ from scpn_mif_core.kinematic._erfc import erfc
 def _ulp_distance(a: float, b: float) -> int:
     if a == b:
         return 0
-    ia = struct.unpack("<q", struct.pack("<d", a))[0]
-    ib = struct.unpack("<q", struct.pack("<d", b))[0]
+    ia: int = struct.unpack("<q", struct.pack("<d", a))[0]
+    ib: int = struct.unpack("<q", struct.pack("<d", b))[0]
     return abs(ia - ib)
 
 

@@ -66,27 +66,27 @@ def test_status_from_returncode(returncode: int, expected: FormalStatus) -> None
 
 
 def test_missing_prerequisite_detects_absent_sby(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(run_formal.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(shutil, "which", lambda _name: None)
     message = missing_prerequisite()
     assert message is not None
     assert "SymbiYosys" in message
 
 
 def test_missing_prerequisite_none_when_present(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(run_formal.shutil, "which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(shutil, "which", lambda name: f"/usr/bin/{name}")
     assert missing_prerequisite() is None
 
 
 def test_main_gates_non_zero_when_sby_missing(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    monkeypatch.setattr(run_formal.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(shutil, "which", lambda _name: None)
     assert main(["--suite", "all"]) == 2
     assert "roadmap-gated" in capsys.readouterr().out
 
 
 def test_main_reports_no_tasks(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    monkeypatch.setattr(run_formal.shutil, "which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(shutil, "which", lambda name: f"/usr/bin/{name}")
     monkeypatch.setattr(run_formal, "FORMAL_ROOT", tmp_path)
     monkeypatch.setattr(run_formal, "discover_tasks", lambda _suite: [])
     assert main(["--suite", "safety"]) == 2
@@ -113,7 +113,7 @@ def test_formal_root_points_at_repo_tree() -> None:
 
 
 def test_missing_prerequisite_detects_absent_yosys(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(run_formal.shutil, "which", lambda name: None if name == "yosys" else "/usr/bin/sby")
+    monkeypatch.setattr(shutil, "which", lambda name: None if name == "yosys" else "/usr/bin/sby")
     message = run_formal.missing_prerequisite()
     assert message is not None
     assert "Yosys" in message
@@ -157,7 +157,7 @@ def test_run_task_builds_sby_command_and_maps_returncode(tmp_path: Path, monkeyp
         recorded_cwd.append(kwargs.get("cwd"))
         return subprocess.CompletedProcess(cmd, 2, stdout="", stderr="")
 
-    monkeypatch.setattr(run_formal.subprocess, "run", fake_run)
+    monkeypatch.setattr(subprocess, "run", fake_run)
     result = run_formal.run_task(task, build_root=tmp_path / "build")
 
     assert recorded_cmd[0] == "sby"

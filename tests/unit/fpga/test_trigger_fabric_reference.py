@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from tools.trigger_fabric_reference import (
@@ -174,7 +176,13 @@ def test_no_inputs_reports_reset_state() -> None:
     ],
 )
 def test_out_of_range_inputs_raise(field: str, value: int, message: str) -> None:
-    base = {"arm": True, "spike_count": 8, "confidence_q8_8": 128, "bank_ready": True, "safety_veto": False}
+    base: dict[str, Any] = {
+        "arm": True,
+        "spike_count": 8,
+        "confidence_q8_8": 128,
+        "bank_ready": True,
+        "safety_veto": False,
+    }
     base[field] = value
     with pytest.raises(ValueError, match=message):
         run_trigger_fabric_reference([TriggerFabricInput(**base)])

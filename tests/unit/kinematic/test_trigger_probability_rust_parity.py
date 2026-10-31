@@ -15,6 +15,8 @@ tolerance — across noiseless, mid-range, deep-tail, and boundary fixtures.
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 rust = pytest.importorskip(
@@ -35,7 +37,7 @@ _WINDOW = MergeWindowSpec(phase_tolerance_rad=0.05, spatial_tolerance_m=0.01, co
 _SAFETY = KinematicSafetySpec(tolerance_m=0.02, contraction=0.9, disturbance_ratio=0.05)
 
 
-def _assert_bit_exact(args: tuple) -> None:
+def _assert_bit_exact(args: tuple[Any, ...]) -> None:
     py_trace = propagate_trigger_probabilities(*args)
     rust_trace = rust_propagate_trigger_probabilities(*args)
     assert rust_trace == py_trace

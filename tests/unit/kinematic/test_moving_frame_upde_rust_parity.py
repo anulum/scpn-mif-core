@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import pytest
 
@@ -39,7 +41,7 @@ def _py_spec() -> MovingFrameUPDESpec:
     )
 
 
-def _rust_spec() -> rust.MovingFrameUPDESpec:
+def _rust_spec() -> Any:
     return rust.MovingFrameUPDESpec(
         [-4.0e6, 4.0e6],
         [[0.0, 25.0e6], [25.0e6, 0.0]],
@@ -59,7 +61,7 @@ def _time_varying_py_spec() -> MovingFrameUPDESpec:
     )
 
 
-def _time_varying_rust_spec() -> rust.MovingFrameUPDESpec:
+def _time_varying_rust_spec() -> Any:
     return rust.MovingFrameUPDESpec(
         [1_200.0, -400.0],
         [[0.0, 0.0], [0.0, 0.0]],

@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 rust = pytest.importorskip(
@@ -23,7 +25,7 @@ def _py_spec() -> MergeWindowSpec:
     return MergeWindowSpec(phase_tolerance_rad=0.01, spatial_tolerance_m=0.002, consecutive_samples=3)
 
 
-def _rust_spec() -> rust.MergeWindowSpec:
+def _rust_spec() -> Any:
     return rust.MergeWindowSpec(0.01, 0.002, 3, 0.0)
 
 

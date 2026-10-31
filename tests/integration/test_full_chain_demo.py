@@ -43,7 +43,8 @@ def evidence(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 
 def _load(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    payload: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+    return payload
 
 
 def _sha256(path: Path) -> str:

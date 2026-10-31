@@ -11,12 +11,12 @@ from __future__ import annotations
 
 import pytest
 
-from scpn_mif_core.ecosystem import STATUS_READY, STATUS_READY_WITH_BLOCKERS
+from scpn_mif_core.ecosystem import STATUS_READY, STATUS_READY_WITH_BLOCKERS, EcosystemReport
 
 pytestmark = [pytest.mark.contract, pytest.mark.scpn_fusion_core]
 
 
-def test_scpn_fusion_solver_owner_surface_detected(ecosystem_report) -> None:
+def test_scpn_fusion_solver_owner_surface_detected(ecosystem_report: EcosystemReport) -> None:
     row = ecosystem_report.require("scpn-fusion-core")
 
     if row.source_version is None:

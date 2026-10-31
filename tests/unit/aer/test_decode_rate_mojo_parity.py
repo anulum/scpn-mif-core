@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+from collections.abc import Sequence
 from pathlib import Path
 
 import numpy as np
@@ -51,7 +52,7 @@ def mojo_binary(tmp_path_factory: pytest.TempPathFactory) -> Path:
     return out
 
 
-def _write_problem(path: Path, n_channels: int, window_ns: int, events) -> None:
+def _write_problem(path: Path, n_channels: int, window_ns: int, events: Sequence[AERSpikeEvent]) -> None:
     rows = [f"{n_channels} {window_ns}", str(len(events))]
     rows += [f"{e.address} {e.polarity}" for e in events]
     path.write_text("\n".join(rows) + "\n", encoding="utf-8")

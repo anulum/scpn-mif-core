@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any, cast
 
 import numpy as np
 import pytest
@@ -31,8 +32,9 @@ FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "aer" / "shd_spike_
 U64_MAX = (1 << 64) - 1
 
 
-def _fixture_doc() -> dict[str, object]:
-    return json.loads(FIXTURE.read_text(encoding="utf-8"))
+def _fixture_doc() -> dict[str, Any]:
+    doc: dict[str, Any] = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    return doc
 
 
 def _fixture_buffer() -> SpikeBuffer:
@@ -161,9 +163,9 @@ def test_decode_validation_rejects_bad_inputs() -> None:
     buffer = _fixture_buffer()
 
     with pytest.raises(TypeError, match="SpikeBuffer"):
-        decode_spike_observation(object(), AERDecodeSpec(n_channels=4, window_ns=100))  # type: ignore[arg-type]
+        decode_spike_observation(cast(Any, object()), AERDecodeSpec(n_channels=4, window_ns=100))
     with pytest.raises(TypeError, match="AERDecodeSpec"):
-        decode_spike_observation(buffer, object())  # type: ignore[arg-type]
+        decode_spike_observation(buffer, cast(Any, object()))
 
 
 def test_explicit_start_and_duplicate_temporal_event_are_deterministic() -> None:
@@ -184,7 +186,7 @@ def test_validation_rejects_invalid_specs_events_and_reports() -> None:
     with pytest.raises(ValueError, match="t_ns"):
         AERSpikeEvent(address=0, t_ns=-1)
     with pytest.raises(ValueError, match="strategy"):
-        AERDecodeSpec(n_channels=1, window_ns=10, strategy="histogram")  # type: ignore[arg-type]
+        AERDecodeSpec(n_channels=1, window_ns=10, strategy=cast(Any, "histogram"))
     with pytest.raises(ValueError, match="start_ns"):
         AERDecodeSpec(n_channels=1, window_ns=10, start_ns=-1)
     with pytest.raises(ValueError, match="n_channels"):
@@ -305,4 +307,4 @@ def test_dispatched_decode_falls_back_when_rust_adapter_is_unavailable(monkeypat
 
 def test_spike_event_rejects_non_integer_polarity() -> None:
     with pytest.raises(TypeError, match="polarity must be an integer"):
-        AERSpikeEvent(address=0, t_ns=0, polarity="positive")  # type: ignore[arg-type]
+        AERSpikeEvent(address=0, t_ns=0, polarity=cast(Any, "positive"))

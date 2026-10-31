@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
 
 from scpn_mif_core.interop.trigger_io import (
@@ -47,7 +49,7 @@ def test_bool_field_rejected(field: str) -> None:
 
 def test_float_field_rejected() -> None:
     with pytest.raises(TypeError, match="nanoseconds must be an integer"):
-        WhiteRabbitTimestamp(tai_seconds=0, nanoseconds=1.0, picoseconds=0)  # type: ignore[arg-type]
+        WhiteRabbitTimestamp(tai_seconds=0, nanoseconds=cast(Any, 1.0), picoseconds=0)
 
 
 def test_negative_seconds_rejected() -> None:

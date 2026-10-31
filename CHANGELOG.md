@@ -58,6 +58,15 @@
 
 ### Changed
 
+- One strict mypy cohort now covers `src/scpn_mif_core`, `tools`, `cosim`,
+  `examples`, `tests` and `conftest.py`. It is declared once in
+  `pyproject.toml` (`[tool.mypy] files`), and Make, pre-commit, CI and the
+  preflight all run a bare `mypy`; before, the four callers checked four
+  different sets and the tests were checked by none. The test suite is
+  strict-clean without a single `type: ignore`: deliberately ill-typed inputs
+  are passed through `cast(Any, ...)` or `Any`-typed parameters, JSON fixtures
+  are typed `dict[str, Any]`, and native-module patches target the module
+  object itself. `types-pyyaml` joins the hash-locked dev set.
 - Split the required CI GodFile into six responsibility-owned reusable
   workflows behind the unchanged `Required core gate`. A versioned inventory,
   byte/line budgets, immutable-action checks, legacy-job digests, Actionlint,

@@ -11,12 +11,12 @@ from __future__ import annotations
 
 import pytest
 
-from scpn_mif_core.ecosystem import STATUS_DEFERRED, STATUS_READY
+from scpn_mif_core.ecosystem import STATUS_DEFERRED, STATUS_READY, EcosystemReport
 
 pytestmark = [pytest.mark.contract, pytest.mark.scpn_quantum_control]
 
 
-def test_scpn_quantum_control_mif_lane_delivered_upstream(ecosystem_report) -> None:
+def test_scpn_quantum_control_mif_lane_delivered_upstream(ecosystem_report: EcosystemReport) -> None:
     """The named MIF-lane surfaces are now present in scpn-quantum-control.
 
     The crypto, entropy, QAOA-cost and pulse-to-HLS surfaces were owned by and

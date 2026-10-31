@@ -11,12 +11,12 @@ from __future__ import annotations
 
 import pytest
 
-from scpn_mif_core.ecosystem import STATUS_READY
+from scpn_mif_core.ecosystem import STATUS_READY, EcosystemReport
 
 pytestmark = [pytest.mark.contract, pytest.mark.scpn_control]
 
 
-def test_scpn_control_capacitor_bank_surface_ready(ecosystem_report) -> None:
+def test_scpn_control_capacitor_bank_surface_ready(ecosystem_report: EcosystemReport) -> None:
     row = ecosystem_report.require("scpn-control")
 
     if row.source_version is None:

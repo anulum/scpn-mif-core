@@ -12,6 +12,7 @@ from __future__ import annotations
 import importlib.util
 import sys
 from pathlib import Path
+from types import ModuleType
 
 import pytest
 
@@ -19,7 +20,7 @@ REPO = Path(__file__).resolve().parents[3]
 REFERENCE_PATH = REPO / "tools" / "adc_to_spike_reference.py"
 
 
-def _load_reference():
+def _load_reference() -> ModuleType:
     spec = importlib.util.spec_from_file_location("adc_to_spike_reference", REFERENCE_PATH)
     assert spec is not None, "MIF-007 golden reference module must be importable"
     assert spec.loader is not None, "MIF-007 golden reference module must have a loader"

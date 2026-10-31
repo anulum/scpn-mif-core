@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any, Literal
 
 import pytest
 
@@ -25,8 +26,9 @@ FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "aer" / "shd_spike_
 U64_MAX = (1 << 64) - 1
 
 
-def _fixture_doc() -> dict[str, object]:
-    return json.loads(FIXTURE.read_text(encoding="utf-8"))
+def _fixture_doc() -> dict[str, Any]:
+    doc: dict[str, Any] = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    return doc
 
 
 def _py_buffer() -> SpikeBuffer:
@@ -37,7 +39,7 @@ def _py_buffer() -> SpikeBuffer:
     return buffer
 
 
-def _rust_buffer() -> rust.AERSpikeBuffer:
+def _rust_buffer() -> Any:
     buffer = rust.AERSpikeBuffer(16)
     for event in _fixture_doc()["events"]:
         assert isinstance(event, dict)
@@ -46,7 +48,7 @@ def _rust_buffer() -> rust.AERSpikeBuffer:
 
 
 @pytest.mark.parametrize("strategy", ["rate", "temporal", "isi"])
-def test_rust_decode_matches_python_fixture(strategy: str) -> None:
+def test_rust_decode_matches_python_fixture(strategy: Literal["rate", "temporal", "isi"]) -> None:
     doc = _fixture_doc()
     py_features = decode_spike_features(
         _py_buffer(),
@@ -96,7 +98,7 @@ def test_rust_adapter_rejects_invalid_event_object(monkeypatch: pytest.MonkeyPat
     buffer = aer.dispatched_aer_spike_buffer(capacity=4)
 
     with pytest.raises(TypeError, match="AERSpikeEvent"):
-        buffer.push(object())  # type: ignore[arg-type]
+        buffer.push(object())
 
 
 def test_python_and_rust_reject_window_overflow() -> None:
@@ -126,8 +128,9 @@ def test_rust_backed_decode_raises_on_strategy_mismatch(monkeypatch: pytest.Monk
 
     # If the Rust kernel ever returns a strategy other than the one requested,
     # the adapter must refuse the result rather than silently mislabel it.
+    # ``rust`` is the same extension module object the adapter imported.
     monkeypatch.setattr(
-        adapter._rust,
+        rust,
         "decode_aer_observation",
         lambda _buffer, _spec: ("temporal", 0, 100, 1, [0.0, 0.0, 0.0, 0.0]),
     )

@@ -16,6 +16,8 @@ strictly after first lock).
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import pytest
 
@@ -176,7 +178,7 @@ def _batch_scenario(**overrides: object) -> MergeTriggerScenario:
     from scpn_mif_core.kinematic import MovingFrameUPDESpec
     from scpn_mif_core.lifecycle import CapacitorBankSpec, PulseSpec
 
-    defaults: dict[str, object] = {
+    defaults: dict[str, Any] = {
         "moving_frame": MovingFrameUPDESpec(
             omega_rad_s=[0.0, 0.0],
             coupling_rad_s=[[0.0, 2.0], [2.0, 0.0]],
@@ -205,7 +207,7 @@ def _batch_scenario(**overrides: object) -> MergeTriggerScenario:
         "compression_pulse": PulseSpec(peak_current_A=2000.0, duration_s=1.0e-3),
     }
     defaults.update(overrides)
-    return MergeTriggerScenario(**defaults)  # type: ignore[arg-type]
+    return MergeTriggerScenario(**defaults)
 
 
 def _stream_over(scenario: MergeTriggerScenario, *, bank_feasible: bool) -> StreamingTriggerDecision:

@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 import pytest
@@ -97,8 +98,8 @@ def test_content_digest_differs_on_change() -> None:
 # --- build_evidence_bundle ----------------------------------------------------
 
 
-def _bundle(**overrides: object) -> dict[str, object]:
-    base: dict[str, object] = {
+def _bundle(**overrides: Any) -> dict[str, Any]:
+    base: dict[str, Any] = {
         "schema": "studio.test.v1",
         "verb": "simulate",
         "result": {"x": 1},
@@ -112,7 +113,7 @@ def _bundle(**overrides: object) -> dict[str, object]:
         "claim_boundary": {"status": "reference-validated", "admission": "admitted"},
     }
     base.update(overrides)
-    return build_evidence_bundle(**base)  # type: ignore[arg-type]
+    return build_evidence_bundle(**base)
 
 
 def test_build_evidence_bundle_envelope() -> None:
@@ -234,7 +235,7 @@ def test_validate_accepts_emitter_bundles() -> None:
     validate_studio_bundle(_valid_formal())  # must not raise
 
 
-_MeasuredMutator = Callable[[dict], object]
+_MeasuredMutator = Callable[[dict[str, Any]], object]
 
 
 @pytest.mark.parametrize(

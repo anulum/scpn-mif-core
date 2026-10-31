@@ -13,6 +13,7 @@ import json
 from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pytest
@@ -126,21 +127,21 @@ def _reseal(record: dict[str, object]) -> bytes:
     return (json.dumps(record, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + "\n").encode()
 
 
-def _change(path: tuple[str, ...], value: object) -> Callable[[dict[str, object]], None]:
-    def mutate(record: dict[str, object]) -> None:
+def _change(path: tuple[str, ...], value: object) -> Callable[[dict[str, Any]], None]:
+    def mutate(record: dict[str, Any]) -> None:
         target = record
         for key in path[:-1]:
-            target = target[key]  # type: ignore[assignment]
+            target = target[key]
         target[path[-1]] = value
 
     return mutate
 
 
-def _delete(path: tuple[str, ...]) -> Callable[[dict[str, object]], None]:
-    def mutate(record: dict[str, object]) -> None:
+def _delete(path: tuple[str, ...]) -> Callable[[dict[str, Any]], None]:
+    def mutate(record: dict[str, Any]) -> None:
         target = record
         for key in path[:-1]:
-            target = target[key]  # type: ignore[assignment]
+            target = target[key]
         del target[path[-1]]
 
     return mutate
@@ -157,9 +158,9 @@ def test_public_producer_emits_unique_non_actionable_bytes() -> None:
     body = decoded["payload"]
     assert isinstance(body, dict)
     assert body["authority"] == {"actionable": False, "review_only": True}
-    assert body["evidence"]["class"] == "simulation"  # type: ignore[index]
-    assert body["reactor"]["configuration"] == "frc_compression_mif"  # type: ignore[index]
-    assert body["trigger"]["decision"] == "fire"  # type: ignore[index]
+    assert body["evidence"]["class"] == "simulation"
+    assert body["reactor"]["configuration"] == "frc_compression_mif"
+    assert body["trigger"]["decision"] == "fire"
 
 
 def test_public_producer_reproduces_immutable_fixture() -> None:
@@ -184,7 +185,7 @@ def test_public_producer_is_deterministic_and_preserves_explicit_time() -> None:
     assert first == second
     body = merge_compression_observation_from_bytes(first)["payload"]
     assert isinstance(body, dict)
-    assert body["clock"]["timestamp_ns"] == 1_000_000  # type: ignore[index]
+    assert body["clock"]["timestamp_ns"] == 1_000_000
 
 
 @pytest.mark.parametrize("mutation", ["whitespace", "duplicate", "digest", "action", "observed", "unknown"])
@@ -334,7 +335,7 @@ def test_public_metadata_refuses_physical_or_ambiguous_identity() -> None:
         ("drivers", ("plasma_jet",)),
     ],
 )
-def test_public_identity_refuses_ambiguous_values(field: str, value: object) -> None:
+def test_public_identity_refuses_ambiguous_values(field: str, value: Any) -> None:
     identity = _carriers()[3]
     with pytest.raises(ValueError):
         replace(identity, **{field: value})
@@ -352,7 +353,7 @@ def test_public_identity_refuses_ambiguous_values(field: str, value: object) -> 
         ("latency_s", float("nan")),
     ],
 )
-def test_public_clock_refuses_invalid_values(field: str, value: object) -> None:
+def test_public_clock_refuses_invalid_values(field: str, value: Any) -> None:
     clock = _carriers()[4]
     with pytest.raises(ValueError):
         replace(clock, **{field: value})
@@ -372,7 +373,7 @@ def test_public_clock_refuses_invalid_values(field: str, value: object) -> None:
         ("quality_flags", ("clipped",)),
     ],
 )
-def test_public_evidence_refuses_invalid_values(field: str, value: object) -> None:
+def test_public_evidence_refuses_invalid_values(field: str, value: Any) -> None:
     evidence = _carriers()[5]
     with pytest.raises(ValueError):
         replace(evidence, **{field: value})
@@ -429,5 +430,5 @@ def test_public_producer_preserves_a_valid_nonfire_decision() -> None:
     )
     body = merge_compression_observation_from_bytes(payload)["payload"]
     assert isinstance(body, dict)
-    assert body["trigger"]["decision"] == "hold_no_lock"  # type: ignore[index]
-    assert body["trigger"]["first_fire_timestamp_ns"] is None  # type: ignore[index]
+    assert body["trigger"]["decision"] == "hold_no_lock"
+    assert body["trigger"]["first_fire_timestamp_ns"] is None

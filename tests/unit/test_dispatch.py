@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+from importlib import resources
 from pathlib import Path
 
 import pytest
@@ -200,6 +201,6 @@ def test_missing_repo_table_and_packaged_snapshot_degrades_to_python(
             return False
 
     monkeypatch.setattr(_dispatch, "_DISPATCH_PATH", tmp_path / "absent.toml")
-    monkeypatch.setattr(_dispatch.resources, "files", lambda _pkg: _AbsentResource())
+    monkeypatch.setattr(resources, "files", lambda _pkg: _AbsentResource())
     _dispatch.reload()
     assert _dispatch.available_backends("kinematic.merge_window") == ["python"]

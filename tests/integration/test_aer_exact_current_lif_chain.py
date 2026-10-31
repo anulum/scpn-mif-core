@@ -27,6 +27,7 @@ from scpn_mif_core.aer.event_integrity import (
     RawAerEvent,
 )
 from scpn_mif_core.aer.exact_current_lif_bridge import (
+    AerExactCurrentExecution,
     AerExactCurrentLIFBridge,
     AerExactCurrentProjectionError,
     AerExactCurrentProjectionSpec,
@@ -36,8 +37,10 @@ from scpn_mif_core.aer.exact_current_lif_bridge import (
 pytestmark = pytest.mark.full_chain
 
 
-def _packet(execution: object) -> dict[str, Any]:
-    packet_json = execution.control_execution.packets[0].packet_json  # type: ignore[attr-defined]
+def _packet(execution: AerExactCurrentExecution) -> dict[str, Any]:
+    # CONTROL's concrete execution carries the SC packets beyond the protocol
+    # subset MIF types against.
+    packet_json = cast(Any, execution.control_execution).packets[0].packet_json
     return cast(dict[str, Any], json.loads(packet_json))
 
 
@@ -226,10 +229,14 @@ def test_real_aer_control_sc_state_trace_against_independent_decimal_oracle(fami
         state for state in reference.states if state.phase != "tick_end" or state.time_ms in projected_stops
     ]
     assert len(packet["state_trace"]) == len(expected_states)
-    for observed, expected in zip(packet["state_trace"], expected_states, strict=True):
-        assert observed["phase"] == expected.phase
-        assert abs(observed["time_ms"] - float(expected.time_ms)) <= max(2e-12, 64 * math.ulp(float(expected.time_ms)))
-        assert abs(observed["voltage"] - float(expected.voltage)) <= max(2e-12, 64 * math.ulp(float(expected.voltage)))
+    for observed, expected_state in zip(packet["state_trace"], expected_states, strict=True):
+        assert observed["phase"] == expected_state.phase
+        assert abs(observed["time_ms"] - float(expected_state.time_ms)) <= max(
+            2e-12, 64 * math.ulp(float(expected_state.time_ms))
+        )
+        assert abs(observed["voltage"] - float(expected_state.voltage)) <= max(
+            2e-12, 64 * math.ulp(float(expected_state.voltage))
+        )
 
 
 def test_real_bridge_rejects_contract_mismatch_and_exhausted_sequence_epoch() -> None:

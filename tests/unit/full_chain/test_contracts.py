@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pytest
@@ -26,8 +27,10 @@ def test_exact_decimal_is_stable_and_rejects_nonfinite_values() -> None:
 
 def test_float_free_contract_reports_the_nested_path() -> None:
     assert_float_free({"measurement": "0.5", "count": 1, "passed": True})
+    # A float is outside the JSON value type on purpose: the guard must find it.
+    float_bearing: Any = {"nested": [0.5]}
     with pytest.raises(ValueError, match=r"\$\.nested\[0\]"):
-        assert_float_free({"nested": [0.5]})
+        assert_float_free(float_bearing)
 
 
 def test_canonical_json_is_sorted_utf8_and_newline_terminated() -> None:

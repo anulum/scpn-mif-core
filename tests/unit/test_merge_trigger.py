@@ -17,6 +17,8 @@ cross-cutting scenario validation that the sub-specs cannot enforce on their own
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import pytest
 
@@ -56,8 +58,8 @@ def _moving_frame(omega: list[float], coupling: list[list[float]]) -> MovingFram
     )
 
 
-def _scenario(**overrides: object) -> MergeTriggerScenario:
-    fields: dict[str, object] = {
+def _scenario(**overrides: Any) -> MergeTriggerScenario:
+    fields: dict[str, Any] = {
         "moving_frame": _moving_frame([1.0, 1.0], [[0.0, 50.0], [50.0, 0.0]]),
         "initial_phases_rad": [0.0, 0.004],
         "initial_positions_m": [-0.0005, 0.0005],
@@ -71,7 +73,7 @@ def _scenario(**overrides: object) -> MergeTriggerScenario:
         "compression_pulse": _PULSE,
     }
     fields.update(overrides)
-    return MergeTriggerScenario(**fields)  # type: ignore[arg-type]
+    return MergeTriggerScenario(**fields)
 
 
 def _expansion() -> ExpansionTrajectory:

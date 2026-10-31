@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import importlib
 from dataclasses import asdict, replace
 from typing import cast
 
@@ -410,7 +411,7 @@ def test_control_petri_net_builder_uses_default_control_import(monkeypatch: pyte
         assert name == "scpn_control.scpn.structure"
         return type("ControlStructure", (), {"StochasticPetriNet": DummyControlNet})
 
-    monkeypatch.setattr(merger_module.importlib, "import_module", fake_import_module)
+    monkeypatch.setattr(importlib, "import_module", fake_import_module)
 
     net = build_control_petri_net(_spec())
 

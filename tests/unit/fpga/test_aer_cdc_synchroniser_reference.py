@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
 
 from tools.aer_cdc_synchroniser_reference import run_aer_cdc_synchroniser_reference
@@ -46,4 +48,4 @@ def test_empty_sequence() -> None:
 
 def test_non_bool_input_rejected() -> None:
     with pytest.raises(TypeError, match="async_in must be a bool"):
-        run_aer_cdc_synchroniser_reference([0])  # type: ignore[list-item]
+        run_aer_cdc_synchroniser_reference([cast(Any, 0)])

@@ -102,7 +102,7 @@ def gate_ruff_format() -> GateResult:
 
 
 def gate_mypy() -> GateResult:
-    return _run("mypy", ["mypy", "src/scpn_mif_core/", "tools/"])
+    return _run("mypy", ["mypy"])
 
 
 def gate_bandit() -> GateResult:

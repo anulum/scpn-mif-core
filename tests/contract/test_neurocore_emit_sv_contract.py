@@ -11,12 +11,12 @@ from __future__ import annotations
 
 import pytest
 
-from scpn_mif_core.ecosystem import STATUS_READY, STATUS_READY_WITH_HARDWARE_GATE
+from scpn_mif_core.ecosystem import STATUS_READY, STATUS_READY_WITH_HARDWARE_GATE, EcosystemReport
 
 pytestmark = [pytest.mark.contract, pytest.mark.sc_neurocore]
 
 
-def test_sc_neurocore_hardware_ingress_surface_ready(ecosystem_report) -> None:
+def test_sc_neurocore_hardware_ingress_surface_ready(ecosystem_report: EcosystemReport) -> None:
     row = ecosystem_report.require("sc-neurocore-engine")
 
     if row.source_version is None:

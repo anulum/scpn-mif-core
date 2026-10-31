@@ -11,7 +11,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
@@ -138,7 +140,7 @@ def test_address_map_rejects_empty_bad_member_and_wrong_version() -> None:
     with pytest.raises(AERAddressMapError, match="must not be empty"):
         AerAddressMap("empty", ())
     with pytest.raises(TypeError, match="AerAddressBinding"):
-        AerAddressMap("bad", (object(),))  # type: ignore[arg-type]
+        AerAddressMap("bad", cast(Any, (object(),)))
     with pytest.raises(AERAddressMapError, match="schema_version"):
         AerAddressMap("bad-version", (AerAddressBinding(0, 0, 1),), "v0")
 
@@ -331,9 +333,9 @@ def test_incremental_stream_batch_rejects_duplicate_and_gap(sequences: tuple[int
         lambda: RawAerEvent("", 0, 1, 0, 0),
     ],
 )
-def test_wire_carriers_reject_out_of_domain_values(factory: object) -> None:
+def test_wire_carriers_reject_out_of_domain_values(factory: Callable[[], object]) -> None:
     with pytest.raises((TypeError, ValueError)):
-        factory()  # type: ignore[operator]
+        factory()
 
 
 def test_telemetry_and_admission_reject_impossible_states() -> None:
@@ -395,10 +397,10 @@ def test_buffer_rejects_wrong_capacity_map_and_event_types() -> None:
     with pytest.raises(ValueError, match="capacity"):
         AerIntegrityBuffer(0, _address_map())
     with pytest.raises(TypeError, match="AerAddressMap"):
-        AerIntegrityBuffer(1, object())  # type: ignore[arg-type]
+        AerIntegrityBuffer(1, cast(Any, object()))
     buffer = AerIntegrityBuffer(1, _address_map())
     with pytest.raises(TypeError, match="RawAerEvent"):
-        buffer.push(object())  # type: ignore[arg-type]
+        buffer.push(cast(Any, object()))
 
 
 @pytest.mark.parametrize("binding", [None, {1: 0}])
@@ -419,7 +421,7 @@ def test_address_map_rejects_non_text_identity(field: str, value: object) -> Non
 
 def test_integrity_buffer_validates_map_and_exposes_queue_length() -> None:
     with pytest.raises(TypeError, match="AerAddressMap"):
-        AerIntegrityBuffer(4, None)
+        AerIntegrityBuffer(4, cast(Any, None))
     buffer = AerIntegrityBuffer(4, _address_map())
     assert len(buffer) == 0
     buffer.push(_raw(0))
@@ -438,7 +440,12 @@ def test_integrity_buffer_validates_map_and_exposes_queue_length() -> None:
 def test_raw_stream_refuses_invalid_payload_and_order(events: tuple[object, ...], error: type[Exception]) -> None:
     with pytest.raises(error):
         AerEventStream.from_raw_events(
-            _address_map(), events, shot_id="shot", clock_domain="adc", source_frequency_hz=1, sequence_start=0
+            _address_map(),
+            cast(Any, events),
+            shot_id="shot",
+            clock_domain="adc",
+            source_frequency_hz=1,
+            sequence_start=0,
         )
 
 
@@ -452,7 +459,7 @@ def test_raw_stream_refuses_invalid_payload_and_order(events: tuple[object, ...]
     ],
 )
 def test_stream_constructor_rejects_invalid_identity(changes: dict[str, object], error: type[Exception]) -> None:
-    fields = {
+    fields: dict[str, Any] = {
         "shot_id": "shot",
         "clock_domain": "adc",
         "source_frequency_hz": 1,
@@ -475,4 +482,4 @@ def test_mapped_stream_rejects_timestamp_regression() -> None:
 @pytest.mark.parametrize("overflow", [0, 1, "false", None])
 def test_loss_telemetry_rejects_non_boolean_overflow(overflow: object) -> None:
     with pytest.raises(TypeError, match="overflow_sticky"):
-        AerLossTelemetry(0, 0, 0, 0, 0, overflow)
+        AerLossTelemetry(0, 0, 0, 0, 0, cast(Any, overflow))

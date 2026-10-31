@@ -9,6 +9,7 @@
 
 from decimal import Decimal, localcontext
 from itertools import permutations
+from typing import Any
 
 import pytest
 
@@ -107,7 +108,7 @@ def test_invalid_duration_refuses_evidence(duration: str) -> None:
         {"max_events": 0},
     ],
 )
-def test_invalid_profile_refuses_evidence(parameters: dict) -> None:
+def test_invalid_profile_refuses_evidence(parameters: dict[str, Any]) -> None:
     with pytest.raises(ValueError):
         integrate([CurrentInterval("1", ())], **parameters)
 

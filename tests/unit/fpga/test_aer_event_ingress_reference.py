@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import Any
 
 import pytest
 
@@ -40,13 +41,13 @@ def test_reference_rejects_invalid_hardware_configuration(field: str, value: int
 @pytest.mark.parametrize(
     ("sample", "error"), [(True, TypeError), (1.5, TypeError), (32768, ValueError), (-32769, ValueError)]
 )
-def test_reference_rejects_non_wire_adc_samples(sample: object, error: type[Exception]) -> None:
+def test_reference_rejects_non_wire_adc_samples(sample: Any, error: type[Exception]) -> None:
     with pytest.raises(error):
         run_aer_event_stream_reference([sample])
 
 
 @pytest.mark.parametrize(("cycles", "error"), [(True, TypeError), (1.5, TypeError), (-1, ValueError)])
-def test_reference_rejects_invalid_drain_duration(cycles: object, error: type[Exception]) -> None:
+def test_reference_rejects_invalid_drain_duration(cycles: Any, error: type[Exception]) -> None:
     with pytest.raises(error):
         run_aer_event_stream_reference([], drain_cycles=cycles)
 

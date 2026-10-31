@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -67,24 +68,24 @@ def test_kernel_qualified_name_maps_known_and_passes_unknown() -> None:
     assert update_dispatch._kernel_qualified_name({}, "fallback") == "fallback"
 
 
-def _write_result(directory, stem: str, kernel: str, ordering: list[tuple[str, float]]) -> None:
+def _write_result(directory: Path, stem: str, kernel: str, ordering: list[tuple[str, float]]) -> None:
     tests = [{"name": f"test_bench_{backend}_step", "mean_ns": mean} for backend, mean in ordering]
     (directory / f"{stem}.json").write_text(json.dumps({"kernel": kernel, "tests": tests}), encoding="utf-8")
 
 
-def test_collect_backend_orderings_reads_results(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_collect_backend_orderings_reads_results(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(update_dispatch, "RESULTS_DIR", tmp_path)
     _write_result(tmp_path, "capacitor_bank", "capacitor_bank", [("python", 30.0), ("rust", 10.0)])
     rankings = update_dispatch.collect_backend_orderings()
     assert rankings == {"lifecycle.capacitor_bank": ["rust", "python"]}
 
 
-def test_collect_backend_orderings_missing_dir_is_empty(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_collect_backend_orderings_missing_dir_is_empty(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(update_dispatch, "RESULTS_DIR", tmp_path / "absent")
     assert update_dispatch.collect_backend_orderings() == {}
 
 
-def test_collect_backend_orderings_skips_invalid_and_empty(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_collect_backend_orderings_skips_invalid_and_empty(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(update_dispatch, "RESULTS_DIR", tmp_path)
     (tmp_path / "broken.json").write_text("{not json", encoding="utf-8")
     (tmp_path / "no_tests.json").write_text(json.dumps({"kernel": "merge_window", "tests": []}), encoding="utf-8")
@@ -135,7 +136,7 @@ def test_merge_ordering_appends_newly_measured_backends() -> None:
 
 
 def test_main_check_reports_stale(
-    tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text('"kinematic.merge_window" = ["python", "rust"]\n', encoding="utf-8")
@@ -149,7 +150,7 @@ def test_main_check_reports_stale(
 
 
 def test_main_check_stale_table_with_current_snapshot_reports_only_stale(
-    tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text('"kinematic.merge_window" = ["python", "rust"]\n', encoding="utf-8")
@@ -167,7 +168,7 @@ def test_main_check_stale_table_with_current_snapshot_reports_only_stale(
 
 
 def test_main_check_reports_out_of_step_snapshot(
-    tmp_path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text('"kinematic.merge_window" = ["rust", "python"]\n', encoding="utf-8")
@@ -182,7 +183,7 @@ def test_main_check_reports_out_of_step_snapshot(
     assert "out of step" in capsys.readouterr().err
 
 
-def test_main_check_up_to_date(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_main_check_up_to_date(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text('"kinematic.merge_window" = ["rust", "python"]\n', encoding="utf-8")
     snapshot = tmp_path / "snapshot.toml"
@@ -195,7 +196,7 @@ def test_main_check_up_to_date(tmp_path, monkeypatch: pytest.MonkeyPatch) -> Non
     assert update_dispatch.main(["--check"]) == 0
 
 
-def test_main_writes_when_changed(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_main_writes_when_changed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text('last_updated = "old"\n"kinematic.merge_window" = ["python", "rust"]\n', encoding="utf-8")
     snapshot = tmp_path / "snapshot.toml"
@@ -210,12 +211,12 @@ def test_main_writes_when_changed(tmp_path, monkeypatch: pytest.MonkeyPatch) -> 
     assert snapshot.read_bytes() == dispatch.read_bytes()
 
 
-def test_main_missing_dispatch_file_returns_1(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_main_missing_dispatch_file_returns_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(update_dispatch, "DISPATCH_PATH", tmp_path / "absent.toml")
     assert update_dispatch.main([]) == 1
 
 
-def test_main_no_rankings_returns_0(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_main_no_rankings_returns_0(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     dispatch = tmp_path / "dispatch.toml"
     dispatch.write_text("[kernels]\n", encoding="utf-8")
     monkeypatch.setattr(update_dispatch, "DISPATCH_PATH", dispatch)

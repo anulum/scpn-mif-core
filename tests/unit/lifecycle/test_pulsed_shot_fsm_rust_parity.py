@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import json
+from typing import Any
 
 import pytest
 
@@ -44,7 +45,7 @@ def _py_spec() -> PulsedShotSpec:
     )
 
 
-def _rust_spec() -> rust.PulsedShotSpec:
+def _rust_spec() -> Any:
     return rust.PulsedShotSpec(100.0, 2.0e6, 0.01, 0.002, 1.0e3, 2.0e6, 1.0e3, 40.0, 0.95, 20.0, 1.0e3, 0.0)
 
 

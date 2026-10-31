@@ -49,7 +49,7 @@ jobs:
       - name: ruff format
         run: ruff format --check src/ tests/ bench/ tools/
       - name: mypy
-        run: mypy src/scpn_mif_core/ tools/ cosim/ examples/
+        run: mypy
       - name: bandit
         run: bandit -r src/scpn_mif_core/ -c pyproject.toml -q
       - name: Install Verilator for cosimulation

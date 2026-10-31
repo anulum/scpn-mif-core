@@ -88,7 +88,7 @@ def overdamped_spec() -> CapacitorBankSpec:
 def test_spec_is_immutable() -> None:
     spec = underdamped_spec()
     with pytest.raises(AttributeError):
-        spec.capacitance_F = 1.0  # type: ignore[misc]
+        setattr(spec, "capacitance_F", 1.0)  # noqa: B010 - the frozen guard is the subject
 
 
 def test_bank_spec_property_exposes_validated_spec() -> None:
@@ -410,7 +410,7 @@ def test_state_is_immutable() -> None:
     bank = CapacitorBank(underdamped_spec(), initial_voltage_V=5000.0)
     state = bank.state
     with pytest.raises(AttributeError):
-        state.voltage_V = 0.0  # type: ignore[misc]
+        setattr(state, "voltage_V", 0.0)  # noqa: B010 - the frozen guard is the subject
 
 
 def test_state_is_a_capacitor_bank_state_instance() -> None:

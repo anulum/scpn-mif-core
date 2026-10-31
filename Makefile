@@ -116,7 +116,7 @@ fmt:
 	cd scpn-mif-rs && cargo fmt --all
 
 mypy:
-	mypy src/scpn_mif_core/ tools/ cosim/
+	mypy
 
 bandit:
 	bandit -r src/scpn_mif_core/ -c pyproject.toml -q

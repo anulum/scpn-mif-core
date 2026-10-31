@@ -141,8 +141,6 @@ def test_rust_decode_adapter_rejects_profile_and_canonicalisation_mismatches() -
 
 
 def test_rust_decode_daq_raises_on_canonical_reencode_mismatch(monkeypatch: pytest.MonkeyPatch) -> None:
-    from scpn_mif_core.daq import _rust_adapter as adapter
-
     profile = helion_descriptor_profile()
     values = tuple(float(index + 1) for index in range(len(profile.channels)))
     frame = RawDaqFrame(mode="udp_multicast", profile=profile, sequence=7, t_ns=700, values=values)
@@ -150,8 +148,9 @@ def test_rust_decode_daq_raises_on_canonical_reencode_mismatch(monkeypatch: pyte
 
     # The descriptor profile matches, but the decoded frame re-encodes to a
     # different blob (sequence advanced), so the canonical round-trip must fail.
+    # ``rust`` is the same extension module object the adapter imported.
     monkeypatch.setattr(
-        adapter._rust,
+        rust,
         "decode_daq_frame",
         lambda _blob: ("udp_multicast", profile.profile_id, frame.sequence + 1, frame.t_ns, list(values)),
     )

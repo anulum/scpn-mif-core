@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+from collections.abc import Sequence
 from pathlib import Path
 
 import numpy as np
@@ -53,7 +54,13 @@ def mojo_binary(tmp_path_factory: pytest.TempPathFactory) -> Path:
     return out
 
 
-def _write_problem(path: Path, spec: DopplerKuramotoSpec, phases, positions, velocities) -> None:
+def _write_problem(
+    path: Path,
+    spec: DopplerKuramotoSpec,
+    phases: Sequence[float],
+    positions: Sequence[float],
+    velocities: Sequence[float],
+) -> None:
     n = spec.n_oscillators
     coupling = np.asarray(spec.coupling_rad_s, dtype=np.float64).reshape(n, n)
     omega = np.asarray(spec.omega_at(0.0), dtype=np.float64)

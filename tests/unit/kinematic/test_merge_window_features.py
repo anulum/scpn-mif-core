@@ -110,7 +110,7 @@ class TestFeatureVector:
     def test_vector_is_frozen(self) -> None:
         vector = MergeWindowFeatureVector(0.0, 0.0, 0.0, 0, 1.0)
         with pytest.raises(dataclasses.FrozenInstanceError):
-            vector.order_parameter = 0.5  # type: ignore[misc]
+            setattr(vector, "order_parameter", 0.5)  # noqa: B010 - the frozen guard is the subject
 
 
 class TestExtraction:

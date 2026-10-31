@@ -225,18 +225,18 @@ def test_committed_manifest_matches_disk() -> None:
     assert formal_manifest.CATALOGUE_DOC_PATH.read_text(encoding="utf-8") == render_catalogue_markdown(build_manifest())
 
 
-def test_main_check_passes_when_clean(monkeypatch, capsys) -> None:
+def test_main_check_passes_when_clean(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     monkeypatch.setattr(formal_manifest, "check_manifest", list)
     assert formal_manifest.main(["--check"]) == 0
 
 
-def test_main_check_reports_drift(monkeypatch, capsys) -> None:
+def test_main_check_reports_drift(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     monkeypatch.setattr(formal_manifest, "check_manifest", lambda: ["stale: x"])
     assert formal_manifest.main(["--check"]) == 1
     assert "stale: x" in capsys.readouterr().err
 
 
-def test_main_writes_manifest(monkeypatch, capsys) -> None:
+def test_main_writes_manifest(monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]) -> None:
     written: dict[str, bool] = {}
     monkeypatch.setattr(formal_manifest, "write_manifest", lambda: written.setdefault("done", True))
     assert formal_manifest.main([]) == 0
