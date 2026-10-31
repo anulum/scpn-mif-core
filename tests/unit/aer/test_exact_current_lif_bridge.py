@@ -78,6 +78,7 @@ def _spec(address_map: AerAddressMap | None = None) -> AerExactCurrentProjection
 
 
 def test_projection_preserves_event_identity_overlap_and_zero_current_gaps() -> None:
+    """The projection keeps event identity, overlapping pulses and zero-current gaps, bound to the stream digest."""
     stream, telemetry = _stream_and_telemetry()
 
     projection = project_aer_events(stream, telemetry, _spec(), start_ns=0, stop_ns=8)
@@ -107,6 +108,7 @@ def test_projection_preserves_event_identity_overlap_and_zero_current_gaps() -> 
 
 
 def test_projection_schema_identities_are_distinct_and_artifact_bound() -> None:
+    """The projection, trace and execution schemas carry distinct identities."""
     spec_schema = json.loads((REPO / "schemas/aer_exact_current_projection_v1.schema.json").read_text())
     trace_schema = json.loads((REPO / "schemas/aer_exact_current_trace_v1.schema.json").read_text())
     execution_schema = json.loads((REPO / "schemas/aer_exact_current_execution_v1.schema.json").read_text())
@@ -121,6 +123,7 @@ def test_projection_schema_identities_are_distinct_and_artifact_bound() -> None:
 
 
 def test_projection_is_loss_intolerant_and_does_not_hide_queue_mismatch() -> None:
+    """Any loss, rejection or overflow, or a queued-count mismatch, refuses the projection."""
     stream, telemetry = _stream_and_telemetry()
     lossy = AerLossTelemetry(
         generated=3,
@@ -139,6 +142,7 @@ def test_projection_is_loss_intolerant_and_does_not_hide_queue_mismatch() -> Non
 
 
 def test_projection_rejects_wrong_map_source_tail_and_timestamp_overflow() -> None:
+    """A wrong map, an incomplete tail pulse, mixed sources or an overflowing pulse end is refused."""
     stream, telemetry = _stream_and_telemetry()
     with pytest.raises(AerExactCurrentProjectionError, match="address-map digest"):
         project_aer_events(stream, telemetry, replace(_spec(), address_map_digest="0" * 64), start_ns=0, stop_ns=8)
@@ -174,11 +178,13 @@ def test_projection_rejects_wrong_map_source_tail_and_timestamp_overflow() -> No
     ],
 )
 def test_projection_spec_rejects_ambiguous_current_encodings(currents: tuple[str, ...], message: str) -> None:
+    """Each ambiguous current encoding is refused with its message."""
     with pytest.raises(AerExactCurrentProjectionError, match=message):
         AerTransitionCalibration("diagnostic", currents)
 
 
 def test_projection_spec_is_digest_bound_and_refuses_physical_overclaim() -> None:
+    """The spec has a SHA-256, is scoped to normalised simulation and refuses a physical calibration claim."""
     spec = _spec()
     assert len(spec.sha256) == 64
     assert spec.to_payload()["fidelity_scope"] == "normalized_simulation_only"
@@ -188,11 +194,13 @@ def test_projection_spec_is_digest_bound_and_refuses_physical_overclaim() -> Non
 
 @pytest.mark.parametrize("current", ["", "garbage", "-0", "1.00", "1" + "0" * 309, 1])
 def test_calibration_rejects_noncanonical_or_unrepresentable_currents(current: Any) -> None:
+    """Each non-canonical or unrepresentable current is refused."""
     with pytest.raises(AerExactCurrentProjectionError):
         AerTransitionCalibration("diagnostic", (current,))
 
 
 def test_calibration_normalizes_exact_fraction_and_zero() -> None:
+    """Exact fractions and zero are normalised to canonical decimal strings."""
     calibration = AerTransitionCalibration("diagnostic", ("0", "0.125", "-2"))
     assert calibration.channel_currents == ("0", "0.125", "-2")
 
@@ -214,11 +222,13 @@ def test_calibration_normalizes_exact_fraction_and_zero() -> None:
     ],
 )
 def test_projection_spec_rejects_invalid_contract_fields(changes: dict[str, Any]) -> None:
+    """Each invalid spec field is refused."""
     with pytest.raises(AerExactCurrentProjectionError):
         replace(_spec(), **changes)
 
 
 def test_calibration_requires_transition_identity() -> None:
+    """A calibration needs a transition name."""
     with pytest.raises(AerExactCurrentProjectionError, match="transition_name"):
         AerTransitionCalibration("", ("1",))
 
@@ -235,6 +245,7 @@ def test_calibration_requires_transition_identity() -> None:
     ],
 )
 def test_projected_tick_rejects_ambiguous_intervals_and_currents(changes: dict[str, Any]) -> None:
+    """A tick reports its duration and refuses each ambiguous interval or current."""
     tick = AerProjectedTick(0, 8, (0,), ((1.0,),))
     assert tick.duration_ms == 0.000008
     with pytest.raises(AerExactCurrentProjectionError):
@@ -256,6 +267,7 @@ def test_projected_tick_rejects_ambiguous_intervals_and_currents(changes: dict[s
     ],
 )
 def test_projection_rejects_broken_provenance_or_interval_coverage(changes: dict[str, Any]) -> None:
+    """A projection with broken provenance or interval coverage is refused."""
     stream, telemetry = _stream_and_telemetry()
     projection = project_aer_events(stream, telemetry, _spec(), start_ns=0, stop_ns=8)
     with pytest.raises(AerExactCurrentProjectionError):
@@ -263,6 +275,7 @@ def test_projection_rejects_broken_provenance_or_interval_coverage(changes: dict
 
 
 def test_projection_refuses_wrong_public_inputs_and_out_of_interval_events() -> None:
+    """Wrong input types, a zero pulse, events outside the interval and excess channels are refused."""
     stream, telemetry = _stream_and_telemetry()
     for candidate_stream, candidate_telemetry, candidate_spec in (
         (None, telemetry, _spec()),

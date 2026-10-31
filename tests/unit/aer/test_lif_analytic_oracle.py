@@ -17,6 +17,7 @@ from campaigns.lif_oracles.analytic_decimal import CurrentInterval, integrate
 
 
 def test_rest_decay_inhibition_and_rheobase() -> None:
+    """The oracle rests, decays exactly, hyperpolarises under inhibition and stays sub-threshold at rheobase."""
     rest = integrate([CurrentInterval("100", ())])
     assert rest.states[-1].voltage == -65
     assert rest.spike_times_ms == ()
@@ -33,6 +34,7 @@ def test_rest_decay_inhibition_and_rheobase() -> None:
 
 
 def test_repeated_off_grid_crossings_reset_and_remainder() -> None:
+    """Seven periodic crossings off the tick grid each reset, leaving the exact remainder."""
     trace = integrate([CurrentInterval("100", ("30",))])
     assert len(trace.spike_times_ms) == 7
     with localcontext() as context:
@@ -51,6 +53,7 @@ def test_repeated_off_grid_crossings_reset_and_remainder() -> None:
 
 
 def test_crossing_at_endpoint_is_emitted_and_reset() -> None:
+    """A crossing exactly at the interval end is emitted and reset."""
     with localcontext() as context:
         context.prec = 80
         endpoint = str(20 * Decimal(2).ln())
@@ -61,6 +64,7 @@ def test_crossing_at_endpoint_is_emitted_and_reset() -> None:
 
 
 def test_partition_and_explicit_continuation_preserve_state() -> None:
+    """Splitting an interval or continuing from a state gives the same spikes and voltage."""
     whole = integrate([CurrentInterval("40", ("30",))])
     split = integrate([CurrentInterval("20", ("30",)), CurrentInterval("20", ("30",))])
     first = integrate([CurrentInterval("20", ("30",))])
@@ -72,12 +76,14 @@ def test_partition_and_explicit_continuation_preserve_state() -> None:
 
 
 def test_cancellation_is_independent_of_contributor_permutation() -> None:
+    """Cancelling currents give the same trace in any order."""
     expected = integrate([CurrentInterval("40", ("30",))])
     for currents in permutations(("1e100", "30", "-1e100")):
         assert integrate([CurrentInterval("40", currents)]) == expected
 
 
 def test_piecewise_forcing_and_precision_agreement() -> None:
+    """Piecewise forcing agrees with a higher-precision run to 1e-65."""
     ticks = [CurrentInterval("13", ("30",)), CurrentInterval("9", ("-20",)), CurrentInterval("45", ("45",))]
     reference = integrate(ticks, precision=120)
     trace = integrate(ticks)
@@ -92,6 +98,7 @@ def test_piecewise_forcing_and_precision_agreement() -> None:
 
 @pytest.mark.parametrize("duration", ["0", "-1", "NaN", "Infinity", "invalid"])
 def test_invalid_duration_refuses_evidence(duration: str) -> None:
+    """Each invalid duration is refused."""
     with pytest.raises(ValueError):
         integrate([CurrentInterval(duration, ())])
 
@@ -109,15 +116,18 @@ def test_invalid_duration_refuses_evidence(duration: str) -> None:
     ],
 )
 def test_invalid_profile_refuses_evidence(parameters: dict[str, Any]) -> None:
+    """Each invalid neuron profile is refused."""
     with pytest.raises(ValueError):
         integrate([CurrentInterval("1", ())], **parameters)
 
 
 def test_event_budget_never_returns_partial_success() -> None:
+    """Exceeding the event budget raises instead of returning a partial trace."""
     with pytest.raises(ArithmeticError, match="event budget"):
         integrate([CurrentInterval("100", ("30",))], max_events=2)
 
 
 def test_unresolved_rheobase_limit_refuses_false_threshold_state() -> None:
+    """A voltage that would only round to threshold is refused."""
     with pytest.raises(ArithmeticError, match="rounded to threshold"):
         integrate([CurrentInterval("100000", ("15",))])

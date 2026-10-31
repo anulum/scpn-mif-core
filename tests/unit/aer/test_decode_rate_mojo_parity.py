@@ -64,6 +64,7 @@ def _run_mojo(binary: Path, problem: Path) -> list[float]:
 
 
 def test_mojo_matches_python_bit_exact(mojo_binary: Path, tmp_path: Path) -> None:
+    """The Mojo rate decoder equals the Python reference bit for bit."""
     rng = np.random.default_rng(20260623)
     n_channels = 12
     window_ns = 5000
@@ -85,6 +86,7 @@ def test_mojo_matches_python_bit_exact(mojo_binary: Path, tmp_path: Path) -> Non
 
 
 def test_mojo_empty_window_is_all_zero(mojo_binary: Path, tmp_path: Path) -> None:
+    """An empty window decodes to all zeros in Mojo as in Python."""
     n_channels = 5
     spec = AERDecodeSpec(n_channels=n_channels, window_ns=1000, strategy="rate")
     reference = np.asarray(_decode_rate((), spec))

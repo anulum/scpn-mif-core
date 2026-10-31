@@ -63,6 +63,7 @@ def _raw(sequence: int, *, address: int = 0x4100, polarity: int = 1, t_ns: int |
 
 
 def test_schema_documents_bind_exact_versions_and_strict_wire_ranges() -> None:
+    """The address-map and stream schemas pin their versions, close their fields and bound wire values to u16."""
     address_schema = json.loads((REPO / "schemas/aer_address_map_v1.schema.json").read_text(encoding="utf-8"))
     stream_schema = json.loads((REPO / "schemas/aer_event_stream_v1.schema.json").read_text(encoding="utf-8"))
 
@@ -83,6 +84,7 @@ def test_schema_documents_bind_exact_versions_and_strict_wire_ranges() -> None:
 
 
 def test_mif007_addresses_map_to_one_dense_channel_with_explicit_polarity() -> None:
+    """The MIF-007 addresses map to one dense channel with explicit polarity and one source."""
     address_map = _address_map()
     stream = AerEventStream.from_raw_events(
         address_map,
@@ -102,6 +104,7 @@ def test_mif007_addresses_map_to_one_dense_channel_with_explicit_polarity() -> N
 
 
 def test_map_and_stream_round_trip_canonical_bytes_and_digests() -> None:
+    """Map and stream round-trip through canonical newline-terminated bytes whose SHA-256 is their digest."""
     address_map = _address_map()
     stream = AerEventStream.from_raw_events(
         address_map,
@@ -132,11 +135,13 @@ def test_map_and_stream_round_trip_canonical_bytes_and_digests() -> None:
 def test_address_map_rejects_duplicate_unordered_aliased_and_sparse_bindings(
     bindings: tuple[AerAddressBinding, ...], message: str
 ) -> None:
+    """Duplicate, unordered, aliased or sparse bindings are refused with their message."""
     with pytest.raises(AERAddressMapError, match=message):
         AerAddressMap("bad-map", bindings)
 
 
 def test_address_map_rejects_empty_bad_member_and_wrong_version() -> None:
+    """An empty map, a wrong member type and a wrong schema version are refused."""
     with pytest.raises(AERAddressMapError, match="must not be empty"):
         AerAddressMap("empty", ())
     with pytest.raises(TypeError, match="AerAddressBinding"):
@@ -146,6 +151,7 @@ def test_address_map_rejects_empty_bad_member_and_wrong_version() -> None:
 
 
 def test_unknown_address_and_explicit_polarity_mismatch_fail_closed_atomically() -> None:
+    """An unknown address or polarity mismatch is refused without changing the buffer."""
     buffer = AerIntegrityBuffer(4, _address_map())
     before = buffer.telemetry
 
@@ -161,6 +167,7 @@ def test_unknown_address_and_explicit_polarity_mismatch_fail_closed_atomically()
 
 
 def test_sequence_gap_duplicate_and_timestamp_regression_fail_without_state_change() -> None:
+    """A sequence gap, duplicate or timestamp regression is refused without changing the buffer."""
     buffer = AerIntegrityBuffer(4, _address_map())
     first = buffer.push(_raw(0, t_ns=10))
     assert first.accepted
@@ -179,6 +186,7 @@ def test_sequence_gap_duplicate_and_timestamp_regression_fail_without_state_chan
 
 
 def test_integrity_buffer_rejects_newest_with_sticky_conservation_telemetry() -> None:
+    """A full buffer rejects the newest event and keeps sticky, conserving telemetry."""
     buffer = AerIntegrityBuffer(1, _address_map())
     accepted = buffer.push(_raw(0))
     rejected = buffer.push(_raw(1))
@@ -197,6 +205,7 @@ def test_integrity_buffer_rejects_newest_with_sticky_conservation_telemetry() ->
 
 
 def test_epoch_reset_requires_drain_and_resets_sequence_and_loss_counters() -> None:
+    """An epoch reset needs an empty queue and then restarts sequence and loss counters."""
     buffer = AerIntegrityBuffer(1, _address_map())
     buffer.push(_raw(0))
     with pytest.raises(AERIntegrityError, match="queued events"):
@@ -212,6 +221,7 @@ def test_epoch_reset_requires_drain_and_resets_sequence_and_loss_counters() -> N
 
 
 def test_rejected_overflow_does_not_advance_sequence_or_timestamp() -> None:
+    """A rejected overflow advances neither the sequence nor the last timestamp."""
     buffer = AerIntegrityBuffer(1, _address_map())
     buffer.push(_raw(0, t_ns=100))
     assert not buffer.push(_raw(1, t_ns=200)).accepted
@@ -221,6 +231,7 @@ def test_rejected_overflow_does_not_advance_sequence_or_timestamp() -> None:
 
 
 def test_buffer_accepts_final_u64_sequence_once_and_exhausts_without_mutation() -> None:
+    """The last u64 sequence is accepted once, after which the epoch is exhausted without state change."""
     address_map = _address_map()
     buffer = AerIntegrityBuffer(1, address_map, sequence_start=U64_MAX - 1)
     assert buffer.push(_raw(U64_MAX - 1)).accepted
@@ -240,6 +251,7 @@ def test_buffer_accepts_final_u64_sequence_once_and_exhausts_without_mutation() 
 
 
 def test_stream_parser_rejects_map_digest_channel_and_field_tampering() -> None:
+    """A stream with a changed map digest, channel or fields is refused."""
     address_map = _address_map()
     stream = AerEventStream.from_raw_events(
         address_map,
@@ -268,6 +280,7 @@ def test_stream_parser_rejects_map_digest_channel_and_field_tampering() -> None:
 
 
 def test_stream_envelope_requires_shot_clock_frequency_and_declared_sequence_start() -> None:
+    """A stream needs its shot, clock domain, frequency and a matching sequence start."""
     address_map = _address_map()
     mapped = MappedAerEvent("source", 0x4100, 0, 1, 0, 1)
     with pytest.raises(AERSequenceError, match="expected sequence 0"):
@@ -283,6 +296,7 @@ def test_stream_envelope_requires_shot_clock_frequency_and_declared_sequence_sta
 
 
 def test_incremental_stream_batch_accepts_nonzero_start_and_empty_next_batch() -> None:
+    """A batch may start at a later sequence and the next batch may be empty."""
     address_map = _address_map()
     stream = AerEventStream.from_raw_events(
         address_map,
@@ -310,6 +324,7 @@ def test_incremental_stream_batch_accepts_nonzero_start_and_empty_next_batch() -
 
 @pytest.mark.parametrize("sequences", [(10, 10), (10, 12)])
 def test_incremental_stream_batch_rejects_duplicate_and_gap(sequences: tuple[int, int]) -> None:
+    """A batch with a duplicate or a gap in sequence is refused."""
     with pytest.raises(AERSequenceError, match="expected sequence 11"):
         AerEventStream.from_raw_events(
             _address_map(),
@@ -334,11 +349,13 @@ def test_incremental_stream_batch_rejects_duplicate_and_gap(sequences: tuple[int
     ],
 )
 def test_wire_carriers_reject_out_of_domain_values(factory: Callable[[], object]) -> None:
+    """Each wire carrier refuses an out-of-domain value."""
     with pytest.raises((TypeError, ValueError)):
         factory()
 
 
 def test_telemetry_and_admission_reject_impossible_states() -> None:
+    """Telemetry and admission records refuse impossible combinations."""
     with pytest.raises(ValueError, match="conserve"):
         AerLossTelemetry(2, 0, 0, 0, 0, False)
     with pytest.raises(ValueError, match="queued"):
@@ -355,6 +372,7 @@ def test_telemetry_and_admission_reject_impossible_states() -> None:
 
 
 def test_strict_mapping_parsers_reject_wrong_shapes_and_versions() -> None:
+    """The mapping parsers refuse wrong shapes, fields and versions."""
     address_map = _address_map()
     map_payload = address_map.to_mapping()
     with pytest.raises(TypeError, match="bindings must be a list"):
@@ -394,6 +412,7 @@ def test_strict_mapping_parsers_reject_wrong_shapes_and_versions() -> None:
 
 
 def test_buffer_rejects_wrong_capacity_map_and_event_types() -> None:
+    """The buffer refuses a bad capacity, a wrong map type and a wrong event type."""
     with pytest.raises(ValueError, match="capacity"):
         AerIntegrityBuffer(0, _address_map())
     with pytest.raises(TypeError, match="AerAddressMap"):
@@ -405,6 +424,7 @@ def test_buffer_rejects_wrong_capacity_map_and_event_types() -> None:
 
 @pytest.mark.parametrize("binding", [None, {1: 0}])
 def test_address_map_rejects_malformed_wire_binding_objects(binding: object) -> None:
+    """Each malformed binding object is refused."""
     payload = _address_map().to_mapping()
     payload["bindings"] = [binding]
     with pytest.raises(TypeError):
@@ -413,6 +433,7 @@ def test_address_map_rejects_malformed_wire_binding_objects(binding: object) -> 
 
 @pytest.mark.parametrize(("field", "value"), [("map_id", 7), ("schema_version", None)])
 def test_address_map_rejects_non_text_identity(field: str, value: object) -> None:
+    """A non-string map identity is refused."""
     payload = _address_map().to_mapping()
     payload[field] = value
     with pytest.raises(TypeError, match="string"):
@@ -420,6 +441,7 @@ def test_address_map_rejects_non_text_identity(field: str, value: object) -> Non
 
 
 def test_integrity_buffer_validates_map_and_exposes_queue_length() -> None:
+    """The buffer checks its map type and reports its queue length."""
     with pytest.raises(TypeError, match="AerAddressMap"):
         AerIntegrityBuffer(4, cast(Any, None))
     buffer = AerIntegrityBuffer(4, _address_map())
@@ -438,6 +460,7 @@ def test_integrity_buffer_validates_map_and_exposes_queue_length() -> None:
     ],
 )
 def test_raw_stream_refuses_invalid_payload_and_order(events: tuple[object, ...], error: type[Exception]) -> None:
+    """Each invalid raw payload or ordering is refused."""
     with pytest.raises(error):
         AerEventStream.from_raw_events(
             _address_map(),
@@ -459,6 +482,7 @@ def test_raw_stream_refuses_invalid_payload_and_order(events: tuple[object, ...]
     ],
 )
 def test_stream_constructor_rejects_invalid_identity(changes: dict[str, object], error: type[Exception]) -> None:
+    """Each invalid stream identity is refused."""
     fields: dict[str, Any] = {
         "shot_id": "shot",
         "clock_domain": "adc",
@@ -474,6 +498,7 @@ def test_stream_constructor_rejects_invalid_identity(changes: dict[str, object],
 
 
 def test_mapped_stream_rejects_timestamp_regression() -> None:
+    """A mapped stream refuses a timestamp regression."""
     events = tuple(MappedAerEvent("adc", 0x4100, 0, 1, t, sequence) for sequence, t in enumerate((2, 1)))
     with pytest.raises(AERTimestampRegressionError):
         AerEventStream("shot", "adc", 1, _address_map().map_id, _address_map().digest, events, 0)
@@ -481,5 +506,6 @@ def test_mapped_stream_rejects_timestamp_regression() -> None:
 
 @pytest.mark.parametrize("overflow", [0, 1, "false", None])
 def test_loss_telemetry_rejects_non_boolean_overflow(overflow: object) -> None:
+    """A non-boolean overflow flag is refused."""
     with pytest.raises(TypeError, match="overflow_sticky"):
         AerLossTelemetry(0, 0, 0, 0, 0, cast(Any, overflow))

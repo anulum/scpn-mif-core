@@ -51,6 +51,7 @@ def test_arbitrary_monotone_stream_round_trips_without_address_loss(
     samples: list[tuple[tuple[int, int], int, str]],
     sequence_start: int,
 ) -> None:
+    """Any monotone stream round-trips with its addresses, polarities, times and contiguous sequences."""
     ordered_times = sorted(time for _binding, time, _source in samples)
     events = tuple(
         RawAerEvent(source, binding[0], binding[1], ordered_times[index], sequence_start + index)
@@ -78,6 +79,7 @@ def test_arbitrary_monotone_stream_round_trips_without_address_loss(
     generated=st.integers(min_value=0, max_value=64),
 )
 def test_reject_newest_buffer_conserves_every_generated_event(capacity: int, generated: int) -> None:
+    """For any capacity and load, generated events equal accepted plus dropped, with matching queue and flags."""
     buffer = AerIntegrityBuffer(capacity, _map())
     next_sequence = 0
     for attempt in range(generated):
@@ -96,6 +98,7 @@ def test_reject_newest_buffer_conserves_every_generated_event(capacity: int, gen
 
 @given(st.integers(min_value=0, max_value=(1 << 16) - 2))
 def test_single_channel_dual_polarity_maps_stay_dense(base_address: int) -> None:
+    """Any base address gives a one-channel map with positive and negative polarity."""
     address_map = AerAddressMap(
         "generated-map",
         (

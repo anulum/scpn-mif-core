@@ -53,6 +53,7 @@ def _fixture_buffer() -> SpikeBuffer:
 
 
 def test_rate_decode_matches_shd_fixture_reference_vector() -> None:
+    """Rate decoding of the SHD fixture equals its reference vector."""
     doc = _fixture_doc()
     spec = AERDecodeSpec(n_channels=int(doc["n_channels"]), window_ns=int(doc["window_ns"]), strategy="rate")
     features = decode_spike_features(_fixture_buffer(), spec)
@@ -61,6 +62,7 @@ def test_rate_decode_matches_shd_fixture_reference_vector() -> None:
 
 
 def test_control_observation_round_trips_fixture_features() -> None:
+    """The control observation carries the fixture features, spike count and window."""
     doc = _fixture_doc()
     observation = AERControlObservation(
         spike_stream=_fixture_buffer(),
@@ -76,6 +78,7 @@ def test_control_observation_round_trips_fixture_features() -> None:
 
 
 def test_temporal_and_isi_strategies_match_fixture_vectors() -> None:
+    """Temporal and ISI decoding equal their fixture vectors."""
     doc = _fixture_doc()
     buffer = _fixture_buffer()
 
@@ -93,6 +96,7 @@ def test_temporal_and_isi_strategies_match_fixture_vectors() -> None:
 
 
 def test_spike_buffer_is_deterministic_ring() -> None:
+    """The buffer evicts its oldest event when full and reports the eviction."""
     buffer = SpikeBuffer(capacity=3)
     for idx in range(4):
         buffer.push(AERSpikeEvent(address=idx, t_ns=idx * 10))
@@ -107,6 +111,7 @@ def test_spike_buffer_is_deterministic_ring() -> None:
 
 
 def test_legacy_buffer_loss_telemetry_is_sticky_until_explicit_reset() -> None:
+    """Loss telemetry stays set until an explicit reset clears it."""
     buffer = SpikeBuffer(capacity=1)
     buffer.push(AERSpikeEvent(address=0, t_ns=0))
     buffer.push(AERSpikeEvent(address=1, t_ns=1))
@@ -122,6 +127,7 @@ def test_legacy_buffer_loss_telemetry_is_sticky_until_explicit_reset() -> None:
 
 
 def test_empty_buffer_and_clear_reset_channel_state() -> None:
+    """An empty or cleared buffer has no channels."""
     buffer = SpikeBuffer(capacity=2)
     assert buffer.n_channels == 0
     assert decode_spike_observation(buffer, AERDecodeSpec(n_channels=1, window_ns=10)).window_start_ns == 0
@@ -135,6 +141,7 @@ def test_empty_buffer_and_clear_reset_channel_state() -> None:
 
 
 def test_spike_buffer_rejects_non_monotone_timestamps() -> None:
+    """A timestamp regression is refused and counted."""
     buffer = SpikeBuffer(capacity=4)
     buffer.push(AERSpikeEvent(address=0, t_ns=10))
 
@@ -144,6 +151,7 @@ def test_spike_buffer_rejects_non_monotone_timestamps() -> None:
 
 
 def test_spike_buffer_rejects_invalid_event_objects() -> None:
+    """A non-event object is refused and counted."""
     buffer = SpikeBuffer(capacity=4)
 
     with pytest.raises(TypeError, match="AERSpikeEvent"):
@@ -152,6 +160,7 @@ def test_spike_buffer_rejects_invalid_event_objects() -> None:
 
 
 def test_decode_rejects_out_of_range_address() -> None:
+    """An address beyond the channel count is refused."""
     buffer = SpikeBuffer(capacity=2)
     buffer.push(AERSpikeEvent(address=4, t_ns=0))
 
@@ -160,6 +169,7 @@ def test_decode_rejects_out_of_range_address() -> None:
 
 
 def test_decode_validation_rejects_bad_inputs() -> None:
+    """Decoding refuses a non-buffer and a non-spec."""
     buffer = _fixture_buffer()
 
     with pytest.raises(TypeError, match="SpikeBuffer"):
@@ -169,6 +179,7 @@ def test_decode_validation_rejects_bad_inputs() -> None:
 
 
 def test_explicit_start_and_duplicate_temporal_event_are_deterministic() -> None:
+    """An explicit start with a duplicate event decodes deterministically."""
     buffer = SpikeBuffer(capacity=4)
     buffer.push(AERSpikeEvent(address=0, t_ns=10))
     buffer.push(AERSpikeEvent(address=0, t_ns=20))
@@ -179,6 +190,7 @@ def test_explicit_start_and_duplicate_temporal_event_are_deterministic() -> None
 
 
 def test_validation_rejects_invalid_specs_events_and_reports() -> None:
+    """Invalid polarity, address, time, strategy, start, channels, window and report shape are refused."""
     with pytest.raises(ValueError, match="polarity"):
         AERSpikeEvent(address=0, t_ns=0, polarity=0)
     with pytest.raises(TypeError, match="address"):
@@ -204,6 +216,7 @@ def test_validation_rejects_invalid_specs_events_and_reports() -> None:
 
 
 def test_timestamp_fields_match_rust_u64_domain() -> None:
+    """Timestamps and windows beyond u64 are refused, as in Rust."""
     with pytest.raises(ValueError, match="t_ns must fit in u64"):
         AERSpikeEvent(address=0, t_ns=U64_MAX + 1)
     with pytest.raises(ValueError, match="window_ns must fit in u64"):
@@ -215,6 +228,7 @@ def test_timestamp_fields_match_rust_u64_domain() -> None:
 
 
 def test_decode_rejects_u64_window_overflow() -> None:
+    """A window whose end overflows u64 is refused."""
     buffer = SpikeBuffer(capacity=1)
     buffer.push(AERSpikeEvent(address=0, t_ns=U64_MAX - 1))
     spec = AERDecodeSpec(n_channels=1, window_ns=2, start_ns=U64_MAX - 1)
@@ -224,6 +238,7 @@ def test_decode_rejects_u64_window_overflow() -> None:
 
 
 def test_dispatch_falls_back_to_python_when_rust_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without Rust the dispatched buffer is the Python one."""
     import scpn_mif_core.aer as aer
 
     monkeypatch.setattr(aer, "preferred_backend", lambda _kernel: "rust")
@@ -233,6 +248,7 @@ def test_dispatch_falls_back_to_python_when_rust_unavailable(monkeypatch: pytest
 
 
 def test_dispatched_decode_falls_back_to_python_when_buffer_is_python(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A Python buffer is decoded in Python with the fixture result."""
     import scpn_mif_core.aer as aer
 
     monkeypatch.setattr(aer, "preferred_backend", lambda _kernel: "rust")
@@ -245,6 +261,7 @@ def test_dispatched_decode_falls_back_to_python_when_buffer_is_python(monkeypatc
 def test_dispatched_buffer_falls_back_to_python_when_rust_adapter_is_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """When the Rust adapter cannot load, the dispatched buffer is the Python one."""
     import sys
 
     import scpn_mif_core.aer as aer
@@ -259,6 +276,7 @@ def test_dispatched_buffer_falls_back_to_python_when_rust_adapter_is_unavailable
 
 
 def test_aer_decode_rate_dispatch_is_registered() -> None:
+    """The rate decoder is registered with Rust first and Python available."""
     from scpn_mif_core import _dispatch
 
     backends = _dispatch.available_backends("aer.decode_rate")
@@ -268,6 +286,7 @@ def test_aer_decode_rate_dispatch_is_registered() -> None:
 
 
 def test_aer_spike_buffer_dispatch_is_registered() -> None:
+    """The spike buffer is registered with Rust first and Python available."""
     from scpn_mif_core import _dispatch
 
     backends = _dispatch.available_backends("aer.spike_buffer")
@@ -277,6 +296,7 @@ def test_aer_spike_buffer_dispatch_is_registered() -> None:
 
 
 def test_decode_output_rejects_mutation() -> None:
+    """Decoded features are read-only."""
     features = decode_spike_features(_fixture_buffer(), AERDecodeSpec(n_channels=4, window_ns=100, strategy="rate"))
 
     with pytest.raises(ValueError, match="read-only"):
@@ -284,6 +304,7 @@ def test_decode_output_rejects_mutation() -> None:
 
 
 def test_dispatched_decode_uses_python_for_non_rate_strategy() -> None:
+    """A non-rate strategy is decoded in Python."""
     spec = AERDecodeSpec(n_channels=4, window_ns=100, strategy="temporal")
     dispatched = dispatched_decode_spike_features(_fixture_buffer(), spec)
     reference = decode_spike_features(_fixture_buffer(), spec)
@@ -291,6 +312,7 @@ def test_dispatched_decode_uses_python_for_non_rate_strategy() -> None:
 
 
 def test_dispatched_decode_falls_back_when_rust_adapter_is_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    """When the Rust adapter cannot load, decoding falls back to Python."""
     import sys
 
     import scpn_mif_core.aer as aer
@@ -306,6 +328,7 @@ def test_dispatched_decode_falls_back_when_rust_adapter_is_unavailable(monkeypat
 
 
 def test_dispatched_decode_refuses_a_non_buffer(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The dispatched decoder refuses a non-buffer."""
     import sys
 
     spec = AERDecodeSpec(n_channels=4, window_ns=100)
@@ -317,5 +340,6 @@ def test_dispatched_decode_refuses_a_non_buffer(monkeypatch: pytest.MonkeyPatch)
 
 
 def test_spike_event_rejects_non_integer_polarity() -> None:
+    """A non-integer polarity is refused."""
     with pytest.raises(TypeError, match="polarity must be an integer"):
         AERSpikeEvent(address=0, t_ns=0, polarity=cast(Any, "positive"))

@@ -49,6 +49,7 @@ def _rust_buffer() -> Any:
 
 @pytest.mark.parametrize("strategy", ["rate", "temporal", "isi"])
 def test_rust_decode_matches_python_fixture(strategy: Literal["rate", "temporal", "isi"]) -> None:
+    """Rust decoding equals Python for each strategy on the fixture."""
     doc = _fixture_doc()
     py_features = decode_spike_features(
         _py_buffer(),
@@ -61,6 +62,7 @@ def test_rust_decode_matches_python_fixture(strategy: Literal["rate", "temporal"
 
 
 def test_dispatched_buffer_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With Rust preferred the dispatched buffer is Rust-backed and behaves like Python."""
     import scpn_mif_core.aer as aer
 
     monkeypatch.setattr(aer, "preferred_backend", lambda _kernel: "rust")
@@ -76,6 +78,7 @@ def test_dispatched_buffer_uses_rust_when_preferred(monkeypatch: pytest.MonkeyPa
 
 
 def test_rust_adapter_clear_and_dispatched_decode(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The Rust adapter decodes through dispatch and empties on clear."""
     import scpn_mif_core.aer as aer
 
     monkeypatch.setattr(aer, "preferred_backend", lambda _kernel: "rust")
@@ -114,6 +117,7 @@ def test_dispatched_decode_mirrors_rust_buffer_onto_the_python_floor(
 
 
 def test_dispatched_decode_refuses_a_non_buffer_with_the_extension_present() -> None:
+    """With Rust present the dispatched decoder refuses a non-buffer."""
     import scpn_mif_core.aer as aer
 
     with pytest.raises(TypeError, match="Rust-backed spike buffer"):
@@ -121,6 +125,7 @@ def test_dispatched_decode_refuses_a_non_buffer_with_the_extension_present() -> 
 
 
 def test_rust_adapter_rejects_invalid_event_object(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The Rust adapter refuses a non-event object."""
     import scpn_mif_core.aer as aer
 
     monkeypatch.setattr(aer, "preferred_backend", lambda _kernel: "rust")
@@ -132,6 +137,7 @@ def test_rust_adapter_rejects_invalid_event_object(monkeypatch: pytest.MonkeyPat
 
 
 def test_python_and_rust_reject_window_overflow() -> None:
+    """Both backends refuse a window whose end overflows u64."""
     py_buffer = SpikeBuffer(capacity=1)
     py_buffer.push(AERSpikeEvent(address=0, t_ns=U64_MAX - 1))
     rust_buffer = rust.AERSpikeBuffer(1)
@@ -150,6 +156,7 @@ def test_python_and_rust_reject_window_overflow() -> None:
 
 
 def test_rust_backed_decode_raises_on_strategy_mismatch(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A Rust result labelled with another strategy is refused."""
     from scpn_mif_core.aer import _rust_adapter as adapter
 
     buffer = adapter.RustBackedSpikeBuffer(8)
