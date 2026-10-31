@@ -107,12 +107,12 @@ test-all: test test-rust test-julia test-lean test-go
 
 # ── Linting / formatting ───────────────────────────────────────────────
 lint:
-	ruff check src/ tests/ bench/ tools/ cosim/
-	ruff format --check src/ tests/ bench/ tools/ cosim/
+	ruff check .
+	ruff format --check .
 
 fmt:
-	ruff check --fix src/ tests/ bench/ tools/ cosim/
-	ruff format src/ tests/ bench/ tools/ cosim/
+	ruff check --fix .
+	ruff format .
 	cd scpn-mif-rs && cargo fmt --all
 
 mypy:

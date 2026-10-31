@@ -66,6 +66,14 @@
 
 ### Changed
 
+- Ruff now lints and format-checks the whole tree (`ruff check .`) in CI,
+  pre-commit, Make and the preflight; before, `cosim/`, `examples/`,
+  `campaigns/`, `papers/`, `conftest.py` and the notebook were outside every
+  hosted ruff run, and Make and CI disagreed on `cosim/`.
+- `tests/unit/test_surface_enrollment.py` maps every tracked file to exactly
+  one gated surface; a new root, language or asset kind fails it until its
+  surface and gates are named. Python outside the strict mypy cohort is
+  limited to `bench/`, `campaigns/` and `papers/`, each with its reason.
 - One strict mypy cohort now covers `src/scpn_mif_core`, `tools`, `cosim`,
   `examples`, `tests` and `conftest.py`. It is declared once in
   `pyproject.toml` (`[tool.mypy] files`), and Make, pre-commit, CI and the

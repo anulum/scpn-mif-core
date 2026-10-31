@@ -30,9 +30,7 @@ repos:
     rev: v0.17.2
     hooks:
       - id: ruff-check
-        files: ^(src/|tests/|bench/|tools/)
       - id: ruff-format
-        files: ^(src/|tests/|bench/|tools/)
 
   - repo: https://github.com/crate-ci/typos
     rev: v1.51.1

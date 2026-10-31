@@ -94,11 +94,11 @@ def gate_secrets() -> GateResult:
 
 
 def gate_ruff() -> GateResult:
-    return _run("ruff", ["ruff", "check", "src/", "tests/", "bench/", "tools/"])
+    return _run("ruff", ["ruff", "check", "."])
 
 
 def gate_ruff_format() -> GateResult:
-    return _run("ruff-format", ["ruff", "format", "--check", "src/", "tests/", "bench/", "tools/"])
+    return _run("ruff-format", ["ruff", "format", "--check", "."])
 
 
 def gate_mypy() -> GateResult:
