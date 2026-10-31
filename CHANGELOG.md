@@ -31,6 +31,11 @@
 
 ### Security
 
+- The public documentation site no longer loads a script from `polyfill.io`,
+  a domain that served malicious code to sites embedding it in 2024; MathJax
+  is pinned to the exact release 3.2.2. `tests/unit/test_docs_site_scripts.py`
+  binds the site's third-party scripts to exact versions and forbids the
+  domain.
 - Pinned the Studio toolchain to patched transitive releases for the
   `adm-zip` oversized-allocation, PostCSS previous-source-map path traversal,
   and `brace-expansion` unbounded-expansion advisories. The scheduled Security

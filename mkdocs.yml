@@ -101,9 +101,10 @@ extra:
       link: https://github.com/anulum/scpn-mif-core
   generator: false
 
+# Third-party scripts run on every page of the public site: exact versions
+# only, and never a domain that has served hostile code (polyfill.io, 2024).
 extra_javascript:
-  - https://polyfill.io/v3/polyfill.min.js?features=es6
-  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js
 
 nav:
   - Home: index.md
