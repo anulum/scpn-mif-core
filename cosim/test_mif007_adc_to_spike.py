@@ -23,6 +23,7 @@ from cosim.mif007_adc_to_spike import (
 
 
 def test_float_adc_to_q88_to_rtl_trace_is_bit_true() -> None:
+    """Float samples quantise to the expected ADC and Q8.8 codes and AER addresses, bit-true."""
     report = run_mif007_adc_to_spike_cosim(
         [0.5, 0.5, -1.0],
         FloatAdcCosimConfig(full_scale_abs=1.0),
@@ -39,6 +40,7 @@ def test_float_adc_to_q88_to_rtl_trace_is_bit_true() -> None:
 
 
 def test_ready_backpressure_preserves_pending_spikes_until_drain() -> None:
+    """Spikes held back by ready backpressure are all emitted after the drain, none dropped."""
     report = run_mif007_adc_to_spike_cosim(
         [-1.0, -1.0, -1.0],
         FloatAdcCosimConfig(full_scale_abs=1.0),
@@ -53,6 +55,7 @@ def test_ready_backpressure_preserves_pending_spikes_until_drain() -> None:
 
 
 def test_mutated_rtl_trace_fails_closed() -> None:
+    """A swapped AER address trace makes the bit-true check fail."""
     report = run_mif007_adc_to_spike_cosim(
         [0.5, 0.5, -1.0],
         FloatAdcCosimConfig(full_scale_abs=1.0),
@@ -80,34 +83,40 @@ _BASELINE_REPORT = Mif007AdcCosimReport(
 
 
 def test_config_rejects_nonpositive_full_scale() -> None:
+    """A zero full-scale value is refused."""
     with pytest.raises(ValueError, match="full_scale_abs must be finite and strictly positive"):
         FloatAdcCosimConfig(full_scale_abs=0.0)
 
 
 def test_run_cosim_rejects_nonfinite_sample() -> None:
+    """An infinite input sample is refused."""
     with pytest.raises(ValueError, match="sample must be finite"):
         run_mif007_adc_to_spike_cosim([float("inf")], FloatAdcCosimConfig(full_scale_abs=1.0))
 
 
 def test_sample_above_full_scale_saturates_positive() -> None:
+    """A sample above full scale saturates to the largest ADC code."""
     config = FloatAdcCosimConfig(full_scale_abs=1.0)
     report = run_mif007_adc_to_spike_cosim([2.0], config)
     assert report.adc_samples[0] == config.adc.adc_max
 
 
 def test_sample_below_negative_full_scale_saturates_negative() -> None:
+    """A sample below negative full scale saturates to the smallest ADC code."""
     config = FloatAdcCosimConfig(full_scale_abs=1.0)
     report = run_mif007_adc_to_spike_cosim([-2.0], config)
     assert report.adc_samples[0] == config.adc.adc_min
 
 
 def test_assert_bit_true_trace_raises_on_spike_accounting_mismatch() -> None:
+    """Generated spikes that are neither emitted nor dropped fail the spike accounting check."""
     report = replace(_BASELINE_REPORT, generated_spikes=5, rtl_emitted_spikes=1, dropped_spikes=0)
     with pytest.raises(AssertionError, match="spike accounting mismatch"):
         assert_bit_true_trace(report)
 
 
 def test_trace_mismatches_flags_aer_address_divergence() -> None:
+    """Differing expected and RTL AER addresses are reported as a trace mismatch."""
     report = replace(
         _BASELINE_REPORT,
         expected_aer_addresses=(0x4100,),
@@ -120,6 +129,7 @@ def test_trace_mismatches_flags_aer_address_divergence() -> None:
 
 
 def test_assert_bit_true_trace_passes_on_matching_report() -> None:
+    """The bit-true check accepts a matching report."""
     report = run_mif007_adc_to_spike_cosim([0.5, 0.5, 0.5], FloatAdcCosimConfig(full_scale_abs=1.0))
     assert report.bit_true
     assert_bit_true_trace(report)  # a matching report must not raise

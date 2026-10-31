@@ -34,6 +34,7 @@ COSIM_PATH = REPO / "hdl" / "sim" / "mif_fast_veto_gate_tb.cpp"
 
 @pytest.fixture(scope="module")
 def verilator_binary(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Build the fast-veto-gate cosimulation binary once per module; skip without Verilator."""
     verilator = shutil.which("verilator")
     if verilator is None:
         pytest.skip("Verilator is not installed in this environment.")
@@ -71,6 +72,7 @@ def _full_evidence(*, qualified_fire: bool, safety_veto: bool = False) -> FastVe
 
 
 def test_qualified_fire_passes_the_gate_bit_true(verilator_binary: Path) -> None:
+    """A qualified fire with full evidence and no veto passes as fast_fire and fast_permit, bit-true."""
     report = run_fast_veto_gate_cosim([_full_evidence(qualified_fire=True)], verilator_binary)
 
     assert report.bit_true
@@ -80,6 +82,7 @@ def test_qualified_fire_passes_the_gate_bit_true(verilator_binary: Path) -> None
 
 
 def test_veto_dominates_in_zero_cycles_bit_true(verilator_binary: Path) -> None:
+    """A safety veto blocks fire and permit in the same cycle in both reference and RTL."""
     report = run_fast_veto_gate_cosim([_full_evidence(qualified_fire=True, safety_veto=True)], verilator_binary)
 
     assert report.bit_true
@@ -94,6 +97,7 @@ def test_veto_dominates_in_zero_cycles_bit_true(verilator_binary: Path) -> None:
 
 
 def test_lane_is_subtractive_bit_true(verilator_binary: Path) -> None:
+    """With permit but no upstream qualified fire, the gate does not create a fire."""
     # Permit holds but no qualified fire — the lane must not manufacture a fire.
     report = run_fast_veto_gate_cosim([_full_evidence(qualified_fire=False)], verilator_binary)
 
@@ -103,6 +107,7 @@ def test_lane_is_subtractive_bit_true(verilator_binary: Path) -> None:
 
 
 def test_randomised_sweep_is_bit_true_and_veto_dominant(verilator_binary: Path) -> None:
+    """512 seeded random cycles are bit-true, never fire under veto, and fire only on a qualified fire."""
     rng = random.Random(20260620)
     stimulus = [
         FastVetoGateInput(
@@ -129,6 +134,7 @@ def test_randomised_sweep_is_bit_true_and_veto_dominant(verilator_binary: Path) 
 
 
 def test_veto_dominance_under_biased_injection(verilator_binary: Path) -> None:
+    """600 cycles with a 40 % veto and 70 % qualified-fire rate never fire under veto."""
     rng = random.Random(424242)
     stimulus = [
         FastVetoGateInput(
@@ -151,6 +157,7 @@ def test_veto_dominance_under_biased_injection(verilator_binary: Path) -> None:
 
 
 def test_assert_bit_true_fails_closed_on_mutated_trace(verilator_binary: Path) -> None:
+    """A mutated RTL sample makes the bit-true assertion fail and name the cycle."""
     report = run_fast_veto_gate_cosim([_full_evidence(qualified_fire=True)], verilator_binary)
     mutated = [RtlSample(veto_active=False, fast_permit=False, fast_fire=False)]
 
@@ -159,6 +166,7 @@ def test_assert_bit_true_fails_closed_on_mutated_trace(verilator_binary: Path) -
 
 
 def test_run_rtl_trace_round_trips(verilator_binary: Path) -> None:
+    """The RTL trace runner returns one sample per stimulus cycle."""
     samples = run_rtl_trace(verilator_binary, [_full_evidence(qualified_fire=True)])
 
     assert len(samples) == 1
@@ -166,6 +174,7 @@ def test_run_rtl_trace_round_trips(verilator_binary: Path) -> None:
 
 
 def test_build_cosim_report_matches_run(verilator_binary: Path) -> None:
+    """A report built from a separate RTL run is bit-true and keeps that trace."""
     stimulus = [_full_evidence(qualified_fire=True), _full_evidence(qualified_fire=False)]
     rtl = run_rtl_trace(verilator_binary, stimulus)
     report = build_cosim_report(stimulus, rtl)
@@ -175,6 +184,7 @@ def test_build_cosim_report_matches_run(verilator_binary: Path) -> None:
 
 
 def test_stimulus_to_lines_renders_flags_as_integers() -> None:
+    """Boolean stimulus fields are written as 0 or 1 in the testbench line format."""
     rendered = stimulus_to_lines(
         [
             FastVetoGateInput(
@@ -187,31 +197,37 @@ def test_stimulus_to_lines_renders_flags_as_integers() -> None:
 
 
 def test_stimulus_to_lines_handles_empty_sequence() -> None:
+    """An empty stimulus renders as an empty string."""
     assert stimulus_to_lines([]) == ""
 
 
 def test_parse_rtl_trace_rejects_malformed_line() -> None:
+    """A trace line with too few fields is refused."""
     with pytest.raises(ValueError, match="malformed RTL trace line"):
         parse_rtl_trace("1 1\n", expected_cycles=1)
 
 
 def test_parse_rtl_trace_rejects_wrong_cycle_count() -> None:
+    """A trace with fewer lines than expected cycles is refused."""
     with pytest.raises(ValueError, match="expected 2"):
         parse_rtl_trace("1 1 0\n", expected_cycles=2)
 
 
 def test_parse_rtl_trace_skips_blank_lines() -> None:
+    """Blank lines around a trace sample are ignored."""
     samples = parse_rtl_trace("\n1 1 1\n\n", expected_cycles=1)
 
     assert samples == (RtlSample(veto_active=True, fast_permit=True, fast_fire=True),)
 
 
 def test_assert_bit_true_passes_on_matching_trace(verilator_binary: Path) -> None:
+    """The bit-true assertion accepts a matching trace."""
     report = run_fast_veto_gate_cosim([_full_evidence(qualified_fire=True)], verilator_binary)
     assert_bit_true(report)  # a matching trace must not raise
 
 
 def test_assert_bit_true_flags_cycle_count_mismatch(verilator_binary: Path) -> None:
+    """The bit-true assertion refuses a trace one cycle short."""
     report = run_fast_veto_gate_cosim(
         [_full_evidence(qualified_fire=True), _full_evidence(qualified_fire=False)],
         verilator_binary,

@@ -53,6 +53,7 @@ _MERGE_AMPLITUDE = 4096  # clean spike_count per window stays well above the loc
 
 @pytest.fixture(scope="module")
 def verilator_binary(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Build the trigger-fabric cosimulation binary once per module; skip without Verilator."""
     verilator = shutil.which("verilator")
     if verilator is None:
         pytest.skip("Verilator is not installed in this environment.")
@@ -79,7 +80,7 @@ def verilator_binary(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 
 def _merge_adc_stream() -> list[int]:
-    """A sustained high-|dB/dt| acquisition that locks before any degradation."""
+    """Return a sustained high-|dB/dt| acquisition that locks before any degradation."""
     return [_MERGE_AMPLITUDE] * (_WINDOW * _WINDOWS)
 
 
@@ -96,6 +97,7 @@ def _stress(seed: int, *, dropout: float = 0.25, sigma: float = 600.0) -> Stress
 
 
 def test_veto_held_never_fires_under_mif017_degradation(verilator_binary: Path) -> None:
+    """With the veto held, degraded spike evidence above threshold never locks, triggers or fires."""
     stimulus = build_stress_fabric_stimulus(
         _merge_adc_stream(),
         _stress(2026),
@@ -120,6 +122,7 @@ def test_veto_held_never_fires_under_mif017_degradation(verilator_binary: Path) 
 
 
 def test_veto_interspersed_never_fires_under_degradation(verilator_binary: Path) -> None:
+    """With a veto on alternate windows, degraded evidence never locks or triggers on vetoed windows."""
     veto_schedule = [index % 2 == 0 for index in range(_WINDOWS)]
     stimulus = build_stress_fabric_stimulus(
         _merge_adc_stream(),
@@ -141,6 +144,7 @@ def test_veto_interspersed_never_fires_under_degradation(verilator_binary: Path)
 
 
 def test_one_shot_per_continuous_arm_under_degradation(verilator_binary: Path) -> None:
+    """Under degradation each continuous arm segment triggers at most once."""
     stimulus = build_stress_fabric_stimulus(
         _merge_adc_stream(),
         _stress(99),
@@ -166,6 +170,7 @@ def test_one_shot_per_continuous_arm_under_degradation(verilator_binary: Path) -
 
 
 def test_hold_never_underflows_under_degradation(verilator_binary: Path) -> None:
+    """Under degradation with arm and veto schedules the hold counter stays within its reload value."""
     arm_schedule = [index % 5 != 4 for index in range(_WINDOWS)]
     veto_schedule = [index % 3 == 0 for index in range(_WINDOWS)]
     stimulus = build_stress_fabric_stimulus(
@@ -190,6 +195,7 @@ def test_hold_never_underflows_under_degradation(verilator_binary: Path) -> None
 
 
 def test_dropout_omits_acquisitions() -> None:
+    """A high dropout rate replaces some acquisitions with None and keeps the stream length."""
     degraded = degrade_adc_stream(
         [_MERGE_AMPLITUDE] * 64,
         _stress(1, dropout=0.9, sigma=0.0),
@@ -200,6 +206,7 @@ def test_dropout_omits_acquisitions() -> None:
 
 
 def test_noise_keeps_codes_in_adc_range() -> None:
+    """Large additive noise keeps every code inside the ADC range."""
     cfg = AdcToSpikeConfig()
     degraded = degrade_adc_stream(
         [_MERGE_AMPLITUDE] * 200,
@@ -211,6 +218,7 @@ def test_noise_keeps_codes_in_adc_range() -> None:
 
 
 def test_degradation_is_deterministic_by_seed() -> None:
+    """The same seed degrades a stream identically."""
     samples = [_MERGE_AMPLITUDE] * 256
     first = degrade_adc_stream(samples, _stress(42))
     second = degrade_adc_stream(samples, _stress(42))
@@ -218,6 +226,7 @@ def test_degradation_is_deterministic_by_seed() -> None:
 
 
 def test_windowed_spike_counts_saturate_at_fabric_max() -> None:
+    """Window spike counts saturate at the fabric maximum."""
     degraded = degrade_adc_stream(_merge_adc_stream(), _stress(3, dropout=0.0))
     counts = windowed_spike_counts(degraded, window=_WINDOW, spike_count_max=4)
     assert counts
@@ -225,16 +234,19 @@ def test_windowed_spike_counts_saturate_at_fabric_max() -> None:
 
 
 def test_windowed_spike_counts_rejects_nonpositive_window() -> None:
+    """A zero window length is refused."""
     with pytest.raises(ValueError, match="window must be positive"):
         windowed_spike_counts((1, 2, 3), window=0)
 
 
 def test_all_dropped_window_yields_zero_spikes() -> None:
+    """A window of dropped acquisitions counts zero spikes."""
     counts = windowed_spike_counts((None, None, None, None), window=4)
     assert counts == (0,)
 
 
 def test_schedule_length_must_match_windows() -> None:
+    """An arm schedule shorter than the window count is refused."""
     with pytest.raises(ValueError, match="does not match"):
         build_stress_fabric_stimulus(
             _merge_adc_stream(),

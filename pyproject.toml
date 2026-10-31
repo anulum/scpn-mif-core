@@ -160,8 +160,8 @@ ignore = [
 "campaigns/**/*.py" = ["S"]
 "tools/**/*.py" = ["S"]
 # Cosimulation harnesses and their tests drive external simulators by subprocess
-# and follow the test-style docstring convention, like tools/ and bench/.
-"cosim/**/*.py" = ["S", "D"]
+# (scope of S); docstrings are enforced there like in src/ and tools/.
+"cosim/**/*.py" = ["S"]
 "conftest.py" = ["S", "D"]
 # Parity tests intentionally use `pytest.importorskip` before further imports,
 # quote forward references to the runtime-resolved Rust extension module, and

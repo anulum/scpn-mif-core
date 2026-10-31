@@ -29,6 +29,7 @@ class FloatAdcCosimConfig:
     adc: AdcToSpikeConfig = field(default_factory=AdcToSpikeConfig)
 
     def __post_init__(self) -> None:
+        """Refuse a full-scale value that is not finite and strictly positive."""
         if not math.isfinite(self.full_scale_abs) or self.full_scale_abs <= 0.0:
             raise ValueError("full_scale_abs must be finite and strictly positive")
 

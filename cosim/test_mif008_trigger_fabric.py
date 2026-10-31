@@ -34,6 +34,7 @@ COSIM_PATH = REPO / "hdl" / "sim" / "mif_trigger_fabric_tb.cpp"
 
 @pytest.fixture(scope="module")
 def verilator_binary(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Build the trigger-fabric cosimulation binary once per module; skip without Verilator."""
     verilator = shutil.which("verilator")
     if verilator is None:
         pytest.skip("Verilator is not installed in this environment.")
@@ -67,6 +68,7 @@ def _sustained_lock(cycles: int) -> list[TriggerFabricInput]:
 
 
 def test_sustained_lock_is_bit_true(verilator_binary: Path) -> None:
+    """Six cycles of sustained lock evidence trigger once, on cycle 2, bit-true."""
     report = run_trigger_fabric_cosim(_sustained_lock(6), verilator_binary)
 
     assert report.bit_true
@@ -76,6 +78,7 @@ def test_sustained_lock_is_bit_true(verilator_binary: Path) -> None:
 
 
 def test_veto_interspersed_is_bit_true(verilator_binary: Path) -> None:
+    """A veto on every other cycle blocks lock and trigger on those cycles, bit-true."""
     stimulus = [
         TriggerFabricInput(arm=True, spike_count=8, confidence_q8_8=200, bank_ready=True, safety_veto=(idx % 2 == 0))
         for idx in range(12)
@@ -91,6 +94,7 @@ def test_veto_interspersed_is_bit_true(verilator_binary: Path) -> None:
 
 
 def test_rearm_produces_second_trigger_bit_true(verilator_binary: Path) -> None:
+    """Dropping and restoring arm between two lock runs yields exactly two triggers."""
     stimulus = [
         *_sustained_lock(4),
         TriggerFabricInput(arm=False, spike_count=0, confidence_q8_8=0, bank_ready=False, safety_veto=False),
@@ -104,6 +108,7 @@ def test_rearm_produces_second_trigger_bit_true(verilator_binary: Path) -> None:
 
 
 def test_randomised_stimulus_sweep_is_bit_true(verilator_binary: Path) -> None:
+    """512 seeded random cycles are bit-true and never trigger under veto."""
     rng = random.Random(20260620)
     stimulus = [
         TriggerFabricInput(
@@ -126,6 +131,7 @@ def test_randomised_stimulus_sweep_is_bit_true(verilator_binary: Path) -> None:
 
 
 def test_assert_bit_true_fails_closed_on_mutated_trace(verilator_binary: Path) -> None:
+    """A mutated RTL sample makes the bit-true assertion fail and name the cycle."""
     report = run_trigger_fabric_cosim(_sustained_lock(6), verilator_binary)
     mutated = list(report.rtl_samples)
     mutated[2] = RtlSample(trigger=False, lock_now=True, fired=False, hold_remaining=1)
@@ -135,6 +141,7 @@ def test_assert_bit_true_fails_closed_on_mutated_trace(verilator_binary: Path) -
 
 
 def test_run_rtl_trace_round_trips(verilator_binary: Path) -> None:
+    """The RTL trace runner returns one sample per cycle and triggers on cycle 2."""
     stimulus = _sustained_lock(3)
     samples = run_rtl_trace(verilator_binary, stimulus)
 
@@ -143,6 +150,7 @@ def test_run_rtl_trace_round_trips(verilator_binary: Path) -> None:
 
 
 def test_build_cosim_report_matches_run(verilator_binary: Path) -> None:
+    """A report built from a separate RTL run is bit-true and keeps that trace."""
     stimulus = _sustained_lock(5)
     rtl = run_rtl_trace(verilator_binary, stimulus)
     report = build_cosim_report(stimulus, rtl)
@@ -152,6 +160,7 @@ def test_build_cosim_report_matches_run(verilator_binary: Path) -> None:
 
 
 def test_stimulus_to_lines_renders_flags_as_integers() -> None:
+    """Boolean stimulus fields are written as 0 or 1 in the testbench line format."""
     rendered = stimulus_to_lines(
         [TriggerFabricInput(arm=True, spike_count=8, confidence_q8_8=128, bank_ready=False, safety_veto=True)]
     )
@@ -160,20 +169,24 @@ def test_stimulus_to_lines_renders_flags_as_integers() -> None:
 
 
 def test_stimulus_to_lines_handles_empty_sequence() -> None:
+    """An empty stimulus renders as an empty string."""
     assert stimulus_to_lines([]) == ""
 
 
 def test_parse_rtl_trace_rejects_malformed_line() -> None:
+    """A trace line with too few fields is refused."""
     with pytest.raises(ValueError, match="malformed RTL trace line"):
         parse_rtl_trace("1 1 0\n", expected_cycles=1)
 
 
 def test_parse_rtl_trace_rejects_wrong_cycle_count() -> None:
+    """A trace with fewer lines than expected cycles is refused."""
     with pytest.raises(ValueError, match="expected 2"):
         parse_rtl_trace("1 1 0 1\n", expected_cycles=2)
 
 
 def test_parse_rtl_trace_skips_blank_lines() -> None:
+    """Blank lines around a trace sample are ignored."""
     samples = parse_rtl_trace("\n1 1 0 1\n\n", expected_cycles=1)
 
     assert samples == (RtlSample(trigger=True, lock_now=True, fired=False, hold_remaining=1),)
@@ -185,6 +198,7 @@ def test_parse_rtl_trace_skips_blank_lines() -> None:
 # complementary simulation evidence and a regression guard.                    #
 # --------------------------------------------------------------------------- #
 def test_veto_dominance_under_randomised_injection(verilator_binary: Path) -> None:
+    """600 cycles with a 40 % veto rate never lock or trigger under veto."""
     rng = random.Random(424242)
     stimulus = [
         TriggerFabricInput(
@@ -207,6 +221,7 @@ def test_veto_dominance_under_randomised_injection(verilator_binary: Path) -> No
 
 
 def test_one_shot_per_continuous_arm_under_injection(verilator_binary: Path) -> None:
+    """With random arm drops, each continuous arm segment triggers at most once."""
     rng = random.Random(99)
     stimulus = [
         TriggerFabricInput(
@@ -234,6 +249,7 @@ def test_one_shot_per_continuous_arm_under_injection(verilator_binary: Path) -> 
 
 
 def test_hold_remaining_never_underflows_under_injection(verilator_binary: Path) -> None:
+    """Under random stimulus the hold counter stays between 0 and its reload value."""
     rng = random.Random(7)
     stimulus = [
         TriggerFabricInput(
@@ -255,6 +271,7 @@ def test_hold_remaining_never_underflows_under_injection(verilator_binary: Path)
 
 
 def test_glitch_on_arm_and_veto_edges_is_bit_true_and_safe(verilator_binary: Path) -> None:
+    """Veto and arm edges racing the 3-cycle debounce stay bit-true and never trigger under veto."""
     # Race veto (every 3rd cycle) and arm drops (every 5th) against the 3-cycle
     # debounce, exactly where a glitch could spuriously fire.
     stimulus = [
@@ -277,11 +294,13 @@ def test_glitch_on_arm_and_veto_edges_is_bit_true_and_safe(verilator_binary: Pat
 
 
 def test_assert_bit_true_passes_on_matching_trace(verilator_binary: Path) -> None:
+    """The bit-true assertion accepts a matching trace."""
     report = run_trigger_fabric_cosim(_sustained_lock(5), verilator_binary)
     assert_bit_true(report)  # a matching trace must not raise
 
 
 def test_assert_bit_true_flags_cycle_count_mismatch(verilator_binary: Path) -> None:
+    """The bit-true assertion refuses a trace one cycle short."""
     report = run_trigger_fabric_cosim(_sustained_lock(5), verilator_binary)
     with pytest.raises(AssertionError, match="cycle-count mismatch"):
         assert_bit_true(report, rtl_samples=report.rtl_samples[:-1])
