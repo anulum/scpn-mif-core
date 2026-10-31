@@ -76,7 +76,11 @@ adjacency determinism and the minimal eight-step return to `idle`.
 dψ/dt = −ψ / τ_ψ + R_null · E_θ − η_Spitzer · J_θ
 ```
 
-Reference: Ono et al. 1997, *Physics of Plasmas* 4, 1953, eq. 8.
+Source: owned and documented by `scpn-fusion-core` (FUS-C.3). This page
+previously cited "Ono et al. 1997, Physics of Plasmas 4, 1953, eq. 8"; that
+article is on three-component reconnection in merging spheromaks and tokamaks,
+and the equation could not be confirmed in it, so the citation was removed
+(2026-10-31).
 Implemented in `scpn-fusion-core` as
 `scpn_fusion.core.current_diffusion.solve_flux_evolution_nonadiabatic` (FUS-C.3);
 the live FUSION version is reported by the
@@ -88,7 +92,10 @@ the live FUSION version is reported by the
 γ(k, a_eff) = √(k · a_eff − k² · B_perp² / (μ₀ ρ))
 ```
 
-Reference: Velikovich et al. 2007, *Physics of Plasmas* 14, 022701, eq. 18.
+Source: owned and documented by `scpn-fusion-core` (FUS-C.4). This page
+previously cited "Velikovich et al. 2007, Physics of Plasmas 14, 022701,
+eq. 18"; that article is "Z-pinch plasma neutron sources", and the equation
+could not be confirmed in it, so the citation was removed (2026-10-31).
 Implemented in `scpn-fusion-core` as `scpn_fusion.core.mrti.mrti_growth_rate`
 (FUS-C.4); the live FUSION version is reported by the
 [dynamic compatibility matrix](../generated/compatibility_matrix.md).

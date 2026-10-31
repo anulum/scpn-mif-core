@@ -13,3 +13,9 @@ Ono = "Ono"
 arange = "arange"
 # NumPy spells the array-flag attribute `ndarray.flags.writeable`.
 writeable = "writeable"
+
+[default]
+# The published title of Tabuada & Wang (IEEE CDC 2006) is spelled
+# "state-trigered"; the bibliography quotes it as published. Only that exact
+# hyphenated form is exempt; "trigered" anywhere else is still a typo.
+extend-ignore-re = ["state-trigered"]
