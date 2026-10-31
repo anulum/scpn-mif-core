@@ -35,6 +35,11 @@
 
 ### Security
 
+- The docs, stale and upstream-nightly workflows now grant no permission at
+  workflow level; each job declares only what it uses (Pages deployment:
+  `pages` and `id-token`; stale triage: `issues` and `pull-requests`;
+  upstream contract trial: `contents` read and `issues`). The stale job gained
+  a 10-minute timeout.
 - The public documentation site no longer loads a script from `polyfill.io`,
   a domain that served malicious code to sites embedding it in 2024; MathJax
   is pinned to the exact release 3.2.2. `tests/unit/test_docs_site_scripts.py`

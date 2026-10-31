@@ -22,15 +22,16 @@ on:
     - cron: "17 3 * * *"   # 03:17 UTC daily
   workflow_dispatch:
 
-permissions:
-  contents: read
-  issues: write
+permissions: {}
 
 jobs:
   contract-trial:
     name: Contract ${{ matrix.sibling.repo }}@main
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write
     strategy:
       fail-fast: false
       matrix:
