@@ -66,6 +66,12 @@
 
 ### Changed
 
+- `tools/preflight.py` now runs every hosted Python Quality, Rust Quality,
+  Secret Assurance, Studio Product and sync-tag gate: the Verilator
+  cosimulation suite with its coverage gate, the AER ingress replay, and the
+  Studio typecheck, lint, format, coverage-gated tests and build were missing.
+  `tests/unit/test_local_ci_parity.py` records the commands the preflight
+  would run and fails when any hosted gate has no local counterpart.
 - Ruff now lints and format-checks the whole tree (`ruff check .`) in CI,
   pre-commit, Make and the preflight; before, `cosim/`, `examples/`,
   `campaigns/`, `papers/`, `conftest.py` and the notebook were outside every

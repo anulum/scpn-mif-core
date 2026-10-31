@@ -17,13 +17,15 @@ Gates (in order):
  5. Actionlint validation of every GitHub Actions workflow.
  6. `ruff check` and `ruff format --check`.
  7. `mypy` (strict).
- 8. `pytest tests/` (full coverage gate).
+ 8. `pytest tests/` (full coverage gate), then the Verilator cosimulation
+    suite and the AER ingress replay (a missing Verilator fails the gate).
  9. `bandit` security lint.
 10. `cargo fmt`, warning-denied Clippy, and strict `cargo doc` (if Rust available).
 11. `cargo test --workspace` (if Rust available).
 12. Go documentation coverage and native `go doc` rendering (if Go available).
 13. Strict Julia `Documenter.jl` API build (if Julia is available).
-14. Strict Studio TypeDoc API build (if pnpm is available).
+14. Studio TypeDoc API build, typecheck, lint, format, tests with coverage
+    and build (if pnpm is available).
 15. `mkdocs build --strict` (if MkDocs available).
 16. SymbiYosys manifest/suites and Lean build (with `--formal`).
 17. Authorship-line presence in the last commit message.
@@ -86,7 +88,7 @@ def _run(
 
 
 def gate_sync_tags() -> GateResult:
-    return _run("sync-tags", [sys.executable, str(REPO / "tools" / "check_sync_tags.py")])
+    return _run("sync-tags", [sys.executable, str(REPO / "tools" / "check_sync_tags.py"), "--root", str(REPO)])
 
 
 def gate_secrets() -> GateResult:
@@ -112,6 +114,31 @@ def gate_bandit() -> GateResult:
 def gate_pytest() -> GateResult:
     """Run the complete Python test tree under the repository coverage gate."""
     return _run("pytest", ["pytest", "tests/", "-q"])
+
+
+def gate_cosim() -> GateResult:
+    """Run the Verilator cosimulation suite under its own 100 % coverage gate."""
+    return _run(
+        "cosim",
+        [
+            "pytest",
+            "cosim/",
+            "-o",
+            "addopts=",
+            "--cov=cosim",
+            "--cov-report=term-missing",
+            "--cov-fail-under=100",
+            "-p",
+            "no:nengo",
+            "-p",
+            "no:randomly",
+        ],
+    )
+
+
+def gate_aer_ingress_cosim() -> GateResult:
+    """Replay the AER event-ingress RTL against its Python reference."""
+    return _run("aer-ingress-cosim", [sys.executable, "-m", "tools.aer_event_ingress_cosim", "--events", "4096"])
 
 
 def gate_samsung_workspace() -> GateResult:
@@ -214,6 +241,20 @@ def gate_studio_doc() -> GateResult:
     return _run("studio-doc", ["pnpm", "docs:api"], cwd=REPO / "studio-web")
 
 
+STUDIO_GATES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("studio-typecheck", ("pnpm", "typecheck")),
+    ("studio-lint", ("pnpm", "lint")),
+    ("studio-format", ("pnpm", "format:check")),
+    ("studio-test", ("pnpm", "exec", "vitest", "run", "--coverage")),
+    ("studio-build", ("pnpm", "build")),
+)
+
+
+def gate_studio(name: str, command: tuple[str, ...]) -> GateResult:
+    """Run one Studio Product gate in the Studio web package."""
+    return _run(name, list(command), cwd=REPO / "studio-web")
+
+
 def gate_mkdocs_build() -> GateResult:
     return _run("mkdocs", ["mkdocs", "build", "--strict"])
 
@@ -274,6 +315,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if not args.no_tests:
         gates.append(gate_pytest())
+        if shutil.which("verilator") is not None:
+            gates.append(gate_cosim())
+            gates.append(gate_aer_ingress_cosim())
+        else:
+            gates.append(gate_missing_tool("cosim", "verilator"))
 
     if not args.no_rust and shutil.which("cargo") is not None:
         gates.append(gate_cargo_fmt())
@@ -290,6 +336,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if shutil.which("pnpm") is not None:
         gates.append(gate_studio_doc())
+        gates.extend(gate_studio(name, command) for name, command in STUDIO_GATES)
 
     if shutil.which("mkdocs") is not None:
         gates.append(gate_mkdocs_build())

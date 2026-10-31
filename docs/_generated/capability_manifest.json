@@ -658,7 +658,7 @@
     "python_capability_classes": 116,
     "python_capability_source_modules": 28,
     "rust_workspace_crates": 10,
-    "test_files": 136
+    "test_files": 137
   },
   "documentation": {
     "public_pages": [
@@ -1152,6 +1152,7 @@
       "tests/unit/test_lean_kinematic_safety.py",
       "tests/unit/test_lean_plasmoid_merger_petri_net.py",
       "tests/unit/test_lean_pulsed_shot.py",
+      "tests/unit/test_local_ci_parity.py",
       "tests/unit/test_makefile_roadmap_targets.py",
       "tests/unit/test_merge_trigger.py",
       "tests/unit/test_paper_package.py",
